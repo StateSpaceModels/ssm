@@ -1,0 +1,343 @@
+{
+  "name": "model-sballest-sir",
+  "description": "SIR model with birth and death processes, white noise on the transmission term and overdispersed binomial observation process",
+  "keywords": ["SIR", "overdispersed binomial", "2 cities", "paris", "new york"],
+  "dependencies": {
+    "data-sballest-noise": "*"
+  },
+  "licenses": [
+    {
+      "type": "cc0",
+      "url": "http://creativecommons.org/publicdomain/zero/1.0/"
+    }
+  ],
+
+  "version": "0.0.0",
+
+  "resources": [
+
+    {
+      "name": "populations",
+      "data": [
+        {"id": "paris", "composition": ["S_paris", "I_paris", "R_paris"], "remainder": {"id": "R_paris", "pop_size": "N_paris"}},
+        {"id": "nyc",   "composition": ["S_nyc", "I_nyc", "R_nyc"],       "remainder": {"id": "R_nyc",   "pop_size": "N_nyc"}}
+      ]
+    },
+
+    {
+      "name": "reactions",
+      "data":  [
+        {"from": "U",       "to": "S_nyc",   "rate": "mu_b_nyc*N_nyc",             "description":"birth"},
+        {"from": "U",       "to": "S_paris", "rate": "mu_b_paris*N_paris",         "description":"birth"},
+
+        {"from": "S_nyc",   "to": "I_nyc",   "rate": "r0_nyc/N_nyc*v*I_nyc",       "description":"infection", "keywords": ["transmission"], "tracked": ["Inc_in_nyc"], "white_noises": [{"id":"noise_SI", "sd": "sto"}]},
+        {"from": "S_paris", "to": "I_paris", "rate": "r0_paris/N_paris*v*I_paris", "description":"infection", "keywords": ["transmission"]},
+
+        {"from": "I_nyc",   "to": "R_nyc",   "rate": "correct_rate(v)",            "description":"recovery", "tracked": ["Inc_out"]},
+        {"from": "I_paris", "to": "R_paris", "rate": "correct_rate(v)",            "description":"recovery", "tracked": ["Inc_out"]},
+
+        {"from": "S_nyc",   "to": "U",       "rate": "mu_d_nyc",                   "description":"death"},
+        {"from": "S_paris", "to": "U",       "rate": "mu_d_paris",                 "description":"death"},
+
+        {"from": "I_nyc",   "to": "U",       "rate": "mu_d_nyc",                   "description":"death", "tracked": ["Inc_out"]},
+        {"from": "I_paris", "to": "U",       "rate": "mu_d_paris",                 "description":"death", "tracked": ["Inc_out"]}
+      ]
+    },
+
+    {
+      "name": "sde",
+      "data": {
+        "skeleton": [
+          {"id": "r0_paris", "f": 0.0, "transformation": "log(r0_paris)"},
+          {"id": "r0_nyc",   "f": 0.0, "transformation": "log(r0_nyc)"}
+        ],
+        "sigma":[
+          ["vol", 0],
+          [0, "vol"]
+        ]
+      }
+    },
+
+    {
+      "name": "observations",
+      "data": [
+        {
+          "id": "all_CDC_inc",
+          "data": {
+            "path": "datapackages/data-sballest-noise/data/all_CDC_inc"
+          },
+          "start": "2012-07-26",
+          "pdf": {
+            "distribution": "discretized_normal",
+            "mean": "rep_all_CDC_inc * prop_all_CDC_inc * Inc_out",
+            "var": "rep_all_CDC_inc * ( 1.0 - rep_all_CDC_inc ) * prop_all_CDC_inc * Inc_out + ( rep_all_CDC_inc * phi * prop_all_CDC_inc * Inc_out ) ^2)"
+          }
+        },
+
+        {
+          "id": "paris_CDC_prev",
+          "data": {
+            "path": "datapackages/data-sballest-noise/data/paris_CDC_prev"
+          },
+          "start": "2012-07-26",
+          "pdf": {
+            "distribution": "discretized_normal",
+            "mean": "(rep_paris_CDC_prev * prop_paris_CDC_prev * I_paris",
+            "var": "rep_paris_CDC_prev * ( 1.0 - rep_paris_CDC_prev ) * prop_paris_CDC_prev * I_paris + ( rep_paris_CDC_prev * phi * prop_paris_CDC_prev * I_paris) ^2)"
+          }
+        },
+
+        {
+          "id": "all_google_inc",
+          "data": {
+            "path": "datapackages/data-sballest-noise/data/all_google_inc",
+          },
+          "start": "2012-07-26",
+          "pdf": {
+            "distribution": "discretized_normal",
+            "mean": "rep_all_google_inc * prop_all_google_inc * Inc_out",
+            "var": "rep_all_google_inc * ( 1.0 - rep_all_google_inc ) * prop_all_google_inc * Inc_out + ( rep_all_google_inc * phi * prop_all_google_inc * Inc_out ) ^2)"
+          }
+        },
+
+        {
+          "id": "nyc_CDC_inc",
+          "data": {
+            "path": "datapackages/data-sballest-noise/data/nyc_CDC_inc"
+          }
+          "start": "2012-07-26",
+          "pdf": {
+            "distribution": "discretized_normal",
+            "mean": "rep_nyc_CDC_inc * prop_nyc_CDC_inc * Inc_in_nyc",
+            "var": "rep_nyc_CDC_inc * ( 1.0 - rep_nyc_CDC_inc ) * prop_nyc_CDC_inc * Inc_in_nyc + ( rep_nyc_CDC_inc * phi * prop_nyc_CDC_inc * Inc_in_nyc ) ^2)"
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "parameters",
+      "data": [
+
+        {
+          "id": "S_paris",
+          "description": "Number of susceptible",
+          "transformation": "pr_S_paris*N_paris",
+          "prior": {
+            "id": "pr_S_paris",
+            "description": "Proportion of susceptible",
+            "distribution": "uniform", 
+            "lower":0.07,
+            "upper":0.07
+          }
+        },
+
+        {
+          "id": "S_nyc",
+          "description": "Proportion of susceptible",
+          "transformation": "pr_S_paris*N_nyc"
+        },
+
+        {
+          "id": "I_paris",
+          "description": "Number of infectious",
+          "keywords": ["infectious"],
+          "transformation": "pr_I_paris*N_paris",
+          "prior": {
+            "id": "pr_I_paris",
+            "description": "Proportion of infectious",
+            "distribution": "uniform",
+            "lower": 1e-6, 
+            "upper": 1e-4
+          }
+        },
+
+        {
+          "id": "I_nyc",
+          "description": "Number of infectious",
+          "keywords": ["infectious"],
+          "transformation": "10^-pr_I_nyc * N_nyc",
+          "prior": {
+            "id": "pr_I_nyc",
+            "description": "exponent (10^-x) to get a proportion of infectious",
+            "distribution": "uniform",
+            "lower": 4, 
+            "upper": 6
+          }
+        },
+
+        {
+          "id": "r0_paris",
+          "description": "basic reproduction number",
+          "prior": {
+            "distribution": "uniform",
+            "lower": 15.0,
+            "upper": 35.0
+          }
+        },
+
+        {
+          "id": "r0_nyc",
+          "description": "basic reproduction number",
+          "prior": {
+            "distribution": "uniform",
+            "lower": 15.0,
+            "upper": 35.0
+          }
+        },
+
+        {
+          "id": "v",
+          "description": "recovery rate",          
+          "transformation": "1/pr_v",
+          "prior": {
+            "id": "pr_v",
+            "description": "duration of infection",
+            "distribution": "normal",
+            "mean": 7.0,
+            "sd": 2.0,
+            "unit": "days"
+          }
+        },
+
+        {
+          "id": "sto",
+          "description": "noise intensity",
+          "prior": {
+            "distribution": "fixed", 
+            "value": 0.1
+          }
+        },
+
+        {
+          "id": "rep_all_CDC_inc",
+          "description": "reporting rate",
+          "prior": {
+            "distribution": "uniform",
+            "lower": 0.5,
+            "upper": 0.8
+          }
+        },
+
+        {
+          "id": "rep_paris_CDC_prev",
+          "description": "reporting rate",
+          "prior": {
+            "distribution": "uniform", 
+            "lower": 0.5,
+            "upper": 0.8
+          }
+        },
+
+        {
+          "id": "rep_all_google_inc",
+          "description": "reporting rate",
+          "prior": {
+            "distribution": "uniform", 
+            "lower": 0.5,
+            "upper": 0.8
+          }
+        },
+
+        {
+          "id": "rep_nyc_CDC_inc",
+          "description": "reporting rate",
+          "prior": {
+            "distribution": "uniform", 
+            "lower": 0.5,
+            "upper": 0.8
+          }
+        },
+
+        {
+          "id": "phi",
+          "description": "over-dispertion",
+          "prior": {
+            "distribution": "fixed", 
+            "value": 0.1
+          }
+        },
+
+        {
+          "id": "mu_b_paris",
+          "description": "birth rate",
+          "prior": {
+            "path": "datapackages/data-sballest-noise/mu_b/paris"
+          }
+        },
+
+        {
+          "id": "mu_b_nyc",
+          "description": "birth rate",
+          "prior": {
+            "path": "datapackages/data-sballest-noise/mu_b/nyc"
+          }
+        },
+
+        {
+          "id": "mu_d_paris",
+          "description": "death rate",
+          "prior": {
+            "path": "datapackages/data-sballest-noise/mu_d/paris"
+          }
+        },
+
+        {
+          "id": "mu_d_nyc",
+          "description": "death rate",
+          "prior": {
+            "path": "datapackages/data-sballest-noise/mu_d/nyc"
+          }
+        },
+
+        {
+          "id": "N_paris",
+          "description": "population size",
+          "prior": {
+            "path": "datapackages/data-sballest-noise/N/paris"
+          }
+        },
+
+        {
+          "id": "N_nyc",
+          "description": "population size",
+          "prior": {
+            "path": "datapackages/data-sballest-noise/N/nyc"
+          }
+        },
+
+        {
+          "id": "prop_all_CDC_inc",
+          "description": "proportion of the population under surveillance",
+          "prior": {
+            "path": "datapackages/data-sballest-noise/prop/all_CDC_inc"
+          }
+        },
+
+        {
+          "id": "prop_paris_CDC_prev",
+          "description": "proportion of the population under surveillance",
+          "prior": {
+            "path": "datapackages/data-sballest-noise/prop/paris_CDC_prev"
+          }
+        },
+
+        {
+          "id": "prop_all_google_inc",
+          "description": "proportion of the population under surveillance",
+          "prior": {
+            "path": "datapackages/data-sballest-noise/prop/all_google_inc"
+          }
+        },
+
+        {
+          "id": "prop_nyc_CDC_inc",
+          "description": "proportion of the population under surveillance",
+          "prior": {
+            "path": "datapackages/data-sballest-noise/prop/nyc_CDC_inc"
+          }
+        }
+      ]
+    }
+  ]
+}
