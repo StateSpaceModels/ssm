@@ -65,9 +65,10 @@ enum ssm_print {SSM_PRINT_TRACE = 1 << 0, SSM_PRINT_X = 1 << 1, SSM_PRINT_HAT = 
 
 typedef enum {SSM_SUCCESS = 1 << 0 , SSM_ERR_LIKE= 1 << 1, SSM_ERR_REM = 1 << 2} ssm_err_code;
 
-#define SSM_BUFFER_SIZE (5000 * 1024)  /**< 5000 KB buffer size for settings.json inputs */
+#define SSM_BUFFER_SIZE (50000 * 1024)  /**< 50000 KB buffer size for settings.json inputs */
 #define SSM_STR_BUFFSIZE 255 /**< buffer for log and error strings */
 #define SSM_PATH_ROOT "./" /**< default root path for the results files (traces, ...) (has to be slash appended) */
+#define SSM_PATH_SETTINGS "./.settings.json"
 
 #define SSM_WEB_APP 0 /**< webApp */
 
@@ -317,7 +318,7 @@ typedef struct { /* [n_data] */
     unsigned int *ts_nonan; /**< [self.length] index of time series without NaN*/
 
     int states_reset_length; /**< number of states that must be reset to 0 */
-    unsigned int *states_reset; /**< [self.length] index of states that must be reset to 0*/
+    ssm_state_t **states_reset; /**< [self.length] array of pointer to the states to reset */
 
 } ssm_data_row_t;
 

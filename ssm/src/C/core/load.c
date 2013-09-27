@@ -16,6 +16,50 @@
  *    <http://www.gnu.org/licenses/>.
  *************************************************************************/
 
+json_t *load_json(void)
+{
+    char *buffer;
+    buffer = malloc(SSM_BUFFER_SIZE* sizeof(char));
+
+    fgets(buffer, SSM_BUFFER_SIZE, stdin);
+    //    printf("%s\n", buffer);
+
+    json_t *root;
+    json_error_t error;
+
+    root = json_loads(buffer, 0, &error);
+    if(!root) {
+        char str[SSM_STR_BUFFSIZE];
+        sprintf(str, "could not parse parameters datapackage\nerror: on line %d: %s\n", error.line, error.text);
+        print_err(str);
+        exit(EXIT_FAILURE);
+    }
+
+    //  buffer = json_dumps(root, 0);
+
+    free(buffer);
+
+    return root;
+}
+
+
+/**
+ *load constants defined as global variable
+ */
+json_t *load_settings(const char *path)
+{
+    json_error_t settings_error;
+    json_t *settings = json_load_file(path, 0, &settings_error);
+    if(!settings) {
+        print_err(settings_error.text);
+        exit(EXIT_FAILURE);
+    }
+    
+    return settings;
+}
+
+
+
 void ssm_input2par(ssm_par_t *par, ssm_input_t *input, ssm_calc_t *calc, ssm_nav_t *nav)
 {   
     ssm_it_parameters_t *it = nav->theta_all;
