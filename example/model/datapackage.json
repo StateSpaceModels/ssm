@@ -90,7 +90,7 @@
         {
           "id": "all_google_inc",
           "data": {
-            "path": "datapackages/data-sballest-noise/data/all_google_inc",
+            "path": "datapackages/data-sballest-noise/data/all_google_inc"
           },
           "start": "2012-07-26",
           "pdf": {
@@ -104,7 +104,7 @@
           "id": "nyc_CDC_inc",
           "data": {
             "path": "datapackages/data-sballest-noise/data/nyc_CDC_inc"
-          }
+          },
           "start": "2012-07-26",
           "pdf": {
             "distribution": "discretized_normal",
@@ -183,6 +183,16 @@
             "distribution": "uniform",
             "lower": 15.0,
             "upper": 35.0
+          }
+        },
+
+        {
+          "id": "vol",
+          "description": "volatility of the diffusion",
+          "prior": {
+            "distribution": "uniform",
+            "lower": 0.0,
+            "upper": 0.2
           }
         },
 

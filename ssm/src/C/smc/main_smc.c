@@ -1,0 +1,84 @@
+/**************************************************************************
+ *    This file is part of ssm.
+ *
+ *    ssm is free software: you can redistribute it and/or modify it
+ *    under the terms of the GNU General Public License as published
+ *    by the Free Software Foundation, either version 3 of the
+ *    License, or (at your option) any later version.
+ *
+ *    ssm is distributed in the hope that it will be useful, but
+ *    WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public
+ *    License along with ssm.  If not, see
+ *    <http://www.gnu.org/licenses/>.
+ *************************************************************************/
+
+#include "ssm.h"
+
+int main(int argc, char *argv[]){
+
+    ssm_data_t *data = ssm_data_new(settings, n_obs);
+    ssm_nav_t *nav = ssm_nav_new(settings, parameters);
+    
+    ssm_par_t *par = ssm_par_new(nav);
+    ssm_par_load(par);
+
+    ssm_X_t ***D_J_X = ssm_D_J_X_new(data->n_data +1, J, nav->par_states->length + nav->par_inc->length + nav->par_diff->length, dt);
+
+    ssm_fitness_t *like = ssm_fitness_new(J, data, like_min);
+
+    ssm_calc_t **calc = ssm_N_calc_new(n_threads, ...);
+
+    ssm_X_load(D_J_X[0][0], par, nav, calc[0]);
+    for(j=1; j<J; j++){
+	ssm_X_copy(D_J_p_X[0][j], D_J_p_X[0][0]);
+    }
+
+    int j, n, np1, t0,t1;
+
+    for(j=0; j<J; j++) {
+	like->cum_status[j] = SSM_SUCCESS;
+    }
+
+    for(n=0; n<data->n_obs; n++) {
+	np1 = n+1;
+	t0 = data->times[n];
+	t1 = data->times[np1];
+		    
+	//we are going to overwrite the content of the [np1] pointer: initialise it with values from [n]
+	for(j=0;j<J;j++) {
+	    ssm_X_copy(D_J_X[np1][j], D_J_X[n][j]);
+	}
+
+	for(j=0;j<J;j++) {
+	    ssm_X_reset_inc(D_J_X[np1][j], nav, data->rows[n]);
+	    like->cum_status[j] |= (*f_pred)(D_J_X[np1][j], t0, t1, par, nav, calc[0]);
+
+	    if(data->rows[n]->n_nonan) {
+		like->weights[j] = (like->cum_status[j] == SSM_SUCCESS) ?  exp(ssm_log_likelihood(D_J_X[np1][j], par, data->rows[n], calc[0], t1)) : 0.0;
+		like->cum_status[j] = SSM_SUCCESS;
+	    }
+	}
+
+	if(ssm_weight(like, n)) {
+	    ssm_systematic_sampling(like, calc[0], n);
+	}
+	ssm_resample_X(like, &(D_J_X[np1]), &(D_J_X_tmp[np1]), n);
+    }
+
+    ssm_data_free(data);
+    ssm_nav_free(nav);
+    
+    ssm_par_free(par);
+    
+    ssm_D_J_X_free(D_J_X);
+
+    ssm_N_calc_free(calc);
+
+    ssm_fitness_free(like);
+
+    return 0;
+}
