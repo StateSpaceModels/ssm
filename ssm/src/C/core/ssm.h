@@ -80,7 +80,7 @@ typedef enum {SSM_SUCCESS = 1 << 0 , SSM_ERR_LIKE= 1 << 1, SSM_ERR_REM = 1 << 2}
 
 /**
  * vector parameters in the user scale (all of them (infered or not))
- * ordered by: states, volatilities, process model parameters, observation model parameters
+ * ordered by: states, volatilities, noises, process model parameters, observation model parameters
  */
 typedef gsl_vector ssm_input_t;
 
@@ -129,15 +129,6 @@ typedef struct  /* ([N_DATA+1]) */
 } ssm_X_hat_t;
 
 
-/**
- * aggregation of parameters (e.g initial conditions, process model parameters...)
- */
-typedef struct
-{
-    int length;           /**< number of parameters*/
-    unsigned int *ind;    /**< [this.length] indexes of the parameters contained in the iterator */
-} ssm_iterator_t;
-
 
 /**
  * everything related to "parameters" (as opposed to states)
@@ -145,7 +136,7 @@ typedef struct
 typedef struct
 {
     char *name; /**< name of the parameter */
-    int order; /**< order of the parameter */
+    int offset; /**< order of the parameter */
 
     double (*f) (double); /**< transformation (log, logit...) */
     double (*f_inv) (double); /**< inverse of f (f*f_inv=identity) */
@@ -161,13 +152,23 @@ typedef struct
 } ssm_parameter_t;
 
 
+
+/**
+ * aggregation of parameters (e.g initial conditions, process model parameters...)
+ */
+typedef struct
+{
+    int length;           /**< number of parameters*/
+    ssm_parameter_t **p;  /**< [this.length] */
+} ssm_it_parameters_t;
+
 /**
  * everything related to "states" including incidences, remainder...
  */
 typedef struct
 {
     char *name; /**< name of the state */
-    int order; /**< order of the state */
+    int offset; /**< order of the state */
 
     double (*f) (double); /**< transformation (log, logit...) */
     double (*f_inv) (double); /**< inverse of f (f*f_inv=identity) */
@@ -179,22 +180,32 @@ typedef struct
 
 
 /**
+ * aggregation of states (state variables, remainder...)
+ */
+typedef struct
+{
+    int length;           /**< number of parameters*/
+    ssm_state_t **p;  /**< [this.length] */
+} ssm_it_states_t;
+
+
+/**
  * navigating in the parameter / state space
  */
 typedef struct
 {
     //navigating withing par
-    ssm_iterator_t *par_all;            /**< to iterate on every parameters */
-    ssm_iterator_t *par_states;         /**< to iterate on the state variables *only* */
-    ssm_iterator_t *par_remainders;     /**< to iterate on the remainders *only* */
-    ssm_iterator_t *par_inc;            /**< to iterate on the state variables *only* */
-    ssm_iterator_t *par_diff;           /**< to iterate on parameters following a diffusion *only* */
-    ssm_iterator_t *par_noise;          /**< to iterate on white_noises sd *only* */
+    ssm_it_states_t *par_states;         /**< to iterate on the state variables (not including remainders or inc) *only* */
+    ssm_it_states_t *par_remainders;     /**< to iterate on the remainders *only* */
+    ssm_it_states_t *par_inc;            /**< to iterate on the state variables *only* */
+    ssm_it_states_t *par_diff;           /**< to iterate on parameters following a diffusion *only* */
+    ssm_it_parameters_t *par_all;        /**< to iterate on every parameters */
+    ssm_it_parameters_t *par_noise;      /**< to iterate on white_noises sd *only* */
 
     //navigating within theta
-    ssm_iterator_t *theta_all;                /**< to iterate on all the *infered* parameters */
-    ssm_iterator_t *theta_no_states_no_diff;  /**< to iterate on the *infered* parameter of the process and observation models *not* following a diffusion */
-    ssm_iterator_t *theta_states_diff;        /**< to iterate on the *infered* state variables *and* the *infered* parameters following a diffusion */
+    ssm_it_parameters_t *theta_all;                /**< to iterate on all the *infered* parameters */
+    ssm_it_parameters_t *theta_no_states_no_diff;  /**< to iterate on the *infered* parameter of the process and observation models *not* being initial conditions or initial conditions of diffusions */
+    ssm_it_parameters_t *theta_states_diff;        /**< to iterate on the *infered* initial conditions of the state variables *and* the *infered* initial conditions of the parameters following a diffusion */
 
     int parameters_length; /**< total number of parameters (including non infered) but excluding covariate (present in ssm_calc_t) */
     ssm_parameter_t **parameters; /**< [this.parameters_length] <*/

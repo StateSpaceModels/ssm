@@ -18,34 +18,66 @@
 
 #include "ssm.h"
 
-ssm_input_t *ssm_input_new(json_t *parameters, ssm_nav_t *nav)
-{        
-    ssm_input_t *input = gsl_vector_calloc(nav->par_all->length);
+void ssm_input_free(ssm_input_t *input)
+{
+    gsl_vector_free(input);
+}
 
-    {% for p in pars %}
-    {% if 'prior' in p and 'distribution' in p.prior and p.prior.distribution == 'fixed' %}
-    //{{ p.id }}
-    gsl_vector_set(input, {{ loop.index0 }}, {{ p.prior.value }});
-    {%endif%}
-    {% endfor %}
+ssm_par_t *ssm_par_new(ssm_nav_t *nav)
+{
+    return gsl_vector_calloc(nav->par_all->length);
+}
+
+void ssm_par_free(ssm_par_t *par)
+{
+    gsl_vector_free(par);
+}
+
+ssm_theta_t *ssm_theta_new(ssm_nav_t *nav)
+{
+    return gsl_vector_calloc(nav->theta_all->length);
+}
+
+void ssm_theta_free(ssm_theta_t *theta)
+{
+    gsl_vector_free(theta);
+}
+
+ssm_var_t *ssm_var_new(nav, parameters)
+{
+    gsl_matrix *m = gsl_matrix_calloc(nav->theta_all->length, nav->theta_all->length);
 
     size_t index;
-    json_t *value;    
-    int i;
+    json_t *value;
+    int i,j;
     ssm_it_parameters_t *it = nav->theta_all;
 
     json_array_foreach(json_object_get(parameters, "resource"), index, el) {
 	const char* name = json_string_value(json_object_get(el, "name"));
-	if (strcmp(name, "values") == 0) {
+	if (strcmp(name, "covariance") == 0) {
 
 	    json_t *values = json_object_get(el, "data");
 
 	    for(i=0; i<it->length; i++){
-		gsl_vector_set(input, it->p[i]->offset, json_number_value(json_object_get(values, it->p[i]->name)));
-	    }	   
+		for(j=0; j<it->length; j++){
+		    json_t *cov_i = json_object_get(values, it->p[i]->name);
+		    if(cov_i){
+			json_t *cov_ij = json_object_get(cov_i, it->p[j]->name);
+			if(cov_ij){
+			    gsl_matrix_set(input, i, j, json_number_value(cov_ij));
+			}
+		    }
+		}
+	    }
+	    
 	    break;
 	}
     }
 
-    return input;
+    return m;
+}
+
+
+void ssm_var_free(ssm_var_t *var){
+    gsl_matrix_free(var);
 }

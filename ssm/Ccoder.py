@@ -38,7 +38,7 @@ class Ccoder(Cmodel):
 
         self.model = model
 
-        self.all_par = self.par_sv + self.par_inc + self.remainder + self.par_diff + self.par_vol + self.par_proc +  self.par_obs + self.par_fixed + ['t']
+        self.all_par = self.par_sv + self.par_inc + self.remainder + self.par_diff + self.par_vol + self.par_noise + self.par_proc +  self.par_obs + self.par_fixed + ['t']
 
 
     def toC(self, term, no_correct_rate, force_par=False, xify=None, human=False):
@@ -64,7 +64,7 @@ class Ccoder(Cmodel):
         elif term in self.par_fixed:
             return 'gsl_spline_eval(p_calc->spline[ORDER_{0}],t,calc->acc[ORDER_{0}])'.format(term)
 
-        elif term in self.par_proc or term in self.par_vol:
+        elif term in self.par_proc or term in self.par_vol or term in self.par_noise:
             if term in self.par_diff:
                 return 'diffed[ORDER_diff__{0}]'.format(term)
             else:
@@ -166,9 +166,9 @@ class Ccoder(Cmodel):
         return self.generator_C(term, no_correct_rate, force_par=force_par, xify=xify, human=human)
 
 
-    def transformations(self):
+    def parameters(self):
         """
-        Everything needed to create a ssm_parameter_t
+        Everything needed to create a ssm_parameter_t and load ssm_input_t
         """
 
         parameters = self.get_resource('parameters')
@@ -205,7 +205,7 @@ class Ccoder(Cmodel):
             'skeletons': skeletons, 
             'states': self.par_sv + self.remainder + self.par_inc,
             'sde': [sdict[x] for x in self.par_diff],
-            'pars': [pdict[x] for x in (self.par_sv + self.par_vol + self.par_proc + self.par_obs)]
+            'pars': [pdict[x] for x in (self.par_sv + self.par_vol + self.par_noise + self.par_proc + self.par_obs)]
         }
 
 

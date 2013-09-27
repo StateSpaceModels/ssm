@@ -65,10 +65,17 @@ class Builder(Ccoder):
                 
         env = Environment(loader=FileSystemLoader(os.path.join(self.path_rendered, 'C', 'templates')))
 
+        parameters = self.parameters()
+
         template = env.get_template('transform_template.c')
         with open(os.path.join(self.path_rendered, 'C', 'templates', "transform.c"), "w") as f:
-            f.write(template.render(self.transformations()))
+            f.write(template.render(parameters))
             os.remove(os.path.join(self.path_rendered, 'C', 'templates', 'transform_template.c'))
+
+        template = env.get_template('input_template.c')
+        with open(os.path.join(self.path_rendered, 'C', 'templates', "input.c"), "w") as f:
+            f.write(template.render(parameters))
+            os.remove(os.path.join(self.path_rendered, 'C', 'templates', 'input_template.c'))
 
 
 

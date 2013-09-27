@@ -118,7 +118,7 @@ ssm_parameter_t **ssm_parameters_new(){
     {% for p in pars %}
     //{{ p.id }}
     parameters[{{ loop.index0 }}]->name = {{ p.id }};
-    parameters[{{ loop.index0 }}]->order = {{ loop.index0 }}; 
+    parameters[{{ loop.index0 }}]->offset = {{ loop.index0 }}; 
 
     {% if 'prior' in p and 'lower' in p.prior and 'upper' in p.prior and (p.prior.lower !=0 or p.prior.upper !=1) and (p.prior.lower != p.prior.upper) %}
     parameters[{{ loop.index0 }}]->f = &f_tpl_{{ p.id }};
@@ -197,7 +197,7 @@ ssm_state_t **ssm_states_new(){
     {% for p in sde %}
     //{{ p.id }}
     states[{{ loop.index0 }}]->name = {{ p.id }};
-    states[{{ loop.index0 }}]->order = {{ loop.index0 + states|length }}; 
+    states[{{ loop.index0 }}]->offset = {{ loop.index0 + states|length }}; 
 
     {% if 'transformation' in p %}
     states[{{ loop.index0 }}]->f = &f_tpl_skl_{{ p.id }};

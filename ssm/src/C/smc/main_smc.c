@@ -23,8 +23,9 @@ int main(int argc, char *argv[]){
     ssm_data_t *data = ssm_data_new(settings, n_obs);
     ssm_nav_t *nav = ssm_nav_new(settings, parameters);
     
+    ssm_input_t *input = ssm_input_new(parameters, nav);
     ssm_par_t *par = ssm_par_new(nav);
-    ssm_par_load(par);
+    ssm_input2par(par, input);
 
     ssm_X_t ***D_J_X = ssm_D_J_X_new(data->n_data +1, J, nav->par_states->length + nav->par_inc->length + nav->par_diff->length, dt);
 
@@ -72,6 +73,7 @@ int main(int argc, char *argv[]){
     ssm_data_free(data);
     ssm_nav_free(nav);
     
+    ssm_input_free(input);
     ssm_par_free(par);
     
     ssm_D_J_X_free(D_J_X);
