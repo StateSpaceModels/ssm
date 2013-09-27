@@ -98,8 +98,65 @@ typedef gsl_vector ssm_theta_t;
 /**
  * The variance-covariance matrix the transformed scale for the *infered* parameters (only the infered parameters)
  */
-typedef gsl_matrix *ssm_var_t;
+typedef gsl_matrix ssm_var_t;
 
+
+typedef struct _nav ssm_nav_t;
+
+/**
+ * Everything needed to perform computations (possibly in parallel)
+ * and store transiant states in a thread-safe way
+ */
+typedef struct /*[N_THREADS] : for parallel computing we need N_THREADS replication of the structure...*/
+{
+    int threads_length; /**< the total number of threads */
+    int thread_id; /**< the id of the thread where the computation are being run */
+
+    gsl_rng *randgsl; /**< random number generator */
+
+    /////////////////
+    //implementations
+    /////////////////
+
+    /* Euler multinomial */
+    double **prob;      /**< [N_PAR_SV][number of output from the compartment]*/
+    unsigned int **inc; /**< [N_PAR_SV][number of destinations] increments vector */
+
+    /* Gillespie */
+    //  double **reaction; /*reaction matrix*/
+
+    /* ODE*/
+    const gsl_odeiv2_step_type * T;
+    gsl_odeiv2_control * control;
+    gsl_odeiv2_step * step;
+    gsl_odeiv2_evolve * evolve;
+    gsl_odeiv2_system sys;
+    double *yerr;
+
+    /* SDE */
+    double *y_pred; /**< used to store y predicted for Euler Maruyama */
+
+    //multi-threaded sorting
+    double *to_be_sorted;  /**< [J] array of the J particle to be sorted*/
+    size_t *index_sorted;  /**< [J] index of the sorted weights used to compute 95% confidence interval */
+
+    //interpolators for covariates
+    gsl_interp_accel **acc;  /**< [N_PAR] an array of pointer to gsl_interp_accel */
+    gsl_spline **spline;     /**< [N_PAR] an array of pointer to gsl_spline */
+
+    /* references */
+    ssm_theta_t *_par_natural; /**< Reference to the parameter is the
+                                  natural scale (this.par_natural) used
+                                  to pass it to some GSL function that
+                                  only accept a *void. Such function
+                                  only received ssm_calc_t * This
+                                  reference should not be used outside
+                                  from f_prediction_ functions. Outside
+                                  these functions, this.par_natural is
+                                  not guaranted to be defined. */
+
+    ssm_nav_t *_nav; /**< ref to ssm_nav_t (same reason as ssm_theta_t) */
+} ssm_calc_t;
 
 
 
@@ -146,8 +203,8 @@ typedef struct
 
     double (*prior) (double x); /**< prior */
 
-    double (*f_par2user) (double); /**< from par to original user scale */
-    double (*f_user2par) (double); /**< from original user scale to par */
+    double (*f_user2par) (double, ssm_input_t *, ssm_calc_t *); /**< from original user scale to par */
+    double (*f_par2user) (double, ssm_input_t *, ssm_calc_t *); /**< from par to original user scale */
 
 } ssm_parameter_t;
 
@@ -169,6 +226,8 @@ typedef struct
 {
     char *name; /**< name of the state */
     int offset; /**< order of the state */
+
+    ssm_parameter_t *ic;  /**< pointer to the initial condition (or NULL) */
 
     double (*f) (double); /**< transformation (log, logit...) */
     double (*f_inv) (double); /**< inverse of f (f*f_inv=identity) */
@@ -192,13 +251,13 @@ typedef struct
 /**
  * navigating in the parameter / state space
  */
-typedef struct
+struct _nav
 {
-    //navigating withing par
-    ssm_it_states_t *par_states;         /**< to iterate on the state variables (not including remainders or inc) *only* */
-    ssm_it_states_t *par_remainders;     /**< to iterate on the remainders *only* */
-    ssm_it_states_t *par_inc;            /**< to iterate on the state variables *only* */
-    ssm_it_states_t *par_diff;           /**< to iterate on parameters following a diffusion *only* */
+    //navigating withing par    
+    ssm_it_states_t *states_sv;             /**< to iterate on the state variables (not including remainders or inc) *only* */
+    ssm_it_states_t *states_remainders;     /**< to iterate on the remainders *only* */
+    ssm_it_states_t *states_inc;            /**< to iterate on the state variables *only* */
+    ssm_it_states_t *states_diff;           /**< to iterate on parameters following a diffusion *only* */
     ssm_it_parameters_t *par_all;        /**< to iterate on every parameters */
     ssm_it_parameters_t *par_noise;      /**< to iterate on white_noises sd *only* */
 
@@ -213,7 +272,7 @@ typedef struct
     int states_length; /**< total number of states (including remainders and co) */
     ssm_state_t **states; /**< [this.states_length] <*/
 
-} ssm_nav_t;
+};
 
 
 /**
@@ -285,72 +344,17 @@ typedef struct
 } ssm_data_t;
 
 
-/**
- * Everything needed to perform computations (possibly in parallel)
- * and store transiant states in a thread-safe way
- */
-typedef struct /*[N_THREADS] : for parallel computing we need N_THREADS replication of the structure...*/
-{
-    int threads_length; /**< the total number of threads */
-    int thread_id; /**< the id of the thread where the computation are being run */
-
-    gsl_rng *randgsl; /**< random number generator */
-
-    /////////////////
-    //implementations
-    /////////////////
-
-    /* Euler multinomial */
-    double **prob;      /**< [N_PAR_SV][number of output from the compartment]*/
-    unsigned int **inc; /**< [N_PAR_SV][number of destinations] increments vector */
-
-    /* Gillespie */
-    //  double **reaction; /*reaction matrix*/
-
-    /* ODE*/
-    const gsl_odeiv2_step_type * T;
-    gsl_odeiv2_control * control;
-    gsl_odeiv2_step * step;
-    gsl_odeiv2_evolve * evolve;
-    gsl_odeiv2_system sys;
-    double *yerr;
-
-    /* SDE */
-    double *y_pred; /**< used to store y predicted for Euler Maruyama */
-
-    //multi-threaded sorting
-    double *to_be_sorted;  /**< [J] array of the J particle to be sorted*/
-    size_t *index_sorted;  /**< [J] index of the sorted weights used to compute 95% confidence interval */
-
-    //interpolators for covariates
-    gsl_interp_accel **acc;  /**< [N_PAR] an array of pointer to gsl_interp_accel */
-    gsl_spline **spline;     /**< [N_PAR] an array of pointer to gsl_spline */
-
-    /* references */
-    ssm_theta_t *_par_natural; /**< Reference to the parameter is the
-                                  natural scale (this.par_natural) used
-                                  to pass it to some GSL function that
-                                  only accept a *void. Such function
-                                  only received ssm_calc_t * This
-                                  reference should not be used outside
-                                  from f_prediction_ functions. Outside
-                                  these functions, this.par_natural is
-                                  not guaranted to be defined. */
-
-    ssm_nav_t *_par_natural; /**< ref to ssm_nav_t (same reason as ssm_theta_t) */
-} ssm_calc_t;
-
 
 /**
  * prediction function
  */
-typedef ssm_err_code (*ssm_f_pred_t) (ssm_X_t *, double, double, ssm_theta_t *, ssm_nav_t *, struct ssm_calc_t *);
+typedef ssm_err_code (*ssm_f_pred_t) (ssm_X_t *, double, double, ssm_theta_t *, ssm_nav_t *, ssm_calc_t *);
 
 
 /**
  * observation function
  */
-typedef ssm_err_code (*ssm_f_obs_t) (ssm_X_t *, double, double, ssm_theta_t *, ssm_nav_t *, struct ssm_calc_t *);
+typedef ssm_err_code (*ssm_f_obs_t) (ssm_X_t *, double, double, ssm_theta_t *, ssm_nav_t *, ssm_calc_t *);
 
 
 /**

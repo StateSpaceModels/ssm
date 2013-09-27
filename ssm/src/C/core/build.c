@@ -17,6 +17,8 @@
  *************************************************************************/
 
 #include "ssm.h"
+#include <jansson.h> //json
+
 
 void ssm_input_free(ssm_input_t *input)
 {
@@ -43,16 +45,18 @@ void ssm_theta_free(ssm_theta_t *theta)
     gsl_vector_free(theta);
 }
 
-ssm_var_t *ssm_var_new(nav, parameters)
+ssm_var_t *ssm_var_new(ssm_nav_t *nav, json_t *parameters)
 {
     gsl_matrix *m = gsl_matrix_calloc(nav->theta_all->length, nav->theta_all->length);
 
-    size_t index;
-    json_t *value;
-    int i,j;
-    ssm_it_parameters_t *it = nav->theta_all;
 
-    json_array_foreach(json_object_get(parameters, "resource"), index, el) {
+    int i,j, index;
+    ssm_it_parameters_t *it = nav->theta_all;
+    json_t *resource = json_object_get(parameters, "resource");
+    
+    for(index=0; index< json_array_size(resource); index++){
+	json_t *el = json_array_get(resource, index);
+
 	const char* name = json_string_value(json_object_get(el, "name"));
 	if (strcmp(name, "covariance") == 0) {
 
@@ -64,7 +68,7 @@ ssm_var_t *ssm_var_new(nav, parameters)
 		    if(cov_i){
 			json_t *cov_ij = json_object_get(cov_i, it->p[j]->name);
 			if(cov_ij){
-			    gsl_matrix_set(input, i, j, json_number_value(cov_ij));
+			    gsl_matrix_set(m, i, j, json_number_value(cov_ij));
 			}
 		    }
 		}
@@ -76,7 +80,6 @@ ssm_var_t *ssm_var_new(nav, parameters)
 
     return m;
 }
-
 
 void ssm_var_free(ssm_var_t *var){
     gsl_matrix_free(var);

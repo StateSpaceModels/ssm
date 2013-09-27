@@ -25,7 +25,7 @@ int main(int argc, char *argv[]){
     
     ssm_input_t *input = ssm_input_new(parameters, nav);
     ssm_par_t *par = ssm_par_new(nav);
-    ssm_input2par(par, input);
+    ssm_input2par(par, input, calc, nav);
 
     ssm_X_t ***D_J_X = ssm_D_J_X_new(data->n_data +1, J, nav->par_states->length + nav->par_inc->length + nav->par_diff->length, dt);
 
@@ -33,7 +33,7 @@ int main(int argc, char *argv[]){
 
     ssm_calc_t **calc = ssm_N_calc_new(n_threads, ...);
 
-    ssm_X_load(D_J_X[0][0], par, nav, calc[0]);
+    ssm_par2X(D_J_X[0][0], par, nav, calc[0]);
     for(j=1; j<J; j++){
 	ssm_X_copy(D_J_p_X[0][j], D_J_p_X[0][0]);
     }

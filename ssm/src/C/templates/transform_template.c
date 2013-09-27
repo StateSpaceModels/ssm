@@ -165,7 +165,7 @@ ssm_parameter_t **ssm_parameters_new(){
 /**
  * Adapt. Here we do it only for diffusions
  */
-ssm_state_t **ssm_states_new(){
+ssm_state_t **ssm_states_new(ssm_parameter_t **parameters){
     
     ssm_state_t **states;
     states = malloc(({{ states|length }} + {{ sde|length }}) * sizeof (ssm_states_t *));
@@ -186,30 +186,35 @@ ssm_state_t **ssm_states_new(){
     {% for p in states %}
     //{{ p }}
     states[{{ loop.index0 }}]->name = {{ p }};
-    states[{{ loop.index0 }}]->order = {{ loop.index0 }}; 
+    states[{{ loop.index0 }}]->offset = {{ loop.index0 }}; 
 
     states[{{ loop.index0 }}]->f = &f_id;
     states[{{ loop.index0 }}]->f_inv = &f_id;
     states[{{ loop.index0 }}]->f_derivative = &f_id;
     states[{{ loop.index0 }}]->f_inv_derivative = &f_id;
+
+    states[{{ loop.index0 }}]->ic = {% if p in par_sv %}parameters[{{ loop.index0 }}]{% else %}NULL{% endif %};   
     {% endfor %}
+
 
     {% for p in sde %}
     //{{ p.id }}
-    states[{{ loop.index0 }}]->name = {{ p.id }};
-    states[{{ loop.index0 }}]->offset = {{ loop.index0 + states|length }}; 
+    states[{{ loop.index0 + states|length }}]->name = {{ p.id }};
+    states[{{ loop.index0 + states|length }}]->offset = {{ loop.index0 + states|length }}; 
 
     {% if 'transformation' in p %}
-    states[{{ loop.index0 }}]->f = &f_tpl_skl_{{ p.id }};
-    states[{{ loop.index0 }}]->f_inv = &f_inv_tpl_skl_{{ p.id }};
-    states[{{ loop.index0 }}]->f_derivative = &f_der_tpl_skl_{{ p.id }};
-    states[{{ loop.index0 }}]->f_inv_derivative = &f_inv_der_tpl_skl_{{ p.id }};
+    states[{{ loop.index0 + states|length }}]->f = &f_tpl_skl_{{ p.id }};
+    states[{{ loop.index0 + states|length }}]->f_inv = &f_inv_tpl_skl_{{ p.id }};
+    states[{{ loop.index0 + states|length }}]->f_derivative = &f_der_tpl_skl_{{ p.id }};
+    states[{{ loop.index0 + states|length }}]->f_inv_derivative = &f_inv_der_tpl_skl_{{ p.id }};
     {% else %}
-    states[{{ loop.index0 }}]->f = &f_id;
-    states[{{ loop.index0 }}]->f_inv = &f_id;
-    states[{{ loop.index0 }}]->f_derivative = &f_id;
-    states[{{ loop.index0 }}]->f_inv_derivative = &f_id;
+    states[{{ loop.index0 + states|length }}]->f = &f_id;
+    states[{{ loop.index0 + states|length }}]->f_inv = &f_id;
+    states[{{ loop.index0 + states|length }}]->f_derivative = &f_id;
+    states[{{ loop.index0 + states|length }}]->f_inv_derivative = &f_id;
     {% endif %}
+
+    states[{{ loop.index0 + states|length }}]->ic = {% if 'ic' in p %}parameters[{{ p.ic }}]{% else %}NULL{% endif %};  
     {% endfor %}
 
     return states;    

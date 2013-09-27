@@ -29,12 +29,14 @@ ssm_input_t *ssm_input_new(json_t *parameters, ssm_nav_t *nav)
     {%endif%}
     {% endfor %}
 
-    size_t index;
-    json_t *value;    
-    int i;
+    int i, index;
     ssm_it_parameters_t *it = nav->theta_all;
 
-    json_array_foreach(json_object_get(parameters, "resource"), index, el) {
+    json_t *resource = json_object_get(parameters, "resource");
+    
+    for(index=0; index< json_array_size(resource); index++){
+	json_t *el = json_array_get(resource, index);
+
 	const char* name = json_string_value(json_object_get(el, "name"));
 	if (strcmp(name, "values") == 0) {
 

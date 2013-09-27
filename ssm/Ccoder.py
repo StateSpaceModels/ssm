@@ -186,6 +186,9 @@ class Ccoder(Cmodel):
         skeletons = skeletons and skeletons['skeleton']
         #TODO support ode skeletons += self.get_resource('ode')
 
+        states = self.par_sv + self.remainder + self.par_inc
+        pars = self.par_sv + self.par_vol + self.par_noise + self.par_proc + self.par_obs
+
         #make C code for f_, f_inv f_der, f_der_inv
         for p in skeletons:
             if 'transformation' in p:
@@ -194,6 +197,8 @@ class Ccoder(Cmodel):
                 p['f_der'] = self.make_C_term(p['transformation'], True, derivate=p['id'], human=True, xify=p['id'])
                 p['f_der_inv'] = self.make_C_term(p['f_inv'], True, derivate='x', human=True)
 
+            if p['id'] in pars:
+                p['ic'] = pars.index(p['id'])
         
         #sort parameters
         #start by making dict:
@@ -203,12 +208,11 @@ class Ccoder(Cmodel):
         return {
             'parameters': parameters, 
             'skeletons': skeletons, 
-            'states': self.par_sv + self.remainder + self.par_inc,
+            'par_sv': self.par_sv,
+            'states': states,
             'sde': [sdict[x] for x in self.par_diff],
-            'pars': [pdict[x] for x in (self.par_sv + self.par_vol + self.par_noise + self.par_proc + self.par_obs)]
+            'pars': [pdict[x] for x in pars]
         }
-
-
 
 
     def cache_special_function_C(self, caches_C, sf=None, prefix='_sf'):
