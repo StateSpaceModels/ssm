@@ -41,7 +41,7 @@ class Ccoder(Cmodel):
         self.all_par = self.par_sv + self.par_inc + self.remainder + self.par_diff + self.par_vol + self.par_noise + self.par_proc +  self.par_obs + self.par_fixed + ['t']
 
 
-    def toC(self, term, no_correct_rate, force_par=False, xify=None, human=False):
+    def toC(self, term, no_correct_rate, force_par=False, xify=None, human=False, set_t0=False):
 
         if term == xify:
             term = 'x'
@@ -62,7 +62,7 @@ class Ccoder(Cmodel):
                 return 'X[ORDER_{0}]'.format(term)
 
         elif term in self.par_fixed:
-            return 'gsl_spline_eval(p_calc->spline[ORDER_{0}],t,calc->acc[ORDER_{0}])'.format(term)
+            return 'gsl_spline_eval(p_calc->spline[ORDER_{0}],{1},calc->acc[ORDER_{0}])'.format(term, '0.0' if set_t0 else 't')
 
         elif term in self.par_proc or term in self.par_vol or term in self.par_noise:
             if term in self.par_diff:
@@ -74,7 +74,7 @@ class Ccoder(Cmodel):
             return term
 
 
-    def generator_C(self, term, no_correct_rate, force_par=False, xify=None, human=False):
+    def generator_C(self, term, no_correct_rate, force_par=False, xify=None, human=False, set_t0=False):
 
         terms = self.change_user_input(term)
 
@@ -85,7 +85,7 @@ class Ccoder(Cmodel):
             if terms[ind] in self.special_functions:
                 myf = terms[ind]
 
-                Cterm += self.toC(myf, no_correct_rate, force_par=force_par, xify=xify, human=human) + '('
+                Cterm += self.toC(myf, no_correct_rate, force_par=force_par, xify=xify, human=human, set_t0=set_t0) + '('
                 ind += 2 #skip first parenthesis
 
                 pos = 1 #counter for open parenthesis
@@ -96,7 +96,7 @@ class Ccoder(Cmodel):
                         pos -= 1
 
                     if pos >0:
-                        Cterm += self.toC(terms[ind], no_correct_rate, force_par=force_par, xify=xify, human=human)
+                        Cterm += self.toC(terms[ind], no_correct_rate, force_par=force_par, xify=xify, human=human, set_t0=set_t0)
                         ind += 1
 
                 ##add extra terms (no whitespace)
@@ -111,13 +111,13 @@ class Ccoder(Cmodel):
                 ind += 1
 
             else:
-                Cterm += self.toC(terms[ind], no_correct_rate, force_par=force_par, xify=xify, human=human)
+                Cterm += self.toC(terms[ind], no_correct_rate, force_par=force_par, xify=xify, human=human, set_t0=set_t0)
                 ind += 1
 
         return Cterm
 
 
-    def make_C_term(self, term, no_correct_rate, derivate=None, inverse=None, human=False, force_par=False, xify=None):
+    def make_C_term(self, term, no_correct_rate, derivate=None, inverse=None, human=False, force_par=False, xify=None, set_t0=False):
 
         """transform a term into its ssm C expression OR the ssm C
         expression of its derivate, differentiating against the
@@ -163,7 +163,7 @@ class Ccoder(Cmodel):
         term = ccode(pterm).replace('ssm___', '')
 
         #make the ssm C expression        
-        return self.generator_C(term, no_correct_rate, force_par=force_par, xify=xify, human=human)
+        return self.generator_C(term, no_correct_rate, force_par=force_par, xify=xify, human=human, set_t0=set_t0)
 
 
     def parameters(self):
@@ -175,10 +175,10 @@ class Ccoder(Cmodel):
 
         for p in parameters:
             if 'transformation' in p:
-                p['f_user2par'] = self.make_C_term(p['transformation'], True, force_par=True, xify=p['prior']['id'] if ('prior' in p and 'id' in p['prior']) else p['id'])
+                p['f_user2par'] = self.make_C_term(p['transformation'], True, force_par=True, xify=p['prior']['id'] if ('prior' in p and 'id' in p['prior']) else p['id'], set_t0=True)
 
                 if 'prior' in p and 'id' in p['prior']:
-                    p['f_par2user'] = self.make_C_term(p['transformation']+ '-' + p['id'], True, inverse=p['prior']['id'], force_par=True, xify=p['id'])
+                    p['f_par2user'] = self.make_C_term(p['transformation']+ '-' + p['id'], True, inverse=p['prior']['id'], force_par=True, xify=p['id'], set_t0=True)
                 else:
                     p['f_par2user'] = 'x'
 
@@ -192,10 +192,10 @@ class Ccoder(Cmodel):
         #make C code for f_, f_inv f_der, f_der_inv
         for p in skeletons:
             if 'transformation' in p:
-                p['f'] = self.make_C_term(p['transformation'], True, human=True, xify=p['id'])
-                p['f_inv'] = self.make_C_term(p['transformation']+ '- x', True, inverse=p['id'], human=True)
-                p['f_der'] = self.make_C_term(p['transformation'], True, derivate=p['id'], human=True, xify=p['id'])
-                p['f_der_inv'] = self.make_C_term(p['f_inv'], True, derivate='x', human=True)
+                p['f'] = self.make_C_term(p['transformation'], True, human=True, xify=p['id'], set_t0=True)
+                p['f_inv'] = self.make_C_term(p['transformation']+ '- x', True, inverse=p['id'], human=True, set_t0=True)
+                p['f_der'] = self.make_C_term(p['transformation'], True, derivate=p['id'], human=True, xify=p['id'], set_t0=True)
+                p['f_der_inv'] = self.make_C_term(p['f_inv'], True, derivate='x', human=True, set_t0=True)
 
             if p['id'] in pars:
                 p['ic'] = pars.index(p['id'])

@@ -258,7 +258,7 @@ struct _nav
     ssm_it_states_t *states_sv;             /**< to iterate on the state variables (not including remainders or inc) *only* */
     ssm_it_states_t *states_remainders;     /**< to iterate on the remainders *only* */
     ssm_it_states_t *states_inc;            /**< to iterate on the state variables *only* */
-    ssm_it_states_t *states_diff;           /**< to iterate on parameters following a diffusion *only* */
+    ssm_it_states_t *states_diff;           /**< to iterate on states following a diffusion *only* */
     ssm_it_parameters_t *par_all;        /**< to iterate on every parameters */
     ssm_it_parameters_t *par_noise;      /**< to iterate on white_noises sd *only* */
 
@@ -281,9 +281,9 @@ struct _nav
  */
 typedef struct
 {
-    int J;          /**< number of particles */
-    int data_length;     /**< number of data points */
-    int like_min;   /**< mimimun value of the likelihood */
+    int J;           /**< number of particles */
+    int data_length; /**< number of data points */
+    double like_min;    /**< mimimun value of the likelihood */
 
     double least_square;
 
@@ -314,11 +314,13 @@ typedef struct { /* [n_data] */
     char *date;
     double *values;   /**< [n_ts] the data (values) one per time series */
 
-    int ts_nonan_length; /**< number of time series without NaN at that time */
+    int ts_nonan_length; /**< number of time series without NaN at that time */    
     unsigned int *ts_nonan; /**< [self.length] index of time series without NaN*/
+    double (**f_fitness) (double y, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t); /**< [self.ts_nonan_length] pointer to fitness function corresponding to the time series without NaN */
+    double (**f_obs_mean) (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t); /**< [self.ts_nonan_length] pointer to obs_mean function corresponding to the time series without NaN */
 
     int states_reset_length; /**< number of states that must be reset to 0 */
-    ssm_state_t **states_reset; /**< [self.length] array of pointer to the states to reset */
+    ssm_state_t **states_reset; /**< [self.states_reset_length] array of pointer to the states to reset */
 
 } ssm_data_row_t;
 
@@ -350,12 +352,6 @@ typedef struct
  * prediction function
  */
 typedef ssm_err_code (*ssm_f_pred_t) (ssm_X_t *, double, double, ssm_theta_t *, ssm_nav_t *, ssm_calc_t *);
-
-
-/**
- * observation function
- */
-typedef ssm_err_code (*ssm_f_obs_t) (ssm_X_t *, double, double, ssm_theta_t *, ssm_nav_t *, ssm_calc_t *);
 
 
 /**

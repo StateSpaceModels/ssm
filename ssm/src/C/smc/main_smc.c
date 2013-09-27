@@ -64,16 +64,18 @@ int main(int argc, char *argv[]){
 	    ssm_X_reset_inc(D_J_X[np1][j], data->rows[n]);
 	    like->cum_status[j] |= (*f_pred)(D_J_X[np1][j], t0, t1, par, nav, calc[0]);
 
-	    if(data->rows[n]->n_nonan) {
-		like->weights[j] = (like->cum_status[j] == SSM_SUCCESS) ?  exp(ssm_log_likelihood(D_J_X[np1][j], par, data->rows[n], calc[0], t1)) : 0.0;
+	    if(data->rows[n]->ts_nonan_length) {
+		like->weights[j] = (like->cum_status[j] == SSM_SUCCESS) ?  exp(ssm_log_likelihood(data->rows[n], t1, D_J_X[np1][j], par, calc[0], nav)) : 0.0;
 		like->cum_status[j] = SSM_SUCCESS;
 	    }
 	}
 
-	if(ssm_weight(like, n)) {
-	    ssm_systematic_sampling(like, calc[0], n);
+        if(data->rows[n]->ts_nonan_length) {
+	    if(ssm_weight(like, n)) {
+		ssm_systematic_sampling(like, calc[0], n);
+	    }
+	    ssm_resample_X(like, &(D_J_X[np1]), &(D_J_X_tmp[np1]), n);
 	}
-	ssm_resample_X(like, &(D_J_X[np1]), &(D_J_X_tmp[np1]), n);
     }
 
     json_decref(parameters);
