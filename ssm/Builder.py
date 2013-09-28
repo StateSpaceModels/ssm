@@ -48,7 +48,6 @@ class Builder(Ccoder):
         if not os.path.exists(self.path_rendered):
             shutil.copytree(path_templates, os.path.join(self.path_rendered, 'C'))
 
-
     def archive(self, replace=True):
         """make a tarball"""
 
@@ -67,17 +66,17 @@ class Builder(Ccoder):
             f.write(template.render(data))
             os.remove(os.path.join(self.path_rendered, 'C', 'templates', prefix + '_template.c'))
 
-
     def code(self):
         """generate C code for MIF, Simplex, pMCMC, Kalman, simulation, ..."""
                 
         parameters = self.parameters()
-
         self.render('transform', parameters)
         self.render('input', parameters)
 
-        obs = self.observed()
-        self.render('observed', obs)
+        observed = self.observed()
+        self.render('observed', observed)
+
+
 
 
 
