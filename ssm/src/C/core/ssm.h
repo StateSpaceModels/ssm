@@ -250,6 +250,21 @@ typedef struct
 
 
 /**
+ * everything related to observed variable
+ */
+typedef struct
+{
+    char *name; /**< name of the observed variable */
+
+    double (*f_likelihood) (double y, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
+    double (*f_obs_mean)             (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
+    double (*f_obs_var)              (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
+    double (*f_obs)                  (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
+
+} ssm_observed_t;
+
+
+/**
  * navigating in the parameter / state space
  */
 struct _nav
@@ -273,6 +288,8 @@ struct _nav
     int states_length; /**< total number of states (including remainders and co) */
     ssm_state_t **states; /**< [this.states_length] <*/
 
+    int observed_length; /**< total number of observed variables */
+    ssm_observed_t **observed; /**< [this.observed_length] */
 };
 
 
@@ -312,12 +329,10 @@ typedef struct
  */
 typedef struct { /* [n_data] */
     char *date;
-    double *values;   /**< [n_ts] the data (values) one per time series */
 
     int ts_nonan_length; /**< number of time series without NaN at that time */    
-    unsigned int *ts_nonan; /**< [self.length] index of time series without NaN*/
-    double (**f_fitness) (double y, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t); /**< [self.ts_nonan_length] pointer to fitness function corresponding to the time series without NaN */
-    double (**f_obs_mean) (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t); /**< [self.ts_nonan_length] pointer to obs_mean function corresponding to the time series without NaN */
+    ssm_observed_t **observed; /**< [self.ts_nonan_length] */
+    double *values;   /**< [ts_nonan_length] the non NAN data (values) one per time series */
 
     int states_reset_length; /**< number of states that must be reset to 0 */
     ssm_state_t **states_reset; /**< [self.states_reset_length] array of pointer to the states to reset */
@@ -330,7 +345,6 @@ typedef struct { /* [n_data] */
  */
 typedef struct
 {
-    int n_ts;         /**< number of independent time series */
     int length;       /**< number of data points */
 
     int n_obs;       /**< the number of data point to taken into account for inference */

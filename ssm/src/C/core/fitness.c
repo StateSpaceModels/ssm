@@ -24,7 +24,7 @@ double ssm_log_likelihood(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, 
     double loglike = 0.0;
 
     for(i=0; i< row->ts_nonan_length; i++){
-	loglike += log(row->f_fitness[i](row->values[row->ts_nonan[i]], X, par, calc, t));
+	loglike += log(row->observed[i]->f_likelihood(row->values[i], X, par, calc, t));
     }
 
     return loglike;
@@ -37,7 +37,7 @@ double ssm_sum_square(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_
     double ss = 0.0;
 
     for(i=0; i< row->ts_nonan_length; i++){
-	ss += pow( row->values[row->ts_nonan[i]] - row->obs_mean[i](X, par, calc, t), 2 );
+	ss += pow( row->values[i] - row->observed[i]->obs_mean(X, par, calc, t), 2 );
     }
 
     return ss;
