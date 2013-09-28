@@ -70,7 +70,7 @@
           "pdf": {
             "distribution": "discretized_normal",
             "mean": "rep_all_CDC_inc * prop_all_CDC_inc * Inc_out",
-            "var": "rep_all_CDC_inc * ( 1.0 - rep_all_CDC_inc ) * prop_all_CDC_inc * Inc_out + ( rep_all_CDC_inc * phi * prop_all_CDC_inc * Inc_out ) ^2)"
+            "sd": "sqrt(rep_all_CDC_inc * ( 1.0 - rep_all_CDC_inc ) * prop_all_CDC_inc * Inc_out + ( rep_all_CDC_inc * phi * prop_all_CDC_inc * Inc_out )^2 )"
           }
         },
 
@@ -82,8 +82,8 @@
           "start": "2012-07-26",
           "pdf": {
             "distribution": "discretized_normal",
-            "mean": "(rep_paris_CDC_prev * prop_paris_CDC_prev * I_paris",
-            "var": "rep_paris_CDC_prev * ( 1.0 - rep_paris_CDC_prev ) * prop_paris_CDC_prev * I_paris + ( rep_paris_CDC_prev * phi * prop_paris_CDC_prev * I_paris) ^2)"
+            "mean": "rep_paris_CDC_prev * prop_paris_CDC_prev * I_paris",
+            "sd": "sqrt(rep_paris_CDC_prev * ( 1.0 - rep_paris_CDC_prev ) * prop_paris_CDC_prev * I_paris + ( rep_paris_CDC_prev * phi * prop_paris_CDC_prev * I_paris)^2 )"
           }
         },
 
@@ -96,7 +96,7 @@
           "pdf": {
             "distribution": "discretized_normal",
             "mean": "rep_all_google_inc * prop_all_google_inc * Inc_out",
-            "var": "rep_all_google_inc * ( 1.0 - rep_all_google_inc ) * prop_all_google_inc * Inc_out + ( rep_all_google_inc * phi * prop_all_google_inc * Inc_out ) ^2)"
+            "sd": "sqrt(rep_all_google_inc * ( 1.0 - rep_all_google_inc ) * prop_all_google_inc * Inc_out + ( rep_all_google_inc * phi * prop_all_google_inc * Inc_out )^2 )"
           }
         },
 
@@ -109,7 +109,7 @@
           "pdf": {
             "distribution": "discretized_normal",
             "mean": "rep_nyc_CDC_inc * prop_nyc_CDC_inc * Inc_in_nyc",
-            "var": "rep_nyc_CDC_inc * ( 1.0 - rep_nyc_CDC_inc ) * prop_nyc_CDC_inc * Inc_in_nyc + ( rep_nyc_CDC_inc * phi * prop_nyc_CDC_inc * Inc_in_nyc ) ^2)"
+            "sd": "sqrt(rep_nyc_CDC_inc * ( 1.0 - rep_nyc_CDC_inc ) * prop_nyc_CDC_inc * Inc_in_nyc + ( rep_nyc_CDC_inc * phi * prop_nyc_CDC_inc * Inc_in_nyc )^2 )"
           }
         }
       ]

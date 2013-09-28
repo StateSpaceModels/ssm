@@ -32,6 +32,7 @@ class Builder(Ccoder):
         Ccoder.__init__(self, model,  **kwargs)
 
         self.path_rendered = path_rendered
+        self.env = Environment(loader=FileSystemLoader(os.path.join(self.path_rendered, 'C', 'templates')))
 
     def prepare(self, path_templates=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src', 'C'), replace=True):
         """
@@ -59,24 +60,24 @@ class Builder(Ccoder):
             if os.path.exists(self.path_rendered):
                 shutil.rmtree(self.path_rendered)
 
+    def render(self, prefix, data):
 
-    def render(self):
+        template = self.env.get_template(prefix + '_template.c')
+        with open(os.path.join(self.path_rendered, 'C', 'templates', prefix + ".c"), "w") as f:
+            f.write(template.render(data))
+            os.remove(os.path.join(self.path_rendered, 'C', 'templates', prefix + '_template.c'))
+
+
+    def code(self):
         """generate C code for MIF, Simplex, pMCMC, Kalman, simulation, ..."""
                 
-        env = Environment(loader=FileSystemLoader(os.path.join(self.path_rendered, 'C', 'templates')))
-
         parameters = self.parameters()
 
-        template = env.get_template('transform_template.c')
-        with open(os.path.join(self.path_rendered, 'C', 'templates', "transform.c"), "w") as f:
-            f.write(template.render(parameters))
-            os.remove(os.path.join(self.path_rendered, 'C', 'templates', 'transform_template.c'))
+        self.render('transform', parameters)
+        self.render('input', parameters)
 
-        template = env.get_template('input_template.c')
-        with open(os.path.join(self.path_rendered, 'C', 'templates', "input.c"), "w") as f:
-            f.write(template.render(parameters))
-            os.remove(os.path.join(self.path_rendered, 'C', 'templates', 'input_template.c'))
-
+        obs = self.observed()
+        self.render('observed', obs)
 
 
 
@@ -89,4 +90,4 @@ if __name__=="__main__":
     b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), model)
  
     b.prepare()
-    b.render()
+    b.code()

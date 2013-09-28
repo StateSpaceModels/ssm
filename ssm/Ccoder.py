@@ -215,6 +215,20 @@ class Ccoder(Cmodel):
         }
 
 
+    def observed(self):
+
+        ##WARNING right now only the discretized normal is supported.
+        ##TODO: generalization for different distribution
+
+        obs = copy.deepcopy(self.obs_model)
+
+        for x in obs:
+            x['pdf']['mean'] = self.make_C_term(x['pdf']['sd'], True)
+            x['pdf']['sd'] = self.make_C_term(x['pdf']['sd'], True)
+
+        return {'observed': obs}
+
+
     def cache_special_function_C(self, caches_C, sf=None, prefix='_sf'):
         """caches_C: List of cached expression in C
         caches_C is modified in place
@@ -585,13 +599,6 @@ class Ccoder(Cmodel):
         return {'var': self.par_sv + self.par_proc + self.par_obs, 'diff': self.diff_var, 'data': self.par_fixed, 'universe': order_univ}
 
 
-    def print_like(self):
-
-        ##WARNING right now only the discretized normal is supported.
-        ##TODO: generalization for different distribution
-
-        return {'mean':self.make_C_term(self.obs_model['mean'], False),
-                'var':self.make_C_term(self.obs_model['var'], False)}
 
 
 

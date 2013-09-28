@@ -32,7 +32,7 @@ class Cmodel:
 
         self.op = set(['+', '-', '*', '/', '^', ',', '(', ')']) ##!!!CAN'T contain square bracket '[' ']'
         self.reserved = set(['U', 'x'])
-        self.special_functions = set(['terms_forcing', 'heaviside', 'ramp', 'slowstep', 'sin', 'cos', 'correct_rate'])
+        self.special_functions = set(['terms_forcing', 'heaviside', 'ramp', 'slowstep', 'sin', 'cos', 'correct_rate', 'sqrt'])
 
         ###########################################################################
 
@@ -81,21 +81,6 @@ class Cmodel:
         self.par_proc = sorted(list(par_proc))
         self.par_noise = sorted(list(par_noise))
 
-        #par_obs
-        par_obs = set();
-        priors = [x['id'] for x in self.get_resource('parameters')]
-        for o in self.get_resource('observations'):
-            for p in [o['pdf']['mean'], o['pdf']['var']]:
-                el =  self.change_user_input(p)
-                for e in el:
-                    if e not in self.op and e not in self.special_functions and e not in self.par_sv and e not in self.par_proc and e not in self.par_fixed and e not in self.par_inc:
-                        try:
-                            float(e)
-                        except ValueError:
-                                par_obs.add(e)
-
-        self.par_obs = sorted(list(par_obs))
-
         #par_diff (state variable for diffusions)
         par_diff = []
 
@@ -106,6 +91,22 @@ class Cmodel:
 
         #par_vol (volatilites)
         self.par_vol = sorted(set([x for subl in self.get_resource('sde')['sigma'] for x in subl if x != 0]))
+
+
+        #par_obs
+        par_obs = set();
+        priors = [x['id'] for x in self.get_resource('parameters')]
+        for o in self.get_resource('observations'):
+            for p in [o['pdf']['mean'], o['pdf']['sd']]:
+                el =  self.change_user_input(p)
+                for e in el:
+                    if e not in self.op and e not in self.special_functions and e not in self.par_sv and e not in self.par_vol and e not in self.par_noise and e not in self.par_proc and e not in self.par_fixed and e not in self.par_inc:
+                        try:
+                            float(e)
+                        except ValueError:
+                                par_obs.add(e)
+
+        self.par_obs = sorted(list(par_obs))
 
 
         #map prior id to id
