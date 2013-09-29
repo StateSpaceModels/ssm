@@ -64,8 +64,8 @@ class Ccoder(Cmodel):
         elif term in self.par_fixed:
             return 'gsl_spline_eval(p_calc->spline[ORDER_{0}],{1},calc->acc[ORDER_{0}])'.format(term, '0.0' if set_t0 else 't')
 
-        elif term in self.par_proc or term in self.par_vol or term in self.par_noise:
-            if term in self.par_diff:
+        elif term in self.par_proc or term in self.par_vol or term in self.par_noise or term in self.par_obs:
+            if ('diff__' + term) in self.par_diff:
                 return 'diffed[ORDER_diff__{0}]'.format(term)
             else:
                 return 'gsl_vector_get(par, ORDER_{0})'.format(term)
@@ -271,7 +271,7 @@ class Ccoder(Cmodel):
 
 
 
-    def print_build_psr(self):
+    def alloc_psr(self):
         Clist = []
         univ = ['U']
         if self.remainder:
@@ -282,32 +282,6 @@ class Ccoder(Cmodel):
             Clist.append({'state':s, 'nb_reaction': nbreac})
 
         return Clist
-
-
-    def obs_inc_step_psr(self):
-        """generate C code to compute the dynamic of the observed
-        **incidence** in case of stochastic models (euler multinomial)
-        and put in into
-
-        Clist = [{'right_hand_side': }]
-
-        """
-        Clist = []
-
-        for i in range(len(self.par_inc_def)):
-            right_hand_side=''
-
-            for j in range(len(self.par_inc_def[i])):
-                id_out = [self.proc_model.index(r) for r in self.proc_model if ((r['from'] == self.par_inc_def[i][j]['from']) and (r['to'] == self.par_inc_def[i][j]['to']) and (r['rate'] == self.par_inc_def[i][j]['rate']))]
-                for o in id_out:
-                    myexit = [r for r in self.proc_model if r['from']==self.proc_model[o]['from']]
-                    right_hand_side += ' + p_calc->inc[ORDER_{0}][{1}]'.format(self.par_inc_def[i][j]['from'], myexit.index(self.proc_model[o]))
-
-            Clist.append({'right_hand_side':right_hand_side})
-
-        return Clist
-
-
 
     def step_psr(self):
 
@@ -338,10 +312,10 @@ class Ccoder(Cmodel):
         ##make the rates noisy (if needed e.g r
         rates = set()
         for r in proc_model:
-            if r['from'] not in ['U', self.remainder]:
+            if r['from'] not in (['U'] + self.remainder):
                 myrate = r['rate']
                 if 'white_noise' in r:
-                    myrate = '({0})*{1}'.format(myrate, r['white_noise']['name'])
+                    myrate = '({0})*{1}'.format(myrate, r['white_noise']['id'])
 
                 rates.add(myrate)
 
@@ -350,10 +324,10 @@ class Ccoder(Cmodel):
         sf = self.cache_special_function_C(caches)
 
         for r in proc_model:
-            if r['from'] not in ['U', self.remainder]:
+            if r['from'] not in (['U'] + self.remainder):
                 myrate = r['rate']
                 if 'white_noise' in r:
-                    myrate = '({0})*{1}'.format(myrate, r['white_noise']['name'])
+                    myrate = '({0})*{1}'.format(myrate, r['white_noise']['id'])
 
                 r['ind_cache'] = rates.index(myrate)
 
@@ -373,18 +347,18 @@ class Ccoder(Cmodel):
                 Cprob=''
                 sumprob='1.0'
                 for reacnb in range(len(exitlist)):
-                    Cprob += 'p_calc->prob[ORDER_{0}][{1}] = one_minus_exp_sum*(({2})/sum);\n'.format(s, reacnb, exitlist[reacnb])
-                    sumprob += ' - p_calc->prob[ORDER_{0}][{1}]'.format(s, reacnb)
+                    Cprob += 'calc->prob[ORDER_{0}][{1}] = one_minus_exp_sum*(({2})/sum);\n'.format(s, reacnb, exitlist[reacnb])
+                    sumprob += ' - calc->prob[ORDER_{0}][{1}]'.format(s, reacnb)
 
-                Cprob += 'p_calc->prob[ORDER_{0}][{1}] = '.format(s,len(exitlist)) + sumprob + ';\n'
+                Cprob += 'calc->prob[ORDER_{0}][{1}] = '.format(s,len(exitlist)) + sumprob + ';\n'
                 Ccode += Cprob+ '}\n'
                 Ccode +='else{\n'
 
                 Celse=''
                 for reacnb in range(len(exitlist)):
-                    Celse += 'p_calc->prob[ORDER_{0}][{1}] = 0.0;\n'.format(s, reacnb)
+                    Celse += 'calc->prob[ORDER_{0}][{1}] = 0.0;\n'.format(s, reacnb)
 
-                Celse += 'p_calc->prob[ORDER_{0}][{1}] = 1.0;\n'.format(s,len(exitlist))+'}\n\n'
+                Celse += 'calc->prob[ORDER_{0}][{1}] = 1.0;\n'.format(s,len(exitlist))+'}\n\n'
 
                 Ccode += Celse
 
@@ -397,35 +371,59 @@ class Ccoder(Cmodel):
         for s in self.par_sv: ##stay in the same compartment
             myexit = [r for r in self.proc_model if r['from'] == s]
             if len(myexit)>0: ##only if you can exit from this compartment in this case the remaining has a sense
-                incDict[s] += 'p_calc->inc[ORDER_{0}][cac][{1}]'.format(s, len(myexit))
+                incDict[s] += 'calc->inc[ORDER_{0}][{1}]'.format(s, len(myexit))
             else:
-                incDict[s] += 'X[ORDER_{0}*N_CAC+cac]'.format(s)
+                incDict[s] += 'X[ORDER_{0}]'.format(s)
 
         for s in self.par_sv: #come in from other compartments
             myinput = [r for r in self.proc_model if r['from'] == s]
             for nbreac in range(len(myinput)):
-                if myinput[nbreac]['to'] not in ['U', self.remainder]: ##we exclude deaths or transitions to remainder in the update
-                    incDict[myinput[nbreac]['to']] += ' + p_calc->inc[ORDER_{0}][cac][{1}]'.format(myinput[nbreac]['from'], nbreac)
+                if myinput[nbreac]['to'] not in (['U'] + self.remainder): ##we exclude deaths or transitions to remainder in the update
+                    incDict[myinput[nbreac]['to']] += ' + calc->inc[ORDER_{0}][{1}]'.format(myinput[nbreac]['from'], nbreac)
 
 
-        ##we add flow from ['U', self.remainder] (Poisson term). We want to cache those flow so that the incidences can be computed
+        ##we add flow from (['U'] + self.remainder) (Poisson term). We want to cache those flow so that the incidences can be computed
         poisson = []
-        for s in ['U', self.remainder]:
-            reac_from_univ = [r for r in self.proc_model if (r['from'] == s and (r['to'] not in ['U', self.remainder]) )]
+        for s in (['U'] + self.remainder):
+            reac_from_univ = [r for r in self.proc_model if (r['from'] == s and (r['to'] not in (['U'] + self.remainder)) )]
             for nbreac in range(len(reac_from_univ)):
                 myrate = self.make_C_term(reac_from_univ[nbreac]['rate'], False)
                 if 'white_noise' in reac_from_univ[nbreac]:
-                    myrate = '({0})*{1}'.format(myrate, reac_from_univ[nbreac]['white_noise']['name'])
+                    myrate = '({0})*{1}'.format(myrate, reac_from_univ[nbreac]['white_noise']['id'])
 
-                poisson.append('p_calc->inc[ORDER_{0}][cac][{1}] = gsl_ran_poisson(p_calc->randgsl, ({2})*dt)'.format(s, nbreac, myrate))
-                incDict[reac_from_univ[nbreac]['to']] += ' + p_calc->inc[ORDER_{0}][cac][{1}]'.format(s, nbreac)
+                poisson.append('calc->inc[ORDER_{0}][{1}] = gsl_ran_poisson(calc->randgsl, ({2})*dt)'.format(s, nbreac, myrate))
+                incDict[reac_from_univ[nbreac]['to']] += ' + calc->inc[ORDER_{0}][{1}]'.format(s, nbreac)
 
         Cstring=''
         for s in self.par_sv:
-            Cstring += 'X[ORDER_{0}*N_CAC+cac] = {1};\n'.format(s, incDict[s])
+            Cstring += 'X[ORDER_{0}] = {1};\n'.format(s, incDict[s])
 
 
-        return {'code': Ccode, 'caches': caches, 'sf': sf, 'poisson': poisson, 'update': Cstring}
+        return {'code': Ccode, 'caches': caches, 'sf': sf, 'poisson': poisson, 'update_code': Cstring}
+
+
+    def step_psr_inc(self):
+        """generate C code to compute the dynamic of the observed
+        **incidence** in case of stochastic models (euler multinomial)
+        and put in into
+
+        Clist = [{'right_hand_side': }]
+
+        """
+        Clist = []
+
+        for i in range(len(self.par_inc_def)):
+            right_hand_side=''
+
+            for j in range(len(self.par_inc_def[i])):
+                id_out = [self.proc_model.index(r) for r in self.proc_model if ((r['from'] == self.par_inc_def[i][j]['from']) and (r['to'] == self.par_inc_def[i][j]['to']) and (r['rate'] == self.par_inc_def[i][j]['rate']))]
+                for o in id_out:
+                    myexit = [r for r in self.proc_model if r['from']==self.proc_model[o]['from']]
+                    right_hand_side += ' + p_calc->inc[ORDER_{0}][{1}]'.format(self.par_inc_def[i][j]['from'], myexit.index(self.proc_model[o]))
+
+            Clist.append({'index': i, 'right_hand_side':right_hand_side})
+
+        return Clist
 
 
     def psr_multinomial(self):
@@ -476,14 +474,14 @@ class Ccoder(Cmodel):
 
         ##outputs
         for r in proc_model:
-            if r['from'] not in ['U', self.remainder]:
+            if r['from'] not in (['U'] + self.remainder):
                 cached = '_r[cac][{0}]*X[ORDER_{1}{2}]'.format(r['ind_cache'], r['from'], '*N_CAC+cac')
                 odeDict[r['from']].append(get_rhs_term('-', cached, r))
 
         ##inputs
         for r in proc_model:
-            if r['to'] not in ['U', self.remainder]:
-                if r['from'] not in ['U', self.remainder]:
+            if r['to'] not in (['U'] + self.remainder):
+                if r['from'] not in (['U'] + self.remainder):
                     cached = '_r[cac][{0}]*X[ORDER_{1}{2}]'.format(r['ind_cache'], r['from'], '*N_CAC+cac')
                 else:
                     cached= '_r[cac][{0}]'.format(r['ind_cache'])
@@ -505,7 +503,7 @@ class Ccoder(Cmodel):
                     id_out = [proc_model.index(r) for r in proc_model if ((r['from'] == self.obs_var_def[i][j]['from']) and (r['to'] == self.obs_var_def[i][j]['to']) and (r['rate'] == self.obs_var_def[i][j]['rate'])) ]
                     for o in id_out:
                         reaction = proc_model[o]
-                        if self.obs_var_def[i][j]['from'] in ['U', self.remainder]:
+                        if self.obs_var_def[i][j]['from'] in (['U'] + self.remainder):
                             cached = '_r[cac][{0}]'.format(reaction['ind_cache'])
                         else:
                             cached = '_r[cac][{0}]*X[ORDER_{1}{2}]'.format(reaction['ind_cache'], self.obs_var_def[i][j]['from'], '*N_CAC+cac')
@@ -622,14 +620,14 @@ class Ccoder(Cmodel):
 
         ##outputs
         for r in my_model:
-            if r['from'] not in ['U', self.remainder]:
+            if r['from'] not in (['U'] + self.remainder):
                 rate= ' - (({0})*{1})'.format(r['rate'], r['from'])
                 odeDict[r['from']] += rate
 
         ##inputs
         for r in my_model:
-            if r['to'] not in ['U', self.remainder]:
-                if r['from'] not in ['U', self.remainder]:
+            if r['to'] not in (['U'] + self.remainder):
+                if r['from'] not in (['U'] + self.remainder):
                     rate= ' + (({0})*{1})'.format(r['rate'], r['from'])
                     odeDict[r['to']] += rate
                 else:
@@ -656,7 +654,7 @@ class Ccoder(Cmodel):
                     id_out = [self.proc_model.index(r) for r in self.proc_model if ((r['from'] == self.obs_var_def[i][j]['from']) and (r['to'] == self.obs_var_def[i][j]['to']) and (r['rate'] == self.obs_var_def[i][j]['rate'])) ]
                     for o in id_out:
                         reaction = my_model[o]
-                        if self.obs_var_def[i][j]['from'] in ['U', self.remainder]:
+                        if self.obs_var_def[i][j]['from'] in (['U'] + self.remainder):
                             eq += ' + ({0})'.format(reaction['rate'])
                         else:
                             eq += ' + (({0})*{1})'.format(reaction['rate'], self.obs_var_def[i][j]['from'])
@@ -833,7 +831,7 @@ class Ccoder(Cmodel):
             if is_noise:
                 B_sto_ind = N_REAC + r['order_env_sto']
 
-            if r['from'] not in ['U', self.remainder]:
+            if r['from'] not in (['U'] + self.remainder):
                 i = self.par_sv.index(r['from'])
                 Ls[i][B_dem_ind] -= 1 ##demographic stochasticity
                 if is_noise:
@@ -843,7 +841,7 @@ class Ccoder(Cmodel):
             else:
                 Qc_term = r['rate']
 
-            if r['to'] not in ['U', self.remainder]:
+            if r['to'] not in (['U'] + self.remainder):
                 i = self.par_sv.index(r['to'])
                 Ls[i][B_dem_ind] += 1
                 if is_noise:
@@ -892,7 +890,7 @@ class Ccoder(Cmodel):
         ############################
         for r in proc_model:
             if 'white_noise' in r:
-                if r['from'] not in ['U', self.remainder]:
+                if r['from'] not in (['U'] + self.remainder):
                     Qn_term = '({0})*{1}'.format(r['rate'], r['from'])
                 else:
                     Qn_term = r['rate']

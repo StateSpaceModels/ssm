@@ -69,6 +69,8 @@ class Builder(Ccoder):
     def code(self):
         """generate C code for MIF, Simplex, pMCMC, Kalman, simulation, ..."""
                 
+        is_diff = True if len(self.par_diff) > 0 else False
+
         parameters = self.parameters()
         self.render('transform', parameters)
         self.render('input', parameters)
@@ -76,7 +78,15 @@ class Builder(Ccoder):
         observed = self.observed()
         self.render('observed', observed)
 
-
+        psr = {
+            'alloc': self.alloc_psr(),
+            'is_diff': is_diff,
+            'white_noise': self.white_noise,
+            'step': self.step_psr(),
+            'step_inc': self.step_psr_inc(),
+            'psr_multinomial': self.psr_multinomial()
+        }
+        self.render('psr', psr)
 
 
 

@@ -65,6 +65,7 @@ class Cmodel:
         #par proc and par_noise
         par_proc = set()
         par_noise = set()
+        self.white_noise = []
         for r in self.get_resource('reactions'):
             el =  self.change_user_input(r['rate'])
             for e in el:
@@ -77,6 +78,8 @@ class Cmodel:
             if 'white_noises' in r:
                 for x in r['white_noises']:
                     par_noise.add(x['sd'])
+                    if x['id'] not in [y['id'] for y in self.white_noise]:
+                        self.white_noise.append(x)
 
         self.par_proc = sorted(list(par_proc))
         self.par_noise = sorted(list(par_noise))
@@ -104,7 +107,7 @@ class Cmodel:
                         try:
                             float(e)
                         except ValueError:
-                                par_obs.add(e)
+                            par_obs.add(e)
 
         self.par_obs = sorted(list(par_obs))
 

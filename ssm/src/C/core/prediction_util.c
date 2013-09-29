@@ -32,3 +32,28 @@ void ssm_X_reset_inc(ssm_X_t *X, ssm_data_row_t *row)
 	gsl_vector_set(X->proj, row->states_reset[i]->offset, 0.0);
     }    
 }
+
+/**
+ * Modified version of gsl_ran_multinomial to avoid a loop. We avoid
+ * to recompute the total sum of p (called norm in GSL) as it will
+ * always be 1.0 with ssm (no rounding error by construction)
+ */
+void ssm_ran_multinomial (const gsl_rng * r, const size_t K, unsigned int N, const double p[], unsigned int n[])
+{
+    size_t k;
+    double sum_p = 0.0;
+
+    unsigned int sum_n = 0;
+
+    for (k = 0; k < K; k++) {
+        if (p[k] > 0.0) {
+            n[k] = gsl_ran_binomial (r, p[k] / (1.0 - sum_p), N - sum_n);
+        }
+        else {
+            n[k] = 0;
+        }
+
+        sum_p += p[k];
+        sum_n += n[k];
+    }
+}

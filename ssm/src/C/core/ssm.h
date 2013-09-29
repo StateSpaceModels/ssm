@@ -51,9 +51,8 @@
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_eigen.h>
 
-#include <jansson.h> //json
+#include <jansson.h>
 
-//parallel computing ability
 #include <zmq.h>
 #include <pthread.h>
 
@@ -142,8 +141,8 @@ typedef struct /*[N_THREADS] : for parallel computing we need N_THREADS replicat
     size_t *index_sorted;  /**< [J] index of the sorted weights used to compute 95% confidence interval */
 
     //interpolators for covariates
-    gsl_interp_accel **acc;  /**< [N_PAR] an array of pointer to gsl_interp_accel */
-    gsl_spline **spline;     /**< [N_PAR] an array of pointer to gsl_spline */
+    gsl_interp_accel **acc;  /**< [N_PAR_FIXED] an array of pointer to gsl_interp_accel */
+    gsl_spline **spline;     /**< [N_PAR_FIXED] an array of pointer to gsl_spline */
 
     /* references */
     ssm_theta_t *_par_natural; /**< Reference to the parameter is the
@@ -167,7 +166,7 @@ typedef struct /*[N_THREADS] : for parallel computing we need N_THREADS replicat
  */
 typedef struct  /* optionaly [N_DATA+1][J] for MIF and pMCMC "+1" is for initial condition (one time step before first data)  */
 {
-    gsl_vector *proj;    /**< values */
+    double *proj;    /**< values */
 
     double dt;           /**< the integration time step (for ODE solved with adaptive time step solvers) */
     double dt0;          /**< the integration time step initially picked by the user */
@@ -194,7 +193,7 @@ typedef struct  /* ([N_DATA+1]) */
 typedef struct
 {
     char *name; /**< name of the parameter */
-    int offset; /**< order of the parameter */
+    int offset; /**< order of the parameter in par */
 
     double (*f) (double); /**< transformation (log, logit...) */
     double (*f_inv) (double); /**< inverse of f (f*f_inv=identity) */
@@ -226,7 +225,7 @@ typedef struct
 typedef struct
 {
     char *name; /**< name of the state */
-    int offset; /**< order of the state */
+    int offset; /**< order of the state in X */
 
     ssm_parameter_t *ic;  /**< pointer to the initial condition (or NULL) */
 
@@ -269,6 +268,8 @@ typedef struct
  */
 struct _nav
 {
+    enum ssm_noises_off noises_off;
+
     //navigating withing par    
     ssm_it_states_t *states_sv;             /**< to iterate on the state variables (not including remainders or inc) *only* */
     ssm_it_states_t *states_remainders;     /**< to iterate on the remainders *only* */
@@ -346,15 +347,10 @@ typedef struct { /* [n_data] */
 typedef struct
 {
     int length;       /**< number of data points */
-
     int n_obs;       /**< the number of data point to taken into account for inference */
-
     char **names;     /**< [this.n_ts] name of the time series */
-
     ssm_data_row_t **rows; /**< [this.length] the data values */
-
     unsigned int *times;   /**< [this.length+1] ([0] + [times in days when the data were collected since the smallest t0]) */
-
     int length_nonan; /**< number of data points with at least one time series != NaN */
     unsigned int *ind_nonan; /**< [this.length_nonan] index of data points where there is at least one ts !=NaN */
 

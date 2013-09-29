@@ -17,8 +17,6 @@
  *************************************************************************/
 
 #include "ssm.h"
-#include <jansson.h> //json
-
 
 void ssm_input_free(ssm_input_t *input)
 {
@@ -81,6 +79,7 @@ ssm_var_t *ssm_var_new(ssm_nav_t *nav, json_t *parameters)
     return m;
 }
 
-void ssm_var_free(ssm_var_t *var){
+void ssm_var_free(ssm_var_t *var)
+{
     gsl_matrix_free(var);
 }

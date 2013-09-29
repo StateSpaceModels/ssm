@@ -20,9 +20,9 @@
 
 {% for x in observed %}
 
-static double (*f_likelihood_tpl_{{ x.id }}) (double y, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t)
+static double (*f_likelihood_tpl_{{ x.id }}) (double y, ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
 {
-
+    double *X = p_X->proj;
     double gsl_mu = {{ x.pdf.mean }};
     double gsl_sd = {{ x.pdf.sd }};
 
@@ -35,19 +35,21 @@ static double (*f_likelihood_tpl_{{ x.id }}) (double y, ssm_X_t *X, ssm_par_t *p
     return sanitize_likelihood(like);
 }
 
-static double (*f_obs_mean_tpl_{{ x.id }}) (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t)
+static double (*f_obs_mean_tpl_{{ x.id }}) (ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
 {
+    double *X = p_X->proj;
     return {{ x.pdf.mean }};
 }
 
-static double (*f_obs_var_tpl_{{ x.id }}) (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t)
+static double (*f_obs_var_tpl_{{ x.id }}) (ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
 {
+    double *X = p_X->proj;
     return pow({{ x.pdf.sd }}, 2);
 }
 
-static double (*f_obs_tpl_{{ x.id }}) (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t)
+static double (*f_obs_tpl_{{ x.id }}) (ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
 {
-
+    double *X = p_X->proj;
     double gsl_mu = {{ x.pdf.mean }};
     double gsl_sd = {{ x.pdf.sd }};
 
