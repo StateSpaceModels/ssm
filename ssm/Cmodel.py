@@ -76,10 +76,9 @@ class Cmodel:
                         par_proc.add(e)
             
             if 'white_noises' in r:
-                for x in r['white_noises']:
-                    par_noise.add(x['sd'])
-                    if x['id'] not in [y['id'] for y in self.white_noise]:
-                        self.white_noise.append(x)
+                par_noise.add(r['white_noises']['sd'])
+                if r['white_noises']['id'] not in [y['id'] for y in self.white_noise]:
+                    self.white_noise.append(r['white_noises'])
 
         self.par_proc = sorted(list(par_proc))
         self.par_noise = sorted(list(par_noise))

@@ -84,9 +84,11 @@ class Builder(Ccoder):
             'white_noise': self.white_noise,
             'step': self.step_psr(),
             'step_inc': self.step_psr_inc(),
-            'psr_multinomial': self.psr_multinomial()
+            'psr_multinomial': self.step_psr_multinomial()
         }
         self.render('psr', psr)
+
+        self.render('ode_sde', {'is_diff': is_diff, 'step':self.step_ode_sde()})
 
 
 
