@@ -62,7 +62,7 @@ enum ssm_noises_off {SSM_NO_DEM_STO = 1 << 0, SSM_NO_WHITE_NOISE = 1 << 1, SSM_N
 
 enum ssm_print {SSM_PRINT_TRACE = 1 << 0, SSM_PRINT_X = 1 << 1, SSM_PRINT_HAT = 1 << 2, SSM_PRINT_PRED_RES = 1 << 3, SSM_PRINT_X_SMOOTH = 1 << 4, SSM_PRINT_ACC = 1 << 5, SSM_PIPE = 1 << 6, SSM_QUIET = 1 << 7, SSM_PRINT_COV = 1 << 8 };
 
-typedef enum {SSM_SUCCESS = 1 << 0 , SSM_ERR_LIKE= 1 << 1, SSM_ERR_REM = 1 << 2} ssm_err_code;
+typedef enum {SSM_SUCCESS = 1 << 0 , SSM_ERR_LIKE= 1 << 1, SSM_ERR_REM = 1 << 2, SSM_ERR_KAL = 1 << 3} ssm_err_code;
 
 #define SSM_BUFFER_SIZE (50000 * 1024)  /**< 50000 KB buffer size for settings.json inputs */
 #define SSM_STR_BUFFSIZE 255 /**< buffer for log and error strings */
@@ -135,6 +135,20 @@ typedef struct /*[N_THREADS] : for parallel computing we need N_THREADS replicat
 
     /* SDE */
     double *y_pred; /**< used to store y predicted for Euler Maruyama */
+
+    /* Kalman */
+    gsl_vector *_pred_error; /**< [N_TS] */
+    gsl_matrix *_St; /**< [N_TS][N_TS] */
+    gsl_matrix *_Stm1; /**< [N_TS][N_TS] */
+    gsl_matrix *_Rt; /**< [N_TS][N_TS] */
+    gsl_matrix *_Ht; /**< [self.length][N_TS] */
+    gsl_matrix *_Kt; /**< [self.length][N_TS] */
+    gsl_matrix *_Tmp_N_SV_N_TS; /**< [self.length][N_TS] */
+    gsl_matrix *_Tmp_N_TS_N_SV; /**< [TS][self.length] */
+    gsl_matrix *_Jt; /**< [self.length][self.length] */
+    gsl_matrix *_Q; /**< [self.length][self.length] */
+    gsl_matrix *_FtCt; /**< [self.length][self.length] */
+    gsl_matrix *_Ft; /**< [self.length][self.length] */
 
     //multi-threaded sorting
     double *to_be_sorted;  /**< [J] array of the J particle to be sorted*/
