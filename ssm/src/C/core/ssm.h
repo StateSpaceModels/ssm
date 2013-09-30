@@ -115,10 +115,6 @@ typedef struct /*[N_THREADS] : for parallel computing we need N_THREADS replicat
 
     gsl_rng *randgsl; /**< random number generator */
 
-    ssm_implementations_t implementation;
-    ssm_noises_off_t noises_off;
-    ssm_print_t print;
-
     /////////////////
     //implementations
     /////////////////
@@ -287,7 +283,11 @@ typedef struct
  * navigating in the parameter / state space
  */
 struct _nav
-{   
+{
+    ssm_implementations_t implementation;
+    ssm_noises_off_t noises_off;
+    ssm_print_t print;
+
     //navigating withing par    
     ssm_it_states_t *states_sv;         /**< to iterate on the state variables (not including remainders or inc) *only* */
     ssm_it_states_t *states_remainders; /**< to iterate on the remainders *only* */

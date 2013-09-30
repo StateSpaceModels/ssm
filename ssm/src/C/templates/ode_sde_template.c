@@ -54,7 +54,7 @@ void ssm_step_sde_{{ noises_off }}(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_n
     int i;
     double diffed[states_diff->length];
     {% if noises_off != 'ode'%}
-    int is_diff = ! (calc->noises_off & SSM_NO_DIFF);
+    int is_diff = ! (nav->noises_off & SSM_NO_DIFF);
     {% endif %}
     {% endif %}
 
