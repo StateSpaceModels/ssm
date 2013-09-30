@@ -522,7 +522,7 @@ class Ccoder(Cmodel):
 
 
         ##############################################################################################################
-        ##we create the ODE and  4 versions of the SDE system (no_dem_sto, no_env_sto, no_dem_sto_no_env_sto and full)
+        ##we create the ODE and  4 versions of the SDE system (no_dem_sto, no_white_noise, no_dem_sto_no_white_noise and full)
         ##############################################################################################################
         unique_noises_id = [x['id'] for x in self.white_noise]
         dem_sto_id = ['dem_sto__' +str(i) for i, x in enumerate(self.proc_model)]
@@ -547,11 +547,11 @@ class Ccoder(Cmodel):
 
         func = {'no_dem_sto': {'proc': {'system':[], 'noises': unique_noises_id},
                                'obs': []},
-                'no_env_sto': {'proc': {'system':[], 'noises': dem_sto_id},
+                'no_white_noise': {'proc': {'system':[], 'noises': dem_sto_id},
                                'obs': []},
                 'full': {'proc': {'system':[], 'noises': dem_sto_id + unique_noises_id},
                          'obs': []},
-                'no_dem_sto_no_env_sto': {'proc':{'system':[], 'noises':[]},
+                'no_dem_sto_no_white_noise': {'proc':{'system':[], 'noises':[]},
                                           'obs':[]},
                 'ode': {'proc':{'system':[], 'noises':[]},
                         'obs':[]}}
@@ -566,9 +566,9 @@ class Ccoder(Cmodel):
 
             #TODO get rid of the 'dt' for Euler Maruyama (should be handled on the C side as it is the case for sqrt(dt) for the stochastic part)'
             func['ode']['proc']['system'].append({'index': i, 'eq': eq})
-            func['no_dem_sto_no_env_sto']['proc']['system'].append({'index': i, 'eq': '({0})*dt'.format(eq)})
+            func['no_dem_sto_no_white_noise']['proc']['system'].append({'index': i, 'eq': '({0})*dt'.format(eq)})
             func['no_dem_sto']['proc']['system'].append({'index': i, 'eq': '({0})*dt {1}'.format(eq, env)})
-            func['no_env_sto']['proc']['system'].append({'index': i, 'eq': '({0})*dt + {1}'.format(eq, dem)})
+            func['no_white_noise']['proc']['system'].append({'index': i, 'eq': '({0})*dt + {1}'.format(eq, dem)})
             func['full']['proc']['system'].append({'index': i, 'eq': '({0})*dt + {1} {2}'.format(eq, dem, env)})
 
         #observed incidence
@@ -580,9 +580,9 @@ class Ccoder(Cmodel):
 
             #TODO get rid of the 'dt' for Euler Maruyama (should be handled on the C side as it is the case for sqrt(dt) for the stochastic part)'
             func['ode']['obs'].append({'index': myobs['index'], 'eq': eq})
-            func['no_dem_sto_no_env_sto']['obs'].append({'index': myobs['index'], 'eq': '({0})*dt'.format(eq)})
+            func['no_dem_sto_no_white_noise']['obs'].append({'index': myobs['index'], 'eq': '({0})*dt'.format(eq)})
             func['no_dem_sto']['obs'].append({'index': myobs['index'], 'eq': '({0})*dt {1}'.format(eq, env)})
-            func['no_env_sto']['obs'].append({'index': myobs['index'], 'eq': '({0})*dt {1}'.format(eq, dem)})
+            func['no_white_noise']['obs'].append({'index': myobs['index'], 'eq': '({0})*dt {1}'.format(eq, dem)})
             func['full']['obs'].append({'index': myobs['index'], 'eq': '({0})*dt + {1} {2}'.format(eq, dem, env)})
 
 

@@ -98,7 +98,7 @@ static double f_par2user_tpl_{{ p.id }}(double x, ssm_input_t *par, ssm_calc_t *
 
 
 {% for rem, def in remainders.items() %}
-static double (*f_remainder_tpl_{{ rem }}) (ssm_X_t *X, ssm_calc_t *calc, double t)
+static double f_remainder_tpl_{{ rem }}(ssm_X_t *X, ssm_calc_t *calc, double t)
 {
     return {{ def }};
 }
