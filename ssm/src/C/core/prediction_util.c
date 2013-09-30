@@ -30,7 +30,7 @@ void ssm_X_reset_inc(ssm_X_t *X, ssm_data_row_t *row)
 
     for(i=0; i<row->states_reset_length; i++){
 	gsl_vector_set(X->proj, row->states_reset[i]->offset, 0.0);
-    }    
+    }
 }
 
 /**

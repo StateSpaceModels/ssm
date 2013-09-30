@@ -426,7 +426,7 @@ class Ccoder(Cmodel):
         return Clist
 
 
-    def psr_multinomial(self):
+    def step_psr_multinomial(self):
         draw = []
         for s in self.par_sv:
             nbexit = len([r for r in self.proc_model if r['from']==s])
@@ -450,7 +450,7 @@ class Ccoder(Cmodel):
         rates = list(set(r['rate'] for r in proc_model))
 
         caches = map(lambda x: self.make_C_term(x, True), rates)
-        sf = self.cache_special_function_C(caches, prefix='_sf[cac]')
+        sf = self.cache_special_function_C(caches, prefix='_sf')
 
         for i, r in enumerate(proc_model):
             r['ind_cache'] = rates.index(r['rate'])
@@ -459,7 +459,7 @@ class Ccoder(Cmodel):
 
         def get_rhs_term(sign, cached, reaction):
             if 'white_noise' in reaction:
-                noise_name = reaction['white_noise']['name']
+                noise_name = reaction['white_noise']['id']
                 noise_sd = self.toC(reaction['white_noise']['sd'], False)
             else:
                 noise_name = None
@@ -475,16 +475,16 @@ class Ccoder(Cmodel):
         ##outputs
         for r in proc_model:
             if r['from'] not in (['U'] + self.remainder):
-                cached = '_r[cac][{0}]*X[ORDER_{1}{2}]'.format(r['ind_cache'], r['from'], '*N_CAC+cac')
+                cached = '_r[{0}]*X[ORDER_{1}]'.format(r['ind_cache'], r['from'])
                 odeDict[r['from']].append(get_rhs_term('-', cached, r))
 
         ##inputs
         for r in proc_model:
             if r['to'] not in (['U'] + self.remainder):
                 if r['from'] not in (['U'] + self.remainder):
-                    cached = '_r[cac][{0}]*X[ORDER_{1}{2}]'.format(r['ind_cache'], r['from'], '*N_CAC+cac')
+                    cached = '_r[{0}]*X[ORDER_{1}]'.format(r['ind_cache'], r['from'])
                 else:
-                    cached= '_r[cac][{0}]'.format(r['ind_cache'])
+                    cached= '_r[{0}]'.format(r['ind_cache'])
 
                 odeDict[r['to']].append(get_rhs_term('+', cached, r))
 
@@ -495,29 +495,28 @@ class Ccoder(Cmodel):
 
         obs_list = []
 
-        for i in range(len(self.obs_var_def)):
+        for i in range(len(self.par_inc_def)):
             eq = []
 
-            if isinstance(self.obs_var_def[i][0], dict): ##incidence
-                for j in range(len(self.obs_var_def[i])):
-                    id_out = [proc_model.index(r) for r in proc_model if ((r['from'] == self.obs_var_def[i][j]['from']) and (r['to'] == self.obs_var_def[i][j]['to']) and (r['rate'] == self.obs_var_def[i][j]['rate'])) ]
+            if isinstance(self.par_inc_def[i][0], dict): ##incidence
+                for j in range(len(self.par_inc_def[i])):
+                    id_out = [proc_model.index(r) for r in proc_model if ((r['from'] == self.par_inc_def[i][j]['from']) and (r['to'] == self.par_inc_def[i][j]['to']) and (r['rate'] == self.par_inc_def[i][j]['rate'])) ]
                     for o in id_out:
                         reaction = proc_model[o]
-                        if self.obs_var_def[i][j]['from'] in (['U'] + self.remainder):
-                            cached = '_r[cac][{0}]'.format(reaction['ind_cache'])
+                        if self.par_inc_def[i][j]['from'] in (['U'] + self.remainder):
+                            cached = '_r[{0}]'.format(reaction['ind_cache'])
                         else:
-                            cached = '_r[cac][{0}]*X[ORDER_{1}{2}]'.format(reaction['ind_cache'], self.obs_var_def[i][j]['from'], '*N_CAC+cac')
+                            cached = '_r[{0}]*X[ORDER_{1}]'.format(reaction['ind_cache'], self.par_inc_def[i][j]['from'])
 
                         eq.append(get_rhs_term('+', cached, reaction))
 
                 obs_list.append({'index':i, 'eq': eq})
 
 
-
         ##############################################################################################################
         ##we create the ODE and  4 versions of the SDE system (no_dem_sto, no_env_sto, no_dem_sto_no_env_sto and full)
         ##############################################################################################################
-        unique_noises_names = [x['name'] for x in self.white_noise]
+        unique_noises_names = [x['id'] for x in self.white_noise]
         dem_sto_names = ['dem_sto__' +str(i) for i, x in enumerate(self.proc_model)]
 
         def eq_dem_env(eq_list):
@@ -529,11 +528,11 @@ class Ccoder(Cmodel):
                 eq += ' {0} ({1})'.format(x['sign'], x['term'])
 
                 #dem sto
-                dem += '{0} sqrt(({1}))*dem_sto__{2}[cac]'.format(x['sign'], x['term'], x['ind_dem_sto'])
+                dem += '{0} sqrt(({1}))*dem_sto__{2}'.format(x['sign'], x['term'], x['ind_dem_sto'])
 
                 #env sto
                 if x['noise_name']:
-                    env += '{0} ({1})*{2}*{3}[cac]'.format(x['sign'], x['term'], x['noise_sd'], x['noise_name'])
+                    env += '{0} ({1})*{2}*{3}'.format(x['sign'], x['term'], x['noise_sd'], x['noise_name'])
 
             return (eq, dem, env)
 
@@ -582,9 +581,11 @@ class Ccoder(Cmodel):
         return {'func': func, 'caches': caches, 'sf': sf}
 
 
-
-
     def print_order(self):
+        """
+        #define and #undef
+        """
+
         order_univ = []
         N_PAR_SV = len(self.par_sv)
         univ = ['U']
@@ -595,8 +596,6 @@ class Ccoder(Cmodel):
             order_univ.append({'name': X, 'order': N_PAR_SV+i})
 
         return {'var': self.par_sv + self.par_proc + self.par_obs, 'diff': self.diff_var, 'data': self.par_fixed, 'universe': order_univ}
-
-
 
 
 
@@ -638,26 +637,26 @@ class Ccoder(Cmodel):
         ##observed equations
         obsList = []
 
-        for i in range(len(self.obs_var_def)):
+        for i in range(len(self.par_inc_def)):
             eq = ''
 
-            if not isinstance(self.obs_var_def[i][0], dict): ##prevalence: we potentialy sum the prevalence eq. stored in odeDict
-                for j in range(len(self.obs_var_def[i])):
-                    if self.obs_var_def[i][j] == self.remainder:
+            if not isinstance(self.par_inc_def[i][0], dict): ##prevalence: we potentialy sum the prevalence eq. stored in odeDict
+                for j in range(len(self.par_inc_def[i])):
+                    if self.par_inc_def[i][j] == self.remainder:
                         for s in self.par_sv:
                             eq += '- ( ' + odeDict[s] + ' )'
                     else:
-                        eq += odeDict[self.obs_var_def[i][j]]
+                        eq += odeDict[self.par_inc_def[i][j]]
 
             else: ##incidence
-                for j in range(len(self.obs_var_def[i])):
-                    id_out = [self.proc_model.index(r) for r in self.proc_model if ((r['from'] == self.obs_var_def[i][j]['from']) and (r['to'] == self.obs_var_def[i][j]['to']) and (r['rate'] == self.obs_var_def[i][j]['rate'])) ]
+                for j in range(len(self.par_inc_def[i])):
+                    id_out = [self.proc_model.index(r) for r in self.proc_model if ((r['from'] == self.par_inc_def[i][j]['from']) and (r['to'] == self.par_inc_def[i][j]['to']) and (r['rate'] == self.par_inc_def[i][j]['rate'])) ]
                     for o in id_out:
                         reaction = my_model[o]
-                        if self.obs_var_def[i][j]['from'] in (['U'] + self.remainder):
+                        if self.par_inc_def[i][j]['from'] in (['U'] + self.remainder):
                             eq += ' + ({0})'.format(reaction['rate'])
                         else:
-                            eq += ' + (({0})*{1})'.format(reaction['rate'], self.obs_var_def[i][j]['from'])
+                            eq += ' + (({0})*{1})'.format(reaction['rate'], self.par_inc_def[i][j]['from'])
 
             obsList.append(eq)
 
@@ -796,9 +795,9 @@ class Ccoder(Cmodel):
 
         N_REAC = len(proc_model)
         N_PAR_SV = len(self.par_sv)
-        N_OBS = len(self.obs_var_def)
+        N_OBS = len(self.par_inc_def)
 
-        unique_noises_names = [x['name'] for x in self.white_noise]
+        unique_noises_names = [x['id'] for x in self.white_noise]
         N_ENV_STO_UNIQUE = len(unique_noises_names)
         
         ##add sd and order properties to noisy reactions
@@ -850,7 +849,7 @@ class Ccoder(Cmodel):
             Qr_dem[B_dem_ind][B_dem_ind] =  Qc_term
 
         # observed variables
-        for i in range(len(self.obs_var_def)): #(for every obs variable)
+        for i in range(len(self.par_inc_def)): #(for every obs variable)
 
             for B_dem_ind, r in enumerate(proc_model):
                 is_noise = 'white_noise' in r
@@ -858,16 +857,16 @@ class Ccoder(Cmodel):
                     B_sto_ind = N_REAC + r['order_env_sto']
 
                 ##prevalence: (TODO: get rid of prevalence)
-                if not isinstance(self.obs_var_def[i][0], dict):
+                if not isinstance(self.par_inc_def[i][0], dict):
 
                     # if it involves prevalence as input
-                    if r['from'] in self.obs_var_def[i]:
+                    if r['from'] in self.par_inc_def[i]:
                         Ls[N_PAR_SV + i][B_dem_ind] -= 1
                         if is_noise:
                             Ls[N_PAR_SV + i][B_sto_ind] -= 1
 
                     # if it involves prevalence as output
-                    if r['to'] in self.obs_var_def[i]:
+                    if r['to'] in self.par_inc_def[i]:
                         Ls[N_PAR_SV + i][B_dem_ind] += 1
                         if is_noise:
                             Ls[N_PAR_SV + i][B_sto_ind] += 1
@@ -875,7 +874,7 @@ class Ccoder(Cmodel):
                 #incidence:
                 else:
                     # for every incidence
-                    for inc in self.obs_var_def[i]:
+                    for inc in self.par_inc_def[i]:
                         # if it involves incidence
                         if (r['from'] == inc['from']) and (r['to'] == inc['to']) and (r['rate'] == inc['rate']):
                             Ls[N_PAR_SV + i][B_dem_ind] += 1
@@ -981,7 +980,7 @@ class Ccoder(Cmodel):
                     print i, x
 
                 print "obs:"
-                for i, x in enumerate(self.obs_var_def):
+                for i, x in enumerate(self.par_inc_def):
                     print N_PAR_SV+ i, x
 
                 for i in range(len(calc_Q[k]['Q'])):

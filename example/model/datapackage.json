@@ -30,7 +30,7 @@
         {"from": "U",       "to": "S_nyc",   "rate": "mu_b_nyc*N_nyc",             "description":"birth"},
         {"from": "U",       "to": "S_paris", "rate": "mu_b_paris*N_paris",         "description":"birth"},
 
-        {"from": "S_nyc",   "to": "I_nyc",   "rate": "r0_nyc/N_nyc*v*I_nyc",       "description":"infection", "keywords": ["transmission"], "tracked": ["Inc_in_nyc"], "white_noises": [{"id":"noise_SI", "sd": "sto"}]},
+        {"from": "S_nyc",   "to": "I_nyc",   "rate": "r0_nyc/N_nyc*v*I_nyc",       "description":"infection", "keywords": ["transmission"], "tracked": ["Inc_in_nyc"], "white_noises": {"id":"noise_SI", "sd": "sto"}},
         {"from": "S_paris", "to": "I_paris", "rate": "r0_paris/N_paris*v*I_paris", "description":"infection", "keywords": ["transmission"]},
 
         {"from": "I_nyc",   "to": "R_nyc",   "rate": "correct_rate(v)",            "description":"recovery", "tracked": ["Inc_out"]},

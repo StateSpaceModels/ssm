@@ -145,17 +145,16 @@ typedef struct /*[N_THREADS] : for parallel computing we need N_THREADS replicat
     gsl_spline **spline;     /**< [N_PAR_FIXED] an array of pointer to gsl_spline */
 
     /* references */
-    ssm_theta_t *_par_natural; /**< Reference to the parameter is the
-                                  natural scale (this.par_natural) used
-                                  to pass it to some GSL function that
-                                  only accept a *void. Such function
-                                  only received ssm_calc_t * This
-                                  reference should not be used outside
-                                  from f_prediction_ functions. Outside
-                                  these functions, this.par_natural is
-                                  not guaranted to be defined. */
+    ssm_par_t *_par; /**< Reference to the parameter is the natural
+			scale (this.par) used to pass it to
+			some GSL function that only accept a
+			*void. Such function only received ssm_calc_t
+			* This reference should not be used outside
+			from f_prediction_ functions. Outside these
+			functions, this.par_natural is not guaranted
+			to be defined. */
 
-    ssm_nav_t *_nav; /**< ref to ssm_nav_t (same reason as ssm_theta_t) */
+    ssm_nav_t *_nav; /**< ref to ssm_nav_t (same reason as ssm_par_t) */
 } ssm_calc_t;
 
 
@@ -347,8 +346,9 @@ typedef struct { /* [n_data] */
 typedef struct
 {
     int length;       /**< number of data points */
-    int n_obs;       /**< the number of data point to taken into account for inference */
-    char **names;     /**< [this.n_ts] name of the time series */
+    int ts_length;    /**< the number of time series */
+    int n_obs;        /**< the number of data point to taken into account for inference */
+    char **names;     /**< [this.ts_length] name of the time series */
     ssm_data_row_t **rows; /**< [this.length] the data values */
     unsigned int *times;   /**< [this.length+1] ([0] + [times in days when the data were collected since the smallest t0]) */
     int length_nonan; /**< number of data points with at least one time series != NaN */
