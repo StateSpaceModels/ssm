@@ -57,12 +57,12 @@
 #include <pthread.h>
 
 
-enum ssm_implementations {SSM_ODE, SSM_SDE, SSM_PSR};
-enum ssm_noises_off {SSM_NO_DEM_STO = 1 << 0, SSM_NO_WHITE_NOISE = 1 << 1, SSM_NO_DIFF = 1 << 2 }; //several noises can be turned off
+typedef enum {SSM_ODE, SSM_SDE, SSM_PSR} ssm_implementations_t;
+typedef enum {SSM_NO_DEM_STO = 1 << 0, SSM_NO_WHITE_NOISE = 1 << 1, SSM_NO_DIFF = 1 << 2 } ssm_noises_off_t; //several noises can be turned off
 
-enum ssm_print {SSM_PRINT_TRACE = 1 << 0, SSM_PRINT_X = 1 << 1, SSM_PRINT_HAT = 1 << 2, SSM_PRINT_PRED_RES = 1 << 3, SSM_PRINT_X_SMOOTH = 1 << 4, SSM_PRINT_ACC = 1 << 5, SSM_PIPE = 1 << 6, SSM_QUIET = 1 << 7, SSM_PRINT_COV = 1 << 8 };
+typedef enum {SSM_PRINT_TRACE = 1 << 0, SSM_PRINT_X = 1 << 1, SSM_PRINT_HAT = 1 << 2, SSM_PRINT_PRED_RES = 1 << 3, SSM_PRINT_X_SMOOTH = 1 << 4, SSM_PRINT_ACC = 1 << 5, SSM_PIPE = 1 << 6, SSM_QUIET = 1 << 7, SSM_PRINT_COV = 1 << 8 } ssm_print_t;
 
-typedef enum {SSM_SUCCESS = 1 << 0 , SSM_ERR_LIKE= 1 << 1, SSM_ERR_REM = 1 << 2} ssm_err_code;
+typedef enum {SSM_SUCCESS = 1 << 0 , SSM_ERR_LIKE= 1 << 1, SSM_ERR_REM = 1 << 2} ssm_err_code_t;
 
 #define SSM_BUFFER_SIZE (50000 * 1024)  /**< 50000 KB buffer size for settings.json inputs */
 #define SSM_STR_BUFFSIZE 255 /**< buffer for log and error strings */
@@ -113,6 +113,10 @@ typedef struct /*[N_THREADS] : for parallel computing we need N_THREADS replicat
     int thread_id; /**< the id of the thread where the computation are being run */
 
     gsl_rng *randgsl; /**< random number generator */
+
+    ssm_implementations_t implementation;
+    ssm_noises_off_t noises_off;
+    ssm_print_t print;
 
     /////////////////
     //implementations
@@ -266,9 +270,7 @@ typedef struct
  * navigating in the parameter / state space
  */
 struct _nav
-{
-    enum ssm_noises_off noises_off;
-
+{   
     //navigating withing par    
     ssm_it_states_t *states_sv;             /**< to iterate on the state variables (not including remainders or inc) *only* */
     ssm_it_states_t *states_remainders;     /**< to iterate on the remainders *only* */
