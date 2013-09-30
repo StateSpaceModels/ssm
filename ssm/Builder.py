@@ -88,6 +88,8 @@ class Builder(Ccoder):
         }
         self.render('psr', psr)
 
+        self.render('ode_sde', {'is_diff': is_diff, 'step':self.step_ode_sde()})
+
 
 
 if __name__=="__main__":

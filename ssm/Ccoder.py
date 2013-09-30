@@ -459,13 +459,13 @@ class Ccoder(Cmodel):
 
         def get_rhs_term(sign, cached, reaction):
             if 'white_noise' in reaction:
-                noise_name = reaction['white_noise']['id']
+                noise_id = reaction['white_noise']['id']
                 noise_sd = self.toC(reaction['white_noise']['sd'], False)
             else:
-                noise_name = None
+                noise_id = None
                 noise_sd= None
 
-            return {'sign': sign, 'term': cached, 'noise_name': noise_name, 'noise_sd': noise_sd, 'ind_dem_sto': reaction['ind_dem_sto']}
+            return {'sign': sign, 'term': cached, 'noise_id': noise_id, 'noise_sd': noise_sd, 'ind_dem_sto': reaction['ind_dem_sto']}
 
 
         ################################
@@ -516,8 +516,8 @@ class Ccoder(Cmodel):
         ##############################################################################################################
         ##we create the ODE and  4 versions of the SDE system (no_dem_sto, no_env_sto, no_dem_sto_no_env_sto and full)
         ##############################################################################################################
-        unique_noises_names = [x['id'] for x in self.white_noise]
-        dem_sto_names = ['dem_sto__' +str(i) for i, x in enumerate(self.proc_model)]
+        unique_noises_id = [x['id'] for x in self.white_noise]
+        dem_sto_id = ['dem_sto__' +str(i) for i, x in enumerate(self.proc_model)]
 
         def eq_dem_env(eq_list):
             eq = ''  #deter skeleton
@@ -531,17 +531,17 @@ class Ccoder(Cmodel):
                 dem += '{0} sqrt(({1}))*dem_sto__{2}'.format(x['sign'], x['term'], x['ind_dem_sto'])
 
                 #env sto
-                if x['noise_name']:
-                    env += '{0} ({1})*{2}*{3}'.format(x['sign'], x['term'], x['noise_sd'], x['noise_name'])
+                if x['noise_id']:
+                    env += '{0} ({1})*{2}*{3}'.format(x['sign'], x['term'], x['noise_sd'], x['noise_id'])
 
             return (eq, dem, env)
 
 
-        func = {'no_dem_sto': {'proc': {'system':[], 'noises': unique_noises_names},
+        func = {'no_dem_sto': {'proc': {'system':[], 'noises': unique_noises_id},
                                'obs': []},
-                'no_env_sto': {'proc': {'system':[], 'noises': dem_sto_names},
+                'no_env_sto': {'proc': {'system':[], 'noises': dem_sto_id},
                                'obs': []},
-                'full': {'proc': {'system':[], 'noises': dem_sto_names + unique_noises_names},
+                'full': {'proc': {'system':[], 'noises': dem_sto_id + unique_noises_id},
                          'obs': []},
                 'no_dem_sto_no_env_sto': {'proc':{'system':[], 'noises':[]},
                                           'obs':[]},
