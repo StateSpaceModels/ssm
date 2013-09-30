@@ -140,6 +140,20 @@ typedef struct /*[N_THREADS] : for parallel computing we need N_THREADS replicat
     /* SDE */
     double *y_pred; /**< used to store y predicted for Euler Maruyama */
 
+    /* Kalman */
+    gsl_vector *_pred_error; /**< [N_TS] */
+    gsl_matrix *_St; /**< [N_TS][N_TS] */
+    gsl_matrix *_Stm1; /**< [N_TS][N_TS] */
+    gsl_matrix *_Rt; /**< [N_TS][N_TS] */
+    gsl_matrix *_Ht; /**< [self.length][N_TS] */
+    gsl_matrix *_Kt; /**< [self.length][N_TS] */
+    gsl_matrix *_Tmp_N_SV_N_TS; /**< [self.length][N_TS] */
+    gsl_matrix *_Tmp_N_TS_N_SV; /**< [TS][self.length] */
+    gsl_matrix *_Jt; /**< [self.length][self.length] */
+    gsl_matrix *_Q; /**< [self.length][self.length] */
+    gsl_matrix *_FtCt; /**< [self.length][self.length] */
+    gsl_matrix *_Ft; /**< [self.length][self.length] */
+
     //multi-threaded sorting
     double *to_be_sorted;  /**< [J] array of the J particle to be sorted*/
     size_t *index_sorted;  /**< [J] index of the sorted weights used to compute 95% confidence interval */

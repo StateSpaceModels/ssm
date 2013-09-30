@@ -33,18 +33,20 @@ void step_kalman(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_cal
     ssm_it_states_t *states_diff = nav->states_diff;
     ssm_it_states_t *states_inc = nav->states_inc;
 
-    gsl_matrix *Q = calc->Q;
-    gsl_matrix_const_view Ct   = gsl_matrix_const_view_array(&X[m], m, m);
-    gsl_matrix *FtCt = nav->FtCt;
+    gsl_matrix *Q = calc->_Q;
+    gsl_matrix_view Ct   = gsl_matrix_view_array(&X[m], m, m);
+    gsl_matrix *FtCt = calc->_FtCt;
+    gsl_matrix *Ft = calc->_Ft;
 
-    eval_Q(Q, X, par, nav, calc, t);
+    eval_Q(X, par, nav, calc, t);
     eval_jac(X, par, nav, calc, t);
     
     /*State variables propagation*/
     /*copy and paste ode*/
 
     /*Covariance propagation*/
-    gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1.0, X->Ft, &Ct.matrix, 0.0, FtCt);
+    gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1.0, Ft, &Ct.matrix, 0.0, FtCt);
+    
     for(i=0; i< m; i++){
 	for(c=0; j< m; j++){
 	    gsl_matrix_set(&Ct, 
