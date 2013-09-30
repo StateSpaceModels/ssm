@@ -168,7 +168,7 @@ class Ccoder(Cmodel):
 
     def parameters(self):
         """
-        Everything needed to create a ssm_parameter_t and load ssm_input_t
+        Everything needed to create ssm_parameter_t, ssm_state_t and load ssm_input_t
         """
 
         parameters = self.get_resource('parameters')
@@ -204,12 +204,20 @@ class Ccoder(Cmodel):
         #start by making dict:
         pdict = {x['id']:x for x in parameters}
         sdict = {'diff__' + x['id']: x for x in skeletons}
-        
+
+        remainders = {}        
+        for x in self.get_resource('populations'):
+            if 'remainder' in x:
+                rem = x['remainder']['id']
+                eq = x['remainder']['pop_size'] + ' - ' + ' - '.join([r for r in x['composition'] if r != rem])
+                remainders[rem] = self.make_C_term(eq, True)
+
         return {
             'parameters': parameters, 
             'skeletons': skeletons, 
             'par_sv': self.par_sv,
             'states': states,
+            'remainders': remainders,
             'sde': [sdict[x] for x in self.par_diff],
             'pars': [pdict[x] for x in pars]
         }

@@ -97,6 +97,13 @@ static double f_par2user_tpl_{{ p.id }}(double x, ssm_input_t *par, ssm_calc_t *
 {% endfor %}
 
 
+{% for rem, def in remainders.items() %}
+static double (*f_remainder_tpl_{{ rem }}) (ssm_X_t *X, ssm_calc_t *calc, double t)
+{
+    return {{ def }};
+}
+{% endfor %}
+
 ssm_parameter_t **ssm_parameters_new(){
 
     ssm_parameter_t **parameters;
@@ -193,6 +200,8 @@ ssm_state_t **ssm_states_new(ssm_parameter_t **parameters){
     states[{{ loop.index0 }}]->f_derivative = &f_id;
     states[{{ loop.index0 }}]->f_inv_derivative = &f_id;
 
+    states[{{ loop.index0 }}]->f_remainder = {% if p in remainders %}&f_remainder_tpl_{{ p }}{% else %}NULL{% endif %};
+
     states[{{ loop.index0 }}]->ic = {% if p in par_sv %}parameters[{{ loop.index0 }}]{% else %}NULL{% endif %};   
     {% endfor %}
 
@@ -213,6 +222,8 @@ ssm_state_t **ssm_states_new(ssm_parameter_t **parameters){
     states[{{ loop.index0 + states|length }}]->f_derivative = &f_id;
     states[{{ loop.index0 + states|length }}]->f_inv_derivative = &f_id;
     {% endif %}
+
+    states[{{ loop.index0 + states|length }}]->f_remainder = NULL;
 
     states[{{ loop.index0 + states|length }}]->ic = {% if 'ic' in p %}parameters[{{ p.ic }}]{% else %}NULL{% endif %};  
     {% endfor %}

@@ -238,6 +238,8 @@ typedef struct
     double (*f_derivative) (double); /**< derivative of f */
     double (*f_inv_derivative) (double); /**< derivative of f_inv */
 
+    double (*f_remainder) (ssm_X_t *X, ssm_calc_t *calc, double t); /**< compute the remainder value */
+
 } ssm_state_t;
 
 
