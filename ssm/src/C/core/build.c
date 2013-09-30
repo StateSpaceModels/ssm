@@ -83,3 +83,61 @@ void ssm_var_free(ssm_var_t *var)
 {
     gsl_matrix_free(var);
 }
+
+
+ssm_it_states_t *_ssm_it_states_new(int length)
+{
+    int i;
+
+    ssm_it_states_t *it = malloc(sizeof (ssm_it_states_t));
+    if (it == NULL) {
+	print_err("Allocation impossible for ssm_it_states_t *");
+	exit(EXIT_FAILURE);
+    }
+
+
+    it->length = length;
+    if(length){
+	it->p = malloc(length * sizeof (ssm_state_t *));
+	if (it->p == NULL) {
+	    print_err("Allocation impossible for ssm_it_states_t *");
+	    exit(EXIT_FAILURE);
+	}
+    }
+    return it;
+}
+
+void _ssm_it_states_free(ssm_it_states_t *it){
+    free(it->p);
+    free(it);
+}
+
+
+ssm_it_parameters_t *_ssm_it_parameters_new(int length)
+{
+    int i;
+
+    ssm_it_parameters_t *it = malloc(sizeof (ssm_it_parameters_t));
+    if (it == NULL) {
+	print_err("Allocation impossible for ssm_it_parameters_t *");
+	exit(EXIT_FAILURE);
+    }
+
+    it->length = length;
+    if(length){
+	it->p = malloc(length * sizeof (ssm_parameter_t *));
+	if (it->p == NULL) {
+	    print_err("Allocation impossible for ssm_it_parameters_t *");
+	    exit(EXIT_FAILURE);
+	}
+    }
+    return it;
+}
+
+
+void _ssm_it_parameters_free(ssm_it_parameters_t *it){
+    if(it->length){
+	free(it->p);
+    }
+    free(it);
+}

@@ -109,6 +109,7 @@ typedef struct _nav ssm_nav_t;
  */
 typedef struct /*[N_THREADS] : for parallel computing we need N_THREADS replication of the structure...*/
 {
+    int seed;
     int threads_length; /**< the total number of threads */
     int thread_id; /**< the id of the thread where the computation are being run */
 
@@ -288,17 +289,21 @@ typedef struct
 struct _nav
 {   
     //navigating withing par    
-    ssm_it_states_t *states_sv;             /**< to iterate on the state variables (not including remainders or inc) *only* */
-    ssm_it_states_t *states_remainders;     /**< to iterate on the remainders *only* */
-    ssm_it_states_t *states_inc;            /**< to iterate on the state variables *only* */
-    ssm_it_states_t *states_diff;           /**< to iterate on states following a diffusion *only* */
-    ssm_it_parameters_t *par_all;        /**< to iterate on every parameters */
-    ssm_it_parameters_t *par_noise;      /**< to iterate on white_noises sd *only* */
+    ssm_it_states_t *states_sv;         /**< to iterate on the state variables (not including remainders or inc) *only* */
+    ssm_it_states_t *states_remainders; /**< to iterate on the remainders *only* */
+    ssm_it_states_t *states_inc;        /**< to iterate on the state variables *only* */
+    ssm_it_states_t *states_diff;       /**< to iterate on states following a diffusion *only* */
+
+    ssm_it_parameters_t *par_all;       /**< to iterate on every parameters */
+    ssm_it_parameters_t *par_noise;     /**< to iterate on white_noises sd *only* */
+    ssm_it_parameters_t *par_vol;       /**< to iterate on volatilities *only* */
+    ssm_it_parameters_t *par_icsv;      /**< to iterate on the initial condition of the state variables *only* */
+    ssm_it_parameters_t *par_icdiff;    /**< to iterate on the initial condition of the diffusions *only* */
 
     //navigating within theta
-    ssm_it_parameters_t *theta_all;                /**< to iterate on all the *infered* parameters */
-    ssm_it_parameters_t *theta_no_states_no_diff;  /**< to iterate on the *infered* parameter of the process and observation models *not* being initial conditions or initial conditions of diffusions */
-    ssm_it_parameters_t *theta_states_diff;        /**< to iterate on the *infered* initial conditions of the state variables *and* the *infered* initial conditions of the parameters following a diffusion */
+    ssm_it_parameters_t *theta_all;            /**< to iterate on all the *infered* parameters */
+    ssm_it_parameters_t *theta_no_icsv_no_icdiff;  /**< to iterate on the *infered* parameter of the process and observation models *not* being initial conditions of state variables or initial conditions of diffusions */
+    ssm_it_parameters_t *theta_icsv_icdiff;        /**< to iterate on the *infered* initial conditions of the state variables *and* the *infered* initial conditions of the parameters following a diffusion */
 
     int parameters_length; /**< total number of parameters (including non infered) but excluding covariate (present in ssm_calc_t) */
     ssm_parameter_t **parameters; /**< [this.parameters_length] <*/

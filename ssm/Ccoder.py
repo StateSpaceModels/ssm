@@ -237,6 +237,27 @@ class Ccoder(Cmodel):
         return {'observed': obs}
 
 
+    def iterators(self):
+
+        return {
+            'state': {
+                'sv': [self.order_states[x] for x in self.par_sv],
+                'remainders': [self.order_states[x] for x in self.remainder],
+                'inc': [self.order_states[x] for x in self.par_inc],
+                'diff': [self.order_states[x] for x in self.par_diff],
+            },
+            'parameter': {
+                'all': [self.order_parameters[x] for x in (self.par_sv + self.par_vol + self.par_noise + self.par_proc + self.par_obs)],
+                'noise': [self.order_parameters[x] for x in self.par_noise],
+                'vol': [self.order_parameters[x] for x in self.par_vol],
+                'icsv': [self.order_parameters[x] for x in self.par_sv],
+                'icdiff': [self.order_parameters[x.split('diff__')[1]] for x in self.par_diff]
+            }
+        }
+        
+
+
+
     def cache_special_function_C(self, caches_C, sf=None, prefix='_sf'):
         """caches_C: List of cached expression in C
         caches_C is modified in place
@@ -1070,4 +1091,4 @@ if __name__=="__main__":
     model = json.load(open(os.path.join('..' ,'example', 'model', 'datapackage.json')))
     m = Ccoder(model)
 
-    print m.obs_inc_step_psr()
+    print m.iterators()

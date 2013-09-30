@@ -72,7 +72,7 @@ ssm_observed **ssm_observed_new(void)
     
     int i;
     for(i=0; i< {{ observed|length }}; i++){
-	observed[i] = malloc(sizeof (ssm_observed_t *));
+	observed[i] = malloc(sizeof (ssm_observed_t));
 	if (observed[i] == NULL) {
 	    print_err("Allocation impossible for ssm_observed_t *");
 	    exit(EXIT_FAILURE);

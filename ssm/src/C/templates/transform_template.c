@@ -115,7 +115,7 @@ ssm_parameter_t **ssm_parameters_new(){
     
     int i;
     for(i=0; i< {{ pars|length }}; i++){
-	parameters[i] = malloc(sizeof (ssm_parameter_t *));
+	parameters[i] = malloc(sizeof (ssm_parameter_t));
 	if (parameters[i] == NULL) {
 	    print_err("Allocation impossible for ssm_parameter_t *");
 	    exit(EXIT_FAILURE);
@@ -183,7 +183,7 @@ ssm_state_t **ssm_states_new(ssm_parameter_t **parameters){
     
     int i;
     for(i=0; i< ({{ states|length }} + {{ sde|length }}); i++){
-	states[i] = malloc(sizeof (ssm_state_t *));
+	states[i] = malloc(sizeof (ssm_state_t));
 	if (states[i] == NULL) {
 	    print_err("Allocation impossible for ssm_state_t *");
 	    exit(EXIT_FAILURE);

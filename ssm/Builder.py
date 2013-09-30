@@ -78,6 +78,8 @@ class Builder(Ccoder):
         observed = self.observed()
         self.render('observed', observed)
 
+        self.render('iterator', {'iterators':self.iterators()})
+
         psr = {
             'alloc': self.alloc_psr(),
             'is_diff': is_diff,

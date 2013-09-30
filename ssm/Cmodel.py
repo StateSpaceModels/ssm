@@ -110,6 +110,9 @@ class Cmodel:
 
         self.par_obs = sorted(list(par_obs))
 
+        ##orders
+        self.order_states = {x:i for i,x in enumerate(self.par_sv + self.remainder + self.par_inc + self.par_diff)}
+        self.order_parameters = {x:i for i,x in enumerate(self.par_sv + self.par_vol + self.par_noise + self.par_proc + self.par_obs)}
 
         #map prior id to id
         self.map_prior_id2id = {}
