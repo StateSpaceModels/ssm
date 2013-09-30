@@ -589,6 +589,27 @@ class Ccoder(Cmodel):
         return {'func': func, 'caches': caches, 'sf': sf}
 
 
+    def compute_diff(self):        
+        
+        sde = self.get_resource('sde')
+        if sde and 'sigma' in sde:
+            sigma = sde['sigma']
+            diff = []
+            for x in sigma:
+                term = ''
+                for i, y in enumerate(x):
+                    if y:
+                        term += (' + ' if term else '') + self.make_C_term(y, True) + ' * _w[{0}]'.format(i)
+                diff.append(term)
+            return diff
+
+        else:
+            return []
+            
+
+
+
+
     def print_order(self):
         """
         #define and #undef

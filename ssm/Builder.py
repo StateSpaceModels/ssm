@@ -90,6 +90,8 @@ class Builder(Ccoder):
 
         self.render('ode_sde', {'is_diff': is_diff, 'step':self.step_ode_sde()})
 
+        self.render('diff', {'diff': self.compute_diff()})
+
 
 
 if __name__=="__main__":
