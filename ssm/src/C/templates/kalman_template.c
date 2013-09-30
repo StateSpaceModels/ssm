@@ -20,21 +20,21 @@
 
 
 /**
- * stepping functions for the Extended Kalman Filter
+ * stepping function for the Extended Kalman Filter
  */
 void step_kalman(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc)
 {
 
     double *X = p_X->proj;
     double dt = p_X->dt;
-    int n = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
+    int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
     int i, j;
 
     ssm_it_states_t *states_diff = nav->states_diff;
     ssm_it_states_t *states_inc = nav->states_inc;
 
     gsl_matrix *Q = calc->Q;
-    gsl_matrix_const_view Ct   = gsl_matrix_const_view_array(&X[n], n, n);
+    gsl_matrix_const_view Ct   = gsl_matrix_const_view_array(&X[m], m, m);
     gsl_matrix *FtCt = nav->FtCt;
 
     eval_Q(Q, X, par, nav, calc, t);
@@ -45,8 +45,8 @@ void step_kalman(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_cal
 
     /*Covariance propagation*/
     gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1.0, X->Ft, &Ct.matrix, 0.0, FtCt);
-    for(i=0; i< n; i++){
-	for(c=0; j< n; j++){
+    for(i=0; i< m; i++){
+	for(c=0; j< m; j++){
 	    gsl_matrix_set(&Ct, 
 			   i,
 			   j, 
