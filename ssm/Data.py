@@ -43,7 +43,10 @@ class Data:
             if k == 'date':
                 row[k] = datetime.datetime.strptime(v, "%Y-%m-%d").date()
             else :
-                row[k] = float(v)
+                try:
+                    row[k] = float(v)
+                except ValueError:
+                    row[k] = None
 
         return row
 
@@ -91,4 +94,4 @@ class Data:
 if __name__=="__main__":
 
     d = Data(os.path.join('..' ,'example', 'model', 'datapackage.json'))
-    print d.get_data("datapackages/data-sballest-noise/N/nyc")
+    print d.get_data("datapackages/data-sballest-noise/data/all_CDC_inc")
