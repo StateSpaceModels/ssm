@@ -19,6 +19,7 @@
 import os
 import os.path
 import json
+import datetime
 import sys
 import csv
 
@@ -35,6 +36,17 @@ class Data:
         self.path = os.path.abspath(path)
         self.model = json.load(open(self.path))
         self.root = os.path.dirname(self.path)
+
+
+    def cast(self, row):
+        for k, v in row.iteritems():
+            if k == 'date':
+                row[k] = datetime.datetime.strptime(v, "%Y-%m-%d").date()
+            else :
+                row[k] = float(v)
+
+        return row
+
 
 
     def get_data(self, path, root=None, name=None):
@@ -60,7 +72,7 @@ class Data:
                 if len(plist) == 3:
                     return resource['data']
                 else:
-                    return [{'data': x['date'], plist[3]: x[plist[3]]} for x in resource['data']]
+                    return [self.cast({'data': x['date'], plist[3]: x[plist[3]]}) for x in resource['data']]
 
             elif 'path' in resource:
                 return self.get_data(resource['path'], root = os.path.join(*([root] + plist[0:2])), name = None if len(plist) < 4 else plist[3])
@@ -70,9 +82,9 @@ class Data:
                 reader = csv.DictReader(f)
 
                 if name:
-                    return [{'date': x['date'], name: x[name]} for x in reader]
+                    return [self.cast({'date': x['date'], name: x[name]}) for x in reader]
                 else:
-                    return [x for x in reader]
+                    return [self.cast(x) for x in reader]
 
 
 
