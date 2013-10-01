@@ -844,10 +844,9 @@ class Ccoder(Cmodel):
         proc_model = copy.deepcopy(self.proc_model) ##we are going to modify it...
 
         N_REAC = len(proc_model)
-        N_SV = len(self.par_sv)
-        N_INC = len(self.par_inc)
-        N_DIFF = len(self.par_diff)
-        
+        N_PAR_SV = len(self.par_sv)
+        N_PAR_INC = len(self.par_inc)
+
         unique_noises_names = [x['id'] for x in self.white_noise]
         N_ENV_STO_UNIQUE = len(unique_noises_names)
         
@@ -855,7 +854,7 @@ class Ccoder(Cmodel):
         N_ENV_STO = 0
         for reaction in proc_model:
             if 'white_noise' in reaction:
-                reaction['order_env_sto_unique'] = unique_noises_names.index(reaction['white_noise']['name'])
+                reaction['order_env_sto_unique'] = unique_noises_names.index(reaction['white_noise']['id'])
                 reaction['order_env_sto'] = N_ENV_STO
                 N_ENV_STO += 1
 
@@ -863,8 +862,8 @@ class Ccoder(Cmodel):
         s = N_REAC + N_ENV_STO ## number of noise terms (potentially non-independent)
         ##for demographic stochasticity, one independent noise term per reaction
 
-        Ls = [[0]*s for x in range(N_SV + N_INC)]
-        Qs = [[0]*(N_SV + N_INC) for x in range(N_SV + N_INC)]
+        Ls = [[0]*s for x in range(N_PAR_SV + N_PAR_INC)]
+        Qs = [[0]*(N_PAR_SV + N_PAR_INC) for x in range(N_PAR_SV + N_PAR_INC)]
         Qr = [[0]*s for x in range(s)]
         Qr_dem = [[0]*s for x in range(N_REAC)]
         Qr_sto = [[0]*s for x in range(N_ENV_STO)]
@@ -963,13 +962,13 @@ class Ccoder(Cmodel):
 
     
         #we split Ls into Ls_dem and Ls_env
-        Ls_dem = [[0]*N_REAC for x in range(N_SV + N_INC)]
-        for i in range(N_SV + N_INC):
+        Ls_dem = [[0]*N_REAC for x in range(N_PAR_SV + N_PAR_INC)]
+        for i in range(N_PAR_SV + N_PAR_INC):
             for j in range(N_REAC):
                 Ls_dem[i][j] = Ls[i][j]
 
-        Ls_env = [[0]*N_ENV_STO for x in range(N_SV + N_INC)]
-        for i in range(N_SV + N_INC):
+        Ls_env = [[0]*N_ENV_STO for x in range(N_PAR_SV + N_PAR_INC)]
+        for i in range(N_PAR_SV + N_PAR_INC):
             for j in range(N_ENV_STO):
                 Ls_env[i][j] = Ls[i][N_REAC + j]
 

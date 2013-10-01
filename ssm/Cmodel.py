@@ -75,10 +75,10 @@ class Cmodel:
                     except ValueError:
                         par_proc.add(e)
             
-            if 'white_noises' in r:
-                par_noise.add(r['white_noises']['sd'])
-                if r['white_noises']['id'] not in [y['id'] for y in self.white_noise]:
-                    self.white_noise.append(r['white_noises'])
+            if 'white_noise' in r:
+                par_noise.add(r['white_noise']['sd'])
+                if r['white_noise']['id'] not in [y['id'] for y in self.white_noise]:
+                    self.white_noise.append(r['white_noise'])
 
         self.par_proc = sorted(list(par_proc))
         self.par_noise = sorted(list(par_noise))
