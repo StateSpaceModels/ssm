@@ -94,7 +94,7 @@ class Builder(Ccoder):
 
         self.render('diff', {'diff': self.compute_diff()})
 
-
+        self.render('Q', {'Q': self.eval_Q(), 'step':self.step_ode_sde()})
 
 if __name__=="__main__":
 
