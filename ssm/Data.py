@@ -90,8 +90,49 @@ class Data:
                     return [self.cast(x) for x in reader]
 
 
+    def prepare_data(self):
+
+        ##TODO pad begining in case t0 are different (so that reset zero is respected!!)
+
+        obs = [x for x in self.model['resources'] if x['name']=='observations'][0]['data']
+
+        obs_id = [x['id'] for x in obs]
+        starts = [datetime.datetime.strptime(x['start'], "%Y-%m-%d").date() for x in obs]
+        t0 =  min(starts)
+
+        dateset = set()
+        data = {}
+        for i, x in enumerate(obs):
+            data[x['id']] = x
+            data[x['id']]['order'] = i
+            data[x['id']]['data']['dict'] = {d['date']:d[x['id']] for d in self.get_data(x['data']['path'])}
+            dateset |= set(data[x['id']]['data']['dict'].keys())
+
+        dates = list(dateset)
+        dates.sort()
+
+        data_C = []
+        for d in dates:
+            row = {
+                'date': d.isoformat(),
+                'observed': [],
+                'values': [],
+                'reset': [],
+                'time': (d-t0).days
+            }
+
+            for x in obs_id:
+                if d in data[x]['data']['dict']:
+                    row['reset'].append(data[x]['order'])
+                    if data[x]['data']['dict'][d] is not None:
+                        row['observed'].append(data[x]['order'])
+                        row['values'].append(data[x]['data']['dict'][d])
+
+            data_C.append(row)
+
+        return data_C
 
 if __name__=="__main__":
 
     d = Data(os.path.join('..' ,'example', 'model', 'datapackage.json'))
-    print d.get_data("datapackages/data-sballest-noise/data/all_CDC_inc")
+    print d.prepare_data()
