@@ -70,7 +70,7 @@ class Data:
             resource = r[0]
             if 'data' in resource:
                 if len(plist) == 3:
-                    return resource['data']
+                    return [self.cast(x) for x in resource['data']]
                 else:
                     return [self.cast({'data': x['date'], plist[3]: x[plist[3]]}) for x in resource['data']]
 
