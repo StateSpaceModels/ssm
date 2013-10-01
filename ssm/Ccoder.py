@@ -844,25 +844,27 @@ class Ccoder(Cmodel):
         proc_model = copy.deepcopy(self.proc_model) ##we are going to modify it...
 
         N_REAC = len(proc_model)
-        N_PAR_SV = len(self.par_sv)
-        N_OBS = len(self.par_inc_def)
-
+        N_SV = len(self.par_sv)
+        N_INC = len(self.par_inc)
+        N_DIFF = len(self.par_diff)
+        
         unique_noises_names = [x['id'] for x in self.white_noise]
         N_ENV_STO_UNIQUE = len(unique_noises_names)
         
         ##add sd and order properties to noisy reactions
         N_ENV_STO = 0
-        for r in proc_model:
-            if 'white_noise' in r:
-                r['order_env_sto_unique'] = unique_noises_names.index(r['white_noise']['name'])
-                r['order_env_sto'] = N_ENV_STO
+        for reaction in proc_model:
+            if 'white_noise' in reaction:
+                reaction['order_env_sto_unique'] = unique_noises_names.index(reaction['white_noise']['name'])
+                reaction['order_env_sto'] = N_ENV_STO
                 N_ENV_STO += 1
 
 
-        s = N_REAC + N_ENV_STO ##for demographic stochasticity, one independent noise term per reaction
+        s = N_REAC + N_ENV_STO ## number of noise terms (potentially non-independent)
+        ##for demographic stochasticity, one independent noise term per reaction
 
-        Ls = [[0]*s for x in range(N_PAR_SV + N_OBS)]
-        Qs = [[0]*(N_PAR_SV + N_OBS) for x in range(N_PAR_SV + N_OBS)]
+        Ls = [[0]*s for x in range(N_SV + N_INC)]
+        Qs = [[0]*(N_SV + N_INC) for x in range(N_SV + N_INC)]
         Qr = [[0]*s for x in range(s)]
         Qr_dem = [[0]*s for x in range(N_REAC)]
         Qr_sto = [[0]*s for x in range(N_ENV_STO)]
@@ -898,40 +900,17 @@ class Ccoder(Cmodel):
 
             Qr_dem[B_dem_ind][B_dem_ind] =  Qc_term
 
-        # observed variables
-        for i in range(len(self.par_inc_def)): #(for every obs variable)
-
-            for B_dem_ind, r in enumerate(proc_model):
-                is_noise = 'white_noise' in r
-                if is_noise:
-                    B_sto_ind = N_REAC + r['order_env_sto']
-
-                ##prevalence: (TODO: get rid of prevalence)
-                if not isinstance(self.par_inc_def[i][0], dict):
-
-                    # if it involves prevalence as input
-                    if r['from'] in self.par_inc_def[i]:
-                        Ls[N_PAR_SV + i][B_dem_ind] -= 1
-                        if is_noise:
-                            Ls[N_PAR_SV + i][B_sto_ind] -= 1
-
-                    # if it involves prevalence as output
-                    if r['to'] in self.par_inc_def[i]:
+        # incidence variables
+        for i in range(len(self.par_inc_def)): #(for every incidence variable)
+            for B_dem_ind, r in enumerate(proc_model):                
+                # for every incidence
+                for inc in self.par_inc_def[i]:
+                    # if it involves incidence
+                    if (r['from'] == inc['from']) and (r['to'] == inc['to']) and (r['rate'] == inc['rate']):
                         Ls[N_PAR_SV + i][B_dem_ind] += 1
-                        if is_noise:
+                        if 'white_noise' in r:
+                            B_sto_ind = N_REAC + r['order_env_sto']
                             Ls[N_PAR_SV + i][B_sto_ind] += 1
-
-                #incidence:
-                else:
-                    # for every incidence
-                    for inc in self.par_inc_def[i]:
-                        # if it involves incidence
-                        if (r['from'] == inc['from']) and (r['to'] == inc['to']) and (r['rate'] == inc['rate']):
-                            Ls[N_PAR_SV + i][B_dem_ind] += 1
-                            if is_noise:
-                                Ls[N_PAR_SV + i][B_sto_ind] += 1
-
-
 
 
         ############################
@@ -984,13 +963,13 @@ class Ccoder(Cmodel):
 
     
         #we split Ls into Ls_dem and Ls_env
-        Ls_dem = [[0]*N_REAC for x in range(N_PAR_SV + N_OBS)]
-        for i in range(N_PAR_SV + N_OBS):
+        Ls_dem = [[0]*N_REAC for x in range(N_SV + N_INC)]
+        for i in range(N_SV + N_INC):
             for j in range(N_REAC):
                 Ls_dem[i][j] = Ls[i][j]
 
-        Ls_env = [[0]*N_ENV_STO for x in range(N_PAR_SV + N_OBS)]
-        for i in range(N_PAR_SV + N_OBS):
+        Ls_env = [[0]*N_ENV_STO for x in range(N_SV + N_INC)]
+        for i in range(N_SV + N_INC):
             for j in range(N_ENV_STO):
                 Ls_env[i][j] = Ls[i][N_REAC + j]
 
