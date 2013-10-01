@@ -52,9 +52,9 @@ int main(int argc, char *argv[]){
 
     for(n=0; n<data->n_obs; n++) {
 	np1 = n+1;
-	t0 = data->times[n];
-	t1 = data->times[np1];
-		    
+	t0 = (n) ? data->rows[n-1]->time: 0.0;
+	t1 = data->rows[n]->time;
+
 	//we are going to overwrite the content of the [np1] pointer: initialise it with values from [n]
 	for(j=0;j<like->J;j++) {
 	    ssm_X_copy(D_J_X[np1][j], D_J_X[n][j]);
