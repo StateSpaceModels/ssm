@@ -110,6 +110,9 @@ class Cmodel:
 
         self.par_obs = sorted(list(par_obs))
 
+        ##all parameters
+        self.all_par = self.par_sv + self.par_inc + self.remainder + self.par_diff + self.par_vol + self.par_noise + self.par_proc +  self.par_obs + self.par_fixed + ['t']
+
         ##orders
         self.order_states = {x:i for i,x in enumerate(self.par_sv + self.remainder + self.par_inc + self.par_diff)}
         self.order_parameters = {x:i for i,x in enumerate(self.par_sv + self.par_vol + self.par_noise + self.par_proc + self.par_obs)}
@@ -118,7 +121,7 @@ class Cmodel:
         self.map_prior_id2id = {}
         for p in self.get_resource('parameters'):
             if 'prior' in p and 'id' in p['prior']:
-                self.map_prior_id2id[p['prior']['id']] = p['id']        
+                self.map_prior_id2id[p['prior']['id']] = p['id']
 
 
         # proc_model
@@ -205,4 +208,3 @@ if __name__=="__main__":
 
     model = json.load(open(os.path.join('..' ,'example', 'model', 'datapackage.json')))
     m = Cmodel(model)
-

@@ -36,10 +36,6 @@ class Ccoder(Cmodel):
     def __init__(self, model,  **kwargs):
         Cmodel.__init__(self, model,  **kwargs)
 
-        self.model = model
-
-        self.all_par = self.par_sv + self.par_inc + self.remainder + self.par_diff + self.par_vol + self.par_noise + self.par_proc +  self.par_obs + self.par_fixed + ['t']
-
 
     def toC(self, term, no_correct_rate, force_par=False, xify=None, human=False, set_t0=False):
 
@@ -143,7 +139,7 @@ class Ccoder(Cmodel):
             sy = Symbol(str('ssm___' + derivate)) if derivate != 'x' else Symbol(derivate)
             pterm = diff(sympify(safe), sy)
         elif inverse:
-            if inverse in myterm:                
+            if inverse in myterm:
                 sy = Symbol(str('ssm___' + inverse))
                 pterm = solve(sympify(safe), sy)
                 if not pterm:
@@ -158,11 +154,11 @@ class Ccoder(Cmodel):
         else:
             pterm = sympify(safe)
 
-        #remove the ssm___ prefix                
+        #remove the ssm___ prefix
         #term = ccode(simplify(pterm)).replace('ssm___', '') ##NOTE simplify is just too slow to be used...
         term = ccode(pterm).replace('ssm___', '')
 
-        #make the ssm C expression        
+        #make the ssm C expression
         return self.generator_C(term, no_correct_rate, force_par=force_par, xify=xify, human=human, set_t0=set_t0)
 
 
@@ -199,13 +195,13 @@ class Ccoder(Cmodel):
 
             if p['id'] in pars:
                 p['ic'] = pars.index(p['id'])
-        
+
         #sort parameters
         #start by making dict:
         pdict = {x['id']:x for x in parameters}
         sdict = {'diff__' + x['id']: x for x in skeletons}
 
-        remainders = {}        
+        remainders = {}
         for x in self.get_resource('populations'):
             if 'remainder' in x:
                 rem = x['remainder']['id']
@@ -213,8 +209,8 @@ class Ccoder(Cmodel):
                 remainders[rem] = self.make_C_term(eq, True)
 
         return {
-            'parameters': parameters, 
-            'skeletons': skeletons, 
+            'parameters': parameters,
+            'skeletons': skeletons,
             'par_sv': self.par_sv,
             'states': states,
             'remainders': remainders,
@@ -254,7 +250,7 @@ class Ccoder(Cmodel):
                 'icdiff': [self.order_parameters[x.split('diff__')[1]] for x in self.par_diff]
             }
         }
-        
+
 
 
 
@@ -284,7 +280,7 @@ class Ccoder(Cmodel):
 
                                 f += terms[ind]
                                 ind +=1
-                        
+
                             sf.append(f)
                         else:
                             ind += 1
@@ -610,8 +606,8 @@ class Ccoder(Cmodel):
         return {'func': func, 'caches': caches, 'sf': sf}
 
 
-    def compute_diff(self):        
-        
+    def compute_diff(self):
+
         sde = self.get_resource('sde')
         if sde and 'sigma' in sde:
             sigma = sde['sigma']
@@ -626,7 +622,7 @@ class Ccoder(Cmodel):
 
         else:
             return []
-            
+
 
 
 
@@ -710,7 +706,7 @@ class Ccoder(Cmodel):
 
             obsList.append(eq)
 
- 
+
         ####################
         ### Jacobian
         ####################
@@ -833,7 +829,7 @@ class Ccoder(Cmodel):
         Qn is a diagonal matrix which diagonal terms correspond to squarred amplitude of white noises.
         The stoechiometric matrices L are used to switch from one level to another:
               Qr_env = Lr Qn Lr'  and Qs = Ls Qr Ls'
-        
+
         In particular, Lr has reaction rates in term (i,j) if reaction i is concerned by white noise j.
         Ls has +1 or -1 in term (i,j) if reaction j goes to or leaves from state i, and O's everywhere else.
 
@@ -844,12 +840,13 @@ class Ccoder(Cmodel):
         proc_model = copy.deepcopy(self.proc_model) ##we are going to modify it...
 
         N_REAC = len(proc_model)
-        N_PAR_SV = len(self.par_sv)
-        N_PAR_INC = len(self.par_inc)
+        N_SV = len(self.par_sv)
+        N_INC = len(self.par_inc)
+        N_DIFF = len(self.par_diff)
 
         unique_noises_names = [x['id'] for x in self.white_noise]
         N_ENV_STO_UNIQUE = len(unique_noises_names)
-        
+
         ##add sd and order properties to noisy reactions
         N_ENV_STO = 0
         for reaction in proc_model:
@@ -901,7 +898,7 @@ class Ccoder(Cmodel):
 
         # incidence variables
         for i in range(len(self.par_inc_def)): #(for every incidence variable)
-            for B_dem_ind, r in enumerate(proc_model):                
+            for B_dem_ind, r in enumerate(proc_model):
                 # for every incidence
                 for inc in self.par_inc_def[i]:
                     # if it involves incidence
@@ -960,7 +957,7 @@ class Ccoder(Cmodel):
             for j in range(N_REAC):
                 Qr[i][j] = Qr_dem[i][j]
 
-    
+
         #we split Ls into Ls_dem and Ls_env
         Ls_dem = [[0]*N_REAC for x in range(N_PAR_SV + N_PAR_INC)]
         for i in range(N_PAR_SV + N_PAR_INC):
@@ -1019,7 +1016,7 @@ class Ccoder(Cmodel):
                             print 'Q[{0}][{1}]: '.format(i, j),  self.make_C_term(calc_Q[k]['Q'][i][j], True, human=True)
                             if i != j:
                                 print 'Q[{0}][{1}] == Q[{1}][{0}]: '.format(i, j), self.make_C_term(calc_Q[k]['Q'][i][j], True, human=True) == self.make_C_term(calc_Q[k]['Q'][j][i], True, human=True)
-        
+
 
         #convert in a version easy to template in C
         #Note that we only template the lower triangle (Q is symmetrical)
@@ -1028,7 +1025,7 @@ class Ccoder(Cmodel):
                 for i  in range(len(tpl['Q'])):
                     for j in range(i+1):
                         if tpl['Q'][i][j]:
-                            if i< N_PAR_SV and j < N_PAR_SV:                        
+                            if i< N_PAR_SV and j < N_PAR_SV:
                                 tpl['Q_proc'].append({'i': i, 'j': j, 'rate': self.make_C_term(tpl['Q'][i][j], True)})
                             else:
                                 tpl['Q_obs'].append({'i': {'is_obs': False, 'ind': i} if i < N_PAR_SV else {'is_obs': True, 'ind': i - N_PAR_SV},
@@ -1036,7 +1033,7 @@ class Ccoder(Cmodel):
                                                      'rate': self.make_C_term(tpl['Q'][i][j], True)})
 
         ##cache special functions
-        for key in calc_Q:            
+        for key in calc_Q:
             if calc_Q[key]['Q']:
 
                 optim_rates_proc = [x['rate'] for x in calc_Q[key]['Q_proc']]
@@ -1044,7 +1041,7 @@ class Ccoder(Cmodel):
                 optim_rates = optim_rates_proc + optim_rates_obs
 
                 calc_Q[key]['sf'] = self.cache_special_function_C(optim_rates, prefix='_sf[cac]')
-                
+
                 for i in range(len(optim_rates_proc)):
                     calc_Q[key]['Q_proc'][i]['rate'] = optim_rates[i]
 

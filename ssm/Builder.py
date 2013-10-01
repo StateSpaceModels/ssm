@@ -68,7 +68,7 @@ class Builder(Ccoder):
 
     def code(self):
         """generate C code for MIF, Simplex, pMCMC, Kalman, simulation, ..."""
-                
+
         is_diff = True if len(self.par_diff) > 0 else False
 
         parameters = self.parameters()
@@ -100,9 +100,9 @@ if __name__=="__main__":
 
     import json
     import os
-    
-    model = json.load(open(os.path.join('..' ,'example', 'model', 'datapackage.json')))        
+
+    model = json.load(open(os.path.join('..' ,'example', 'model', 'datapackage.json')))
     b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), model)
- 
+
     b.prepare()
     b.code()

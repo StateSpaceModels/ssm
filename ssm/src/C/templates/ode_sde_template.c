@@ -59,17 +59,17 @@ void ssm_step_sde_{{ noises_off }}(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_n
     {% endif %}
 
     {% if is_diff %}
-    for(i=0; i<states_diff->length; i++){       
-	ssm_parameter_t *p = states_diff->p[i];
-	{% if noises_off != 'ode'%}
-	if(is_diff){
-	    diffed[i] = p->f_inv(X[p->offset]);
-	} else {
-	    diffed[i] = gsl_vector_get(par, p->ic->offset);
-	}
-	{% else %}
-	diffed[i] = gsl_vector_get(par, p->ic->offset);
-	{% endif %}
+    for(i=0; i<states_diff->length; i++){
+        ssm_parameter_t *p = states_diff->p[i];
+        {% if noises_off != 'ode'%}
+        if(is_diff){
+            diffed[i] = p->f_inv(X[p->offset]);
+        } else {
+            diffed[i] = gsl_vector_get(par, p->ic->offset);
+        }
+        {% else %}
+        diffed[i] = gsl_vector_get(par, p->ic->offset);
+        {% endif %}
     }
     {% endif %}
 
@@ -88,8 +88,8 @@ void ssm_step_sde_{{ noises_off }}(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_n
     {% for eq in func.proc.system %}
     f[{{eq.index}}] {% if noises_off == 'ode'%}={% else %}= X[{{eq.index}}] + {% endif %} {{ eq.eq }};{% endfor %}
 
-    //TODO: drift of the diffusion   
-    //for(i=0; i<states_diff->length; i++){       
+    //TODO: drift of the diffusion
+    //for(i=0; i<states_diff->length; i++){
     //    f[states_diff->p[i]->offset] = 0.0;
     //}
 
