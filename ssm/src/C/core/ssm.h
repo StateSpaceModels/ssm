@@ -111,7 +111,7 @@ typedef struct /*[N_THREADS] : for parallel computing we need N_THREADS replicat
 {
     int seed;
     int threads_length; /**< the total number of threads */
-    int thread_id; /**< the id of the thread where the computation are being run */
+    int thread_id;      /**< the id of the thread where the computation are being run */
 
     gsl_rng *randgsl; /**< random number generator */
 
@@ -243,10 +243,10 @@ typedef struct
 
     ssm_parameter_t *ic;  /**< pointer to the initial condition (or NULL) */
 
-    double (*f) (double); /**< transformation (log, logit...) */
+    double (*f) (double);     /**< transformation (log, logit...) */
     double (*f_inv) (double); /**< inverse of f (f*f_inv=identity) */
 
-    double (*f_derivative) (double); /**< derivative of f */
+    double (*f_derivative) (double);     /**< derivative of f */
     double (*f_inv_derivative) (double); /**< derivative of f_inv */
 
     double (*f_remainder) (ssm_X_t *X, ssm_calc_t *calc, double t); /**< compute the remainder value */
@@ -288,6 +288,15 @@ struct _nav
     ssm_noises_off_t noises_off;
     ssm_print_t print;
 
+    int parameters_length;         /**< total number of parameters (including non infered) but excluding covariate (present in ssm_calc_t) */
+    ssm_parameter_t **parameters; /**< [this.parameters_length] <*/
+
+    int states_length;    /**< total number of states (including remainders and co) */
+    ssm_state_t **states; /**< [this.states_length] <*/
+
+    int observed_length;       /**< total number of observed variables */
+    ssm_observed_t **observed; /**< [this.observed_length] */
+
     //navigating withing par    
     ssm_it_states_t *states_sv;         /**< to iterate on the state variables (not including remainders or inc) *only* */
     ssm_it_states_t *states_remainders; /**< to iterate on the remainders *only* */
@@ -301,18 +310,9 @@ struct _nav
     ssm_it_parameters_t *par_icdiff;    /**< to iterate on the initial condition of the diffusions *only* */
 
     //navigating within theta
-    ssm_it_parameters_t *theta_all;            /**< to iterate on all the *infered* parameters */
+    ssm_it_parameters_t *theta_all;                /**< to iterate on all the *infered* parameters */
     ssm_it_parameters_t *theta_no_icsv_no_icdiff;  /**< to iterate on the *infered* parameter of the process and observation models *not* being initial conditions of state variables or initial conditions of diffusions */
     ssm_it_parameters_t *theta_icsv_icdiff;        /**< to iterate on the *infered* initial conditions of the state variables *and* the *infered* initial conditions of the parameters following a diffusion */
-
-    int parameters_length; /**< total number of parameters (including non infered) but excluding covariate (present in ssm_calc_t) */
-    ssm_parameter_t **parameters; /**< [this.parameters_length] <*/
-
-    int states_length; /**< total number of states (including remainders and co) */
-    ssm_state_t **states; /**< [this.states_length] <*/
-
-    int observed_length; /**< total number of observed variables */
-    ssm_observed_t **observed; /**< [this.observed_length] */
 };
 
 
@@ -323,7 +323,7 @@ typedef struct
 {
     int J;           /**< number of particles */
     int data_length; /**< number of data points */
-    double like_min;    /**< mimimun value of the likelihood */
+    double like_min; /**< mimimun value of the likelihood */
 
     double least_square;
 
@@ -331,7 +331,7 @@ typedef struct
     double log_like_n ;         /**< log likelihood for the best parameter at n*/
     double log_like;            /**< log likelihood for the best parameter*/
     double *weights;            /**< [this.J] the weights */
-    ssm_err_code *cum_status;  /**< [this.J] cumulated f_prediction status */
+    ssm_err_code *cum_status;   /**< [this.J] cumulated f_prediction status */
 
     unsigned int **select;      /**< [this.n_data][this.J] select is a vector with the indexes of the resampled particles. Note that we keep this.n_data values to keep genealogies */
 
@@ -353,11 +353,11 @@ typedef struct
 typedef struct { /* [n_data] */
     char *date;
 
-    int ts_nonan_length; /**< number of time series without NaN at that time */    
-    ssm_observed_t **observed; /**< [self.ts_nonan_length] */
-    double *values;   /**< [ts_nonan_length] the non NAN data (values) one per time series */
+    int ts_nonan_length;        /**< number of time series without NaN at that time */    
+    ssm_observed_t **observed;  /**< [self.ts_nonan_length] */
+    double *values;             /**< [ts_nonan_length] the non NAN data (values) one per time series */
 
-    int states_reset_length; /**< number of states that must be reset to 0 */
+    int states_reset_length;    /**< number of states that must be reset to 0 */
     ssm_state_t **states_reset; /**< [self.states_reset_length] array of pointer to the states to reset */
 
 } ssm_data_row_t;
@@ -368,13 +368,13 @@ typedef struct { /* [n_data] */
  */
 typedef struct
 {
-    int length;       /**< number of data points */
-    int ts_length;    /**< the number of time series */
-    int n_obs;        /**< the number of data point to taken into account for inference */
-    char **names;     /**< [this.ts_length] name of the time series */
-    ssm_data_row_t **rows; /**< [this.length] the data values */
-    unsigned int *times;   /**< [this.length+1] ([0] + [times in days when the data were collected since the smallest t0]) */
-    int length_nonan; /**< number of data points with at least one time series != NaN */
+    int length;              /**< number of data points */
+    int ts_length;           /**< the number of time series */
+    int n_obs;               /**< the number of data point to taken into account for inference */
+    char **names;            /**< [this.ts_length] name of the time series */
+    ssm_data_row_t **rows;   /**< [this.length] the data values */
+    unsigned int *times;     /**< [this.length+1] ([0] + [times in days when the data were collected since the smallest t0]) */
+    int length_nonan;        /**< number of data points with at least one time series != NaN */
     unsigned int *ind_nonan; /**< [this.length_nonan] index of data points where there is at least one ts !=NaN */
 
 } ssm_data_t;

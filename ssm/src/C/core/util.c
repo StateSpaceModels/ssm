@@ -16,17 +16,20 @@
  *    <http://www.gnu.org/licenses/>.
  *************************************************************************/
 
+
 #include "ssm.h"
 
-{% for t, its in iterators.items() %}
-{% for k, orders in its.items() %}
-ssm_it_{{ t }}s_t *ssm_it_{{ t }}s_{{ k }}_new(ssm_{{ t }}_t **{{ t }}s)
+/**
+ * check if name is in it
+ */
+int ssm_in_par(ssm_it_parameters_t *it, const char *name)
 {
-    ssm_it_{{ t }}s_t *it = _ssm_it_{{ t }}s_new({{ orders|length }});
+    int i;
+    for(i=0; i<it->length; i++){
+	if(strcmp(it->p[i]->name, name) == 0){
+	    return 1;
+	}
+    }
 
-    {% for x in orders %}
-    it->p[{{ loop.index0 }}] = {{ t }}s[{{ x }}];{% endfor %}
-
-    return it;
+    return 0;
 }
-{% endfor %}{% endfor %}

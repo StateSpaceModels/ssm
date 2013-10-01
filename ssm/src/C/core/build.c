@@ -107,7 +107,8 @@ ssm_it_states_t *_ssm_it_states_new(int length)
     return it;
 }
 
-void _ssm_it_states_free(ssm_it_states_t *it){
+void _ssm_it_states_free(ssm_it_states_t *it)
+{
     free(it->p);
     free(it);
 }
@@ -135,9 +136,101 @@ ssm_it_parameters_t *_ssm_it_parameters_new(int length)
 }
 
 
-void _ssm_it_parameters_free(ssm_it_parameters_t *it){
+void _ssm_it_parameters_free(ssm_it_parameters_t *it)
+{
     if(it->length){
 	free(it->p);
     }
     free(it);
+}
+
+
+ssm_nav_t *ssm_nav_new(json_t parameters, ...)
+{
+    ssm_nav_t *nav = malloc(sizeof (ssm_nav_t));
+    if (nav == NULL) {
+	print_err("Allocation impossible for ssm_nav_t *");
+	exit(EXIT_FAILURE);
+    }
+
+    nav->parameters = ssm_parameters_new(&nav->parameters_length);
+    nav->states = ssm_states_new(&nav->states_length, nav->parameters);
+    nav->observed = ssm_observed_new(&nav->observed_length);
+
+    nav->states_sv = ssm_it_states_sv_new(nav->states);
+    nav->states_remainders = ssm_it_states_remainders_new(nav->states);
+    nav->states_inc = ssm_it_incs_sv_new(nav->states);
+    nav->states_diff = ssm_it_diff_sv_new(nav->states);
+
+    nav->par_all = ssm_it_parameters_all_new(nav->parameters);
+    nav->par_noise = ssm_it_parameters_noise_new(nav->parameters);
+    nav->par_vol = ssm_it_parameters_vol_new(nav->parameters);
+    nav->par_icsv = ssm_it_parameters_icsv_new(nav->parameters);
+    nav->par_icdiff = ssm_it_parameters_icdiff_new(nav->parameters);
+
+    //theta: we over-allocate the iterators
+    nav->theta_all = _ssm_it_parameters_new(nav->par_all->length);
+    nav->theta_no_icsv_no_icdiff = _ssm_it_parameters_new(nav->par_all->length);
+    nav->theta_icsv_icdiff = _ssm_it_parameters_new(nav->par_all->length);
+
+    //json_t parameters with diagonal covariance term to 0.0 won't be infered: re-compute length and content
+    nav->theta_all->length = 0;
+    nav->theta_no_icsv_no_icdiff = 0;
+    nav->theta_icsv_icdiff->length = 0;
+
+    int index;
+    json_t *resource = json_object_get(parameters, "resource");
+    
+    for(index=0; index< json_array_size(resource); index++){
+	json_t *el = json_array_get(resource, index);
+
+	const char* name = json_string_value(json_object_get(el, "name"));
+	if (strcmp(name, "covariance") == 0) {
+
+	    json_t *values = json_object_get(el, "data");
+
+	    //for all the parameters: if covariance term and covariance term >0.0, fill theta_*
+	    for(i=0; i<nav->par_all->length; i++){
+		json_t *cov_i = json_object_get(values, nav->par_all->p[i]->name);
+		if(cov_i){
+		    json_t *cov_ij = json_object_get(cov_i, nav->par_all->p[i]->name);
+		    if(cov_ij){
+			if(json_number_value(cov_ij) > 0.0){			    
+
+			    if( ssm_in_par(nav->par_noise, nav->par_all->p[i]->name) ) {
+				if(!(nav->noises_off & SSM_NO_WHITE_NOISE)){
+				    nav->theta_all->p[nav->theta_all->length] = nav->par_all->p[i];
+				    nav->theta_all->length += 1;
+				}
+			    } else {
+				nav->theta_all->p[nav->theta_all->length] = nav->par_all->p[i];
+				nav->theta_all->length += 1;
+			    }
+
+			    int in_icsv = ssm_in_par(nav->par_icsv, nav->par_all->p[i]->name);
+			    int in_icdiff = ssm_in_par(nav->par_icdiff, nav->par_all->p[i]->name);
+			    if(!in_icsv && !in_icdiff){
+				nav->theta_no_icsv_no_icdiff->p[nav->no_icsv_no_icdiff->length] = nav->par_all->p[i];
+				nav->theta_no_icsv_no_icdiff->length += 1;				
+			    } else if (in_icsv || in_icdiff){
+				if(in_icdiff){
+				    if(!(nav->noises_off & SSM_NO_DIFF)){
+					nav->theta_icsv_icdiff->p[nav->theta_icsv_icdiff->length] = nav->par_all->p[i];
+					nav->theta_icsv_icdiff->length += 1;					
+				    }
+				} else {
+ 				    nav->theta_icsv_icdiff->p[nav->theta_icsv_icdiff->length] = nav->par_all->p[i];
+				    nav->theta_icsv_icdiff->length += 1;				
+				}
+			    }
+			}
+		    }
+		}
+	    }
+
+	    break;
+	}
+    }
+
+    return nav;
 }

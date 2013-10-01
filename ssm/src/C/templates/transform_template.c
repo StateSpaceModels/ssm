@@ -104,7 +104,9 @@ static double f_remainder_tpl_{{ rem }}(ssm_X_t *X, ssm_calc_t *calc, double t)
 }
 {% endfor %}
 
-ssm_parameter_t **ssm_parameters_new(){
+ssm_parameter_t **ssm_parameters_new(int *parameters_length)
+{
+    *parameters_length = { pars|length }};
 
     ssm_parameter_t **parameters;
     parameters = malloc({{ pars|length }} * sizeof (ssm_parameter_t *));
@@ -172,7 +174,9 @@ ssm_parameter_t **ssm_parameters_new(){
 /**
  * Adapt. Here we do it only for diffusions
  */
-ssm_state_t **ssm_states_new(ssm_parameter_t **parameters){
+ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters)
+{
+    *states_length = ({{ states|length }} + {{ sde|length }});
     
     ssm_state_t **states;
     states = malloc(({{ states|length }} + {{ sde|length }}) * sizeof (ssm_states_t *));

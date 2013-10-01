@@ -61,8 +61,10 @@ static double (*f_obs_tpl_{{ x.id }}) (ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t 
 {% endfor %}
 
 
-ssm_observed **ssm_observed_new(void)
+ssm_observed **ssm_observed_new(int *observed_length)
 {
+    *observed_length = {{ observed|length }};
+
     ssm_observed_t **observed;
     observed = malloc({{ observed|length }} * sizeof (ssm_observed_t *));
     if (observed == NULL) {
