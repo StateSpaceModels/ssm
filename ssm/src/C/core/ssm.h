@@ -161,13 +161,13 @@ typedef struct /*[N_THREADS] : for parallel computing we need N_THREADS replicat
 
     /* references */
     ssm_par_t *_par; /**< Reference to the parameter is the natural
-			scale (this.par) used to pass it to
-			some GSL function that only accept a
-			*void. Such function only received ssm_calc_t
-			* This reference should not be used outside
-			from f_prediction_ functions. Outside these
-			functions, this.par_natural is not guaranted
-			to be defined. */
+                        scale (this.par) used to pass it to
+                        some GSL function that only accept a
+                        *void. Such function only received ssm_calc_t
+                        * This reference should not be used outside
+                        from f_prediction_ functions. Outside these
+                        functions, this.par_natural is not guaranted
+                        to be defined. */
 
     ssm_nav_t *_nav; /**< ref to ssm_nav_t (same reason as ssm_par_t) */
 } ssm_calc_t;
@@ -297,7 +297,7 @@ struct _nav
     int observed_length;       /**< total number of observed variables */
     ssm_observed_t **observed; /**< [this.observed_length] */
 
-    //navigating withing par    
+    //navigating withing par
     ssm_it_states_t *states_sv;         /**< to iterate on the state variables (not including remainders or inc) *only* */
     ssm_it_states_t *states_remainders; /**< to iterate on the remainders *only* */
     ssm_it_states_t *states_inc;        /**< to iterate on the state variables *only* */
@@ -353,7 +353,7 @@ typedef struct
 typedef struct { /* [n_data] */
     char *date;
 
-    int ts_nonan_length;        /**< number of time series without NaN at that time */    
+    int ts_nonan_length;        /**< number of time series without NaN at that time */
     ssm_observed_t **observed;  /**< [self.ts_nonan_length] */
     double *values;             /**< [ts_nonan_length] the non NAN data (values) one per time series */
 
@@ -370,6 +370,7 @@ typedef struct
 {
     int length;              /**< number of data points */
     int ts_length;           /**< the number of time series */
+    char** dates_t0;         /**< [this.ts_length] the dates at t0 (before the first data point)*/
     int n_obs;               /**< the number of data point to taken into account for inference */
     char **names;            /**< [this.ts_length] name of the time series */
     ssm_data_row_t **rows;   /**< [this.length] the data values */
@@ -397,6 +398,53 @@ typedef struct
     unsigned int m; ///< minutes
     double s;       ///< seconds
 } ssm_duration_t;
+
+
+
+/**
+ * options
+ */
+typedef struct
+{
+    ssm_implementations_t implementation;
+    ssm_noises_off_t noises_off;
+    ssm_print_t print;
+
+    int id;                  /**< unique integer identifier that will be used as seed and be appended to the output files */
+    int flag_pipe;           /**< pipe mode */
+    int flag_prior;          /**< add log(prior) to the estimated log likelihood */
+    int flag_transf;         /**< add log(JacobianDeterminant(transf)) to the estimated loglik. (combined to this.flag_prior, gives posterior density in transformed space) */
+    double dt;               /**< integration time step in days */
+    double eps_abs;          /**< absolute error for adaptive step-size control */
+    double eps_rel;          /**< relative error for adaptive step-size control */
+    double freeze_forcing;   /**< freeze the metadata to their value at the specified time */
+    char *path;              /**< path where the outputs will be stored */
+    int n_thread;            /**< number of threads */
+    double like_min;         /**< particles with likelihood smaller that like_min are considered lost */
+    int J;                   /**< number of particles */
+    int n_obs;               /**< number of observations to be fitted (for tempering) */
+    char *interpolation;     /**< gsl interpolator for metadata */
+    int n_iter;              /**< number of iterations */
+    double a;                /**< cooling factor (scales standard deviation) */
+    double b;                /**< re-heating (inflation) (scales standard deviation of the proposal) */
+    double L;                /**< lag for fixed lag smoothing (proportion of the data) */
+    int m_switch;            /**< iteration number when we switch (for initial covariance to empirical or from different update formulae) */
+    int flag_ic_only;        /**< only fit the initial condition using fixed lag smoothing */
+    double epsilon;          /**< select number of burnin iterations before tuning epsilon */
+    double epsilon_max;      /**< maximum value allowed for epsilon */
+    double flag_smooth;      /**< tune epsilon with the value of the acceptance rate obtained with exponential smoothing */
+    double alpha;            /**< smoothing factor of exponential smoothing used to compute the smoothed acceptance rate (low values increase degree of smoothing) */
+    int n_traj;              /**< number of trajectories stored */
+    int flag_zmq;            /**< dispatch particles across machines using a zeromq pipeline */
+    int chunk;               /**< number of particles to send to each machine */
+    int flag_least_square;   /**< optimize the sum of square instead of the likelihood */
+    int size_stop;           /**< simplex size used as a stopping criteria */
+    char * freq;             /**< print the outputs (and reset incidences to 0 if any) every day (D), week (W), bi-week (B), month (M  or year (Y) */
+    char *start;             /**< ISO 8601 date when the simulation starts*/
+    char *end;               /**< ISO 8601 date when the simulation ends*/
+    int skip;                /**< number of days to skip (used to skip transient dynamics) */
+    char *host;              /**< domain name or IP address of the particule server (e.g 127.0.0.1) */
+} ssm_options_t;
 
 
 #endif
