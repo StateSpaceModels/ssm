@@ -111,7 +111,16 @@ class Data(Cmodel):
             data[x['id']] = x
             data[x['id']]['order'] = i
             data[x['id']]['data']['dict'] = {d['date']:d[x['id']] for d in self.get_data(x['data']['path'])}
+
+            if 'transformation' in data[x['id']]:
+                f = eval('lambda {0}: {1}'.format(data[x['id']]['data']['id'], data[x['id']]['transformation']))
+            else:
+                f = lambda x: x
+
+            data[x['id']]['data']['f'] = f
+
             dateset |= set(data[x['id']]['data']['dict'].keys())
+
 
         dates = list(dateset)
         dates.sort()
@@ -131,7 +140,7 @@ class Data(Cmodel):
                     row['reset'].append(data[x]['order'])
                     if data[x]['data']['dict'][d] is not None:
                         row['observed'].append(data[x]['order'])
-                        row['values'].append(data[x]['data']['dict'][d])
+                        row['values'].append(data[x]['data']['f'](data[x]['data']['dict'][d]))
 
             data_C.append(row)
 
@@ -140,18 +149,23 @@ class Data(Cmodel):
 
     def prepare_covariates(self):
 
-        parameters = {x['id']:x for x in copy.deepcopy(self.get_resource('parameters'))}
+        parameters = {x['id']:x for x in self.get_resource('parameters')}
 
         data_C = []
 
         for p in self.par_fixed:
+            if 'transformation' in parameters[p]:
+                f = eval('lambda {0}: {1}'.format(parameters[p]['prior']['id'], parameters[p]['transformation']))
+            else:
+                f = lambda x: x
+
             data =  self.get_data(parameters[p]['prior']['path'])
             name = [x for x in data[0].keys() if x!= 'date'][0]
             x = []; y = []
             for d in data:
                 if d[name] != None:
                     x.append((d['date']-self.t0).days)
-                    y.append(d[name])
+                    y.append(f(d[name]))
 
             data_C.append({'id': p, 'x': x, 'y': y})
         
