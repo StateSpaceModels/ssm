@@ -124,7 +124,7 @@ void ssm_evalQ_{{ noises_off }}(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_nav_
 
     {% if is_diff  %}
     ///////////////////////////////////////////
-    // drift term (volatility^2 on diagonal) //
+    // diff term (volatility^2 on diagonal) //
     ///////////////////////////////////////////
     if(is_diff){
 	{% for eq in diff %}
