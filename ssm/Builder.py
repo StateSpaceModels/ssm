@@ -22,14 +22,16 @@ import tarfile
 import shutil
 
 from Ccoder import Ccoder
+from Data import Data
 
 from jinja2 import Environment, FileSystemLoader
 
-class Builder(Ccoder):
+class Builder(Data, Ccoder):
     """build a model"""
 
-    def __init__(self, path_rendered, model,  **kwargs):
-        Ccoder.__init__(self, model,  **kwargs)
+    def __init__(self, path_rendered, path_model,  **kwargs):
+        Data.__init__(self, path_model,  **kwargs)
+        Ccoder.__init__(self, self.model,  **kwargs)
 
         self.path_rendered = path_rendered
         self.env = Environment(loader=FileSystemLoader(os.path.join(self.path_rendered, 'C', 'templates')))
@@ -94,15 +96,21 @@ class Builder(Ccoder):
 
         self.render('diff', {'diff': self.compute_diff()})
 
-        self.render('Q', {'Q': self.eval_Q(), 'step':self.step_ode_sde()})
+        #self.render('Q', {'Q': self.eval_Q(), 'step':self.step_ode_sde()})
+
+    def write_data(self):
+
+        x = {'data': self.prepare_data(), 'covariates': self.prepare_covariates()}
+        with open(os.path.join(self.path_rendered, ".data.json"), "w") as f:
+            json.dump(x, f)
+
 
 if __name__=="__main__":
 
     import json
-    import os
 
-    model = json.load(open(os.path.join('..' ,'example', 'model', 'datapackage.json')))
-    b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), model)
+    b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'example', 'model', 'datapackage.json'))
 
     b.prepare()
     b.code()
+    b.write_data()
