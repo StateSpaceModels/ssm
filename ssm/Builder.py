@@ -99,7 +99,9 @@ class Builder(Data, Ccoder):
 
         self.render('diff', {'diff': self.compute_diff()})
 
-        self.render('Q', {'Q': self.eval_Q(),'is_diff': is_diff, 'step':self.step_ode_sde()})
+        self.render('Q', {'Q': self.eval_Q(), 'is_diff': is_diff, 'step':self.step_ode_sde()})
+
+        self.render('Ht', {'Ht': self.Ht(), 'is_diff': is_diff})
 
         self.render('jac', {'jac': self.jac(step_ode_sde['sf']), 'is_diff': is_diff, 'step':self.step_ode_sde()})
 

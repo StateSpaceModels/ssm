@@ -220,7 +220,6 @@ class Ccoder(Cmodel):
 
 
     def observed(self):
-
         ##WARNING right now only the discretized normal is supported.
         ##TODO: generalization for different distribution
 
@@ -780,28 +779,54 @@ class Ccoder(Cmodel):
         ##for jac_only (used for Lyapunov exp computations only, sf is shared with the one of print_ode. We just update caches_jac_only)
         self.cache_special_function_C(caches_jac_only, sf=sf_jac_only, prefix='_sf[cac]')
 
-        return {'jac_only':jac_only,
-                'jac':jac,
-                'jac_obs':jac_obs,
-                'jac_diff':jac_diff,
-                'jac_obs_diff':jac_obs_diff,
+        return {'jac_only': jac_only,
+                'jac': jac,
+                'jac_obs': jac_obs,
+                'jac_diff': jac_diff,
+                'jac_obs_diff': jac_obs_diff,
                 'caches': caches,
                 'sf': sf,
                 'caches_jac_only': caches_jac_only}
 
 
-    def der_mean_proc_obs(self):
+    def Ht(self):
         """compute jacobian matrix of the mean of the obs process (assumed to be Gaussian) using Sympy"""
 
-        return self.make_C_term(self.obs_model['mean'], True, derivate='x')
+        proc_model = copy.deepcopy(self.proc_model) ##we are going to modify it...
+        obs = copy.deepcopy(self.obs_model)
+        N_REAC = len(proc_model)
+        N_PAR_SV = len(self.par_sv)
+        N_PAR_INC = len(self.par_inc)
+        N_DIFF = len(self.par_diff)
 
-    def der2_mean_proc_obs(self):
-        """compute the second derivative of the mean of the obs process (assumed to be Gaussian) using Sympy"""
+        Ht_sv = []
+        Ht_inc = []
+        Ht_diff = []
 
-        first = self.make_C_term(self.obs_model['mean'], True, derivate='x', human=True)
+        ## Derivatives of observed means against state variables
+        for s in range(len(self.par_sv)):
+            Ht_sv.append([])
+            for x in obs:
+                Cterm = self.make_C_term(x['pdf']['mean'], True, derivate=self.par_sv[s])
+                Ht_sv[s].append(Cterm)
+        
+        ## Derivatives of observed means against incidence variables
+        for s in range(len(self.par_inc)):
+            Ht_inc.append([])
+            for x in obs:
+                Cterm = self.make_C_term(x['pdf']['mean'], True, derivate=self.par_inc[s])
+                Ht_inc[s].append(Cterm)
 
-        return self.make_C_term(first, True, derivate='x')
+        ## Derivatives of observed means against diffusing variables
+        for s in range(len(self.par_diff)):
+            Ht_diff.append([])
+            for x in obs:
+                Cterm = self.make_C_term(x['pdf']['mean'], True, derivate=self.par_diff[s])
+                Ht_diff[s].append(Cterm)
 
+        return {'Ht_sv': Ht_sv,
+                'Ht_inc': Ht_inc,
+                'Ht_diff': Ht_diff}
 
     def eval_Q(self, debug = False):
         """
