@@ -18,8 +18,8 @@
 
 #include "ssm.h"
 
-ssm_input_t *ssm_input_new(json_t *parameters, ssm_nav_t *nav)
-{        
+ssm_input_t *ssm_input_new(json_t *jparameters, ssm_nav_t *nav)
+{
     ssm_input_t *input = gsl_vector_calloc(nav->par_all->length);
 
     {% for p in pars %}
@@ -32,21 +32,29 @@ ssm_input_t *ssm_input_new(json_t *parameters, ssm_nav_t *nav)
     int i, index;
     ssm_it_parameters_t *it = nav->theta_all;
 
-    json_t *resource = json_object_get(parameters, "resource");
-    
+    json_t *resource = json_object_get(jparameters, "resource");
+
     for(index=0; index< json_array_size(resource); index++){
-	json_t *el = json_array_get(resource, index);
+        json_t *el = json_array_get(resource, index);
 
-	const char* name = json_string_value(json_object_get(el, "name"));
-	if (strcmp(name, "values") == 0) {
+        const char* name = json_string_value(json_object_get(el, "name"));
+        if (strcmp(name, "values") == 0) {
 
-	    json_t *values = json_object_get(el, "data");
+            json_t *jvalues = json_object_get(el, "data");
 
-	    for(i=0; i<it->length; i++){
-		gsl_vector_set(input, it->p[i]->offset, json_number_value(json_object_get(values, it->p[i]->name)));
-	    }	   
-	    break;
-	}
+            for(i=0; i<it->length; i++){
+                json_t *jval = json_object_get(jvalues, it->p[i]->name);
+                if(json_is_number(jval)) {
+                    gsl_vector_set(input, it->p[i]->offset, json_number_value(jval));
+                } else {
+                    char str[SSM_STR_BUFFSIZE];
+                    sprintf(str, "error: parameters.values.%s is not a number\n", it->p[i]->name);
+                    print_err(str);
+                    exit(EXIT_FAILURE);
+                }
+            }
+            break;
+        }
     }
 
     return input;

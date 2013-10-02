@@ -19,7 +19,7 @@
 
 
 /**
- *load json from stdin
+ *load json from a stream
  */
 json_t *ssm_load_json_stream(FILE *stream)
 {
@@ -35,7 +35,7 @@ json_t *ssm_load_json_stream(FILE *stream)
 
 
 /**
- *load data and covariates in .data.json
+ *load json from a path
  */
 json_t *ssm_load_json_file(const char *path)
 {
