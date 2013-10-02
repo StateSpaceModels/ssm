@@ -20,7 +20,7 @@
 
 
 
-void eval_jac(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc)
+void eval_jac(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc)
 {
 
     double *X = p_X->proj;

@@ -105,6 +105,8 @@ class Builder(Data, Ccoder):
 
         self.render('jac', {'jac': self.jac(step_ode_sde['sf']), 'is_diff': is_diff, 'step':self.step_ode_sde()})
 
+        self.render('step_ekf', {'is_diff': is_diff, 'step':self.step_ode_sde()})
+        
     def write_data(self):
 
         x = {'starts': [x.isoformat() for x in self.starts], 'data': self.prepare_data(), 'covariates': self.prepare_covariates()}
