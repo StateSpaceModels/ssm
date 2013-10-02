@@ -94,7 +94,7 @@ void eval_Ht(ssm_X_t *p_X, ssm_row_t *row, double t, ssm_par_t *par, ssm_nav_t *
 
     for(i=0; i< m; i++){
 	for(j=0; j< row->ts_nonan_length; j++){
-	    gsl_matrix_set(Ht,i,j) = gsl_matrix_get(Ht,i,row->observed[j]->index);
+	    gsl_matrix_set(Ht,i,j) = gsl_matrix_get(Ht,i,row->observed[j]->offset);
 	}
     }
 }

@@ -236,6 +236,96 @@ ssm_err_code_t ssm_f_prediction_sde_full(ssm_X_t *p_X, double t0, double t1, ssm
     return ssm_check_no_neg_remainder(p_X, nav, calc, t1);
 }
 
+ssm_err_code_t ssm_f_prediction_ekf_no_dem_sto_no_white_noise(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc)
+{
+    double t=t0;
+    double h = p_X->dt; //h is the initial integration step size
+    calc->_par = par; //pass the ref to par so that it is available wihtin the function to integrate
+
+    double *y = p_X->proj;
+
+    while (t < t1) {
+        int status = gsl_odeiv2_evolve_apply (calc->evolve, calc->control, calc->step, &(calc->sys), &t, t1, &h, y);
+        if (status != GSL_SUCCESS) {
+            return SSM_ERR_ODE;
+        }
+    }
+
+    return ssm_check_no_neg_remainder(p_X, nav, calc, t1);
+}
+
+ssm_err_code_t ssm_f_prediction_ekf_no_dem_sto_no_diff(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc)
+{
+    double t = t0;
+
+    while (t < t1) {
+        ssm_step_sde_no_dem_sto(p_X, t, par, nav, calc);
+        t += p_X->dt;
+    }
+
+    return ssm_check_no_neg_remainder(p_X, nav, calc, t1);
+}
+
+
+ssm_err_code_t ssm_f_prediction_ekf_no_white_noise_no_diff(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc)
+{
+    double t = t0;
+
+    while (t < t1) {
+        ssm_step_sde_no_white_noise(p_X, t, par, nav, calc);
+        t += p_X->dt;
+    }
+    return ssm_check_no_neg_remainder(p_X, nav, calc, t1);
+}
+
+
+ssm_err_code_t ssm_f_prediction_ekf_no_dem_sto(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc)
+{
+    double t = t0;
+
+    while (t < t1) {
+        ssm_step_sde_no_dem_sto(p_X, t, par, nav, calc);
+        ssm_compute_diff(p_X, par, nav, calc);
+        t += p_X->dt;
+    }
+    return ssm_check_no_neg_remainder(p_X, nav, calc, t1);
+}
+
+
+ssm_err_code_t ssm_f_prediction_ekf_no_white_noise(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc)
+{
+    double t = t0;
+
+    while (t < t1) {
+        ssm_step_sde_no_white_noise(p_X, t, par, nav, calc);
+        ssm_compute_diff(p_X, par, nav, calc);
+        t += p_X->dt;
+    }
+    return ssm_check_no_neg_remainder(p_X, nav, calc, t1);
+}
+
+ssm_err_code_t ssm_f_prediction_ekf_no_diff(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc)
+{
+    double t = t0;
+
+    while (t < t1) {
+        ssm_step_sde_full(p_X, t, par, nav, calc);
+        t += p_X->dt;
+    }
+    return ssm_check_no_neg_remainder(p_X, nav, calc, t1);
+}
+
+ssm_err_code_t ssm_f_prediction_ekf_full(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc)
+{
+    double t = t0;
+
+    while (t < t1) {
+        ssm_step_sde_full(p_X, t, par, nav, calc);
+        ssm_compute_diff(p_X, par, nav, calc);
+        t += p_X->dt;
+    }
+    return ssm_check_no_neg_remainder(p_X, nav, calc, t1);
+}
 
 
 ssm_err_code_t ssm_f_prediction_psr(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc)
@@ -262,3 +352,5 @@ ssm_err_code_t ssm_f_prediction_psr_no_diff(ssm_X_t *p_X, double t0, double t1, 
     }
     return ssm_check_no_neg_remainder(p_X, nav, calc, t1);
 }
+
+
