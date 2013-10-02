@@ -57,7 +57,7 @@
 #include <pthread.h>
 
 
-typedef enum {SSM_ODE, SSM_SDE, SSM_PSR} ssm_implementations_t;
+typedef enum {SSM_ODE, SSM_SDE, SSM_PSR, SSM_EKF} ssm_implementations_t;
 typedef enum {SSM_NO_DEM_STO = 1 << 0, SSM_NO_WHITE_NOISE = 1 << 1, SSM_NO_DIFF = 1 << 2 } ssm_noises_off_t; //several noises can be turned off
 
 typedef enum {SSM_PRINT_TRACE = 1 << 0, SSM_PRINT_X = 1 << 1, SSM_PRINT_HAT = 1 << 2, SSM_PRINT_PRED_RES = 1 << 3, SSM_PRINT_X_SMOOTH = 1 << 4, SSM_PRINT_ACC = 1 << 5, SSM_PIPE = 1 << 6, SSM_QUIET = 1 << 7, SSM_PRINT_COV = 1 << 8 } ssm_print_t;
@@ -270,7 +270,8 @@ typedef struct
 typedef struct
 {
     char *name; /**< name of the observed variable */
-
+    int offset; /**< order of the observed variable in nav.observed */
+    
     double (*f_likelihood) (double y, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
     double (*f_obs_mean)             (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
     double (*f_obs_var)              (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);

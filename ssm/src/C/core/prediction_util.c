@@ -94,10 +94,10 @@ ssm_f_pred_t ssm_get_f_pred(ssm_calc_t *calc)
     ssm_implementations_t implementation = calc->implementation;
     ssm_noises_off_t noises_off= calc->noises_off;
 
-    if (implementation == PLOM_ODE) {
+    if (implementation == SSM_ODE || implementation == SSM_EKF) {
         return &ssm_f_prediction_ode;
 
-    } else if (implementation == PLOM_SDE){
+    } else if (implementation == SSM_SDE){
 
         if (noises_off == (SSM_NO_DEM_STO | SSM_NO_WHITE_NOISE | SSM_NO_DIFF) ) {
             return &ssm_f_prediction_ode;
@@ -117,7 +117,7 @@ ssm_f_pred_t ssm_get_f_pred(ssm_calc_t *calc)
             return &ssm_f_prediction_sde_full;
         }
 
-    } else if (implementation == PLOM_PSR){
+    } else if (implementation == SSM_PSR){
         //no_sto_env is handled within the step funciton
         if(noises_off &ssm_ SSM_NO_DIFF){
             return &ssm_f_prediction_psr_no_diff;
