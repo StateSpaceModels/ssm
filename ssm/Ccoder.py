@@ -840,8 +840,8 @@ class Ccoder(Cmodel):
         proc_model = copy.deepcopy(self.proc_model) ##we are going to modify it...
 
         N_REAC = len(proc_model)
-        N_SV = len(self.par_sv)
-        N_INC = len(self.par_inc)
+        N_PAR_SV = len(self.par_sv)
+        N_PAR_INC = len(self.par_inc)
         N_DIFF = len(self.par_diff)
 
         unique_noises_names = [x['id'] for x in self.white_noise]

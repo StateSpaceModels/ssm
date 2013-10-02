@@ -97,7 +97,7 @@ class Builder(Data, Ccoder):
 
         self.render('diff', {'diff': self.compute_diff()})
 
-        #self.render('Q', {'Q': self.eval_Q(), 'step':self.step_ode_sde()})
+        self.render('Q', {'Q': self.eval_Q(), 'step':self.step_ode_sde()})
 
     def write_data(self):
 
