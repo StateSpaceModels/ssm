@@ -93,3 +93,95 @@ void ssm_par2X(ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav)
     }
 
 }
+
+
+unsigned int *ssm_load_ju1_new(json_t *container, char *name)
+{
+    char str[SSM_STR_BUFFSIZE];
+    int i;
+    json_t *array = json_object_get(container, name);
+    unsigned int *tab = malloc(json_array_size(array) * sizeof (unsigned int));
+    if(tab==NULL) {
+        sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
+        print_err(str);
+        exit(EXIT_FAILURE);
+    }
+
+    for(i=0; i< json_array_size(array); i++) {
+        json_t *array_i;
+        array_i = json_array_get(array, i);
+
+        if(json_is_number(array_i)){
+	    tab[i] = (unsigned int) json_integer_value(array_i);
+        } else if(json_is_null(array_i)) {
+	    tab[i] = NAN;
+	} else {
+            sprintf(str, "error: %s[%d] is not a number\n", name, i);
+            print_err(str);
+            exit(EXIT_FAILURE);
+	}
+    }
+
+    return tab;
+}
+
+
+double *ssm_load_jd1_new(json_t *container, char *name)
+{
+    char str[SSM_STR_BUFFSIZE];
+    int i;
+    json_t *array = json_object_get(container, name);
+    double *tab = malloc(json_array_size(array) * sizeof (double));
+    if(tab==NULL){
+        sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
+        print_err(str);
+        exit(EXIT_FAILURE);
+    }
+
+    for(i=0; i< json_array_size(array); i++) {
+        json_t *array_i;
+        array_i = json_array_get(array, i);
+
+        if(json_is_number(array_i)) {
+            tab[i] = json_number_value(array_i);
+        } else if(json_is_null(array_i)) {
+            tab[i] = NAN;
+        } else {
+            sprintf(str, "error: %s[%d] is not a number nor null\n", name, i);
+            print_err(str);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    return tab;
+}
+
+
+char **ssm_load_jc1_new(json_t *container, const char *name)
+{
+
+    char str[SSM_STR_BUFFSIZE];
+    int i;
+    json_t *array = json_object_get(container, name);
+    char **tab = malloc(json_array_size(array) * sizeof (char *));
+    if(tab==NULL){
+        sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
+        print_err(str);
+        exit(EXIT_FAILURE);
+    }
+
+    for(i=0; i< json_array_size(array); i++) {
+        json_t *array_i;
+        array_i = json_array_get(array, i);
+
+        if(json_is_string(array_i)) {
+            tab[i] = strdup(json_string_value(array_i));
+        } else {
+            sprintf(str, "error: %s[%d] is not a string\n", name, i);
+            print_err(str);
+            exit(EXIT_FAILURE);
+        }	
+    }
+
+    return tab;
+}

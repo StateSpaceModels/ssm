@@ -353,6 +353,7 @@ typedef struct
 typedef struct { /* [n_data] */
     char *date;
     unsigned int time;          /**< times in days since the smallest dates_t0 when the data were collected */
+
     int ts_nonan_length;        /**< number of time series without NaN at that time */
     ssm_observed_t **observed;  /**< [self.ts_nonan_length] */
     double *values;             /**< [ts_nonan_length] the non NAN data (values) one per time series */
@@ -372,7 +373,7 @@ typedef struct
     int ts_length;           /**< the number of time series */
     char** dates_t0;         /**< [this.ts_length] the dates at t0 (before the first data point)*/
     int n_obs;               /**< the number of data point to taken into account for inference */
-    char **names;            /**< [this.ts_length] name of the time series */
+
     ssm_data_row_t **rows;   /**< [this.length] the data values */
     int length_nonan;        /**< number of data points with at least one time series != NaN */
     unsigned int *ind_nonan; /**< [this.length_nonan] index of data points where there is at least one ts !=NaN */

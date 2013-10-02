@@ -20,6 +20,7 @@ import os
 import os.path
 import tarfile
 import shutil
+import json
 
 from Ccoder import Ccoder
 from Data import Data
@@ -100,14 +101,12 @@ class Builder(Data, Ccoder):
 
     def write_data(self):
 
-        x = {'data': self.prepare_data(), 'covariates': self.prepare_covariates()}
+        x = {'starts': [x.isoformat() for x in self.starts], 'data': self.prepare_data(), 'covariates': self.prepare_covariates()}
         with open(os.path.join(self.path_rendered, ".data.json"), "w") as f:
             json.dump(x, f)
 
 
 if __name__=="__main__":
-
-    import json
 
     b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'example', 'model', 'datapackage.json'))
 

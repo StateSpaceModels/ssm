@@ -234,3 +234,119 @@ ssm_nav_t *ssm_nav_new(json_t parameters, ...)
 
     return nav;
 }
+
+
+ssm_data_t *ssm_data_new(json_t *dot_data, ssm_nav_t *nav, ssm_options *opts)
+{
+    int i, j;
+
+    ssm_data_t *p_data = malloc(sizeof (ssm_data_t));
+    if (p_data==NULL) {
+        print_err("Allocation impossible for ssm_data_t");
+        exit(EXIT_FAILURE);
+    }
+
+    p_data->dates_t0 = ssm_load_jc1_new(dot_data, "starts");
+
+    json_t *data = json_object_get(dot_data, "data");
+
+    p_data->length = json_array_size(data);
+    p_data->ts_length = nav->observed_length;
+    
+    ssm_data_row_t **rows = malloc(p_data->length * sizeof (ssm_data_row_t *));
+    if (rows==NULL) {
+        print_err("Allocation impossible for ssm_data_row_t **");
+        exit(EXIT_FAILURE);
+    }
+
+    p_data->length_nonan = 0;
+    p_data->ind_nonan = ssm_d1_new(p_data->length);
+
+    for (i=0; i< p_data->length; i++){
+	rows[i] = malloc(sizeof (p_data->length * (ssm_data_row_t)));
+	if (rows[i] == NULL) {
+	    print_err("Allocation impossible for ssm_data_row_t *");
+	    exit(EXIT_FAILURE);
+	}
+
+	json_t *jrow = json_array_get(data, i);
+
+	json_t *jdate = json_object_get(jrow, "date");
+        if(json_is_string(jdate)) {
+            rows[i]->date = strdup(json_string_value(jdate));
+        } else {
+            sprintf(str, "error: %data[%d].date is not a string\n", i);
+            print_err(str);
+            exit(EXIT_FAILURE);
+        }
+
+	json_t *jtime = json_object_get(jrow, "time");
+        if(json_is_number(jtime)) {
+            rows[i]->time = (unsigned int) json_integer_value(jtime);
+        } else {
+            sprintf(str, "error: %data[%d].time is not an integer\n", i);
+            print_err(str);
+            exit(EXIT_FAILURE);
+        }
+
+	json_t *jobserved = json_object_get(jrow, "observed");
+	rows[i]->ts_nonan_length = json_array_size(jobserved);
+	rows[i]->observed = malloc(rows[i]->ts_nonan_length * sizeof (ssm_observed_t *));
+	if (rows[i]->observed == NULL) {
+	    print_err("Allocation impossible for ssm_data_row_t.observed");
+	    exit(EXIT_FAILURE);
+	}
+
+	for(j=0; j<rows[i]->ts_nonan_length; j++){
+
+	    json_t *jobserved_j = json_array_get(jobserved, j);
+	    if(json_is_number(jobserved_j)) {
+		int id = json_integer_value(jobserved_j);
+		rows[i]->observed[j] = nav->observed[id];
+	    } else {
+		sprintf(str, "error: %data[%d].observed[%d] is not an integer\n", i, j);
+		print_err(str);
+		exit(EXIT_FAILURE);
+	    }
+	}
+
+	rows[i]->values = ssm_load_jd1_new(jrow, "values");
+
+	json_t *jreset = json_object_get(jrow, "reset");	
+	rows[i]->states_reset_length = json_array_size(jreset);
+	rows[i]->states_reset = malloc(rows[i]->states_reset_length * sizeof (ssm_state_t *));
+	if (rows[i]->states_reset == NULL) {
+	    print_err("Allocation impossible for ssm_data_row_t.states_reset");
+	    exit(EXIT_FAILURE);
+	}
+
+	for(j=0; j<rows[i]->states_reset_length; j++){
+
+	    json_t *jreset_j = json_array_get(jreset, j);
+	    if(json_is_number(jreset_j)) {
+		int id = json_integer_value(jreset_j);
+		rows[i]->reset[j] = nav->states[id];
+	    } else {
+		sprintf(str, "error: %data[%d].reset[%d] is not an integer\n", i, j);
+		print_err(str);
+		exit(EXIT_FAILURE);
+	    }
+	}
+
+	if(rows[i]->ts_nonan_length){
+	    p_data->ind_nonan[p_data->length_nonan] = i;
+	    p_data->length_nonan += 1;
+	}
+    }
+
+    p_data->rows = rows;
+
+    //n_obs
+    if(opts->n_obs >= 0){
+	p_data->n_obs = (opts->n_obs < p_data->length) ? opts->n_obs : p_data->length;
+    } else {
+	p_data->n_obs = p_data->length;
+    }
+
+    return p_data;
+}
