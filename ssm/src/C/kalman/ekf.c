@@ -41,7 +41,7 @@ ssm_err_code ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X, s
 
 
     // fill Ht and Rt
-    // TODO: functions to compute Ht in python
+    eval_Ht(X, row, par, nav, calc, t);
     for(i=0; i< row->ts_nonan_length; i++){
 	for(j=0; j< row->ts_nonan_length; j++){
 	    if (i==j){
