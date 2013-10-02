@@ -16,12 +16,14 @@
 #    <http://www.gnu.org/licenses/>.
 #########################################################################
 
+import copy
 import os
 import os.path
 import json
 import datetime
 import sys
 import csv
+from Cmodel import Cmodel
 
 class DataError(Exception):
     def __init__(self, value):
@@ -30,12 +32,17 @@ class DataError(Exception):
             return repr(self.value)
 
 
-class Data:
+class Data(Cmodel):
 
     def __init__(self, path,  **kwargs):
         self.path = os.path.abspath(path)
-        self.model = json.load(open(self.path))
+        model = json.load(open(self.path))
+        Cmodel.__init__(self, model,  **kwargs)
         self.root = os.path.dirname(self.path)
+
+        obs = self.get_resource('observations')
+        self.starts = [datetime.datetime.strptime(x['start'], "%Y-%m-%d").date() for x in obs]
+        self.t0 =  min(self.starts)
 
 
     def cast(self, row):
@@ -94,11 +101,9 @@ class Data:
 
         ##TODO pad begining in case t0 are different (so that reset zero is respected!!)
 
-        obs = [x for x in self.model['resources'] if x['name']=='observations'][0]['data']
+        obs = copy.deepcopy(self.get_resource('observations'))
 
         obs_id = [x['id'] for x in obs]
-        starts = [datetime.datetime.strptime(x['start'], "%Y-%m-%d").date() for x in obs]
-        t0 =  min(starts)
 
         dateset = set()
         data = {}
@@ -118,7 +123,7 @@ class Data:
                 'observed': [],
                 'values': [],
                 'reset': [],
-                'time': (d-t0).days
+                'time': (d-self.t0).days
             }
 
             for x in obs_id:
@@ -132,7 +137,28 @@ class Data:
 
         return data_C
 
+
+    def prepare_covariates(self):
+
+        parameters = {x['id']:x for x in copy.deepcopy(self.get_resource('parameters'))}
+
+        data_C = []
+
+        for p in self.par_fixed:
+            data =  self.get_data(parameters[p]['prior']['path'])
+            name = [x for x in data[0].keys() if x!= 'date'][0]
+            x = []; y = []
+            for d in data:
+                if d[name] != None:
+                    x.append((d['date']-self.t0).days)
+                    y.append(d[name])
+
+            data_C.append({'id': p, 'x': x, 'y': y})
+        
+        return data_C
+
+
 if __name__=="__main__":
 
     d = Data(os.path.join('..' ,'example', 'model', 'datapackage.json'))
-    print d.prepare_data()
+    print d.prepare_covariates()
