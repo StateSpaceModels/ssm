@@ -679,33 +679,20 @@ class Ccoder(Cmodel):
                     rate= ' + ({0})'.format(r['rate'])
                     odeDict[r['to']] += rate
 
-
         ##observed equations
         obsList = []
 
+
         for i in range(len(self.par_inc_def)):
             eq = ''
-
-            if not isinstance(self.par_inc_def[i][0], dict): ##prevalence: we potentialy sum the prevalence eq. stored in odeDict
-                for j in range(len(self.par_inc_def[i])):
-                    if self.par_inc_def[i][j] == self.remainder:
-                        for s in self.par_sv:
-                            eq += '- ( ' + odeDict[s] + ' )'
-                    else:
-                        eq += odeDict[self.par_inc_def[i][j]]
-
-            else: ##incidence
-                for j in range(len(self.par_inc_def[i])):
-                    id_out = [self.proc_model.index(r) for r in self.proc_model if ((r['from'] == self.par_inc_def[i][j]['from']) and (r['to'] == self.par_inc_def[i][j]['to']) and (r['rate'] == self.par_inc_def[i][j]['rate'])) ]
-                    for o in id_out:
-                        reaction = my_model[o]
-                        if self.par_inc_def[i][j]['from'] in (['U'] + self.remainder):
-                            eq += ' + ({0})'.format(reaction['rate'])
-                        else:
-                            eq += ' + (({0})*{1})'.format(reaction['rate'], self.par_inc_def[i][j]['from'])
+            for j in range(len(self.par_inc_def[i])):
+                reaction = self.par_inc_def[i][j]
+                if reaction['from'] in (['U'] + self.remainder):
+                    eq += ' + ({0})'.format(reaction['rate'])
+                else:
+                    eq += ' + (({0})*{1})'.format(reaction['rate'], reaction['from'])
 
             obsList.append(eq)
-
 
         ####################
         ### Jacobian
@@ -719,11 +706,12 @@ class Ccoder(Cmodel):
         jac_only = []
         jac_diff = []
 
+
         for s in range(len(self.par_sv)):
             jac.append([])
             jac_only.append([])
 
-            if self.diff_var:
+            if self.par_diff:
                 jac_diff.append([])
 
             for sy in self.par_sv:
@@ -734,7 +722,7 @@ class Ccoder(Cmodel):
                 caches_jac_only.append(Cterm)
 
             #see doc of kalman.c diff_derivative()
-            for sy in self.diff_par_proc:
+            for sy in self.par_diff:
                 Cterm = self.make_C_term(odeDict[self.par_sv[s]], True, derivate=sy)
                 jac_diff[s].append({'value': Cterm,
                                      'der': self.make_C_term(sy, True),
@@ -747,7 +735,7 @@ class Ccoder(Cmodel):
 
         for o in range(len(obsList)):
             jac_obs.append([])
-            if self.diff_var:
+            if self.par_diff:
                 jac_obs_diff.append([])
 
             for sy in self.par_sv:
@@ -756,7 +744,7 @@ class Ccoder(Cmodel):
                 caches.append(Cterm)
 
             #see doc of kalman.c diff_derivative()
-            for sy in self.diff_par_proc:
+            for sy in self.par_diff:
                 Cterm = self.make_C_term(obsList[o], True, derivate=sy)
                 jac_obs_diff[o].append({'value': Cterm,
                                          'der': self.make_C_term(sy, True),
@@ -775,7 +763,7 @@ class Ccoder(Cmodel):
                 jac[s][i] = caches.index(Cterm)
                 jac_only[s][i] = caches_jac_only.index(Cterm)
 
-            for i in range(len(self.diff_par_proc)):
+            for i in range(len(self.par_diff)):
                 jac_diff[s][i]['value'] = caches.index(jac_diff[s][i]['value'])
 
 
@@ -783,7 +771,7 @@ class Ccoder(Cmodel):
             for i in range(len(self.par_sv)):
                 jac_obs[o][i] = caches.index(jac_obs[o][i])
 
-            for i in range(len(self.diff_par_proc)):
+            for i in range(len(self.par_diff)):
                 jac_obs_diff[o][i]['value'] = caches.index(jac_obs_diff[o][i]['value'])
 
 
@@ -838,7 +826,6 @@ class Ccoder(Cmodel):
 
         """
         proc_model = copy.deepcopy(self.proc_model) ##we are going to modify it...
-
         N_REAC = len(proc_model)
         N_PAR_SV = len(self.par_sv)
         N_PAR_INC = len(self.par_inc)

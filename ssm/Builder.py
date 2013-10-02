@@ -74,6 +74,10 @@ class Builder(Data, Ccoder):
 
         is_diff = True if len(self.par_diff) > 0 else False
 
+        ##methods whose results are use multiple times
+        step_ode_sde = self.step_ode_sde()
+        self.render('ode_sde', {'is_diff': is_diff, 'step':self.step_ode_sde()})
+
         parameters = self.parameters()
         self.render('transform', parameters)
         self.render('input', parameters)
@@ -93,11 +97,11 @@ class Builder(Data, Ccoder):
         }
         self.render('psr', psr)
 
-        self.render('ode_sde', {'is_diff': is_diff, 'step':self.step_ode_sde()})
-
         self.render('diff', {'diff': self.compute_diff()})
 
-        self.render('Q', {'Q': self.eval_Q(), 'step':self.step_ode_sde()})
+        self.render('Q', {'Q': self.eval_Q(),'is_diff': is_diff, 'step':self.step_ode_sde()})
+
+        self.render('jac', {'jac': self.jac(step_ode_sde['sf']), 'is_diff': is_diff, 'step':self.step_ode_sde()})
 
     def write_data(self):
 
