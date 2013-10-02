@@ -16,58 +16,49 @@
  *    <http://www.gnu.org/licenses/>.
  *************************************************************************/
 
-json_t *load_json(void)
+
+
+/**
+ *load json from stdin
+ */
+json_t *ssm_load_json_stream(FILE *stream)
 {
-    char *buffer;
-    buffer = malloc(SSM_BUFFER_SIZE* sizeof(char));
-
-    fgets(buffer, SSM_BUFFER_SIZE, stdin);
-    //    printf("%s\n", buffer);
-
-    json_t *root;
     json_error_t error;
-
-    root = json_loads(buffer, 0, &error);
-    if(!root) {
-        char str[SSM_STR_BUFFSIZE];
-        sprintf(str, "could not parse parameters datapackage\nerror: on line %d: %s\n", error.line, error.text);
-        print_err(str);
+    json_t *data = json_loadf(stream, 0, &error);
+    if(!data) {
+        print_err(error.text);
         exit(EXIT_FAILURE);
     }
 
-    //  buffer = json_dumps(root, 0);
-
-    free(buffer);
-
-    return root;
+    return data;
 }
 
 
 /**
- *load constants defined as global variable
+ *load data and covariates in .data.json
  */
-json_t *load_settings(const char *path)
+json_t *ssm_load_json_file(const char *path)
 {
-    json_error_t settings_error;
-    json_t *settings = json_load_file(path, 0, &settings_error);
-    if(!settings) {
-        print_err(settings_error.text);
+    json_error_t error;
+    json_t *data = json_load_file(path, 0, &error);
+    if(!data) {
+        print_err(error.text);
         exit(EXIT_FAILURE);
     }
-    
-    return settings;
+
+    return data;
 }
 
 
 
 void ssm_input2par(ssm_par_t *par, ssm_input_t *input, ssm_calc_t *calc, ssm_nav_t *nav)
-{   
+{
     ssm_it_parameters_t *it = nav->theta_all;
-    
+
     int i;
-    
+
     for(i=0; i< it->length; i++){
-	gsl_vector_set(par, i, it->p[i]->f_user2par(gsl_vector_get(input, i), input, calc));
+        gsl_vector_set(par, i, it->p[i]->f_user2par(gsl_vector_get(input, i), input, calc));
     }
 }
 
@@ -79,17 +70,17 @@ void ssm_par2X(ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav)
     ssm_it_states_t *sv = nav->states_sv;
     ssm_it_states_t *inc = nav->states_inc;
     ssm_it_states_t *diff = nav->states_diff;
-    
+
     for(i=0; i<sv->length; i++){
-	gsl_vector_set(X, sv->p[i]->offset, gsl_vector_get(par, sv->p[i]->ic->offset));
+        gsl_vector_set(X, sv->p[i]->offset, gsl_vector_get(par, sv->p[i]->ic->offset));
     }
 
     for(i=0; i<inc->length; i++){
-	gsl_vector_set(X, inc->p[i]->offset, 0.0);
+        gsl_vector_set(X, inc->p[i]->offset, 0.0);
     }
 
     for(i=0; i<diff->length; i++){
-	gsl_vector_set(X, diff->p[i]->offset, gsl_vector_get(par, diff->p[i]->ic->offset));
+        gsl_vector_set(X, diff->p[i]->offset, gsl_vector_get(par, diff->p[i]->ic->offset));
     }
 
 }
@@ -112,14 +103,14 @@ unsigned int *ssm_load_ju1_new(json_t *container, char *name)
         array_i = json_array_get(array, i);
 
         if(json_is_number(array_i)){
-	    tab[i] = (unsigned int) json_integer_value(array_i);
+            tab[i] = (unsigned int) json_integer_value(array_i);
         } else if(json_is_null(array_i)) {
-	    tab[i] = NAN;
-	} else {
+            tab[i] = NAN;
+        } else {
             sprintf(str, "error: %s[%d] is not a number\n", name, i);
             print_err(str);
             exit(EXIT_FAILURE);
-	}
+        }
     }
 
     return tab;
@@ -180,7 +171,7 @@ char **ssm_load_jc1_new(json_t *container, const char *name)
             sprintf(str, "error: %s[%d] is not a string\n", name, i);
             print_err(str);
             exit(EXIT_FAILURE);
-        }	
+        }
     }
 
     return tab;
