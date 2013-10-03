@@ -20,62 +20,60 @@
 
 /**
  * Computes the weight of the particles.
- * Note that p_like->weights already contains the likelihood
+ * Note that p_fitness->weights already contains the likelihood
  * @return the sucess status (sucess if some particles have a likelihood > LIKE_MIN)
  */
-int ssm_weight(ssm_fitness_t *like, int n)
+int ssm_weight(ssm_fitness_t *fitness, int n)
 {
-
-#if FLAG_WARNING
-    char str[100];
-#endif
+    char str[SSM_STR_BUFFSIZE];
 
     int j;
+
+    //TODO FIX...
+    int N_TS = 1;
 
     double like_tot_n = 0.0;
     int nfailure_n = 0;
     int success = 1;
 
-    like->ess_n = 0.0;
+    fitness->ess_n = 0.0;
 
-    for(j=0; j < like->J ; j++) {
+    for(j=0; j < fitness->J ; j++) {
         /*compute first part of weights (non divided by sum likelihood)*/
-        if (like->weights[j] <= pow(LIKE_MIN, N_TS)) {
-            like->weights[j] = 0.0;
+        if (fitness->weights[j] <= pow(fitness->like_min, N_TS)) {
+            fitness->weights[j] = 0.0;
             nfailure_n += 1;
         } else {
-            like_tot_n += like->weights[j]; //note that like_tot_n contains only like of part having a like>LIKE_MIN
-            like->ess_n += like->weights[j]*like->weights[j]; //first part of ess computation (sum of square)
+            like_tot_n += fitness->weights[j]; //note that like_tot_n contains only like of part having a like>like_min
+            fitness->ess_n += fitness->weights[j]*fitness->weights[j]; //first part of ess computation (sum of square)
         }
     } /*end of for on j*/
 
     /*compute second part of weights (divided by sum likelihood)*/
-    if(nfailure_n == like->J) {
+    if(nfailure_n == fitness->J) {
         success = 0;
-        like->n_all_fail += 1;
-#if FLAG_WARNING
-        sprintf(str,"warning: nfailure = %d, at n=%d we keep all particles and assign equal weights", nfailure_n , n);
-        print_warning(str);
-#endif
-        like->log_like_n = LOG_LIKE_MIN*N_TS;
+        fitness->n_all_fail += 1;
+        sprintf(str,"warning: nfailure = %d, at n=%d we keep all particles and assign equal weights", nfailure_n, n);
+        ssm_print_warning(str);
+        fitness->log_like_n = fitness->log_like_min*N_TS;
 
-        double invJ=1.0/ ((double) like->J);
-        for(j=0 ; j < like->J ; j++) {
-            like->weights[j]= invJ;
-            like->select[n][j]= j;
+        double invJ=1.0/ ((double) fitness->J);
+        for(j=0 ; j < fitness->J ; j++) {
+            fitness->weights[j]= invJ;
+            fitness->select[n][j]= j;
         }
-        like->ess_n = 0.0;
+        fitness->ess_n = 0.0;
 
     } else {
-        for(j=0 ; j < like->J ; j++) {
-            like->weights[j] /= like_tot_n;
+        for(j=0 ; j < fitness->J ; j++) {
+            fitness->weights[j] /= like_tot_n;
         }
 
-        like->log_like_n = log(like_tot_n / ((double) like->J));
-        like->ess_n = (like_tot_n*like_tot_n)/like->ess_n;
+        fitness->log_like_n = log(like_tot_n / ((double) fitness->J));
+        fitness->ess_n = (like_tot_n*like_tot_n)/fitness->ess_n;
     }
 
-    like->log_like += like->log_like_n;
+    fitness->log_like += fitness->log_like_n;
 
     return success;
 }
@@ -85,21 +83,21 @@ int ssm_weight(ssm_fitness_t *like, int n)
  *   Systematic sampling.  Systematic sampling is faster than
  *   multinomial sampling and introduces less monte carlo variability
  */
-void ssm_systematic_sampling(ssm_fitness_t *like, ssm_calc_t *calc, int n)
+void ssm_systematic_sampling(ssm_fitness_t *fitness, ssm_calc_t *calc, int n)
 {
-    unsigned int *select = like->select[n];
-    double *prob = like->weights;
+    unsigned int *select = fitness->select[n];
+    double *prob = fitness->weights;
 
     int i,j;
 
     double ran;
-    double inc = 1.0/((double) like->J);
+    double inc = 1.0/((double) fitness->J);
 
     ran = gsl_ran_flat(calc->randgsl, 0.0, inc);
     i = 0;
     double weight_cum = prob[0];
 
-    for(j=0; j < like->J; j++) {
+    for(j=0; j < fitness->J; j++) {
         while(ran > weight_cum) {
             i++;
             weight_cum += prob[i];
@@ -110,17 +108,15 @@ void ssm_systematic_sampling(ssm_fitness_t *like, ssm_calc_t *calc, int n)
 }
 
 
-void ssm_resample_X(ssm_fitness_t *like, ssm_X_t ***J_p_X, ssm_X_t ***J_p_X_tmp, int n)
+void ssm_resample_X(ssm_fitness_t *fitness, ssm_X_t ***J_p_X, ssm_X_t ***J_p_X_tmp, int n)
 {
-    int k, j;
+    int j;
 
-    unsigned int *select = like->select[n];
+    unsigned int *select = fitness->select[n];
 
-    for(j=0;j<like->J;j++) {
-
+    for(j=0;j<fitness->J;j++) {
         (*J_p_X_tmp)[j]->dt = (*J_p_X)[select[j]]->dt;
-
-        gsl_vector_memcpy((*J_p_X_tmp)[j]->proj, (*J_p_X)[select[j]]->proj);
+        memcpy((*J_p_X_tmp)[j]->proj, (*J_p_X)[select[j]]->proj, (*J_p_X)[select[j]]->length * sizeof(double));
     }
 
     ssm_swap_X(J_p_X, J_p_X_tmp);
@@ -131,7 +127,7 @@ void ssm_resample_X(ssm_fitness_t *like, ssm_X_t ***J_p_X, ssm_X_t ***J_p_X_tmp,
  */
 void ssm_swap_X(ssm_X_t ***X, ssm_X_t ***tmp_X)
 {
-    struct s_X **tmp;
+    ssm_X_t **tmp;
     tmp=*tmp_X;
     *tmp_X=*X;
     *X=tmp;

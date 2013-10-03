@@ -42,9 +42,9 @@ size_t **ssm_st2_new(int n, int p)
     size_t **tab = malloc(n* sizeof (size_t *));
 
     if(tab==NULL) {
-        char str[STR_BUFFSIZE];
+        char str[SSM_STR_BUFFSIZE];
         sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-        print_err(str);
+        ssm_print_err(str);
         exit(EXIT_FAILURE);
     }
 

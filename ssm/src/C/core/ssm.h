@@ -180,6 +180,7 @@ typedef struct /*[N_THREADS] : for parallel computing we need N_THREADS replicat
  */
 typedef struct  /* optionaly [N_DATA+1][J] for MIF and pMCMC "+1" is for initial condition (one time step before first data)  */
 {
+    int length;
     double *proj; /**< values */
 
     double dt;  /**< the integration time step (for ODE solved with adaptive time step solvers) */
@@ -325,6 +326,7 @@ typedef struct
     int J;           /**< number of particles */
     int data_length; /**< number of data points */
     double like_min; /**< mimimun value of the likelihood */
+    double log_like_min; /**< mimimun value of the log likelihood */
 
     double least_square;
 
@@ -425,7 +427,7 @@ typedef struct
     double like_min;         /**< particles with likelihood smaller that like_min are considered lost */
     int J;                   /**< number of particles */
     int n_obs;               /**< number of observations to be fitted (for tempering) */
-    char *interpolation;     /**< gsl interpolator for metadata */
+    char *interpolator;      /**< gsl interpolator for metadata */
     int n_iter;              /**< number of iterations */
     double a;                /**< cooling factor (scales standard deviation) */
     double b;                /**< re-heating (inflation) (scales standard deviation of the proposal) */
@@ -466,7 +468,7 @@ double ***ssm_d3_new(int n, int p1, int p2);
 void ssm_d3_free(double ***tab, int n, int p1);
 double ****ssm_d4_new(int n, int p1, int p2, int p3);
 void ssm_d4_free(double ****tab, int n, int p1, int p2);
-double **ssm_d2d_var_set0(int n, unsigned int *p);
+double **ssm_d2_var_new(int n, unsigned int *p);
 double ***ssm_d3_var_new(int n, unsigned int *p1, unsigned int **p2);
 void ssm_d3_var_free(double ***tab, int n, unsigned int *p1);
 double ***ssm_d3_varp1_new(int n, unsigned int *p1, int p2);
@@ -530,7 +532,7 @@ void ssm_X_reset_inc(ssm_X_t *X, ssm_row_t *row);
 void ssm_ran_multinomial (const gsl_rng * r, const size_t K, unsigned int N, const double p[], unsigned int n[]);
 double ssm_correct_rate(double rate, double dt);
 ssm_err_code_t ssm_check_no_neg_remainder(ssm_X_t *p_X, ssm_nav_t *nav, ssm_calc_t *calc, double t);
-ssm_f_pred_t ssm_get_f_pred(ssm_calc_t *calc);
+ssm_f_pred_t ssm_get_f_pred(ssm_calc_t *calc, ssm_nav_t *nav);
 ssm_err_code_t ssm_f_prediction_ode(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
 ssm_err_code_t ssm_f_prediction_sde_no_dem_sto_no_white_noise(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
 ssm_err_code_t ssm_f_prediction_sde_no_dem_sto_no_diff(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
@@ -544,9 +546,9 @@ ssm_err_code_t ssm_f_prediction_psr_no_diff(ssm_X_t *p_X, double t0, double t1, 
 
 
 /* smc.c */
-int ssm_weight(ssm_fitness_t *like, int n);
-void ssm_systematic_sampling(ssm_fitness_t *like, ssm_calc_t *calc, int n);
-void ssm_resample_X(ssm_fitness_t *like, ssm_X_t ***J_p_X, ssm_X_t ***J_p_X_tmp, int n);
+int ssm_weight(ssm_fitness_t *fitness, int n);
+void ssm_systematic_sampling(ssm_fitness_t *fitness, ssm_calc_t *calc, int n);
+void ssm_resample_X(ssm_fitness_t *fitness, ssm_X_t ***J_p_X, ssm_X_t ***J_p_X_tmp, int n);
 void ssm_swap_X(ssm_X_t ***X, ssm_X_t ***tmp_X);
 
 /* transform.c */
@@ -571,6 +573,10 @@ int ssm_in_par(ssm_it_parameters_t *it, const char *name);
 const gsl_interp_type *ssm_str_to_interp_type(const char *optarg);
 int ssm_sanitize_n_threads(int n_threads, ssm_fitness_t *fitness);
 
+/* print.c */
+void ssm_print_log(char *msg);
+void ssm_print_warning(char *msg);
+void ssm_print_err(char *msg);
 
 /*********************************/
 /* templated function signatures */

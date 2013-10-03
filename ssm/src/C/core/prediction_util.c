@@ -21,7 +21,7 @@
 
 void ssm_X_copy(ssm_X_t *dest, ssm_X_t *src)
 {
-    gsl_vector_memcpy(dest->proj, src->proj);
+    memcpy(dest->proj, src->proj, src->length * sizeof(double));
     dest->dt = src->dt;
 }
 
@@ -30,7 +30,7 @@ void ssm_X_reset_inc(ssm_X_t *X, ssm_row_t *row)
     int i;
 
     for(i=0; i<row->states_reset_length; i++){
-        gsl_vector_set(X->proj, row->states_reset[i]->offset, 0.0);
+        X->proj[ row->states_reset[i]->offset ] = 0.0;
     }
 }
 
@@ -90,10 +90,10 @@ ssm_err_code_t ssm_check_no_neg_remainder(ssm_X_t *p_X, ssm_nav_t *nav, ssm_calc
 }
 
 
-ssm_f_pred_t ssm_get_f_pred(ssm_calc_t *calc)
+ssm_f_pred_t ssm_get_f_pred(ssm_calc_t *calc, ssm_nav_t *nav)
 {
-    ssm_implementations_t implementation = calc->implementation;
-    ssm_noises_off_t noises_off= calc->noises_off;
+    ssm_implementations_t implementation = nav->implementation;
+    ssm_noises_off_t noises_off= nav->noises_off;
 
     if (implementation == SSM_ODE || implementation == SSM_EKF) {
         return &ssm_f_prediction_ode;
@@ -119,8 +119,8 @@ ssm_f_pred_t ssm_get_f_pred(ssm_calc_t *calc)
         }
 
     } else if (implementation == SSM_PSR){
-        //no_sto_env is handled within the step funciton
-        if(noises_off &ssm_ SSM_NO_DIFF){
+        //no_white_noise is handled within the step funciton
+        if(noises_off & SSM_NO_DIFF){
             return &ssm_f_prediction_psr_no_diff;
         } else {
             return &ssm_f_prediction_psr;

@@ -55,7 +55,7 @@ const gsl_interp_type *ssm_str_to_interp_type(const char *optarg)
         return gsl_interp_akima_periodic;
     }
 
-    print_warning("Unknown gsl interpolator for metadata. Linear interpolator will be used instead.");
+    ssm_print_warning("Unknown gsl interpolator for metadata. Linear interpolator will be used instead.");
     return gsl_interp_linear;
 }
 
@@ -67,7 +67,7 @@ const gsl_interp_type *ssm_str_to_interp_type(const char *optarg)
 int ssm_sanitize_n_threads(int n_threads, ssm_fitness_t *fitness)
 {
     if(n_threads > fitness->J){
-        return fitness->JJ;
+        return fitness->J;
     } else {
         return n_threads;
     }

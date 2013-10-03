@@ -25,9 +25,9 @@ unsigned int *ssm_u1_new(int n)
 
     if(tab==NULL)
     {
-        char str[STR_BUFFSIZE];
+        char str[SSM_STR_BUFFSIZE];
         sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-        print_err(str);
+        ssm_print_err(str);
         exit(EXIT_FAILURE);
     }
 
@@ -44,9 +44,9 @@ unsigned int **ssm_u2_new(int n, int p)
 
     if(tab==NULL)
     {
-        char str[STR_BUFFSIZE];
+        char str[SSM_STR_BUFFSIZE];
         sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-        print_err(str);
+        ssm_print_err(str);
         exit(EXIT_FAILURE);
     }
 
@@ -72,9 +72,9 @@ unsigned int ***ssm_u3_new(int n, int p1, int p2)
 
     if(tab==NULL)
     {
-        char str[STR_BUFFSIZE];
+        char str[SSM_STR_BUFFSIZE];
         sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-        print_err(str);
+        ssm_print_err(str);
         exit(EXIT_FAILURE);
     }
 
@@ -104,9 +104,9 @@ unsigned int ****ssm_u4_new(int n, int p1, int p2, int p3)
 
     if(tab==NULL)
     {
-        char str[STR_BUFFSIZE];
+        char str[SSM_STR_BUFFSIZE];
         sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-        print_err(str);
+        ssm_print_err(str);
         exit(EXIT_FAILURE);
     }
 
@@ -142,9 +142,9 @@ unsigned int **ssm_u2_var_new(int n, unsigned int *p)
     unsigned int **tab=malloc(n* sizeof (unsigned int *));
     if(tab==NULL)
     {
-        char str[STR_BUFFSIZE];
+        char str[SSM_STR_BUFFSIZE];
         sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-        print_err(str);
+        ssm_print_err(str);
         exit(EXIT_FAILURE);
     }
 
@@ -162,14 +162,14 @@ unsigned int ***ssm_u3_var_new(int n, unsigned int *p1, unsigned int **p2)
     unsigned int ***tab = malloc(n* sizeof (unsigned int **));
     if(tab==NULL)
     {
-        char str[STR_BUFFSIZE];
+        char str[SSM_STR_BUFFSIZE];
         sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-        print_err(str);
+        ssm_print_err(str);
         exit(EXIT_FAILURE);
     }
 
     for(i=0;i<n;i++)
-        tab[i]= ssm_u2u_var_set0(p1[i], p2[i]);
+        tab[i]= ssm_u2_var_new(p1[i], p2[i]);
 
     return tab;
 }
@@ -197,9 +197,9 @@ unsigned int ***ssm_u3_varp1_new(int n, unsigned int *p1, int p2)
     unsigned int ***tab = malloc(n* sizeof (unsigned int **));
     if(tab==NULL)
     {
-        char str[STR_BUFFSIZE];
+        char str[SSM_STR_BUFFSIZE];
         sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-        print_err(str);
+        ssm_print_err(str);
         exit(EXIT_FAILURE);
     }
 
@@ -208,9 +208,9 @@ unsigned int ***ssm_u3_varp1_new(int n, unsigned int *p1, int p2)
         tab[i]= malloc(p1[i]* sizeof (unsigned int *));
         if(tab[i]==NULL)
         {
-            char str[STR_BUFFSIZE];
+            char str[SSM_STR_BUFFSIZE];
             sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-            print_err(str);
+            ssm_print_err(str);
             exit(EXIT_FAILURE);
         }
     }
@@ -230,9 +230,9 @@ unsigned int ***ssm_u3_varp2_new(int n, unsigned int p1, unsigned int *p2)
     unsigned int ***tab = malloc(n* sizeof (unsigned int **));
     if(tab==NULL)
     {
-        char str[STR_BUFFSIZE];
+        char str[SSM_STR_BUFFSIZE];
         sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-        print_err(str);
+        ssm_print_err(str);
         exit(EXIT_FAILURE);
     }
 
@@ -241,9 +241,9 @@ unsigned int ***ssm_u3_varp2_new(int n, unsigned int p1, unsigned int *p2)
         tab[i] = malloc(p1* sizeof (unsigned int *));
         if(tab[i]==NULL)
         {
-            char str[STR_BUFFSIZE];
+            char str[SSM_STR_BUFFSIZE];
             sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-            print_err(str);
+            ssm_print_err(str);
             exit(EXIT_FAILURE);
         }
     }

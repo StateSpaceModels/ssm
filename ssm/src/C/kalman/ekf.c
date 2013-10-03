@@ -18,13 +18,12 @@
 
 #include "ssm.h"
 
-
 /**
  * Computation of the EKF gain kt for observation data_t_ts and obs
  * jacobian ht, given estimate xk_t_ts and current covariance Ct
  */
-ssm_err_code ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav){
-    
+ssm_err_code_t ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav){
+
     int i,j;
     ssm_err_code_t cum_status = SSM_SUCCESS;
     int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
@@ -43,18 +42,18 @@ ssm_err_code ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X, s
     // fill Ht and Rt
     eval_Ht(X, row, par, nav, calc, t);
     for(i=0; i< row->ts_nonan_length; i++){
-	for(j=0; j< row->ts_nonan_length; j++){
-	    if (i==j){
-		gsl_matrix_set(Rt,i,j) = row->observed[i]->obs_var(X, par, calc, t); 
-	    } else {
-		gsl_matrix_set(Rt,i,j) = 0;
-	    }
-	}
+        for(j=0; j< row->ts_nonan_length; j++){
+            if (i==j){
+                gsl_matrix_set(Rt,i,j) = row->observed[i]->obs_var(X, par, calc, t);
+            } else {
+                gsl_matrix_set(Rt,i,j) = 0;
+            }
+        }
     }
 
     // pred_error = double data_t_ts - xk_t_ts
     for(i=0; i< row->ts_nonan_length; i++){
-	gsl_vector_set(pred_error,i) = row->values[i] - row->observed[i]->obs_mean(X, par, calc, t);
+        gsl_vector_set(pred_error,i) = row->values[i] - row->observed[i]->obs_mean(X, par, calc, t);
     }
 
 
@@ -66,11 +65,11 @@ ssm_err_code ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X, s
      */
 
     // workn = Ct*Ht
-    status = gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, Ct, Ht, 0.0, Tmp); 
+    status = gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, Ct, Ht, 0.0, Tmp);
     cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
-    
+
     // sc_st = Ht' * workn;
-    status = gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, Ht, Tmp, 0.0, St); 
+    status = gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, Ht, Tmp, 0.0, St);
     cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
 
     // sc_st = sc_st + sc_rt ;
@@ -83,7 +82,7 @@ ssm_err_code ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X, s
 
     status = gsl_linalg_LU_invert(St,p,Stm1);
     cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
-    
+
     status = gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, Ht, Stm1, 0.0, Tmp);
     cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
 
@@ -98,7 +97,7 @@ ssm_err_code ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X, s
 
 
 ssm_err_code ssm_kalman_update(ssm_X_t *X, ssm_row_t *row, double t, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *like){
-    
+
     int cum_status = 0;
     int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
     gsl_vector_view *pred_error = gsl_matrix_subvector(calc->_pred_error,0,row->ts_nonan_length);
@@ -107,7 +106,7 @@ ssm_err_code ssm_kalman_update(ssm_X_t *X, ssm_row_t *row, double t, ssm_par_t *
     gsl_vector_view *X_sv = gsl_matrix_subvector(X->proj,0,m);
     gsl_matrix_view *Ct =  gsl_matrix_const_view_array(&X[m], m, m);
 
-    ssm_err_code_t cum_status = ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav);    
+    ssm_err_code_t cum_status = ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav);
 
     //////////////////
     // state update //

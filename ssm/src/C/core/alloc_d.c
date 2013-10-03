@@ -26,9 +26,9 @@ double *ssm_d1_new(int n)
 
     if(tab==NULL)
     {
-        char str[STR_BUFFSIZE];
+        char str[SSM_STR_BUFFSIZE];
         sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-        print_err(str);
+        ssm_print_err(str);
         exit(EXIT_FAILURE);
     }
 
@@ -45,14 +45,14 @@ double **ssm_d2_new(int n, int p)
 
     if(tab==NULL)
     {
-        char str[STR_BUFFSIZE];
+        char str[SSM_STR_BUFFSIZE];
         sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-        print_err(str);
+        ssm_print_err(str);
         exit(EXIT_FAILURE);
     }
 
     for(i=0;i<n;i++)
-        tab[i] = d1_new(p);
+        tab[i] = ssm_d1_new(p);
 
     return tab;
 }
@@ -74,14 +74,14 @@ double ***ssm_d3_new(int n, int p1, int p2)
 
     if(tab==NULL)
     {
-        char str[STR_BUFFSIZE];
+        char str[SSM_STR_BUFFSIZE];
         sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-        print_err(str);
+        ssm_print_err(str);
         exit(EXIT_FAILURE);
     }
 
     for(i=0;i<n;i++)
-        tab[i] = d2_new(p1, p2);
+        tab[i] = ssm_d2_new(p1, p2);
 
     return tab;
 }
@@ -107,14 +107,14 @@ double ****ssm_d4_new(int n, int p1, int p2, int p3)
 
     if(tab==NULL)
     {
-        char str[STR_BUFFSIZE];
+        char str[SSM_STR_BUFFSIZE];
         sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-        print_err(str);
+        ssm_print_err(str);
         exit(EXIT_FAILURE);
     }
 
     for(i=0;i<n;i++)
-        tab[i] = d3_new(p1, p2, p3);
+        tab[i] = ssm_d3_new(p1, p2, p3);
 
     return tab;
 }
@@ -138,21 +138,21 @@ void ssm_d4_free(double ****tab, int n, int p1, int p2)
     free(tab);
 }
 
-double **ssm_d2d_var_set0(int n, unsigned int *p)
+double **ssm_d2_var_new(int n, unsigned int *p)
 {
     int i;
 
     double **tab=malloc(n* sizeof (double *));
     if(tab==NULL)
     {
-        char str[STR_BUFFSIZE];
+        char str[SSM_STR_BUFFSIZE];
         sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-        print_err(str);
+        ssm_print_err(str);
         exit(EXIT_FAILURE);
     }
 
     for(i=0;i<n;i++)
-        tab[i] = d1_new(p[i]);
+        tab[i] = ssm_d1_new(p[i]);
 
     return tab;
 }
@@ -165,14 +165,14 @@ double ***ssm_d3_var_new(int n, unsigned int *p1, unsigned int **p2)
     double ***tab = malloc(n* sizeof (double **));
     if(tab==NULL)
     {
-        char str[STR_BUFFSIZE];
+        char str[SSM_STR_BUFFSIZE];
         sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-        print_err(str);
+        ssm_print_err(str);
         exit(EXIT_FAILURE);
     }
 
     for(i=0;i<n;i++)
-        tab[i]= d2d_var_set0(p1[i], p2[i]);
+        tab[i]= ssm_d2_var_new(p1[i], p2[i]);
 
     return tab;
 }
@@ -200,9 +200,9 @@ double ***ssm_d3_varp1_new(int n, unsigned int *p1, int p2)
     double ***tab = malloc(n* sizeof (double **));
     if(tab==NULL)
     {
-        char str[STR_BUFFSIZE];
+        char str[SSM_STR_BUFFSIZE];
         sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-        print_err(str);
+        ssm_print_err(str);
         exit(EXIT_FAILURE);
     }
 
@@ -211,16 +211,16 @@ double ***ssm_d3_varp1_new(int n, unsigned int *p1, int p2)
         tab[i]= malloc(p1[i]* sizeof (double *));
         if(tab[i]==NULL)
         {
-            char str[STR_BUFFSIZE];
+            char str[SSM_STR_BUFFSIZE];
             sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-            print_err(str);
+            ssm_print_err(str);
             exit(EXIT_FAILURE);
         }
     }
 
     for(i=0;i<n;i++)
         for(j=0;j<p1[i];j++)
-            tab[i][j]= d1_new(p2);
+            tab[i][j]= ssm_d1_new(p2);
 
     return tab;
 }
@@ -233,9 +233,9 @@ double ***ssm_d3_varp2_new(int n, unsigned int p1, unsigned int *p2)
     double ***tab = malloc(n* sizeof (double **));
     if(tab==NULL)
     {
-        char str[STR_BUFFSIZE];
+        char str[SSM_STR_BUFFSIZE];
         sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-        print_err(str);
+        ssm_print_err(str);
         exit(EXIT_FAILURE);
     }
 
@@ -244,16 +244,16 @@ double ***ssm_d3_varp2_new(int n, unsigned int p1, unsigned int *p2)
         tab[i] = malloc(p1* sizeof (double *));
         if(tab[i]==NULL)
         {
-            char str[STR_BUFFSIZE];
+            char str[SSM_STR_BUFFSIZE];
             sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-            print_err(str);
+            ssm_print_err(str);
             exit(EXIT_FAILURE);
         }
     }
 
     for(i=0;i<n;i++)
         for(j=0;j<p1;j++)
-            tab[i][j]= d1_new(p2[i]);
+            tab[i][j]= ssm_d1_new(p2[i]);
 
     return tab;
 }

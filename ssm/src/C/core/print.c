@@ -18,27 +18,31 @@
 
 #include "ssm.h"
 
-double ssm_log_likelihood(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav)
+void ssm_print_log(char *msg)
 {
-    int i;
-    double loglike = 0.0;
-
-    for(i=0; i< row->ts_nonan_length; i++){
-        loglike += log(row->observed[i]->f_likelihood(row->values[i], X, par, calc, t));
-    }
-
-    return loglike;
+    json_t *root;
+    root = json_pack("{s,s,s,s}", "flag", "log", "msg", msg);
+    json_dumpf(root, stdout, 0); printf("\n");
+    fflush(stdout);
+    json_decref(root);
 }
 
 
-double ssm_sum_square(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav)
+void ssm_print_warning(char *msg)
 {
-    int i;
-    double ss = 0.0;
+    json_t *root;
+    root = json_pack("{s,s,s,s}", "flag", "wrn", "msg", msg);
+    json_dumpf(root, stdout, 0); printf("\n");
+    fflush(stdout);
+    json_decref(root);
+}
 
-    for(i=0; i< row->ts_nonan_length; i++){
-        ss += pow( row->values[i] - row->observed[i]->f_obs_mean(X, par, calc, t), 2 );
-    }
 
-    return ss;
+void ssm_print_err(char *msg)
+{
+    json_t *root;
+    root = json_pack("{s,s,s,s}", "flag", "err", "msg", msg);
+    json_dumpf(root, stderr, 0); fprintf(stderr,"\n");
+    fflush(stderr);
+    json_decref(root);
 }

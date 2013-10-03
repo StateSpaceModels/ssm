@@ -23,16 +23,15 @@ int *ssm_i1_new(int n)
     int i;
     int *tab = malloc(n*sizeof (int));
 
-    if(tab==NULL)
-	{
-	    char str[STR_BUFFSIZE];
-	    sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);	
-	    print_err(str);
-	    exit(EXIT_FAILURE);
-	}
+    if(tab==NULL){
+        char str[SSM_STR_BUFFSIZE];
+        sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
+        ssm_print_err(str);
+        exit(EXIT_FAILURE);
+    }
 
     for(i=0;i<n;i++)
-	tab[i]=0;
+        tab[i]=0;
 
-    return tab;  
+    return tab;
 }

@@ -24,9 +24,9 @@ char *ssm_c1_new(int n)
 
     if(tab==NULL)
     {
-        char str[STR_BUFFSIZE];
+        char str[SSM_STR_BUFFSIZE];
         sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-        print_err(str);
+        ssm_print_err(str);
         exit(EXIT_FAILURE);
     }
 
@@ -40,9 +40,9 @@ char **ssm_c2_new(int n, int p)
 
     if(tab==NULL)
     {
-        char str[STR_BUFFSIZE];
+        char str[SSM_STR_BUFFSIZE];
         sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-        print_err(str);
+        ssm_print_err(str);
         exit(EXIT_FAILURE);
     }
 
