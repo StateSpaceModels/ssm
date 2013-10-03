@@ -413,6 +413,7 @@ typedef struct
     ssm_print_t print;
 
     int id;                  /**< unique integer identifier that will be used as seed and be appended to the output files */
+    int flag_seed_time;      /**< seed with the local time ((unsigned) time(NULL)) */
     int flag_pipe;           /**< pipe mode */
     int flag_prior;          /**< add log(prior) to the estimated log likelihood */
     int flag_transf;         /**< add log(JacobianDeterminant(transf)) to the estimated loglik. (combined to this.flag_prior, gives posterior density in transformed space) */

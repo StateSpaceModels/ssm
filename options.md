@@ -13,7 +13,7 @@
   i    |   id                 |       0                               |  smc, kalman, kmcmc, pmcmc, ksimplex, simplex, mif, simul  |  general id (unique integer identifier that will be appended to the output)
   p    |   path               |      '/'                              |  smc, kalman, kmcmc, pmcmc, ksimplex, simplex, mif, simul  |  path where the outputs will be stored
   N    |   n_thread           |      1                                |  smc, pmcmc, mif, simul                                    |  number of threads to be used
-  l    |   LIKE_MIN           |      1e-17                            |  smc, kalman, kmcmc, pmcmc, ksimplex, simplex, mif         |  particles with likelihood smaller than LIKE_MIN are considered lost *description does not apply to Kalman*
+  l    |   like_min           |      1e-17                            |  smc, kalman, kmcmc, pmcmc, ksimplex, simplex, mif         |  particles with likelihood smaller than LIKE_MIN are considered lost *description does not apply to Kalman*
   J    |                      |      1                                |  smc, pmcmc, pmcmc, mif, simul                             |  number of particles
   o    |   nb_obs             |      -1                               |  smc, kalman, kmcmc, pmcmc, ksimplex, simplex              |  number of observations to be fitted (for tempering) *what about mif?*
   I    |   interpolation      |      -                                |  smc, kalman, kmcmc, pmcmc, ksimplex, simplex, mif, simul  |  gsl interpolator for covariates

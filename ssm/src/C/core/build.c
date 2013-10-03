@@ -366,7 +366,7 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options *opts)
     return p_data;
 }
 
-ssm_calc_t *ssm_data_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, int thread_id, ssm_options *opts)
+ssm_calc_t *ssm_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, int thread_id, unsigned long int seed, ssm_options *opts)
 {
     ssm_calc_t *calc = malloc(sizeof (ssm_calc_t));
     if (calc==NULL) {
@@ -380,7 +380,7 @@ ssm_calc_t *ssm_data_new(json_t *jdata, int dim_ode, int (*func_step_ode) (doubl
     /* threads */
     /***********/
 
-    calc->threads_length = opts->n_thread;
+    calc->threads_length = ssm_sanitize_n_threads(opts->n_thread, fitness);
     calc->thread_id = thread_id;
 
     /******************/
@@ -412,7 +412,7 @@ ssm_calc_t *ssm_data_new(json_t *jdata, int dim_ode, int (*func_step_ode) (doubl
     }
 
     p_calc->randgsl = gsl_rng_alloc(Type);
-    gsl_rng_set(calc->randgsl, opts->id + thread_id);
+    gsl_rng_set(calc->randgsl, seed + thread_id);
 
     /*******************/
     /* implementations */
@@ -555,6 +555,33 @@ ssm_calc_t *ssm_data_new(json_t *jdata, int dim_ode, int (*func_step_ode) (doubl
 
         free(x);
         free(y);
+    }
+
+    return calc;
+}
+
+
+ssm_calc_t **ssm_N_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options *opts)
+{
+    int i;
+    int n_threads = ssm_sanitize_n_threads(opts->n_thread, fitness);
+
+    ssm_calc_t **calc = malloc(n_threads * sizeof (ssm_calc_t *));
+    if (calc==NULL) {
+        print_err("Allocation impossible for ssm_calc_t **");
+        exit(EXIT_FAILURE);
+    }
+
+    unsigned long int seed;
+    if(opts->flag_seed_time){
+	seed = (unsigned) time(NULL);
+    } else{
+	seed=2;
+    }
+    seed += opts->id; /*we ensure uniqueness of seed in case of parrallel runs*/
+
+    for (i=0; i< n_threads; i++) {
+        calc[i] = ssm_calc_new(jdata, dim_ode, func_step_ode, jacobian, nav, data, fitness, i, seed, opts);
     }
 
     return calc;

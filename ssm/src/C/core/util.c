@@ -58,3 +58,20 @@ const gsl_interp_type *ssm_str_to_interp_type(const char *optarg){
     print_warning("Unknown gsl interpolator for metadata. Linear interpolator will be used instead.");
     return gsl_interp_linear;
 }
+
+
+
+/**
+ * make sure that n_threads <= J and return safe n_threads
+ */
+
+int ssm_sanitize_n_threads(int n_threads, ssm_fitness_t *fitness)
+{
+    if(n_threads > fitness->J){
+        return fitness->JJ;
+    } else {
+        return n_threads;
+    }
+}
+
+
