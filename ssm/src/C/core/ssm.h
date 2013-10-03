@@ -332,7 +332,7 @@ typedef struct
     double log_like_n ;         /**< log likelihood for the best parameter at n*/
     double log_like;            /**< log likelihood for the best parameter*/
     double *weights;            /**< [this.J] the weights */
-    ssm_err_code *cum_status;   /**< [this.J] cumulated f_prediction status */
+    ssm_err_code_t *cum_status;   /**< [this.J] cumulated f_prediction status */
 
     unsigned int **select;      /**< [this.n_data][this.J] select is a vector with the indexes of the resampled particles. Note that we keep this.n_data values to keep genealogies */
 
@@ -362,7 +362,7 @@ typedef struct { /* [n_data] */
     int states_reset_length;    /**< number of states that must be reset to 0 */
     ssm_state_t **states_reset; /**< [self.states_reset_length] array of pointer to the states to reset */
 
-} ssm_data_row_t;
+} ssm_row_t;
 
 
 /**
@@ -375,7 +375,7 @@ typedef struct
     char** dates_t0;         /**< [this.ts_length] the dates at t0 (before the first data point)*/
     int n_obs;               /**< the number of data point to taken into account for inference */
 
-    ssm_data_row_t **rows;   /**< [this.length] the data values */
+    ssm_row_t **rows;   /**< [this.length] the data values */
     int length_nonan;        /**< number of data points with at least one time series != NaN */
     unsigned int *ind_nonan; /**< [this.length_nonan] index of data points where there is at least one ts !=NaN */
 
@@ -386,7 +386,7 @@ typedef struct
 /**
  * prediction function
  */
-typedef ssm_err_code (*ssm_f_pred_t) (ssm_X_t *, double, double, ssm_par_t *, ssm_nav_t *, ssm_calc_t *);
+typedef ssm_err_code_t (*ssm_f_pred_t) (ssm_X_t *, double, double, ssm_par_t *, ssm_nav_t *, ssm_calc_t *);
 
 
 /**
@@ -490,7 +490,7 @@ unsigned int ****ssm_u4_new(int n, int p1, int p2, int p3);
 void ssm_u4_free(unsigned int ****tab, int n, int p1, int p2);
 unsigned int **ssm_u2_var_new(int n, unsigned int *p);
 unsigned int ***ssm_u3_var_new(int n, unsigned int *p1, unsigned int **p2);
-void ssm_u3_free(unsigned int ***tab, int n, unsigned int *p1);
+void ssm_u3_var_free(unsigned int ***tab, int n, unsigned int *p1);
 unsigned int ***ssm_u3_varp1_new(int n, unsigned int *p1, int p2);
 unsigned int ***ssm_u3_varp2_new(int n, unsigned int p1, unsigned int *p2);
 
@@ -506,10 +506,10 @@ ssm_it_states_t *_ssm_it_states_new(int length);
 void _ssm_it_states_free(ssm_it_states_t *it);
 ssm_it_parameters_t *_ssm_it_parameters_new(int length);
 void _ssm_it_parameters_free(ssm_it_parameters_t *it);
-ssm_nav_t *ssm_nav_new(json_t jparameters, ssm_options_t *opts);
-ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options *opts);
-ssm_calc_t *ssm_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, int thread_id, unsigned long int seed, ssm_options *opts);
-ssm_calc_t **ssm_N_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options *opts);
+ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts);
+ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts);
+ssm_calc_t *ssm_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, int thread_id, unsigned long int seed, ssm_options_t *opts);
+ssm_calc_t **ssm_N_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options_t *opts);
 
 /* load.c */
 json_t *ssm_load_json_stream(FILE *stream);
@@ -526,7 +526,7 @@ double ssm_sum_square(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_
 
 /* prediction_util.c */
 void ssm_X_copy(ssm_X_t *dest, ssm_X_t *src);
-void ssm_X_reset_inc(ssm_X_t *X, ssm_data_row_t *row);
+void ssm_X_reset_inc(ssm_X_t *X, ssm_row_t *row);
 void ssm_ran_multinomial (const gsl_rng * r, const size_t K, unsigned int N, const double p[], unsigned int n[]);
 double ssm_correct_rate(double rate, double dt);
 ssm_err_code_t ssm_check_no_neg_remainder(ssm_X_t *p_X, ssm_nav_t *nav, ssm_calc_t *calc, double t);
@@ -546,8 +546,8 @@ ssm_err_code_t ssm_f_prediction_psr_no_diff(ssm_X_t *p_X, double t0, double t1, 
 /* smc.c */
 int ssm_weight(ssm_fitness_t *like, int n);
 void ssm_systematic_sampling(ssm_fitness_t *like, ssm_calc_t *calc, int n);
-void ssm_resample_X(ssm_fitness_t *like, struct s_X ***J_p_X, struct s_X ***J_p_X_tmp, int n);
-void ssm_swap_X(struct s_X ***X, struct s_X ***tmp_X);
+void ssm_resample_X(ssm_fitness_t *like, ssm_X_t ***J_p_X, ssm_X_t ***J_p_X_tmp, int n);
+void ssm_swap_X(ssm_X_t ***X, ssm_X_t ***tmp_X);
 
 /* transform.c */
 double ssm_f_id(double x);
@@ -603,7 +603,7 @@ ssm_observed_t **ssm_observed_new(int *observed_length);
 /* diff_template.c */
 void ssm_compute_diff(ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
 
-/* ode_sde_template */
+/* ode_sde_template.c */
 int ssm_step_ode(double t, const double X[], double f[], void *params);
 void ssm_step_sde_no_dem_sto(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
 void ssm_step_sde_no_white_noise(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);

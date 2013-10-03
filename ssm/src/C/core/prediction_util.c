@@ -25,7 +25,7 @@ void ssm_X_copy(ssm_X_t *dest, ssm_X_t *src)
     dest->dt = src->dt;
 }
 
-void ssm_X_reset_inc(ssm_X_t *X, ssm_data_row_t *row)
+void ssm_X_reset_inc(ssm_X_t *X, ssm_row_t *row)
 {
     int i;
 

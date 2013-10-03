@@ -25,16 +25,16 @@ unsigned int *ssm_u1_new(int n)
 
     if(tab==NULL)
     {
-	char str[STR_BUFFSIZE];
-	sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);	
-	print_err(str);
-	exit(EXIT_FAILURE);
+        char str[STR_BUFFSIZE];
+        sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
+        print_err(str);
+        exit(EXIT_FAILURE);
     }
 
     for(i=0;i<n;i++)
-	tab[i]=0;
+        tab[i]=0;
 
-    return tab;  
+    return tab;
 }
 
 unsigned int **ssm_u2_new(int n, int p)
@@ -44,15 +44,15 @@ unsigned int **ssm_u2_new(int n, int p)
 
     if(tab==NULL)
     {
-	char str[STR_BUFFSIZE];
-	sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);	
-	print_err(str);
-	exit(EXIT_FAILURE);
+        char str[STR_BUFFSIZE];
+        sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
+        print_err(str);
+        exit(EXIT_FAILURE);
     }
 
     for(i=0;i<n;i++)
-	tab[i] = ssm_u1_new(p);
-  
+        tab[i] = ssm_u1_new(p);
+
     return tab;
 }
 
@@ -60,9 +60,9 @@ void ssm_u2_free(unsigned int **tab, int n)
 {
     int i;
     for(i=0; i<n; i++)
-	free(tab[i]);
+        free(tab[i]);
 
-    free(tab);  
+    free(tab);
 }
 
 unsigned int ***ssm_u3_new(int n, int p1, int p2)
@@ -72,16 +72,16 @@ unsigned int ***ssm_u3_new(int n, int p1, int p2)
 
     if(tab==NULL)
     {
-	char str[STR_BUFFSIZE];
-	sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);	
-	print_err(str);
-	exit(EXIT_FAILURE);
+        char str[STR_BUFFSIZE];
+        sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
+        print_err(str);
+        exit(EXIT_FAILURE);
     }
 
     for(i=0;i<n;i++)
-	tab[i] = ssm_u2_new(p1, p2);
+        tab[i] = ssm_u2_new(p1, p2);
 
-    return tab;  
+    return tab;
 }
 
 void ssm_u3_free(unsigned int ***tab, int n, int p1)
@@ -89,11 +89,11 @@ void ssm_u3_free(unsigned int ***tab, int n, int p1)
     int i, j;
 
     for(i=0; i<n; i++)
-	for(j=0; j<p1; j++)
-	    free(tab[i][j]);
+        for(j=0; j<p1; j++)
+            free(tab[i][j]);
 
     for(i=0; i<n; i++)
-	free(tab[i]);
+        free(tab[i]);
     free(tab);
 }
 
@@ -104,14 +104,14 @@ unsigned int ****ssm_u4_new(int n, int p1, int p2, int p3)
 
     if(tab==NULL)
     {
-	char str[STR_BUFFSIZE];
-	sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);	
-	print_err(str);
-	exit(EXIT_FAILURE);
+        char str[STR_BUFFSIZE];
+        sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
+        print_err(str);
+        exit(EXIT_FAILURE);
     }
 
     for(i=0;i<n;i++)
-	tab[i] = ssm_u3_new(p1, p2, p3);
+        tab[i] = ssm_u3_new(p1, p2, p3);
 
     return tab;
 }
@@ -121,16 +121,16 @@ void ssm_u4_free(unsigned int ****tab, int n, int p1, int p2)
     int i, j, k;
 
     for(i=0; i<n; i++)
-	for(j=0; j<p1; j++)
-	    for(k=0; k<p2; k++)
-		free(tab[i][j][k]);
+        for(j=0; j<p1; j++)
+            for(k=0; k<p2; k++)
+                free(tab[i][j][k]);
 
     for(i=0; i<n; i++)
-	for(j=0; j<p1; j++)
-	    free(tab[i][j]);
+        for(j=0; j<p1; j++)
+            free(tab[i][j]);
 
     for(i=0; i<n; i++)
-	free(tab[i]);
+        free(tab[i]);
 
     free(tab);
 }
@@ -142,14 +142,14 @@ unsigned int **ssm_u2_var_new(int n, unsigned int *p)
     unsigned int **tab=malloc(n* sizeof (unsigned int *));
     if(tab==NULL)
     {
-	char str[STR_BUFFSIZE];
-	sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);	
-	print_err(str);
-	exit(EXIT_FAILURE);
+        char str[STR_BUFFSIZE];
+        sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
+        print_err(str);
+        exit(EXIT_FAILURE);
     }
 
     for(i=0;i<n;i++)
-	tab[i] = ssm_u1_new(p[i]);
+        tab[i] = ssm_u1_new(p[i]);
 
     return tab;
 }
@@ -162,29 +162,29 @@ unsigned int ***ssm_u3_var_new(int n, unsigned int *p1, unsigned int **p2)
     unsigned int ***tab = malloc(n* sizeof (unsigned int **));
     if(tab==NULL)
     {
-	char str[STR_BUFFSIZE];
-	sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);	
-	print_err(str);
-	exit(EXIT_FAILURE);
+        char str[STR_BUFFSIZE];
+        sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
+        print_err(str);
+        exit(EXIT_FAILURE);
     }
 
     for(i=0;i<n;i++)
-	tab[i]= ssm_u2u_var_set0(p1[i], p2[i]);
+        tab[i]= ssm_u2u_var_set0(p1[i], p2[i]);
 
     return tab;
 }
 
 
-void ssm_u3_free(unsigned int ***tab, int n, unsigned int *p1)
+void ssm_u3_var_free(unsigned int ***tab, int n, unsigned int *p1)
 {
     int i, j;
 
     for(i=0; i<n; i++)
-	for(j=0; j<p1[i]; j++)
-	    free(tab[i][j]);
+        for(j=0; j<p1[i]; j++)
+            free(tab[i][j]);
 
     for(i=0; i<n; i++)
-	free(tab[i]);
+        free(tab[i]);
 
     free(tab);
 }
@@ -197,27 +197,27 @@ unsigned int ***ssm_u3_varp1_new(int n, unsigned int *p1, int p2)
     unsigned int ***tab = malloc(n* sizeof (unsigned int **));
     if(tab==NULL)
     {
-	char str[STR_BUFFSIZE];
-	sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);	
-	print_err(str);
-	exit(EXIT_FAILURE);
+        char str[STR_BUFFSIZE];
+        sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
+        print_err(str);
+        exit(EXIT_FAILURE);
     }
 
     for(i=0;i<n;i++)
     {
-	tab[i]= malloc(p1[i]* sizeof (unsigned int *));
-	if(tab[i]==NULL)
-	{
-	    char str[STR_BUFFSIZE];
-	    sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);	
-	    print_err(str);
-	    exit(EXIT_FAILURE);
-	}
+        tab[i]= malloc(p1[i]* sizeof (unsigned int *));
+        if(tab[i]==NULL)
+        {
+            char str[STR_BUFFSIZE];
+            sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
+            print_err(str);
+            exit(EXIT_FAILURE);
+        }
     }
 
     for(i=0;i<n;i++)
-	for(j=0;j<p1[i];j++)
-	    tab[i][j]= ssm_u1_new(p2);
+        for(j=0;j<p1[i];j++)
+            tab[i][j]= ssm_u1_new(p2);
 
     return tab;
 }
@@ -230,27 +230,27 @@ unsigned int ***ssm_u3_varp2_new(int n, unsigned int p1, unsigned int *p2)
     unsigned int ***tab = malloc(n* sizeof (unsigned int **));
     if(tab==NULL)
     {
-	char str[STR_BUFFSIZE];
-	sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);	
-	print_err(str);
-	exit(EXIT_FAILURE);
+        char str[STR_BUFFSIZE];
+        sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
+        print_err(str);
+        exit(EXIT_FAILURE);
     }
 
     for(i=0;i<n;i++)
     {
-	tab[i] = malloc(p1* sizeof (unsigned int *));
-	if(tab[i]==NULL)
-	{
-	    char str[STR_BUFFSIZE];
-	    sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);	
-	    print_err(str);
-	    exit(EXIT_FAILURE);
-	}
+        tab[i] = malloc(p1* sizeof (unsigned int *));
+        if(tab[i]==NULL)
+        {
+            char str[STR_BUFFSIZE];
+            sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
+            print_err(str);
+            exit(EXIT_FAILURE);
+        }
     }
 
     for(i=0;i<n;i++)
-	for(j=0;j<p1;j++)
-	    tab[i][j]= ssm_u1_new(p2[i]);
+        for(j=0;j<p1;j++)
+            tab[i][j]= ssm_u1_new(p2[i]);
 
-    return tab;  
+    return tab;
 }

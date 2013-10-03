@@ -152,7 +152,7 @@ void _ssm_it_parameters_free(ssm_it_parameters_t *it)
 }
 
 
-ssm_nav_t *ssm_nav_new(json_t jparameters, ssm_options_t *opts)
+ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
 {
     ssm_nav_t *nav = malloc(sizeof (ssm_nav_t));
     if (nav == NULL) {
@@ -254,7 +254,7 @@ ssm_nav_t *ssm_nav_new(json_t jparameters, ssm_options_t *opts)
 }
 
 
-ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options *opts)
+ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
 {
     char str[SSM_STR_BUFFSIZE];
     int i, j;
@@ -370,7 +370,7 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options *opts)
     return p_data;
 }
 
-ssm_calc_t *ssm_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, int thread_id, unsigned long int seed, ssm_options *opts)
+ssm_calc_t *ssm_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, int thread_id, unsigned long int seed, ssm_options_t *opts)
 {
     ssm_calc_t *calc = malloc(sizeof (ssm_calc_t));
     if (calc==NULL) {
@@ -564,7 +564,7 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (doubl
 }
 
 
-ssm_calc_t **ssm_N_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options *opts)
+ssm_calc_t **ssm_N_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options_t *opts)
 {
     int i;
     int n_threads = ssm_sanitize_n_threads(opts->n_thread, fitness);

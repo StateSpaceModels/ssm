@@ -110,7 +110,7 @@ void ssm_systematic_sampling(ssm_fitness_t *like, ssm_calc_t *calc, int n)
 }
 
 
-void ssm_resample_X(ssm_fitness_t *like, struct s_X ***J_p_X, struct s_X ***J_p_X_tmp, int n)
+void ssm_resample_X(ssm_fitness_t *like, ssm_X_t ***J_p_X, ssm_X_t ***J_p_X_tmp, int n)
 {
     int k, j;
 
