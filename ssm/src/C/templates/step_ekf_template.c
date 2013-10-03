@@ -31,7 +31,7 @@ int step_ekf(double t, const double X[], double f[], void *params)
     ssm_calc_t *calc = (ssm_calc_t *) params;
     ssm_nav_t *nav = calc->_nav;
     ssm_par_t *par = calc->_par;
-    
+
     ssm_it_states_t *states_diff = nav->states_diff;
     ssm_it_states_t *states_inc = nav->states_inc;
     ssm_it_states_t *states_sv = nav->states_sv;
@@ -81,18 +81,18 @@ int step_ekf(double t, const double X[], double f[], void *params)
     /*ODE system*/
 
     {% for eq in step.func.ode.proc.system %}
-    f[{{eq.index}}] {% if noises_off == 'ode'%}={% else %}= X[{{eq.index}}] + {% endif %} {{ eq.eq }};{% endfor %}
+    f[{{eq.index}}] = {{ eq.eq }};{% endfor %}
 
-    
+
     //TODO: drift of the diffusion
     //for(i=0; i<states_diff->length; i++){
     //    f[states_diff->p[i]->offset] = 0.0;
     //}
 
-    
+
     /*compute incidence:integral between t and t+1*/
     {% for eq in step.func.ode.obs %}
-    f[states_inc->p[{{ eq.index }}]->offset] {% if noises_off == 'ode'%}={% else %}= X[states_inc->p[{{ eq.index }}]->offset] + {% endif %} {{ eq.eq }};{% endfor %}
+    f[states_inc->p[{{ eq.index }}]->offset] = {{ eq.eq }};{% endfor %}
 
 
     ////////////////
@@ -103,18 +103,16 @@ int step_ekf(double t, const double X[], double f[], void *params)
     calc->eval_Q(X, t, par, nav, calc);
     eval_jac(X, t, par, nav, calc);
 
-    // compute Ft*Ct+Ct*Ft'+Q 
+    // compute Ft*Ct+Ct*Ft'+Q
     //here Ct is symmetrical and transpose(FtCt) == transpose(Ct)transpose(Ft) == Ct transpose(Ft)
     gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1.0, Ft, &Ct.matrix, 0.0, FtCt);
     for(i=0; i< ff.matrix.size1; i++){
-	for(c=0; c< ff.matrix.size2; c++){
-	    gsl_matrix_set(&ff.matrix, 
-			   i,
-			   c, 
-			   gsl_matrix_get(FtCt, i, c) + gsl_matrix_get(FtCt, c, i) + gsl_matrix_get(Q, i, c));
+        for(c=0; c< ff.matrix.size2; c++){
+            gsl_matrix_set(&ff.matrix,
+                           i,
+                           c,
+                           gsl_matrix_get(FtCt, i, c) + gsl_matrix_get(FtCt, c, i) + gsl_matrix_get(Q, i, c));
 
-	}
+        }
     }
 }
-
-
