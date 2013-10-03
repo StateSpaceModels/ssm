@@ -26,7 +26,7 @@
 ssm_err_code ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav){
     
     int i,j;
-    int cum_status = 0;
+    ssm_err_code_t cum_status = SSM_SUCCESS;
     int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
 
     // sub-matrices and sub-vectors of working variables are extracted as not all tseries are observed
@@ -38,7 +38,7 @@ ssm_err_code ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X, s
     gsl_matrix_view *Ht = gsl_matrix_subvector(calc->_Ht,0,0,m,row->ts_nonan_length);
     gsl_matrix_view *Kt = gsl_matrix_submatrix(calc->_Kt,0,0,m,row->ts_nonan_length);
     gsl_matrix_view *Ct =  gsl_matrix_const_view_array(&X[m], m, m);
-
+    gsl_permutation *p  = gsl_permutation_alloc(m);
 
     // fill Ht and Rt
     eval_Ht(X, row, par, nav, calc, t);
@@ -66,22 +66,31 @@ ssm_err_code ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X, s
      */
 
     // workn = Ct*Ht
-    cum_status |= gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, Ct, Ht, 0.0, Tmp); 
-
+    status = gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, Ct, Ht, 0.0, Tmp); 
+    cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
+    
     // sc_st = Ht' * workn;
-    cum_status |= gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, Ht, Tmp, 0.0, St); 
+    status = gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, Ht, Tmp, 0.0, St); 
+    cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
 
     // sc_st = sc_st + sc_rt ;
-    cum_status |=  gsl_matrix_add(St,Rt);
-
+    status  =  gsl_matrix_add(St,Rt);
+    cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
 
     // Kt = Ct * Ht * sc_st^-1
-    cum_status |= gsl_linalg_LU_decomp(St, p, signum); // inversion requires LU decomposition
-    cum_status |= gsl_linalg_LU_invert(St,p,Stm1);
-    cum_status |= gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, Ht, Stm1, 0.0, Tmp);
-    cum_status |= gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, Ct, Tmp, 0.0, Kt);
+    status = gsl_linalg_LU_decomp(St, p, i); // inversion requires LU decomposition
+    cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
 
-    return cum_status ? SSM_ERR_KAL : SSM_SUCCESS;
+    status = gsl_linalg_LU_invert(St,p,Stm1);
+    cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
+    
+    status = gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, Ht, Stm1, 0.0, Tmp);
+    cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
+
+    status = gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, Ct, Tmp, 0.0, Kt);
+    cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
+
+    return cum_status;
 
 }
 
@@ -90,7 +99,6 @@ ssm_err_code ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X, s
 
 ssm_err_code ssm_kalman_update(ssm_X_t *X, ssm_row_t *row, double t, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *like){
     
-    status = ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav);    
     int cum_status = 0;
     int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
     gsl_vector_view *pred_error = gsl_matrix_subvector(calc->_pred_error,0,row->ts_nonan_length);
@@ -99,18 +107,24 @@ ssm_err_code ssm_kalman_update(ssm_X_t *X, ssm_row_t *row, double t, ssm_par_t *
     gsl_vector_view *X_sv = gsl_matrix_subvector(X->proj,0,m);
     gsl_matrix_view *Ct =  gsl_matrix_const_view_array(&X[m], m, m);
 
+    ssm_err_code_t cum_status = ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav);    
+
     //////////////////
     // state update //
     //////////////////
     // X_sv += Kt * pred_error
-    cum_status |= gsl_blas_dgemv(CblasNoTrans,1.0,Kt,pred_error,1.0,X_sv);
+    status = gsl_blas_dgemv(CblasNoTrans,1.0,Kt,pred_error,1.0,X_sv);
+    cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
 
     ///////////////////////
     // covariance update //
     ///////////////////////
     // Ct = Ct - Kt * Ht' * Ct
-    cum_status |= gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, Ht, Ct, 0.0, Tmp);
-    cum_status |= gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, -1.0, Kt, Tmp, 0.0, Ct);
+    status = gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, Ht, Ct, 0.0, Tmp);
+    cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
 
-    return status | (cum_status ? SSM_ERR_KAL : SSM_SUCCESS);
+    status = gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, -1.0, Kt, Tmp, 0.0, Ct);
+    cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
+
+    return cum_status;
 }
