@@ -365,3 +365,208 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options *opts)
 
     return p_data;
 }
+
+ssm_calc_t *ssm_data_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_fitness_t *fitness, int thread_id, ssm_options *opts)
+{
+    ssm_calc_t *calc = malloc(sizeof (ssm_calc_t));
+    if (calc==NULL) {
+        char str[SSM_STR_BUFFSIZE];
+        snprintf(str, SSM_STR_BUFFSIZE, "Allocation impossible for ssm_calc_t (thread_id: %d)", thread_id);
+        print_err(str);
+        exit(EXIT_FAILURE);
+    }
+
+    /***********/
+    /* threads */
+    /***********/
+
+    calc->threads_length = opts->n_thread;
+    calc->thread_id = thread_id;
+
+    /******************/
+    /* random numbers */
+    /******************/
+
+    //  random number generator and parallel MC simulations:
+    //
+    //  idea using one different seed per thread but is it realy uncorelated ???
+    //  Should I go through the trouble of changing from GSL to SPRNG????
+    //  answer:
+    //  I would recommend using ranlxd.  The seeds should give 2^31
+    //  effectively independent streams of length 10^171.  A discussion of the
+    //  seeding procedure can be found in the file notes.ps at
+    //  http://www.briangough.ukfsn.org/ranlux_2.2/
+    //  --
+    //  Brian Gough
+    //
+    //  => we create as many rng as parallel threads *but* note that for
+    //  the operations not prarallelized, we always use
+    //  cacl[0].randgsl
+
+
+    const gsl_rng_type *Type;
+    if (calc->threads_length == 1){ //we don't need a rng supporting parallel computing, we use mt19937 that is way faster than ranlxs0 (1754 k ints/sec vs 565 k ints/sec)
+        Type = gsl_rng_mt19937; /*MT19937 generator of Makoto Matsumoto and Takuji Nishimura*/
+    } else {
+        Type = gsl_rng_ranlxs0; //gsl_rng_ranlxs2 is better than gsl_rng_ranlxs0 but 2 times slower
+    }
+
+    p_calc->randgsl = gsl_rng_alloc(Type);
+    gsl_rng_set(calc->randgsl, opts->id + thread_id);
+
+    /*******************/
+    /* implementations */
+    /*******************/
+
+    if (nav->implementation == SSM_ODE || nav->implementation == SSM_EKF){
+
+        calc->T = gsl_odeiv2_step_rkf45;
+        calc->control = gsl_odeiv2_control_y_new(opts->eps_abs, opts->eps_rel);
+        calc->step = gsl_odeiv2_step_alloc(calc->T, dim_ode);
+        calc->evolve = gsl_odeiv2_evolve_alloc(dim_ode);
+        (calc->sys).function = func_step_ode;
+        (calc->sys).jacobian = jacobian;
+        (calc->sys).dimension= dim_ode;
+        (calc->sys).params= calc;
+
+        calc->yerr = ssm_d1_new(dim_ode);
+
+        if(nav->implementation == SSM_EKF){
+            int n_s = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
+            int n_o = nav->observed_length;
+            calc->pred_error = gsl_vector_calloc(n_o);
+            calc->_St = gsl_matrix_calloc(n_o, n_o);
+            calc->_Stm1 = gsl_matrix_calloc(n_o, n_o);
+            calc->_Rt = gsl_matrix_calloc(n_o, n_o);
+            calc->_Ht = gsl_matrix_calloc(n_s, n_o);
+            calc->_Kt = gsl_matrix_calloc(n_s, n_o);
+            calc->_Tmp_N_SV_N_TS = gsl_matrix_calloc(n_s, n_o);
+            calc->_Tmp_N_TS_N_SV = gsl_matrix_calloc(n_o, n_s);
+            calc->_Jt = gsl_matrix_calloc(n_s, n_s);
+            calc->_Q = gsl_matrix_calloc(n_s, n_s);
+            calc->_FtCt = gsl_matrix_calloc(n_s, n_s);
+            calc->_Ft = gsl_matrix_calloc(n_s, n_s);
+        }
+
+    } else if (nav->implementation == SSM_SDE){
+        calc->y_pred = ssm_d1_new(dim_ode);
+    } else if (nav->implementation == SSM_PSR){
+        ssm_alloc_psr(calc);
+    }
+
+    /**************************/
+    /* multi-threaded sorting */
+    /**************************/
+
+    calc->to_be_sorted = ssm_d1_new(fitness->J);
+    calc->index_sorted = ssm_st1_new(fitness->J);
+
+    /**************/
+    /* covariates */
+    /**************/
+
+    json_t jcovariates = json_object_get(jdata, "covariates");
+    calc->covariates_length = json_array_size(jcovariates);
+
+    p_calc->acc = malloc(calc->covariates_length * sizeof(gsl_interp_accel *));
+    if (p_calc->acc == NULL) {
+        char str[STR_BUFFSIZE];
+        snprintf(str, STR_BUFFSIZE, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
+        print_err(str);
+        exit(EXIT_FAILURE);
+    }
+
+    p_calc->spline = malloc(calc->covariates_length * sizeof(gsl_spline *));
+    if (p_calc->spline == NULL) {
+        char str[STR_BUFFSIZE];
+        snprintf(str, STR_BUFFSIZE, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
+        print_err(str);
+        exit(EXIT_FAILURE);
+    }
+
+    const gsl_interp_type *my_gsl_interp_type = ssm_str_to_interp_type(opts->interp_type);
+
+    json_t *par_fixed = fast_get_json_array(fast_get_json_object(settings, "orders"), "par_fixed");
+    json_t *par_fixed_values = fast_get_json_object(fast_get_json_object(settings, "data"), "par_fixed_values");
+
+    int k, z;
+
+    for (k=0; k< calc->covariates_length; k++) {
+        json_t *jcovariate = json_array_get(jcovariates, k);
+
+        double *x = ssm_load_jd1_new(jcovariate, "x");
+        double *y = ssm_load_jd1_new(jcovariate, "y");
+        int size = json_array_size(x);
+
+        //no freeze but t_max > x[size-1] repeat last value
+        if((freeze_forcing < 0.0) && (t_max > x[size-1])){
+            int prev_size = size ;
+            size += (t_max - x[prev_size-1]) ;
+
+            double *tmp_x = realloc(x, size * sizeof(double ) );
+            if ( tmp_x == NULL ) {
+                print_err("Reallocation impossible"); FREE(x); exit(EXIT_FAILURE);
+            } else {
+                x = tmp_x;
+            }
+
+            double *tmp_y = realloc(y, size * sizeof(double ) );
+            if ( tmp_y == NULL ) {
+                print_err("Reallocation impossible"); FREE(y); exit(EXIT_FAILURE);
+            } else {
+                y = tmp_y;
+            }
+
+            //repeat last value
+            double xlast = x[prev_size-1];
+            for(z = prev_size;  z < size ; z++ ){
+                x[z] = xlast + z;
+                y[z] = y[prev_size-1];
+            }
+        }
+
+        if (!(k==0 && size ==1)){
+            if(size >= gsl_interp_type_min_size (my_gsl_interp_type)){
+                p_calc->acc[k][cac] = gsl_interp_accel_alloc ();
+                p_calc->spline[k][cac]  = gsl_spline_alloc (my_gsl_interp_type, size);
+                gsl_spline_init (p_calc->spline[k][cac], x, y, size);
+            } else {
+                print_warning("insufficient data points for required metadata interpolator, switching to linear");
+                p_calc->acc[k][cac] = gsl_interp_accel_alloc ();
+                p_calc->spline[k][cac]  = gsl_spline_alloc (gsl_interp_linear, size);
+                gsl_spline_init (p_calc->spline[k][cac], x, y, size);
+            }
+        }
+
+        //to check interp type
+        //printf("interp type: %s \n", gsl_spline_name(p_calc->spline[k][cac]));
+
+
+        if( (freeze_forcing>=0.0) || (size == 1) ){
+            double x_all[2];
+            x_all[0] = x[0];
+            x_all[1] = GSL_MAX((double) GSL_MAX(t_max, p_data->times[p_data->nb_obs]), x[size-1]);
+
+            double y_all[2];
+            y_all[0] = (size == 1) ? y[0]: gsl_spline_eval(p_calc->spline[k][cac], GSL_MIN(freeze_forcing, x[size-1]), p_calc->acc[k][cac]); //interpolate y for time freeze_forcing requested (if possible)
+            y_all[1] = y_all[0];
+
+            if(size > 1){
+                gsl_spline_free(p_calc->spline[k][cac]);
+                gsl_interp_accel_free(p_calc->acc[k][cac]);
+            }
+
+            p_calc->acc[k][cac] = gsl_interp_accel_alloc ();
+            p_calc->spline[k][cac]  = gsl_spline_alloc (gsl_interp_linear, 2);
+            gsl_spline_init (p_calc->spline[k][cac], x_all, y_all, 2);
+        }
+
+        free(x);
+        free(y);
+    }
+
+
+
+
+    return calc;
+}

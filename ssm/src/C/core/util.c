@@ -26,10 +26,35 @@ int ssm_in_par(ssm_it_parameters_t *it, const char *name)
 {
     int i;
     for(i=0; i<it->length; i++){
-	if(strcmp(it->p[i]->name, name) == 0){
-	    return 1;
-	}
+        if(strcmp(it->p[i]->name, name) == 0){
+            return 1;
+        }
     }
 
     return 0;
+}
+
+
+
+/**
+ * tranform --interpolation argument into gsl_interp_type *.
+ */
+const gsl_interp_type *ssm_str_to_interp_type(const char *optarg){
+
+    if (strcmp(optarg, "linear") == 0) {
+        return gsl_interp_linear;
+    } else if (strcmp(optarg, "polynomial") == 0){
+        return gsl_interp_polynomial;
+    } else if (strcmp(optarg, "cspline") == 0){
+        return gsl_interp_cspline;
+    } else if (strcmp(optarg, "cspline_periodic") == 0){
+        return gsl_interp_cspline_periodic;
+    } else if (strcmp(optarg, "akima") == 0){
+        return gsl_interp_akima;
+    } else if (strcmp(optarg, "akima_periodic") == 0){
+        return gsl_interp_akima_periodic;
+    }
+
+    print_warning("Unknown gsl interpolator for metadata. Linear interpolator will be used instead.");
+    return gsl_interp_linear;
 }

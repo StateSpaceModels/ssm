@@ -127,10 +127,10 @@ typedef struct /*[N_THREADS] : for parallel computing we need N_THREADS replicat
     //  double **reaction; /*reaction matrix*/
 
     /* ODE*/
-    const gsl_odeiv2_step_type * T;
-    gsl_odeiv2_control * control;
-    gsl_odeiv2_step * step;
-    gsl_odeiv2_evolve * evolve;
+    const gsl_odeiv2_step_type *T;
+    gsl_odeiv2_control *control;
+    gsl_odeiv2_step *step;
+    gsl_odeiv2_evolve *evolve;
     gsl_odeiv2_system sys;
     double *yerr;
 
@@ -138,26 +138,27 @@ typedef struct /*[N_THREADS] : for parallel computing we need N_THREADS replicat
     double *y_pred; /**< used to store y predicted for Euler Maruyama */
 
     /* Kalman */
-    gsl_vector *_pred_error; /**< [N_TS] */
-    gsl_matrix *_St; /**< [N_TS][N_TS] */
-    gsl_matrix *_Stm1; /**< [N_TS][N_TS] */
-    gsl_matrix *_Rt; /**< [N_TS][N_TS] */
-    gsl_matrix *_Ht; /**< [self.length][N_TS] */
-    gsl_matrix *_Kt; /**< [self.length][N_TS] */
-    gsl_matrix *_Tmp_N_SV_N_TS; /**< [self.length][N_TS] */
-    gsl_matrix *_Tmp_N_TS_N_SV; /**< [TS][self.length] */
-    gsl_matrix *_Jt; /**< [self.length][self.length] */
-    gsl_matrix *_Q; /**< [self.length][self.length] */
-    gsl_matrix *_FtCt; /**< [self.length][self.length] */
-    gsl_matrix *_Ft; /**< [self.length][self.length] */
+    gsl_vector *_pred_error;    /**< [nav->observed_length] */
+    gsl_matrix *_St;            /**< [nav->observed_length][nav->observed_length] */
+    gsl_matrix *_Stm1;          /**< [nav->observed_length][nav->observed_length] */
+    gsl_matrix *_Rt;            /**< [nav->observed_length][nav->observed_length] */
+    gsl_matrix *_Ht;            /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->observed_length] */
+    gsl_matrix *_Kt;            /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->observed_length] */
+    gsl_matrix *_Tmp_N_SV_N_TS; /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->observed_length] */
+    gsl_matrix *_Tmp_N_TS_N_SV; /**< [nav->observed_length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
+    gsl_matrix *_Jt;            /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
+    gsl_matrix *_Q;             /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
+    gsl_matrix *_FtCt;          /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
+    gsl_matrix *_Ft;            /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
 
     //multi-threaded sorting
-    double *to_be_sorted;  /**< [J] array of the J particle to be sorted*/
-    size_t *index_sorted;  /**< [J] index of the sorted weights used to compute 95% confidence interval */
+    double *to_be_sorted;  /**< [fitness->J] array of the J particle to be sorted*/
+    size_t *index_sorted;  /**< [fitness->J] index of the sorted weights used to compute 95% confidence interval */
 
     //interpolators for covariates
-    gsl_interp_accel **acc;  /**< [N_PAR_FIXED] an array of pointer to gsl_interp_accel */
-    gsl_spline **spline;     /**< [N_PAR_FIXED] an array of pointer to gsl_spline */
+    int covariates_length;   /**< number of covariates */
+    gsl_interp_accel **acc;  /**< [self.covariates_length] an array of pointer to gsl_interp_accel */
+    gsl_spline **spline;     /**< [self.covariates_length] an array of pointer to gsl_spline */
 
     /* references */
     ssm_par_t *_par; /**< Reference to the parameter is the natural
@@ -180,10 +181,10 @@ typedef struct /*[N_THREADS] : for parallel computing we need N_THREADS replicat
  */
 typedef struct  /* optionaly [N_DATA+1][J] for MIF and pMCMC "+1" is for initial condition (one time step before first data)  */
 {
-    double *proj;    /**< values */
+    double *proj; /**< values */
 
-    double dt;           /**< the integration time step (for ODE solved with adaptive time step solvers) */
-    double dt0;          /**< the integration time step initially picked by the user */
+    double dt;  /**< the integration time step (for ODE solved with adaptive time step solvers) */
+    double dt0; /**< the integration time step initially picked by the user */
 } ssm_X_t;
 
 
@@ -271,7 +272,7 @@ typedef struct
 {
     char *name; /**< name of the observed variable */
     int offset; /**< order of the observed variable in nav.observed */
-    
+
     double (*f_likelihood) (double y, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
     double (*f_obs_mean)             (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
     double (*f_obs_var)              (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
