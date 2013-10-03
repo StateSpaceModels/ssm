@@ -19,7 +19,8 @@
 
 #include "ssm.h"
 
-void ssm_X_copy(ssm_X_t *dest, ssm_X_t *src){
+void ssm_X_copy(ssm_X_t *dest, ssm_X_t *src)
+{
     gsl_vector_memcpy(dest->proj, src->proj);
     dest->dt = src->dt;
 }
@@ -65,7 +66,7 @@ void ssm_ran_multinomial (const gsl_rng * r, const size_t K, unsigned int N, con
    exponential. So we ensure that the rate has the correct magnitude
    by correcting it
 */
-double correct_rate(double rate, double dt)
+double ssm_correct_rate(double rate, double dt)
 {
     return -log(1.0-rate*dt)/dt;
 }
@@ -261,5 +262,3 @@ ssm_err_code_t ssm_f_prediction_psr_no_diff(ssm_X_t *p_X, double t0, double t1, 
     }
     return ssm_check_no_neg_remainder(p_X, nav, calc, t1);
 }
-
-

@@ -120,17 +120,17 @@ void ssm_resample_X(ssm_fitness_t *like, struct s_X ***J_p_X, struct s_X ***J_p_
 
         (*J_p_X_tmp)[j]->dt = (*J_p_X)[select[j]]->dt;
 
-	gsl_vector_memcpy((*J_p_X_tmp)[j]->proj, (*J_p_X)[select[j]]->proj);	
+        gsl_vector_memcpy((*J_p_X_tmp)[j]->proj, (*J_p_X)[select[j]]->proj);
     }
 
-    swap_X(J_p_X, J_p_X_tmp);
+    ssm_swap_X(J_p_X, J_p_X_tmp);
 }
 
-
-void swap_X(struct s_X ***X, struct s_X ***tmp_X)
+/**
+ * swap array of pointers of pointers to ssm_X_t
+ */
+void ssm_swap_X(ssm_X_t ***X, ssm_X_t ***tmp_X)
 {
-    /* swap array of pointers of pointers to struct s_X */
-
     struct s_X **tmp;
     tmp=*tmp_X;
     *tmp_X=*X;

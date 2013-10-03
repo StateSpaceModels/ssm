@@ -35,11 +35,11 @@ int ssm_in_par(ssm_it_parameters_t *it, const char *name)
 }
 
 
-
 /**
  * tranform --interpolation argument into gsl_interp_type *.
  */
-const gsl_interp_type *ssm_str_to_interp_type(const char *optarg){
+const gsl_interp_type *ssm_str_to_interp_type(const char *optarg)
+{
 
     if (strcmp(optarg, "linear") == 0) {
         return gsl_interp_linear;
@@ -64,7 +64,6 @@ const gsl_interp_type *ssm_str_to_interp_type(const char *optarg){
 /**
  * make sure that n_threads <= J and return safe n_threads
  */
-
 int ssm_sanitize_n_threads(int n_threads, ssm_fitness_t *fitness)
 {
     if(n_threads > fitness->J){
@@ -73,5 +72,3 @@ int ssm_sanitize_n_threads(int n_threads, ssm_fitness_t *fitness)
         return n_threads;
     }
 }
-
-

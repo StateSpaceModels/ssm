@@ -43,14 +43,14 @@ void ssm_theta_free(ssm_theta_t *theta)
     gsl_vector_free(theta);
 }
 
-ssm_var_t *ssm_var_new(ssm_nav_t *nav, json_t *parameters)
+ssm_var_t *ssm_var_new(ssm_nav_t *nav, json_t *jparameters)
 {
     gsl_matrix *m = gsl_matrix_calloc(nav->theta_all->length, nav->theta_all->length);
 
 
     int i,j, index;
     ssm_it_parameters_t *it = nav->theta_all;
-    json_t *resource = json_object_get(parameters, "resource");
+    json_t *resource = json_object_get(jparameters, "resource");
 
     for(index=0; index< json_array_size(resource); index++){
         json_t *el = json_array_get(resource, index);
@@ -152,13 +152,17 @@ void _ssm_it_parameters_free(ssm_it_parameters_t *it)
 }
 
 
-ssm_nav_t *ssm_nav_new(json_t jparameters, ...)
+ssm_nav_t *ssm_nav_new(json_t jparameters, ssm_options_t *opts)
 {
     ssm_nav_t *nav = malloc(sizeof (ssm_nav_t));
     if (nav == NULL) {
         print_err("Allocation impossible for ssm_nav_t *");
         exit(EXIT_FAILURE);
     }
+
+    nav->implementation = opts->implementation;
+    nav->noises_off = opts->noises_off;
+    nav->print = opts->print;
 
     nav->parameters = ssm_parameters_new(&nav->parameters_length);
     nav->states = ssm_states_new(&nav->states_length, nav->parameters);
@@ -497,7 +501,7 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (doubl
         double *x = ssm_load_jd1_new(jcovariate, "x");
         double *y = ssm_load_jd1_new(jcovariate, "y");
         int size = json_array_size(x);
-       
+
         if((freeze_forcing < 0.0) && (t_max > x[size-1])){ //no freeze but t_max > x[size-1] repeat last value
             int prev_size = size ;
             size += ((int) t_max - x[prev_size-1]) ;
@@ -539,18 +543,18 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (doubl
 
         } else if (size >= gsl_interp_type_min_size(my_gsl_interp_type)) {
 
-	    p_calc->acc[k] = gsl_interp_accel_alloc ();
-	    p_calc->spline[k]  = gsl_spline_alloc(my_gsl_interp_type, size);
-	    gsl_spline_init (p_calc->spline[k], x, y, size);
+            p_calc->acc[k] = gsl_interp_accel_alloc ();
+            p_calc->spline[k]  = gsl_spline_alloc(my_gsl_interp_type, size);
+            gsl_spline_init (p_calc->spline[k], x, y, size);
 
-	} else {
+        } else {
 
-	    print_warning("insufficient data points for required metadata interpolator, switching to linear");
-	    p_calc->acc[k] = gsl_interp_accel_alloc ();
-	    p_calc->spline[k] = gsl_spline_alloc (gsl_interp_linear, size);
-	    gsl_spline_init(p_calc->spline[k], x, y, size);
+            print_warning("insufficient data points for required metadata interpolator, switching to linear");
+            p_calc->acc[k] = gsl_interp_accel_alloc ();
+            p_calc->spline[k] = gsl_spline_alloc (gsl_interp_linear, size);
+            gsl_spline_init(p_calc->spline[k], x, y, size);
 
-	}
+        }
 
         free(x);
         free(y);
@@ -573,9 +577,9 @@ ssm_calc_t **ssm_N_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (do
 
     unsigned long int seed;
     if(opts->flag_seed_time){
-	seed = (unsigned) time(NULL);
+        seed = (unsigned) time(NULL);
     } else{
-	seed=2;
+        seed=2;
     }
     seed += opts->id; /*we ensure uniqueness of seed in case of parrallel runs*/
 

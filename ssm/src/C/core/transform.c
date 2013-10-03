@@ -18,24 +18,24 @@
 
 #include "ssm.h"
 
-double f_id(double x)
+double ssm_f_id(double x)
 {
     return x;
 }
 
 
-double f_log(double x)
+double ssm_f_log(double x)
 {
     double safe = ( x > SSM_ZERO_LOG ) ? x : SSM_ZERO_LOG;
     return log(safe);
 }
 
-double f_inv_log(double x)
+double ssm_f_inv_log(double x)
 {
     return exp(x);
 }
 
-double f_logit(double x)
+double ssm_f_logit(double x)
 {
     //sanatize
     double safe = ( x > SSM_ZERO_LOG ) ? x : SSM_ZERO_LOG;
@@ -45,52 +45,52 @@ double f_logit(double x)
 }
 
 
-double f_inv_logit(double x)
+double ssm_f_inv_logit(double x)
 {
     if (x > 0) {
-	return (1.0/(1.0+exp(-x)));
+        return (1.0/(1.0+exp(-x)));
     } else {
-	return (exp(x)/(1.0+exp(x)));
+        return (exp(x)/(1.0+exp(x)));
     }
 }
 
 
 
-double f_logit_ab(double x, double a, double b)
+double ssm_f_logit_ab(double x, double a, double b)
 {
     if (a == b)
         return x; // nothing will happen in the transformed space for x, so no need to transform it
     else{
-	double ratio = (x-a)/(b-x);
-	if(ratio < SSM_ZERO_LOG){
-	    ratio = SSM_ZERO_LOG;
-	} else if(ratio > (1.0/SSM_ZERO_LOG)) {
-	    ratio = 1.0/SSM_ZERO_LOG;
-	}
-	return log(ratio);
+        double ratio = (x-a)/(b-x);
+        if(ratio < SSM_ZERO_LOG){
+            ratio = SSM_ZERO_LOG;
+        } else if(ratio > (1.0/SSM_ZERO_LOG)) {
+            ratio = 1.0/SSM_ZERO_LOG;
+        }
+        return log(ratio);
     }
 }
 
 
-double f_inv_logit_ab(double x, double a, double b)
+double ssm_f_inv_logit_ab(double x, double a, double b)
 {
     if (a == b) {
         return x ;
     } else {
-	if (x < 0) {
-	    return (b*exp(x)+a)/(1.0+exp(x));
-	} else {
-	    return (b+a*exp(-x))/(1.0+exp(-x));
-	};
-    } 
+        if (x < 0) {
+            return (b*exp(x)+a)/(1.0+exp(x));
+        } else {
+            return (b+a*exp(-x))/(1.0+exp(-x));
+        };
+    }
 }
 
 
 
 /**
- * derivative of f_log
+ * derivative of ssm_f_log
  */
-double f_der_log(double x)
+double ssm_f_der_log(double x)
 {
     return 1.0/x;
 }
@@ -98,38 +98,38 @@ double f_der_log(double x)
 
 
 /**
- * derivative of f_inv_log
+ * derivative of ssm_f_inv_log
  */
-double f_der_inv_log(double x)
+double ssm_f_der_inv_log(double x)
 {
     return exp(x);
 }
 
 
 /**
- * derivative of f_logit
+ * derivative of ssm_f_logit
  */
-double f_der_logit(double x)
+double ssm_f_der_logit(double x)
 {
     return 1.0/(x-x*x);
 }
 
 /**
- * derivative of f_inv_logit
+ * derivative of ssm_f_inv_logit
  */
-double f_der_inv_logit(double x)
+double ssm_f_der_inv_logit(double x)
 {
     if (x > 0) {
-	return exp(-x)/pow(1.0 + exp(-x), 2.0);
+        return exp(-x)/pow(1.0 + exp(-x), 2.0);
     } else {
-	return exp(x)/pow(1.0 + exp(x), 2.0);
+        return exp(x)/pow(1.0 + exp(x), 2.0);
     }
 }
 
 /**
- * derivative of f_logit_ab
+ * derivative of ssm_f_logit_ab
  */
-double f_der_logit_ab(double x, double a, double b)
+double ssm_f_der_logit_ab(double x, double a, double b)
 {
     if (a == b) {
         return x ;
@@ -139,23 +139,23 @@ double f_der_logit_ab(double x, double a, double b)
 }
 
 /**
- * derivative of f_inv_logit_ab
+ * derivative of ssm_f_inv_logit_ab
  */
-double f_der_inv_logit_ab(double x, double a, double b)
+double ssm_f_der_inv_logit_ab(double x, double a, double b)
 {
     if (a == b) {
         return x ;
     } else {
-	if (x > 0) {
-	    return (b-a)*exp(-x)/pow(exp(-x) + 1.0, 2.0);
-	} else {
-	    return (b-a)*exp(x)/pow(exp(x) + 1.0, 2.0);
-	}
+        if (x > 0) {
+            return (b-a)*exp(-x)/pow(exp(-x) + 1.0, 2.0);
+        } else {
+            return (b-a)*exp(x)/pow(exp(x) + 1.0, 2.0);
+        }
     }
 }
 
 
-double f_user_par_id(double x, ssm_input_t *par, ssm_calc_t *calc)
+double ssm_f_user_par_id(double x, ssm_input_t *par, ssm_calc_t *calc)
 {
     return x;
 }

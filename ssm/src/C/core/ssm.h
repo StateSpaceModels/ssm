@@ -449,4 +449,124 @@ typedef struct
 } ssm_options_t;
 
 
+/* alloc_c.c */
+char *ssm_c1_new(int n);
+char **ssm_c2_new(int n, int p);
+void ssm_c2_free(char **tab, int n);
+
+/* alloc_d.c */
+double *ssm_d1_new(int n);
+double **ssm_d2_new(int n, int p);
+void ssm_d2_free(double **tab, int n);
+double ***ssm_d3_new(int n, int p1, int p2);
+void ssm_d3_free(double ***tab, int n, int p1);
+double ****ssm_d4_new(int n, int p1, int p2, int p3);
+void ssm_d4_free(double ****tab, int n, int p1, int p2);
+double **ssm_d2d_var_set0(int n, unsigned int *p);
+double ***ssm_d3_var_new(int n, unsigned int *p1, unsigned int **p2);
+void ssm_d3_var_free(double ***tab, int n, unsigned int *p1);
+double ***ssm_d3_varp1_new(int n, unsigned int *p1, int p2);
+double ***ssm_d3_varp2_new(int n, unsigned int p1, unsigned int *p2);
+
+/* alloc_i.c */
+int *ssm_i1_new(int n);
+
+/* alloc_st.c */
+size_t *ssm_st1_new(int n);
+size_t **ssm_st2_new(int n, int p);
+void ssm_st2_free(size_t **tab, int n);
+
+/* alloc_u.c */
+unsigned int *ssm_u1_new(int n);
+unsigned int **ssm_u2_new(int n, int p);
+void ssm_u2_free(unsigned int **tab, int n);
+unsigned int ***ssm_u3_new(int n, int p1, int p2);
+void ssm_u3_free(unsigned int ***tab, int n, int p1);
+unsigned int ****ssm_u4_new(int n, int p1, int p2, int p3);
+void ssm_u4_free(unsigned int ****tab, int n, int p1, int p2);
+unsigned int **ssm_u2_var_new(int n, unsigned int *p);
+unsigned int ***ssm_u3_var_new(int n, unsigned int *p1, unsigned int **p2);
+void ssm_u3_free(unsigned int ***tab, int n, unsigned int *p1);
+unsigned int ***ssm_u3_varp1_new(int n, unsigned int *p1, int p2);
+unsigned int ***ssm_u3_varp2_new(int n, unsigned int p1, unsigned int *p2);
+
+/* build.c */
+void ssm_input_free(ssm_input_t *input);
+ssm_par_t *ssm_par_new(ssm_nav_t *nav);
+void ssm_par_free(ssm_par_t *par);
+ssm_theta_t *ssm_theta_new(ssm_nav_t *nav);
+void ssm_theta_free(ssm_theta_t *theta);
+ssm_var_t *ssm_var_new(ssm_nav_t *nav, json_t *parameters);
+void ssm_var_free(ssm_var_t *var);
+ssm_it_states_t *_ssm_it_states_new(int length);
+void _ssm_it_states_free(ssm_it_states_t *it);
+ssm_it_parameters_t *_ssm_it_parameters_new(int length);
+void _ssm_it_parameters_free(ssm_it_parameters_t *it);
+ssm_nav_t *ssm_nav_new(json_t jparameters, ssm_options_t *opts);
+ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options *opts);
+ssm_calc_t *ssm_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, int thread_id, unsigned long int seed, ssm_options *opts);
+ssm_calc_t **ssm_N_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options *opts);
+
+/* load.c */
+json_t *ssm_load_json_stream(FILE *stream);
+json_t *ssm_load_json_file(const char *path);
+void ssm_input2par(ssm_par_t *par, ssm_input_t *input, ssm_calc_t *calc, ssm_nav_t *nav);
+void ssm_par2X(ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav);
+unsigned int *ssm_load_ju1_new(json_t *container, char *name);
+double *ssm_load_jd1_new(json_t *container, char *name);
+char **ssm_load_jc1_new(json_t *container, const char *name);
+
+/* fitness.c */
+double ssm_log_likelihood(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav);
+double ssm_sum_square(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav);
+
+/* prediction_util.c */
+void ssm_X_copy(ssm_X_t *dest, ssm_X_t *src);
+void ssm_X_reset_inc(ssm_X_t *X, ssm_data_row_t *row);
+void ssm_ran_multinomial (const gsl_rng * r, const size_t K, unsigned int N, const double p[], unsigned int n[]);
+double ssm_correct_rate(double rate, double dt);
+ssm_err_code_t ssm_check_no_neg_remainder(ssm_X_t *p_X, ssm_nav_t *nav, ssm_calc_t *calc, double t);
+ssm_f_pred_t ssm_get_f_pred(ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_ode(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_no_dem_sto_no_white_noise(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_no_dem_sto_no_diff(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_no_white_noise_no_diff(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_no_dem_sto(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_no_white_noise(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_no_diff(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_full(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_psr(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_psr_no_diff(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+
+
+/* smc.c */
+int ssm_weight(ssm_fitness_t *like, int n);
+void ssm_systematic_sampling(ssm_fitness_t *like, ssm_calc_t *calc, int n);
+void ssm_resample_X(ssm_fitness_t *like, struct s_X ***J_p_X, struct s_X ***J_p_X_tmp, int n);
+void ssm_swap_X(struct s_X ***X, struct s_X ***tmp_X);
+
+/* transform.c */
+double ssm_f_id(double x);
+double ssm_f_log(double x);
+double ssm_f_inv_log(double x);
+double ssm_f_logit(double x);
+double ssm_f_inv_logit(double x);
+double ssm_f_logit_ab(double x, double a, double b);
+double ssm_f_inv_logit_ab(double x, double a, double b);
+double ssm_f_der_log(double x);
+double ssm_f_der_inv_log(double x);
+double ssm_f_der_logit(double x);
+double ssm_f_der_inv_logit(double x);
+double ssm_f_der_logit_ab(double x, double a, double b);
+double ssm_f_der_inv_logit_ab(double x, double a, double b);
+double ssm_f_user_par_id(double x, ssm_input_t *par, ssm_calc_t *calc);
+
+
+/* util.c */
+int ssm_in_par(ssm_it_parameters_t *it, const char *name);
+const gsl_interp_type *ssm_str_to_interp_type(const char *optarg);
+int ssm_sanitize_n_threads(int n_threads, ssm_fitness_t *fitness);
+
+
+
 #endif

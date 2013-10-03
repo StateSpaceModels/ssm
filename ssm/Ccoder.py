@@ -45,8 +45,8 @@ class Ccoder(Cmodel):
         if term in self.map_prior_id2id:
             term = self.map_prior_id2id[term]
 
-        if term == 'correct_rate' and no_correct_rate:
-            return ''
+        if term == 'correct_rate':
+            return '' if no_correct_rate else 'ssm_correct_rate'
 
         if human:
             return term
@@ -809,7 +809,7 @@ class Ccoder(Cmodel):
             for x in obs:
                 Cterm = self.make_C_term(x['pdf']['mean'], True, derivate=self.par_sv[s])
                 Ht_sv[s].append(Cterm)
-        
+
         ## Derivatives of observed means against incidence variables
         for s in range(len(self.par_inc)):
             Ht_inc.append([])
