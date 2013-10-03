@@ -20,7 +20,7 @@
 
 
 
-void eval_Ht(ssm_X_t *p_X, ssm_row_t *row, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc)
+void ssm_eval_Ht(ssm_X_t *p_X, ssm_row_t *row, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc)
 {
 
     double *X = p_X->proj;
@@ -45,16 +45,16 @@ void eval_Ht(ssm_X_t *p_X, ssm_row_t *row, double t, ssm_par_t *par, ssm_nav_t *
 
     {% if is_diff %}
     for(i=0; i<states_diff->length; i++){
-	ssm_parameter_t *p = states_diff->p[i];
-	{% if noises_off != 'ode'%}
-	if(is_diff){
-	    diffed[i] = p->f_inv(X[p->offset]);
-	} else {
-	    diffed[i] = gsl_vector_get(par, p->ic->offset);
-	}
-	{% else %}
-	diffed[i] = gsl_vector_get(par, p->ic->offset);
-	{% endif %}
+        ssm_parameter_t *p = states_diff->p[i];
+        {% if noises_off != 'ode'%}
+        if(is_diff){
+            diffed[i] = p->f_inv(X[p->offset]);
+        } else {
+            diffed[i] = gsl_vector_get(par, p->ic->offset);
+        }
+        {% else %}
+        diffed[i] = gsl_vector_get(par, p->ic->offset);
+        {% endif %}
     }
     {% endif %}
 
@@ -62,10 +62,10 @@ void eval_Ht(ssm_X_t *p_X, ssm_row_t *row, double t, ssm_par_t *par, ssm_nav_t *
     {% for Ht_i in Ht.Ht_sv %}
     {% set outer_loop = loop %}
     {% for Ht_ii in Ht_i %}
-    gsl_matrix_set(Ht, 
-		   states_sv->p[{{ outer_loop.index0 }}]->offset,
-		   {{ loop.index0 }},
-		   {{ Ht_ii|safe }});
+    gsl_matrix_set(Ht,
+                   states_sv->p[{{ outer_loop.index0 }}]->offset,
+                   {{ loop.index0 }},
+                   {{ Ht_ii|safe }});
     {% endfor %}
     {% endfor %}
 
@@ -73,10 +73,10 @@ void eval_Ht(ssm_X_t *p_X, ssm_row_t *row, double t, ssm_par_t *par, ssm_nav_t *
     {% for Ht_i in Ht.Ht_inc %}
     {% set outer_loop = loop %}
     {% for Ht_ii in Ht_i %}
-    gsl_matrix_set(Ht, 
-		   states_inc->p[{{ outer_loop.index0 }}]->offset,
-		   {{ loop.index0 }},
-		   {{ Ht_ii|safe }});
+    gsl_matrix_set(Ht,
+                   states_inc->p[{{ outer_loop.index0 }}]->offset,
+                   {{ loop.index0 }},
+                   {{ Ht_ii|safe }});
     {% endfor %}
     {% endfor %}
 
@@ -84,17 +84,17 @@ void eval_Ht(ssm_X_t *p_X, ssm_row_t *row, double t, ssm_par_t *par, ssm_nav_t *
     {% for Ht_i in Ht.Ht_diff %}
     {% set outer_loop = loop %}
     {% for Ht_ii in Ht_i %}
-    gsl_matrix_set(Ht, 
-		   states_diff->p[{{ outer_loop.index0 }}]->offset,
-		   {{ loop.index0 }},
-		   {{ Ht_ii|safe }});
+    gsl_matrix_set(Ht,
+                   states_diff->p[{{ outer_loop.index0 }}]->offset,
+                   {{ loop.index0 }},
+                   {{ Ht_ii|safe }});
     {% endfor %}
     {% endfor %}
 
 
     for(i=0; i< m; i++){
-	for(j=0; j< row->ts_nonan_length; j++){
-	    gsl_matrix_set(Ht,i,j) = gsl_matrix_get(Ht,i,row->observed[j]->offset);
-	}
+        for(j=0; j< row->ts_nonan_length; j++){
+            gsl_matrix_set(Ht,i,j) = gsl_matrix_get(Ht,i,row->observed[j]->offset);
+        }
     }
 }

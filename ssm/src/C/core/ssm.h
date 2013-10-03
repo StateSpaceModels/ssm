@@ -567,6 +567,61 @@ int ssm_in_par(ssm_it_parameters_t *it, const char *name);
 const gsl_interp_type *ssm_str_to_interp_type(const char *optarg);
 int ssm_sanitize_n_threads(int n_threads, ssm_fitness_t *fitness);
 
+/* templated function signatures */
+
+/* input_template.c */
+ssm_input_t *ssm_input_new(json_t *jparameters, ssm_nav_t *nav);
+
+/* transform_template.c */
+ssm_parameter_t **ssm_parameters_new(int *parameters_length);
+ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters);
+
+/* check_IC_template */
+ssm_err_code_t ssm_check_IC(ssm_par_t *par, ssm_calc_t *calc);
+
+/* iterator_template.c */
+ssm_it_states_t *ssm_it_states_sv_new(ssm_state_t **states);
+ssm_it_states_t *ssm_it_states_remainders_new(ssm_state_t **states);
+ssm_it_states_t *ssm_it_states_inc_new(ssm_state_t **states);
+ssm_it_states_t *ssm_it_states_diff_new(ssm_state_t **states);
+ssm_it_parameters_t *ssm_it_parameters_all_new(ssm_parameter_t **parameters);
+ssm_it_parameters_t *ssm_it_parameters_noise_new(ssm_parameter_t **parameters);
+ssm_it_parameters_t *ssm_it_parameters_vol_new(ssm_parameter_t **parameters);
+ssm_it_parameters_t *ssm_it_parameters_icsv_new(ssm_parameter_t **parameters);
+ssm_it_parameters_t *ssm_it_parameters_icdiff_new(ssm_parameter_t **parameters);
+
+/* observed_template.c */
+ssm_observed_t **ssm_observed_new(int *observed_length);
+
+/* diff_template.c */
+void ssm_compute_diff(ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+
+/* ode_sde_template */
+int ssm_step_ode(double t, const double X[], double f[], void *params);
+void ssm_step_sde_no_dem_sto(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+void ssm_step_sde_no_white_noise(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+void ssm_step_sde_full(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+void ssm_step_sde_no_dem_sto_no_white_noise(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+
+/* psr_template.c */
+void ssm_alloc_psr(ssm_calc_t *calc);
+void ssm_step_psr(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+
+/* jac_template */
+void ssm_eval_jac(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+
+/* Ht_template.c */
+void ssm_eval_Ht(ssm_X_t *p_X, ssm_row_t *row, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+
+/* Q_template.c */
+void ssm_evalQ_no_dem_sto(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+void ssm_evalQ_no_env_sto(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+void ssm_evalQ_full(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+void ssm_evalQ_no_dem_sto_no_env_sto(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+
+/* step_ekf_template.c */
+int ssm_step_ekf(double t, const double X[], double f[], void *params);
+
 
 
 #endif

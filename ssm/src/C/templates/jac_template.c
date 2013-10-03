@@ -20,7 +20,7 @@
 
 
 
-void eval_jac(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc)
+void ssm_eval_jac(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc)
 {
 
     double *X = p_X->proj;
@@ -49,16 +49,16 @@ void eval_jac(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_ca
 
     {% if is_diff %}
     for(i=0; i<states_diff->length; i++){
-	ssm_parameter_t *p = states_diff->p[i];
-	{% if noises_off != 'ode'%}
-	if(is_diff){
-	    diffed[i] = p->f_inv(X[p->offset]);
-	} else {
-	    diffed[i] = gsl_vector_get(par, p->ic->offset);
-	}
-	{% else %}
-	diffed[i] = gsl_vector_get(par, p->ic->offset);
-	{% endif %}
+        ssm_parameter_t *p = states_diff->p[i];
+        {% if noises_off != 'ode'%}
+        if(is_diff){
+            diffed[i] = p->f_inv(X[p->offset]);
+        } else {
+            diffed[i] = gsl_vector_get(par, p->ic->offset);
+        }
+        {% else %}
+        diffed[i] = gsl_vector_get(par, p->ic->offset);
+        {% endif %}
     }
     {% endif %}
 
@@ -74,52 +74,52 @@ void eval_jac(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_ca
     {% for jac_i in jac.jac %}
     {% set outer_loop = loop %}
     {% for jac_ii in jac_i %}
-    gsl_matrix_set(Ft, 
-		   states_sv->p[{{ outer_loop.index0 }}]->offset,
-		   states_sv->p[{{ loop.index0 }}]->offset,
-		   _r[{{ jac_ii|safe }}]);
+    gsl_matrix_set(Ft,
+                   states_sv->p[{{ outer_loop.index0 }}]->offset,
+                   states_sv->p[{{ loop.index0 }}]->offset,
+                   _r[{{ jac_ii|safe }}]);
     {% endfor %}
     {% endfor %}
-    
+
 
     //second non null part of the jacobian matrix: derivative of the dynamic of the observed variable against the state variable only ( automaticaly generated code )
     {% for jac_i in jac.jac_obs %}
     {% set outer_loop = loop %}
     {% for jac_ii in jac_i %}
-    gsl_matrix_set(Ft, 
-                   states_inc->p[{{ outer_loop.index0 }}]->offset, 
-                   states_sv->p[{{ loop.index0 }}]->offset, 
+    gsl_matrix_set(Ft,
+                   states_inc->p[{{ outer_loop.index0 }}]->offset,
+                   states_sv->p[{{ loop.index0 }}]->offset,
                    _r[{{ jac_ii|safe }}]);
     {% endfor %}
     {% endfor %}
 
-   
+
 
     {% if is_diff %}
     if(is_diff){
 
-	//third non null part of the jacobian matrix: derivative of the ODE (excluding the observed variable) against the diff variable (automaticaly generated code)
-	{% for jac_i in jac.jac_diff %}
-	{% set outer_loop = loop %}
-	{% for jac_ii in jac_i %}
-	gsl_matrix_set(Ft,
+        //third non null part of the jacobian matrix: derivative of the ODE (excluding the observed variable) against the diff variable (automaticaly generated code)
+        {% for jac_i in jac.jac_diff %}
+        {% set outer_loop = loop %}
+        {% for jac_ii in jac_i %}
+        gsl_matrix_set(Ft,
                        states_sv->p[{{ outer_loop.index0 }}]->offset,
                        states_diff->p[{{ loop.index0 }}]->offset,
                        _r[{{ jac_ii|safe }}]);
-	{% endfor %}
-	{% endfor %}
+        {% endfor %}
+        {% endfor %}
 
-	//fourth non null part of the jacobian matrix: derivative of obs variable agains drift (automaticaly generated code)
-	ts = 0;
-	{% for jac_i in jac.jac_obs_diff %}
-	{% set outer_loop = loop %}
-	{% for jac_ii in jac_i %}
-	gsl_matrix_set(Ft,
+        //fourth non null part of the jacobian matrix: derivative of obs variable agains drift (automaticaly generated code)
+        ts = 0;
+        {% for jac_i in jac.jac_obs_diff %}
+        {% set outer_loop = loop %}
+        {% for jac_ii in jac_i %}
+        gsl_matrix_set(Ft,
                        states_inc->p[{{ outer_loop.index0 }}]->offset,
                        nav->states_diff->p[{{ loop.index0 }}]->offset,
                        _r[{{ jac_ii|safe }}]);
-	{% endfor %}
-	{% endfor %}
+        {% endfor %}
+        {% endfor %}
 
     }
     {% endif %}

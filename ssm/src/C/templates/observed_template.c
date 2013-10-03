@@ -61,7 +61,7 @@ static double (*f_obs_tpl_{{ x.id }}) (ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t 
 {% endfor %}
 
 
-ssm_observed **ssm_observed_new(int *observed_length)
+ssm_observed_t **ssm_observed_new(int *observed_length)
 {
     *observed_length = {{ observed|length }};
 
@@ -71,17 +71,17 @@ ssm_observed **ssm_observed_new(int *observed_length)
         print_err("Allocation impossible for ssm_observed_t **");
         exit(EXIT_FAILURE);
     }
-    
+
     int i;
     for(i=0; i< {{ observed|length }}; i++){
-	observed[i] = malloc(sizeof (ssm_observed_t));
-	if (observed[i] == NULL) {
-	    print_err("Allocation impossible for ssm_observed_t *");
-	    exit(EXIT_FAILURE);
-	}
+        observed[i] = malloc(sizeof (ssm_observed_t));
+        if (observed[i] == NULL) {
+            print_err("Allocation impossible for ssm_observed_t *");
+            exit(EXIT_FAILURE);
+        }
     }
 
-    {% for x in observed %}    
+    {% for x in observed %}
     observed[{{ loop.index0 }}]->name = "{{ x.id }}";
     observed[{{ loop.index0 }}]->offset = {{ loop.index0 }};
     observed[{{ loop.index0 }}]->f_likelihood = &f_likelihood_tpl_{{ x.id }};

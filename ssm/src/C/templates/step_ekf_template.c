@@ -25,7 +25,7 @@
  * dX/dt = f(t, X, params)
  *
  */
-int step_ekf(double t, const double X[], double f[], void *params)
+int ssm_step_ekf(double t, const double X[], double f[], void *params)
 {
 
     ssm_calc_t *calc = (ssm_calc_t *) params;
