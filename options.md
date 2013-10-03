@@ -13,18 +13,18 @@
   C    |   cov_switch         |      -1 (kmcmc) / 5 (mif)             |  kmcmc, pmcmc, mif                                         |  select switching iteration from initial covariance to empirical one (mcmc) or to update formula introduced in Ionides et al. 2006 (mif)
   E    |   eps_switch         |      50                               |  kmcmc, pmcmc                                              |  select number of burnin iterations before tuning epsilon
   T    |   n_traj             |      1000                             |  kmcmc, pmcmc                                              |  number of trajectories stored
-  M    |   iter               |      10                               |  kmcmc, pmcmc, ksimplex, simplex, mif                      |  number of pmcmc iterations
-  B    |   t0                 |      0.0                              |  simul                                                     |  time step when simulation starts (in unit of frequency, see --freq)
-  E    |   tend               |      0.0                              |  simul                                                     |  time step when simulation ends (in unit of frequency, see --freq)
+  M    |   iter               |      10                               |  kmcmc, pmcmc, ksimplex, simplex, mif                      |  number of iterations
+  B    |   start                 |      0.0                              |  simul                                                     |  time step when simulation starts (in unit of frequency, see --freq)
+  E    |   end               |      0.0                              |  simul                                                     |  time step when simulation ends (in unit of frequency, see --freq)
   Y    |   eps_abs_integ      |      1e-6                             |  smc, kalman, kmcmc, pmcmc, ksimplex, simplex, mif, simul  |  absolute error for adaptive step-size control 
   Z    |   eps_rel_integ      |      1e-3                             |  smc, kalman, kmcmc, pmcmc, ksimplex, simplex, mif, simul  |  relative error for adaptive step-size control 
   G    |   freeze_forcing     |      -1                               |  smc, kalman, kmcmc, pmcmc, ksimplex, simplex, mif, simul  |  freeze covariates to their value at specified time
-  K    |   like_min           |      1e-17                            |  smc, kalman, kmcmc, pmcmc, ksimplex, simplex, mif         |  if applicable, particles with likelihood smaller than LIKE_MIN are considered lost. Otherwise, lower bound on likelihood.
+  K    |   like_min           |      1e-17                            |  smc, kalman, kmcmc, pmcmc, ksimplex, simplex, mif         |  if applicable, particles with likelihood smaller than like_min are considered lost. Otherwise, lower bound on likelihood.
   U    |   eps_max            |      50                               |  kmcmc, pmcmc                                              |  maximum value allowed for epislon
   S    |   alpha              |      0.02                             |  kmcmc, pmcmc                                              |  smoothing factor of exponential smoothing used to compute smoothed acceptance rate (low values increase degree of smoothing)
-  H    |   heat               |      2                                |  mif                                                       |  re-heating accross MIF iterations (scales standard deviatio of proposals)
+  H    |   heat               |      2                                |  mif                                                       |  re-heating accross MIF iterations (scales standard deviation of proposals)
   L    |   lag                |      0.75                             |  mif                                                       |  lag for fixed-lag smoothing (proportion of the data)
-  F    |   freq               |      D                                |  simul                                                     |  print the outputs (and reset incidences to 0 if any) every day (D), week (W), bi-week (B), month (M, taken to be 12.0/365) or year (Y)            |  simplex size used as stopping criteria
+  F    |   freq               |      D                                |  simul                                                     |  print the outputs (and reset incidences to 0 if any) every day (D), week (W), bi-week (B), month (M) or year (Y)            |  simplex size used as stopping criteria
   Z    |   size               |      1e-6                             |  ksimplex, simplex                                         |  simplex size used as stopping criteria
 
 ### Options without arguments (lower case)
@@ -33,10 +33,10 @@
 ------ | -------------------- | --------------------------------------|------------------------------------------------------------|-------------------------------------------------
   h    |   help               |      -                                |  all                                                       |  print the usage on stdout
   q    |   quiet              |      -                                |  smc, kalman, kmcmc, pmcmc, ksimplex, simplex, mif, simul  |  no verbosity
-  d    |   no_dem_sto         |      -                                |  smc, kalman, kmcmc, pmcmc, ksimplex, mif, simul           |  turn off demographic stochasticity
+  d    |   no_dem_sto         |      -                                |  smc, kalman, kmcmc, pmcmc, ksimplex, mif, simul           |  turn off demographic stochasticity (if any)
   w    |   no_white_noise     |      -                                |  smc, kalman, kmcmc, pmcmc, ksimplex, mif, simul           |  turn off white noises (if any)
   f    |   no_diff            |      -                                |  smc, kalman, kmcmc, pmcmc, ksimplex, mif, simul           |  turn off diffusions (if any)
-  i    |   interpolation      |      -                                |  smc, kalman, kmcmc, pmcmc, ksimplex, simplex, mif, simul  |  gsl interpolator for covariates
+  i    |   interpolator      |      -                                |  smc, kalman, kmcmc, pmcmc, ksimplex, simplex, mif, simul  |  gsl interpolator for covariates
   t    |   traj               |      -                                |  smc, kalman, mif, simul                                   |  print the trajectories
   r    |   no_filter          |      -                                |  smc                                                       |  do not filter
   c    |   trace              |      -                                |  smc, kalman, ksimplex, simplex                            |  do not write trace output files

@@ -23,14 +23,11 @@
  * Note that p_fitness->weights already contains the likelihood
  * @return the sucess status (sucess if some particles have a likelihood > LIKE_MIN)
  */
-int ssm_weight(ssm_fitness_t *fitness, int n)
+int ssm_weight(ssm_fitness_t *fitness, ssm_row_t *row, int n)
 {
     char str[SSM_STR_BUFFSIZE];
 
     int j;
-
-    //TODO FIX...
-    int N_TS = 1;
 
     double like_tot_n = 0.0;
     int nfailure_n = 0;
@@ -40,7 +37,7 @@ int ssm_weight(ssm_fitness_t *fitness, int n)
 
     for(j=0; j < fitness->J ; j++) {
         /*compute first part of weights (non divided by sum likelihood)*/
-        if (fitness->weights[j] <= pow(fitness->like_min, N_TS)) {
+        if (fitness->weights[j] <= pow(fitness->like_min, row->ts_nonan_length)) {
             fitness->weights[j] = 0.0;
             nfailure_n += 1;
         } else {
@@ -55,7 +52,7 @@ int ssm_weight(ssm_fitness_t *fitness, int n)
         fitness->n_all_fail += 1;
         sprintf(str,"warning: nfailure = %d, at n=%d we keep all particles and assign equal weights", nfailure_n, n);
         ssm_print_warning(str);
-        fitness->log_like_n = fitness->log_like_min*N_TS;
+        fitness->log_like_n = fitness->log_like_min * row->ts_nonan_length;
 
         double invJ=1.0/ ((double) fitness->J);
         for(j=0 ; j < fitness->J ; j++) {

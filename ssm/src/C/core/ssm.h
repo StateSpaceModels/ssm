@@ -64,7 +64,7 @@ typedef enum {SSM_PRINT_TRACE = 1 << 0, SSM_PRINT_X = 1 << 1, SSM_PRINT_HAT = 1 
 
 typedef enum {SSM_SUCCESS = 1 << 0 , SSM_ERR_LIKE= 1 << 1, SSM_ERR_REM = 1 << 2, SSM_ERR_ODE = 1 << 3, SSM_ERR_IC = 1 << 4} ssm_err_code_t;
 
-#define SSM_BUFFER_SIZE (50000 * 1024)  /**< 50000 KB buffer size for settings.json inputs */
+#define SSM_BUFFER_SIZE (2 * 1024)  /**< 1000 KB buffer size */
 #define SSM_STR_BUFFSIZE 255 /**< buffer for log and error strings */
 #define SSM_PATH_ROOT "./" /**< default root path for the results files (traces, ...) (has to be slash appended) */
 #define SSM_PATH_SETTINGS "./.settings.json"
@@ -417,7 +417,6 @@ typedef struct
     int flag_seed_time;      /**< seed with the local time ((unsigned) time(NULL)) */
     int flag_pipe;           /**< pipe mode */
     int flag_prior;          /**< add log(prior) to the estimated log likelihood */
-    int flag_transf;         /**< add log(JacobianDeterminant(transf)) to the estimated loglik. (combined to this.flag_prior, gives posterior density in transformed space) */
     double dt;               /**< integration time step in days */
     double eps_abs;          /**< absolute error for adaptive step-size control */
     double eps_rel;          /**< relative error for adaptive step-size control */
@@ -546,7 +545,7 @@ ssm_err_code_t ssm_f_prediction_psr_no_diff(ssm_X_t *p_X, double t0, double t1, 
 
 
 /* smc.c */
-int ssm_weight(ssm_fitness_t *fitness, int n);
+int ssm_weight(ssm_fitness_t *fitness, ssm_row_t *row, int n);
 void ssm_systematic_sampling(ssm_fitness_t *fitness, ssm_calc_t *calc, int n);
 void ssm_resample_X(ssm_fitness_t *fitness, ssm_X_t ***J_p_X, ssm_X_t ***J_p_X_tmp, int n);
 void ssm_swap_X(ssm_X_t ***X, ssm_X_t ***tmp_X);
