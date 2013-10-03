@@ -1,5 +1,5 @@
  
-### Options with arguments (lower case)
+### Options with arguments (upper case)
  
  short |     long             |     default                           | algorithm                                                  |                   description
 ------ | -------------------- | --------------------------------------|------------------------------------------------------------|-------------------------------------------------
@@ -27,7 +27,7 @@
   F    |   freq               |      D                                |  simul                                                     |  print the outputs (and reset incidences to 0 if any) every day (D), week (W), bi-week (B), month (M, taken to be 12.0/365) or year (Y)            |  simplex size used as stopping criteria
   Z    |   size               |      1e-6                             |  ksimplex, simplex                                         |  simplex size used as stopping criteria
 
-### Options without arguments (upper case)
+### Options without arguments (lower case)
  
  short |     long             |     default                           | algorithm                                                  |                   description
 ------ | -------------------- | --------------------------------------|------------------------------------------------------------|-------------------------------------------------
