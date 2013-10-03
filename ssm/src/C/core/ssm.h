@@ -62,7 +62,7 @@ typedef enum {SSM_NO_DEM_STO = 1 << 0, SSM_NO_WHITE_NOISE = 1 << 1, SSM_NO_DIFF 
 
 typedef enum {SSM_PRINT_TRACE = 1 << 0, SSM_PRINT_X = 1 << 1, SSM_PRINT_HAT = 1 << 2, SSM_PRINT_PRED_RES = 1 << 3, SSM_PRINT_X_SMOOTH = 1 << 4, SSM_PRINT_ACC = 1 << 5, SSM_PIPE = 1 << 6, SSM_QUIET = 1 << 7, SSM_PRINT_COV = 1 << 8 } ssm_print_t;
 
-typedef enum {SSM_SUCCESS = 1 << 0 , SSM_ERR_LIKE= 1 << 1, SSM_ERR_REM = 1 << 2, SSM_ERR_ODE = 1 << 3, SSM_ERR_IC = 1 << 4} ssm_err_code_t;
+typedef enum {SSM_SUCCESS = 1 << 0 , SSM_ERR_LIKE= 1 << 1, SSM_ERR_REM = 1 << 2, SSM_ERR_ODE = 1 << 3, SSM_ERR_KAL = 1 << 4, SSM_ERR_IC = 1 << 5} ssm_err_code_t;
 
 #define SSM_BUFFER_SIZE (2 * 1024)  /**< 1000 KB buffer size */
 #define SSM_STR_BUFFSIZE 255 /**< buffer for log and error strings */
