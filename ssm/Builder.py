@@ -76,7 +76,7 @@ class Builder(Data, Ccoder):
 
         ##methods whose results are use multiple times
         step_ode_sde = self.step_ode_sde()
-        self.render('ode_sde', {'is_diff': is_diff, 'step':self.step_ode_sde()})
+        self.render('ode_sde', {'is_diff': is_diff, 'step':step_ode_sde})
 
         parameters = self.parameters()
         self.render('transform', parameters)
@@ -106,6 +106,8 @@ class Builder(Data, Ccoder):
         self.render('jac', {'jac': self.jac(step_ode_sde['sf']), 'is_diff': is_diff, 'step':self.step_ode_sde()})
 
         self.render('step_ekf', {'is_diff': is_diff, 'step':self.step_ode_sde()})
+
+        self.render('check_ic', {'parameters': parameters})
         
     def write_data(self):
 

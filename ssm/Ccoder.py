@@ -208,12 +208,20 @@ class Ccoder(Cmodel):
                 eq = x['remainder']['pop_size'] + ' - ' + ' - '.join([r for r in x['composition'] if r != rem])
                 remainders[rem] = self.make_C_term(eq, True)
 
+        # Initial compartment sizes in cases of no remainder
+        ic = {}
+        for x in self.get_resource('populations'):
+            if 'remainder' not in x:
+                for c in  x['composition']:
+                    ic.append(self.make_C_term(eq, True))
+
         return {
             'parameters': parameters,
             'skeletons': skeletons,
             'par_sv': self.par_sv,
             'states': states,
             'remainders': remainders,
+            'ic': ic,
             'sde': [sdict[x] for x in self.par_diff],
             'pars': [pdict[x] for x in pars]
         }
