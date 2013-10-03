@@ -449,6 +449,10 @@ typedef struct
 } ssm_options_t;
 
 
+/****************************/
+/* core function signatures */
+/****************************/
+
 /* alloc_c.c */
 char *ssm_c1_new(int n);
 char **ssm_c2_new(int n, int p);
@@ -567,7 +571,10 @@ int ssm_in_par(ssm_it_parameters_t *it, const char *name);
 const gsl_interp_type *ssm_str_to_interp_type(const char *optarg);
 int ssm_sanitize_n_threads(int n_threads, ssm_fitness_t *fitness);
 
+
+/*********************************/
 /* templated function signatures */
+/*********************************/
 
 /* input_template.c */
 ssm_input_t *ssm_input_new(json_t *jparameters, ssm_nav_t *nav);
