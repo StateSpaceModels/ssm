@@ -146,7 +146,6 @@ typedef struct /*[N_THREADS] : for parallel computing we need N_THREADS replicat
     gsl_matrix *_Kt;            /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->observed_length] */
     gsl_matrix *_Tmp_N_SV_N_TS; /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->observed_length] */
     gsl_matrix *_Tmp_N_TS_N_SV; /**< [nav->observed_length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
-    gsl_matrix *_Jt;            /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
     gsl_matrix *_Q;             /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
     gsl_matrix *_FtCt;          /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
     gsl_matrix *_Ft;            /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */

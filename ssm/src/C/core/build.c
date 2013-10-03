@@ -442,7 +442,6 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (doubl
             calc->_Kt = gsl_matrix_calloc(n_s, n_o);
             calc->_Tmp_N_SV_N_TS = gsl_matrix_calloc(n_s, n_o);
             calc->_Tmp_N_TS_N_SV = gsl_matrix_calloc(n_o, n_s);
-            calc->_Jt = gsl_matrix_calloc(n_s, n_s);
             calc->_Q = gsl_matrix_calloc(n_s, n_s);
             calc->_FtCt = gsl_matrix_calloc(n_s, n_s);
             calc->_Ft = gsl_matrix_calloc(n_s, n_s);
