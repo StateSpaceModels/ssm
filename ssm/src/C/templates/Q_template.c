@@ -23,7 +23,7 @@ void ssm_evalQ_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm_
     // demographic stochasticity and white noise terms (if any) //
     //////////////////////////////////////////////////////////////
 
-    {% if tpl.Q_proc or tpl.Q_inc %}
+    {% if tpl.Q_proc or tpl.Q_inc or tpl.Q_sde %}
     double term;
 
     {% if is_diff  %}
@@ -36,20 +36,20 @@ void ssm_evalQ_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm_
 
     {% if is_diff %}
     for(i=0; i<states_diff->length; i++){
-	ssm_state_t *p = states_diff->p[i];
-	{% if noises_off != 'ode'%}
-	if(is_diff){
-	    diffed[i] = p->f_inv(X[p->offset]);
-	} else {
-	    diffed[i] = gsl_vector_get(par, p->ic->offset);
-	}
-	{% else %}
-	diffed[i] = gsl_vector_get(par, p->ic->offset);
-	{% endif %}
+        ssm_state_t *p = states_diff->p[i];
+        {% if noises_off != 'ode'%}
+        if(is_diff){
+            diffed[i] = p->f_inv(X[p->offset]);
+        } else {
+            diffed[i] = gsl_vector_get(par, p->ic->offset);
+        }
+        {% else %}
+        diffed[i] = gsl_vector_get(par, p->ic->offset);
+        {% endif %}
     }
     {% endif %}
 
-    {% endif %} // tpl.Q_proc or tpl.Q_ins
+    {% endif %} // tpl.Q_proc or tpl.Q_inc
 
 
     /* caches */
@@ -60,20 +60,20 @@ void ssm_evalQ_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm_
       Q_proc contains only term involving state variables.
     */
     {% if tpl.Q_proc %}
-    
+
     {% for x in tpl.Q_proc %}
     i = {{ x.i }};
     j = {{ x.j }};
     term = {{ x.term|safe }};
 
     gsl_matrix_set(Q, i, j, term);
-    
+
     {% if x.i != x.j %}
     gsl_matrix_set(Q, j, i, term);
     {% endif %}
-    
+
     {% endfor %}
-    
+
     {% endif %}
 
     /*
@@ -97,7 +97,7 @@ void ssm_evalQ_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm_
     {% endif %}
 
     gsl_matrix_set(Q, i, j, term);
-    
+
     {% if x.i.ind != x.j.ind %}
     gsl_matrix_set(Q, j, i, term);
     {% endif %}
@@ -105,25 +105,25 @@ void ssm_evalQ_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm_
     {% endfor %}
 
     {% endif %}
-    
+
 
     {% if is_diff  %}
-    ///////////////////////////////////////////
-    // diff term (volatility^2 on diagonal) //
-    ///////////////////////////////////////////
+    ///////////////
+    // diff term //
+    ///////////////
     if(is_diff){
-	{% for x in tpl.Q_sde %}
-	i = states_diff->p[{{ x.i }}]->offset;
-	j = states_diff->p[{{ x.j }}]->offset;
-	
-	term = {{ x.term }};
+        {% for x in tpl.Q_sde %}
+        i = states_diff->p[{{ x.i }}]->offset;
+        j = states_diff->p[{{ x.j }}]->offset;
 
-	gsl_matrix_set(Q, i, j, term);
-	{% if x.i != x.j %}
-	gsl_matrix_set(Q, j, i, term);
-	{% endif %}
+        term = {{ x.term }};
 
-	{% endfor %}
+        gsl_matrix_set(Q, i, j, term);
+        {% if x.i != x.j %}
+        gsl_matrix_set(Q, j, i, term);
+        {% endif %}
+
+        {% endfor %}
     }
     {% endif %}
 

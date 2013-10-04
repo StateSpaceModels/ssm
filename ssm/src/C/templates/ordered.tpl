@@ -21,7 +21,10 @@
 {% for o in orders.var %}
 #define ORDER_{{ o }} {{ loop.index0 }}{% endfor %}
 
-{% for o in orders.universe %}
+{% for o in orders.inc %}
+#define ORDER_{{ o.name }} {{ o.order }}{% endfor %}
+
+{% for o in orders.univ_rem %}
 #define ORDER_{{ o.name }} {{ o.order }}{% endfor %}
 
 {% for o in orders.diff %}
@@ -36,6 +39,9 @@
 
 {% for o in orders.var %}
 #undef ORDER_{{ o }}{% endfor %}
+
+{% for o in orders.inc %}
+#undef ORDER_{{ o.name }}{% endfor %}
 
 {% for o in orders.universe %}
 #undef ORDER_{{ o.name }}{% endfor %}

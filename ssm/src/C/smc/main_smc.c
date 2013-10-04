@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
             fitness->cum_status[j] |= (*f_pred)(D_J_X[np1][j], t0, t1, par, nav, calc[0]);
 
             if(data->rows[n]->ts_nonan_length) {
-                fitness->weights[j] = (fitness->cum_status[j] == SSM_SUCCESS) ?  exp(ssm_log_likelihood(data->rows[n], t1, D_J_X[np1][j], par, calc[0], nav)) : 0.0;
+                fitness->weights[j] = (fitness->cum_status[j] == SSM_SUCCESS) ?  exp(ssm_log_likelihood(data->rows[n], t1, D_J_X[np1][j], par, calc[0], nav, fitness)) : 0.0;
                 fitness->cum_status[j] = SSM_SUCCESS;
             }
         }
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 
     ssm_input_free(input);
     ssm_par_free(par);
-   
+
     ssm_fitness_free(fitness);
 
     return 0;

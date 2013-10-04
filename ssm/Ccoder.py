@@ -268,20 +268,17 @@ class Ccoder(Cmodel):
         #define and #undef
         """
 
-        order_univ = []
         N_PAR_SV = len(self.par_sv)
-        univ = ['U']
+        univ_rem = ['U']
         if self.remainder:
-            univ += self.remainder
-
-        for i, X in enumerate(univ):
-            order_univ.append({'name': X, 'order': len(self.par_sv)+i})
+            univ_rem += self.remainder
 
         return {
             'var': self.par_sv + self.par_vol + self.par_noise + self.par_proc + self.par_obs,
             'diff': self.par_diff,
+            'inc': [{'name': x, 'order':len(self.par_sv) + o} for o,x in enumerate(self.par_inc)],
             'covariates': self.par_fixed,
-            'universe': order_univ
+            'univ_rem': [{'name': x, 'order': len(self.par_sv)+o} for o,x in enumerate(univ_rem) ]
         }
 
 
@@ -479,7 +476,7 @@ class Ccoder(Cmodel):
                 id_out = [self.proc_model.index(r) for r in self.proc_model if ((r['from'] == self.par_inc_def[i][j]['from']) and (r['to'] == self.par_inc_def[i][j]['to']) and (r['rate'] == self.par_inc_def[i][j]['rate']))]
                 for o in id_out:
                     myexit = [r for r in self.proc_model if r['from']==self.proc_model[o]['from']]
-                    right_hand_side += ' + p_calc->inc[ORDER_{0}][{1}]'.format(self.par_inc_def[i][j]['from'], myexit.index(self.proc_model[o]))
+                    right_hand_side += ' + calc->inc[ORDER_{0}][{1}]'.format(self.par_inc_def[i][j]['from'], myexit.index(self.proc_model[o]))
 
             Clist.append({'index': i, 'right_hand_side':right_hand_side})
 
@@ -743,8 +740,9 @@ class Ccoder(Cmodel):
             for sy in self.par_diff:
                 Cterm = self.make_C_term(odeDict[self.par_sv[s]], True, derivate=sy[6:len(sy)])
                 jac_diff[s].append({'value': Cterm,
-                                     'der': self.make_C_term(sy, True),
-                                     'name': sy})
+                                    'der': self.make_C_term(sy, True),
+                                    'name': sy,
+                                    'order': self.order_states[sy]})
                 caches.append(Cterm)
 
         ##derive observation equations (obsList) per par_sv
@@ -765,8 +763,9 @@ class Ccoder(Cmodel):
             for sy in self.par_diff:
                 Cterm = self.make_C_term(obsList[o], True, derivate=sy)
                 jac_obs_diff[o].append({'value': Cterm,
-                                         'der': self.make_C_term(sy, True),
-                                         'name': sy})
+                                        'der': self.make_C_term(sy, True),
+                                        'name': sy,
+                                        'order': self.order_states[sy]})
                 caches.append(Cterm)
 
 
@@ -794,9 +793,9 @@ class Ccoder(Cmodel):
 
 
         ##special function that have to be cached (caches is transformed by self.cache_special_function_)
-        sf = self.cache_special_function_C(caches, prefix='_sf[cac]')
+        sf = self.cache_special_function_C(caches, prefix='_sf')
         ##for jac_only (used for Lyapunov exp computations only, sf is shared with the one of print_ode. We just update caches_jac_only)
-        self.cache_special_function_C(caches_jac_only, sf=sf_jac_only, prefix='_sf[cac]')
+        self.cache_special_function_C(caches_jac_only, sf=sf_jac_only, prefix='_sf')
 
         return {'jac_only': jac_only,
                 'jac': jac,
@@ -1021,10 +1020,10 @@ class Ccoder(Cmodel):
         sde = self.get_resource('sde')
         if sde and 'dispersion' in sde:
             dispersion = sde['dispersion']
-            # Q_sde = dispersion * dispersion' 
-            Q_sde = matrix_product(dispersion, zip(*dispersion)) 
+            # Q_sde = dispersion * dispersion'
+            Q_sde = matrix_product(dispersion, zip(*dispersion))
 
-        
+
         #####################################################################################
         ##we create 4 versions of Q (no_dem_sto, no_env_sto, no_dem_sto_no_env_sto and full)
         #####################################################################################
@@ -1117,7 +1116,7 @@ class Ccoder(Cmodel):
             else:
                 calc_Q[key]['sf'] = []
 
-        
+
 
 
         return calc_Q

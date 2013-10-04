@@ -27,7 +27,7 @@ ssm_err_code_t ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X,
     int i, j, status;
     ssm_err_code_t cum_status = SSM_SUCCESS;
     int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
-    
+
 
     // sub-matrices and sub-vectors of working variables are extracted as not all tseries are observed
     gsl_vector_view pred_error = gsl_vector_subvector(calc->_pred_error,0,row->ts_nonan_length);
@@ -133,34 +133,25 @@ ssm_err_code_t ssm_kalman_update(ssm_X_t *X, ssm_row_t *row, double t, ssm_par_t
 
 
 /**
- * For eval_jac
+ *  For eval_jac
+ *
+ *  Rational basis
+ *  we have an equation (for instance dI/dt) named eq and let's say that we are interested in its derivative against v (we assume that v follows a diffusion)'
+ *  The template gives us d eq/d v (jac_tpl)
+ *  However, as v can be transform (let's say log here) we want d eq / d log(v)
+ *  The chain rule gives us:
+ *  d eq/ dv = d eq / d log(v) * d log(v)/dv = jac_tpl
+ *  so
+ *  d eq / d log(v) = ( d eq / dv ) / ( d log(v) / dv)
+ *
+ *  so in term of C:
+ *  d eq / d log(v) = jac_tpl / f_derivative(v, ..)
+ *  jac_der is the C term of v, provided by the template
  */
-double ssm_diff_derivative(double jac_tpl, ssm_X_t *X, ssm_nav_t *nav, int ind)
+double ssm_diff_derivative(double jac_tpl, const double X[], ssm_state_t *state)
 {
-
-    /*
-      Rational basis
-      we have an equation (for instance dI/dt) named eq and let's say that we are interested in its derivative against v (we assume that v follows a diffusion)'
-      The template gives us d eq/d v (jac_tpl)
-      However, as v can be transform (let's say log here) we want d eq / d log(v)
-      The chain rule gives us:
-      d eq/ dv = d eq / d log(v) * d log(v)/dv = jac_tpl
-      so
-      d eq / d log(v) = ( d eq / dv ) / ( d log(v) / dv)
-
-      so in term of C:
-      d eq / d log(v) = jac_tpl / r->f_derivative(v, ..)
-      jac_der is the C term of v, provided by the template
-
-      As v (jac_der) is in the scale of s_par, in case of logit_ab
-      transfo, we need to provide a and b in the scale of s_par, that
-      is router min_z and max_z
-     */
-
-    ssm_state_t *p = nav->states_diff->p[ind];
-    
     if(jac_tpl){
-        return jac_tpl / p->f_derivative(X->proj[p->offset]);
+        return jac_tpl / state->f_derivative(X[state->offset]);
     }
 
     return 0.0;

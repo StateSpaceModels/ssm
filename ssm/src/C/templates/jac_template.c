@@ -23,7 +23,7 @@ void ssm_eval_jac(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ss
     //some terms are always 0: derivative of the ODE (excluding the observed variable) against the observed variable, derivative of the dynamic of the observed variable against the observed variables, derivative of the drift eq.
     gsl_matrix_set_zero(Ft);
 
-    double _r[{{ step.caches|length }}];
+    double _r[{{ jac.caches|length }}];
 
     {% if jac.sf %}
     double _sf[{{ jac.sf|length }}];{% endif %}
@@ -86,19 +86,18 @@ void ssm_eval_jac(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ss
         gsl_matrix_set(Ft,
                        states_sv->p[{{ outer_loop.index0 }}]->offset,
                        states_diff->p[{{ loop.index0 }}]->offset,
-		       ssm_diff_derivative(_r[{{ jac_ii.value }}], X, nav, {{ loop.index0 }}));
+                       ssm_diff_derivative(_r[{{ jac_ii.value }}], X, states_diff->p[{{ jac_ii.order }}]));
         {% endfor %}
         {% endfor %}
 
-        //fourth non null part of the jacobian matrix: derivative of obs variable agains drift (automaticaly generated code)
-        ts = 0;
+        //fourth non null part of the jacobian matrix: derivative of obs variable against diff (automaticaly generated code)
         {% for jac_i in jac.jac_obs_diff %}
         {% set outer_loop = loop %}
         {% for jac_ii in jac_i %}
         gsl_matrix_set(Ft,
                        states_inc->p[{{ outer_loop.index0 }}]->offset,
                        nav->states_diff->p[{{ loop.index0 }}]->offset,
-		       ssm_diff_derivative(_r[{{ jac_ii.value }}], X, nav, {{ loop.index0 }}));
+                       ssm_diff_derivative(_r[{{ jac_ii.value }}], X, states_diff->p[{{ jac_ii.order }}]));
         {% endfor %}
         {% endfor %}
 
@@ -109,4 +108,3 @@ void ssm_eval_jac(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ss
 
 
 {% endblock %}
-
