@@ -274,7 +274,7 @@ typedef struct
     double (*f_likelihood) (double y, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
     double (*f_obs_mean)             (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
     double (*f_obs_var)              (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
-    double (*f_obs)                  (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
+    double (*f_obs_ran)              (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
 
 } ssm_observed_t;
 
@@ -605,6 +605,7 @@ int ssm_sanitize_n_threads(int n_threads, ssm_fitness_t *fitness);
 void ssm_print_log(char *msg);
 void ssm_print_warning(char *msg);
 void ssm_print_err(char *msg);
+void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, const int index, const double t);
 
 /****************************/
 /* kalman function signatures */

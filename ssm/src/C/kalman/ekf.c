@@ -22,7 +22,8 @@
  * Computation of the EKF gain kt for observation data_t_ts and obs
  * jacobian ht, given estimate xk_t_ts and current covariance Ct
  */
-ssm_err_code_t ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav){
+ssm_err_code_t ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav)
+{
 
     int i, j, status;
     ssm_err_code_t cum_status = SSM_SUCCESS;
@@ -97,7 +98,8 @@ ssm_err_code_t ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X,
 
 
 
-ssm_err_code_t ssm_kalman_update(ssm_X_t *X, ssm_row_t *row, double t, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *like){
+ssm_err_code_t ssm_kalman_update(ssm_X_t *X, ssm_row_t *row, double t, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *like)
+{
 
     int status;
     int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
