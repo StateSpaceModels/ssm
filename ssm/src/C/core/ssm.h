@@ -66,13 +66,9 @@ typedef enum {SSM_SUCCESS = 1 << 0 , SSM_ERR_LIKE= 1 << 1, SSM_ERR_REM = 1 << 2,
 
 #define SSM_BUFFER_SIZE (2 * 1024)  /**< 1000 KB buffer size */
 #define SSM_STR_BUFFSIZE 255 /**< buffer for log and error strings */
-#define SSM_PATH_ROOT "./" /**< default root path for the results files (traces, ...) (has to be slash appended) */
-#define SSM_PATH_SETTINGS "./.settings.json"
+
 
 #define SSM_WEB_APP 0 /**< webApp */
-
-#define SSM_EPS_ABS 1e-6 /**< absolute error control for ODEs*/
-#define SSM_EPS_REL 1e-3 /**< relative error control for ODEs*/
 
 #define SSM_ZERO_LOG 1e-17 /**< smallest value that can be log transformed without being replaced by @c ZERO_LOG */
 #define SSM_ONE_LOGIT 0.999999999 /**< largest value that can be logit transformed without being replaced by @c ONE_LOGIT */
@@ -420,7 +416,7 @@ typedef struct
     double dt;               /**< integration time step in days */
     double eps_abs;          /**< absolute error for adaptive step-size control */
     double eps_rel;          /**< relative error for adaptive step-size control */
-    double freeze_forcing;   /**< freeze the metadata to their value at the specified time */
+    char *freeze_forcing;    /**< freeze the metadata to their value at the specified ISO8601 date */
     char *path;              /**< path where the outputs will be stored */
     int n_thread;            /**< number of threads */
     double like_min;         /**< particles with likelihood smaller that like_min are considered lost */
@@ -433,20 +429,21 @@ typedef struct
     double L;                /**< lag for fixed lag smoothing (proportion of the data) */
     int m_switch;            /**< iteration number when we switch (for initial covariance to empirical or from different update formulae) */
     int flag_ic_only;        /**< only fit the initial condition using fixed lag smoothing */
-    double epsilon;          /**< select number of burnin iterations before tuning epsilon */
-    double epsilon_max;      /**< maximum value allowed for epsilon */
+    int eps_switch;          /**< select number of burnin iterations before tuning epsilon */
+    double eps_max;          /**< maximum value allowed for epsilon */
     double flag_smooth;      /**< tune epsilon with the value of the acceptance rate obtained with exponential smoothing */
     double alpha;            /**< smoothing factor of exponential smoothing used to compute the smoothed acceptance rate (low values increase degree of smoothing) */
     int n_traj;              /**< number of trajectories stored */
     int flag_zmq;            /**< dispatch particles across machines using a zeromq pipeline */
     int chunk;               /**< number of particles to send to each machine */
-    int flag_least_square;   /**< optimize the sum of square instead of the likelihood */
+    int flag_least_squares;  /**< optimize the sum of square instead of the likelihood */
     int size_stop;           /**< simplex size used as a stopping criteria */
-    char * freq;             /**< print the outputs (and reset incidences to 0 if any) every day (D), week (W), bi-week (B), month (M  or year (Y) */
+    char *freq;             /**< print the outputs (and reset incidences to 0 if any) every day (D), week (W), bi-week (B), month (M  or year (Y) */
     char *start;             /**< ISO 8601 date when the simulation starts*/
     char *end;               /**< ISO 8601 date when the simulation ends*/
     int skip;                /**< number of days to skip (used to skip transient dynamics) */
-    char *host;              /**< domain name or IP address of the particule server (e.g 127.0.0.1) */
+    char *server;            /**< domain name or IP address of the particule server (e.g 127.0.0.1) */
+    int flag_no_filter;      /**< do not filter */      
 } ssm_options_t;
 
 
