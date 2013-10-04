@@ -316,4 +316,3 @@ void ssm_load_options(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
         printf("argv: %s\n", argv[0]);
     }
 }
-

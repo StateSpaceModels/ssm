@@ -56,7 +56,7 @@
 #include <zmq.h>
 #include <pthread.h>
 
-
+typedef enum {SSM_SMC = 1 << 0, SSM_MIF = 1 << 1, SSM_PMCMC = 1 << 2, SSM_KMCMC = 1 << 3, SSM_KALMAN = 1 << 4, SSM_KSIMPLEX = 1 << 5, SSM_SIMUL = 1 << 6, SSM_SIMPLEX = 1 << 7, SSM_WORKER = 1 << 8 } ssm_algo_t;
 typedef enum {SSM_ODE, SSM_SDE, SSM_PSR, SSM_EKF} ssm_implementations_t;
 typedef enum {SSM_NO_DEM_STO = 1 << 0, SSM_NO_WHITE_NOISE = 1 << 1, SSM_NO_DIFF = 1 << 2 } ssm_noises_off_t; //several noises can be turned off
 
