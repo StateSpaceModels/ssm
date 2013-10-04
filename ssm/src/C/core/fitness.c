@@ -22,7 +22,7 @@
 /**
  *  checks for numerical issues and avoid 0.0 to avoid NaN when taking
  *  log.  Also, ensures a uniform likelihood scale by making sure that
- *  everything below fitness->like_min
+ *  everything below fitness->like_min is fitness->like_min.
  */
 double ssm_sanitize_likelihood(double like, ssm_fitness_t *fitness, ssm_nav_t *nav)
 {

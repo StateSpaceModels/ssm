@@ -6,7 +6,7 @@
  * Diffusion function for the Extended Kalman Filter
  */
 {% for noises_off, tpl in Q.items() %}
-void ssm_evalQ_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc)
+void ssm_eval_Q_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc)
 {
     int i, j;
 

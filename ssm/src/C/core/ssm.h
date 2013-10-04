@@ -103,7 +103,7 @@ typedef struct _nav ssm_nav_t;
  * Everything needed to perform computations (possibly in parallel)
  * and store transiant states in a thread-safe way
  */
-typedef struct /*[N_THREADS] : for parallel computing we need N_THREADS replication of the structure...*/
+typedef struct ssm_calc_t /*[N_THREADS] : for parallel computing we need N_THREADS replication of the structure...*/
 {
     int seed;
     int threads_length; /**< the total number of threads */
@@ -134,6 +134,8 @@ typedef struct /*[N_THREADS] : for parallel computing we need N_THREADS replicat
     double *y_pred; /**< used to store y predicted for Euler Maruyama */
 
     /* Kalman */
+    void (*eval_Q)(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, struct ssm_calc_t *calc);
+
     gsl_vector *_pred_error;    /**< [nav->observed_length] */
     gsl_matrix *_St;            /**< [nav->observed_length][nav->observed_length] */
     gsl_matrix *_Stm1;          /**< [nav->observed_length][nav->observed_length] */
@@ -667,10 +669,10 @@ void ssm_eval_jac(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ss
 void ssm_eval_Ht(ssm_X_t *p_X, ssm_row_t *row, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
 
 /* Q_template.c */
-void ssm_evalQ_no_dem_sto(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-void ssm_evalQ_no_env_sto(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-void ssm_evalQ_full(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-void ssm_evalQ_no_dem_sto_no_env_sto(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+void ssm_eval_Q_no_dem_sto(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+void ssm_eval_Q_no_env_sto(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+void ssm_eval_Q_full(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+void ssm_eval_Q_no_dem_sto_no_env_sto(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
 
 /* step_ekf_template.c */
 int ssm_step_ekf(double t, const double X[], double f[], void *params);
