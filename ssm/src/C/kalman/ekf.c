@@ -18,6 +18,87 @@
 
 #include "ssm.h"
 
+
+/**
+ * Brings Ct back to being symetric and semi-definite positive,
+ * in case numerical instabilities made it lose these properties.
+ *
+ * In theory the EKF shouldn't need this,
+ * and there is no right way to bring back a wrong covariance matrix to being right,
+ * but this is the most natural way to go as far as I know.
+ * We shouldn't need this anymore with the Square-Root Unscented Kalman Filter.
+ */
+ssm_err_code_t check_and_correct_Ct(ssm_X_t *X, ssm_calc_t *calc)
+{
+    char str[STR_BUFFSIZE];
+
+    int i,j;
+    ssm_err_code_t cum_status = SSM_SUCCESS;
+    int status;
+
+    //////////////////////
+    // STEP 1: SYMMETRY //
+    //////////////////////
+    // Ct = (Ct + Ct')/2
+
+
+    gsl_matrix *Temp = calc->Ft; // temporary matrix
+    gsl_matrix_memcpy(Temp, Ct);	// temp = Ct
+
+    for(i=0; i< Ct->size1; i++){
+	for(j=0; j< Ct->size2; j++){
+	    gsl_matrix_set(Ct, i, j, ((gsl_matrix_get(Temp, i, j) + gsl_matrix_get(Temp, j, i)) / 2.0) ); 	   
+	}
+    }
+    
+    ////////////////////////
+    // STEP 2: POSITIVITY //
+    ////////////////////////
+    // Bringing negative eigen values of Ct back to zero
+
+    // compute the eigen values and vectors of Ct
+    gsl_vector *eval = calc->eval;	    // to store the eigen values    
+    gsl_matrix *evec = calc->evec;      // to store the eigen vectors
+    gsl_eigen_symmv_workspace *w = calc->w_eigen_vv;
+
+    //IMPORTANT: The diagonal and lower triangular part of Ct are destroyed during the computation so we do the computation on temp
+    status = gsl_eigen_symmv(Temp, eval, evec, w);
+    cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
+
+    gsl_matrix_set_zero(Temp);
+
+    int change_basis = 0;
+    // eval = max(eval,0) and diag(eval)
+    for (i=0; i<N_KAL; i++) {
+        if (gsl_vector_get(eval,i) < 0.0) {
+            gsl_vector_set(eval, i, 0.0); // keeps bringing negative eigen values to 0
+	    change_basis = 1;
+        }
+        gsl_matrix_set(Temp, i, i, gsl_vector_get(eval, i)); // puts the eigen values in the diagonal of temp
+    }
+
+    if(change_basis){
+	gsl_matrix *Temp2 = p->FtCt; // temporary matrix
+
+	//////////////////
+	// basis change //
+	//////////////////
+
+	// Ct = evec * temp * evec'
+
+	// Temp2 = 1.0*Temp*t(evec) + 0.0*Temp2
+	status = gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, Temp, evec, 0.0, Temp2);
+	cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
+
+	// Ct = 1.0*evec*Temp2 + 0.0*Temp2;
+	status = gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, evec, Temp2, 0.0, Ct);
+	cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
+    }
+
+    return cum_status;
+}
+
+
 /**
  * Computation of the EKF gain kt for observation data_t_ts and obs
  * jacobian ht, given estimate xk_t_ts and current covariance Ct
@@ -56,6 +137,9 @@ ssm_err_code_t ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X,
     for(i=0; i< row->ts_nonan_length; i++){
         gsl_vector_set(&pred_error.vector,i,row->values[i] - row->observed[i]->f_obs_mean(X, par, calc, t));
     }
+
+    // positivity and symetry could have been lost when propagating Ct
+    cum_status |= ssm_err_code_t check_and_correct_Ct(X, calc);
 
 
     // sc_st = Ht' * Ct * Ht + sc_rt
@@ -107,6 +191,7 @@ ssm_err_code_t ssm_kalman_update(ssm_X_t *X, ssm_row_t *row, double t, ssm_par_t
     gsl_vector_view X_sv = gsl_vector_view_array(X->proj,m);
     gsl_matrix_view Ht = gsl_matrix_submatrix(calc->_Ht,0,0,m,row->ts_nonan_length);
     gsl_matrix_view Ct =  gsl_matrix_view_array(&X->proj[m], m, m);
+    gsl_matrix_view St = gsl_matrix_submatrix(calc->_St,0,0,row->ts_nonan_length,row->ts_nonan_length);
 
     ssm_err_code_t cum_status = ssm_kalman_gain_computation(row, t, X, par, calc, nav);
 
@@ -126,6 +211,13 @@ ssm_err_code_t ssm_kalman_update(ssm_X_t *X, ssm_row_t *row, double t, ssm_par_t
 
     status = gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, -1.0, &Kt.matrix, &Tmp.matrix, 0.0, &Ct.matrix);
     cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
+
+    // positivity and symmetry could have been lost when updating Ct
+    cum_status |= ssm_err_code_t check_and_correct_Ct(X, calc);
+    
+    // loglik
+
+    like->loglik += log(dmvnorm(row->ts_nonan_length, pred_error, St);
 
     return cum_status;
 }

@@ -145,6 +145,9 @@ typedef struct /*[N_THREADS] : for parallel computing we need N_THREADS replicat
     gsl_matrix *_Q;             /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
     gsl_matrix *_FtCt;          /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
     gsl_matrix *_Ft;            /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
+    gsl_vector *eval_nkal;      /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
+    gsl_matrix *evec_nkal;      /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
+    gsl_eigen_symmv_workspace *w_eigen_vv;  /**< workspace to compute eigen values and eigen vector for symmetric matrix */
 
     //multi-threaded sorting
     double *to_be_sorted;  /**< [fitness->J] array of the J particle to be sorted*/
@@ -611,6 +614,8 @@ void ssm_print_err(char *msg);
 int main(int argc, char *argv[]);
 
 /* ekf.c */
+
+ssm_err_code_t ssm_check_and_correct_Ct(ssm_X_t *X, ssm_calc_t *calc);
 ssm_err_code_t ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav);
 ssm_err_code_t ssm_kalman_update(ssm_X_t *X, ssm_row_t *row, double t, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *like);
 double ssm_diff_derivative(double jac_tpl, ssm_X_t *X, ssm_nav_t *nav, int ind);
