@@ -603,6 +603,19 @@ void ssm_print_log(char *msg);
 void ssm_print_warning(char *msg);
 void ssm_print_err(char *msg);
 
+/****************************/
+/* kalman function signatures */
+/****************************/
+
+/* main_kalman.c */
+int main(int argc, char *argv[]);
+
+/* ekf.c */
+ssm_err_code_t ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav);
+ssm_err_code_t ssm_kalman_update(ssm_X_t *X, ssm_row_t *row, double t, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *like);
+double ssm_diff_derivative(double jac_tpl, ssm_X_t *X, ssm_nav_t *nav, int ind);
+
+
 /*********************************/
 /* templated function signatures */
 /*********************************/

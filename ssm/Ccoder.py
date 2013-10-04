@@ -741,7 +741,7 @@ class Ccoder(Cmodel):
 
             #see doc of kalman.c diff_derivative()
             for sy in self.par_diff:
-                Cterm = self.make_C_term(odeDict[self.par_sv[s]], True, derivate=sy)
+                Cterm = self.make_C_term(odeDict[self.par_sv[s]], True, derivate=sy[6:len(sy)])
                 jac_diff[s].append({'value': Cterm,
                                      'der': self.make_C_term(sy, True),
                                      'name': sy})

@@ -86,7 +86,7 @@ void ssm_eval_jac(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ss
         gsl_matrix_set(Ft,
                        states_sv->p[{{ outer_loop.index0 }}]->offset,
                        states_diff->p[{{ loop.index0 }}]->offset,
-                       _r[{{ jac_ii }}]); //TODO FIX: add drift_derivative
+		       ssm_diff_derivative(_r[{{ jac_ii.value }}], X, nav, {{ loop.index0 }}));
         {% endfor %}
         {% endfor %}
 
@@ -98,7 +98,7 @@ void ssm_eval_jac(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ss
         gsl_matrix_set(Ft,
                        states_inc->p[{{ outer_loop.index0 }}]->offset,
                        nav->states_diff->p[{{ loop.index0 }}]->offset,
-                       _r[{{ jac_ii }}]); //TODO FIX: add drift_derivative
+		       ssm_diff_derivative(_r[{{ jac_ii.value }}], X, nav, {{ loop.index0 }}));
         {% endfor %}
         {% endfor %}
 
