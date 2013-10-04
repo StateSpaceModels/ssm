@@ -18,39 +18,41 @@
 
 #include "ssm.h"
 
-void ssm_print_log(char *msg)
+void ssm_print_log(char *data)
 {
     json_t *root;
-    root = json_pack("{s,s,s,s}", "flag", "log", "msg", msg);
+    root = json_pack("{s,s,s,s}", "id", "log", "data", data);
     json_dumpf(root, stdout, 0); printf("\n");
     fflush(stdout);
     json_decref(root);
 }
 
-
-void ssm_print_warning(char *msg)
+void ssm_print_warning(char *data)
 {
     json_t *root;
-    root = json_pack("{s,s,s,s}", "flag", "wrn", "msg", msg);
+    root = json_pack("{s,s,s,s}", "id", "wrn", "data", data);
     json_dumpf(root, stdout, 0); printf("\n");
     fflush(stdout);
     json_decref(root);
 }
 
-
-void ssm_print_err(char *msg)
+void ssm_print_err(char *data)
 {
     json_t *root;
-    root = json_pack("{s,s,s,s}", "flag", "err", "msg", msg);
+    root = json_pack("{s,s,s,s}", "id", "err", "data", data);
     json_dumpf(root, stderr, 0); fprintf(stderr,"\n");
     fflush(stderr);
     json_decref(root);
 }
 
+void ssm_json_dumpf(FILE *stream, const char *id, json_t *data)
+{
+    json_t *root = json_pack("{s,s,s,o}", "id", id, "data", data);
+    json_dumpf(root, stdout, JSON_COMPACT); printf("\n");
+    fflush(stdout);
+    json_decref(root);
+}
 
-/**
- * print X
- */
 void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, const int index, const double t)
 {
     int i;
@@ -94,7 +96,24 @@ void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm
         json_object_set_new(jout, strcat(prefix, observed->name), json_real(observed->f_obs_ran(p_X, par, calc, t)));
     }
 
-    json_dumpf(jout, stream, 0);
+    ssm_json_dumpf(stream, "X", jout);
+}
 
-    json_decref(jout);
+
+void ssm_print_trace(FILE *stream, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, const int index, const double fitness)
+{
+    int i;
+    ssm_parameter_t *parameter;
+
+    json_t *jout = json_object();
+    json_object_set_new(jout, "index", json_integer(index)); // m
+
+    for(i=0; i < nav->theta_all->length; i++) {
+        parameter = nav->theta_all->p[i];
+        json_object_set_new(jout, parameter->name, json_real(parameter->f_par2user(gsl_vector_get(par, parameter->offset), par, calc)));
+    }
+
+    json_object_set_new(jout, "fitness", isnan(fitness) ? json_null() : json_real(fitness));
+
+    ssm_json_dumpf(stream, "trace", jout);
 }

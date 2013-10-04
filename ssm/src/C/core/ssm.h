@@ -220,7 +220,7 @@ typedef struct
     double (*prior) (double x); /**< prior */
 
     double (*f_user2par) (double, ssm_input_t *, ssm_calc_t *); /**< from original user scale to par */
-    double (*f_par2user) (double, ssm_input_t *, ssm_calc_t *); /**< from par to original user scale */
+    double (*f_par2user) (double, ssm_par_t *, ssm_calc_t *); /**< from par to original user scale */
 
 } ssm_parameter_t;
 
@@ -605,10 +605,12 @@ const gsl_interp_type *ssm_str_to_interp_type(const char *optarg);
 int ssm_sanitize_n_threads(int n_threads, ssm_fitness_t *fitness);
 
 /* print.c */
+void ssm_json_dumpf(FILE *stream, const char *flag, json_t *msg);
 void ssm_print_log(char *msg);
 void ssm_print_warning(char *msg);
 void ssm_print_err(char *msg);
 void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, const int index, const double t);
+void ssm_print_trace(FILE *stream, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, const int index, const double fitness);
 
 /****************************/
 /* kalman function signatures */

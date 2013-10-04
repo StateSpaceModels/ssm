@@ -73,7 +73,7 @@ static double f_user2par_tpl_{{ p.id }}(double x, ssm_input_t *par, ssm_calc_t *
 }
 {% endif %}
 {% if 'f_par2user' in p %}
-static double f_par2user_tpl_{{ p.id }}(double x, ssm_input_t *par, ssm_calc_t *calc)
+static double f_par2user_tpl_{{ p.id }}(double x, ssm_par_t *par, ssm_calc_t *calc)
 {
     return {{ p.f_par2user }};
 }
