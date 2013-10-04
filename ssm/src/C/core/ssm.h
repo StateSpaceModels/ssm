@@ -324,15 +324,17 @@ typedef struct
     double like_min; /**< mimimun value of the likelihood */
     double log_like_min; /**< mimimun value of the log likelihood */
 
-    double least_square;
+    double err_square_n; /**< square of error (data-prediction) at n */
+    double err_square;   /**< square of error (data-prediction) */
 
     double ess_n;               /**< effective sample size at n (sum(weight))^2 / sum(weight^2)*/
     double log_like_n ;         /**< log likelihood for the best parameter at n*/
     double log_like;            /**< log likelihood for the best parameter*/
-    double *weights;            /**< [this.J] the weights */
-    ssm_err_code_t *cum_status;   /**< [this.J] cumulated f_prediction status */
 
-    unsigned int **select;      /**< [this.n_data][this.J] select is a vector with the indexes of the resampled particles. Note that we keep this.n_data values to keep genealogies */
+    double *weights;            /**< [this.J] the weights */
+    unsigned int **select;      /**< [this.data_length][this.J] select is a vector with the indexes of the resampled particles. Note that we keep this.n_data values to keep genealogies */
+
+    ssm_err_code_t *cum_status;   /**< [this.J] cumulated f_prediction status */
 
     int n_all_fail;             /**< number of times when every particles had like < LIKE_MIN within one iteration */
 

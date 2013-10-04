@@ -742,7 +742,11 @@ ssm_calc_t **ssm_N_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (do
 ssm_options_t *ssm_options_new(void)
 {
     ssm_options_t *opts = malloc(sizeof(ssm_options_t));
-
+    if (opts==NULL) {
+        ssm_print_err("Allocation impossible for ssm_options_t *");
+        exit(EXIT_FAILURE);
+    }
+    
     //alloc char *
     opts->freeze_forcing = ssm_c1_new(SSM_STR_BUFFSIZE);
     opts->path = ssm_c1_new(SSM_STR_BUFFSIZE);
@@ -809,4 +813,57 @@ void ssm_options_free(ssm_options_t *opts)
     free(opts->server);
 
     free(opts);
+}
+
+
+ssm_fitness_t *ssm_fitness_new(ssm_data_t *data, ssm_options_t *opts)
+{
+    ssm_fitness_t *fitness = malloc(sizeof(ssm_fitness_t));
+    if (fitness==NULL) {
+        ssm_print_err("Allocation impossible for ssm_fitness_t *");
+        exit(EXIT_FAILURE);
+    }
+    
+    fitness->J = opts->J;
+    fitness->data_length = data->length;
+    fitness->like_min = opts->like_min;
+    fitness->log_like_min = log(fitness->like_min);
+
+    fitness->err_square_n = 0.0;
+    fitness->err_square = 0.0;
+
+    fitness->ess_n = 0.0;
+    fitness->log_like_n = 0.0;
+    fitness->log_like = 0.0;
+
+    fitness->weights = ssm_d1_new(fitness->J);
+    fitness->select = ssm_u2_new(fitness->data_length, fitness->J);
+    
+    fitness->cum_status = malloc(fitness->J * sizeof (ssm_err_code_t));
+    if(fitness->cum_status == NULL) {
+	ssm_print_err("Allocation impossible for fitness->cum_status");
+	exit(EXIT_FAILURE);
+    }
+
+    fitness->n_all_fail = 0;
+
+    fitness->log_like_prev = 0.0;
+    fitness->log_like_new = 0.0;
+
+    fitness->prior_probs = ssm_d1_new(fitness->J);
+
+    return fitness;
+}
+
+
+void ssm_fitness_free(ssm_fitness_t *fitness)
+{
+    free(fitness->weights);
+    ssm_u2_free(fitness->select, fitness->data_length);
+    
+    free(fitness->cum_status);
+
+    free(fitness->prior_probs);
+
+    free(fitness);
 }
