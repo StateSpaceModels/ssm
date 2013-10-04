@@ -765,7 +765,7 @@ ssm_options_t *ssm_options_new(void)
     opts->flag_seed_time = 0;
     opts->flag_pipe = 0;
     opts->flag_prior = 0;
-    opts->dt = -1.0;
+    opts->dt = 0.25;
     opts->eps_abs = 1e-6;
     opts->eps_rel = 1e-3;
     strncpy(opts->freeze_forcing, "", SSM_STR_BUFFSIZE);
@@ -866,4 +866,84 @@ void ssm_fitness_free(ssm_fitness_t *fitness)
     free(fitness->prior_probs);
 
     free(fitness);
+}
+
+
+ssm_X_t *ssm_X_new(int size, ssm_options_t *opts)
+{
+    ssm_X_t *X = malloc(sizeof (ssm_X_t));
+    if (X==NULL) {
+        ssm_print_err("Allocation impossible for ssm_X_t");
+        exit(EXIT_FAILURE);
+    }
+
+    X->length = size; 
+    
+    X->dt = 1.0/ ((double) round(1.0/opts->dt)); //IMPORTANT: for non adaptive time step methods, we ensure an integer multiple of dt in between 2 data points    
+    X->dt0 = X->dt;
+
+    X->proj = ssm_d1_new(size);
+
+    return X;
+}
+
+void ssm_X_free(ssm_X_t *X)
+{
+    free(X->proj);
+    free(X);
+}
+
+
+ssm_X_t **ssm_J_X_new(ssm_fitness_t *fitness, int size, ssm_options_t *opts)
+{
+    int i;
+    ssm_X_t **X = malloc(fitness->J * sizeof (ssm_X_t *));
+    if (X==NULL) {
+        ssm_print_err("Allocation impossible for ssm_X_t *");
+        exit(EXIT_FAILURE);
+    }
+
+    for(i=0; i<fitness->J; i++){
+	X[i] = ssm_X_new(size, opts);
+    }
+
+    return X;
+}
+
+void ssm_J_X_free(ssm_fitness_t *fitness, ssm_X_t **X)
+{
+    int i;
+    
+    for(i=0; i<fitness->J; i++){
+	ssm_X_free(X[i]);
+    }
+
+    free(X);
+}
+
+ssm_X_t ***ssm_D_J_X_new(ssm_data_t *data, ssm_fitness_t *fitness, int size, ssm_options_t *opts)
+{
+    int i;
+    ssm_X_t ***X = malloc((data->length+1) * sizeof (ssm_X_t **));
+    if (X==NULL) {
+        ssm_print_err("Allocation impossible for ssm_X_t **");
+        exit(EXIT_FAILURE);
+    }
+
+    for(i=0; i<data->length; i++){
+	X[i] = ssm_J_X_new(fitness, size, opts);
+    }
+
+    return X;
+}
+
+void ssm_D_J_X_free(ssm_data_t *data, ssm_fitness_t *fitness, ssm_X_t ***X)
+{
+    int i;
+    
+    for(i=0; i<data->length; i++){
+	ssm_J_X_free(fitness, X[i]);
+    }
+
+    free(X);
 }

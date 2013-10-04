@@ -177,7 +177,7 @@ typedef struct /*[N_THREADS] : for parallel computing we need N_THREADS replicat
 typedef struct  /* optionaly [N_DATA+1][J] for MIF and pMCMC "+1" is for initial condition (one time step before first data)  */
 {
     int length;
-    double *proj; /**< values */
+    double *proj; /**< [this.length] values */
 
     double dt;  /**< the integration time step (for ODE solved with adaptive time step solvers) */
     double dt0; /**< the integration time step initially picked by the user */
@@ -520,6 +520,14 @@ void ssm_calc_free(ssm_calc_t *calc, ssm_nav_t *nav);
 void ssm_N_calc_free(ssm_calc_t **calc, ssm_nav_t *nav);
 ssm_options_t *ssm_options_new(void);
 void ssm_options_free(ssm_options_t *opts);
+ssm_fitness_t *ssm_fitness_new(ssm_data_t *data, ssm_options_t *opts);
+void ssm_fitness_free(ssm_fitness_t *fitness);
+ssm_X_t *ssm_X_new(int size, ssm_options_t *opts);
+void ssm_X_free(ssm_X_t *X);
+ssm_X_t **ssm_J_X_new(ssm_fitness_t *fitness, int size, ssm_options_t *opts);
+void ssm_J_X_free(ssm_fitness_t *fitness, ssm_X_t **X);
+ssm_X_t ***ssm_D_J_X_new(ssm_data_t *data, ssm_fitness_t *fitness, int size, ssm_options_t *opts);
+void ssm_D_J_X_free(ssm_data_t *data, ssm_fitness_t *fitness, ssm_X_t ***X);
 
 /* load.c */
 json_t *ssm_load_json_stream(FILE *stream);
