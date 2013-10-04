@@ -18,6 +18,17 @@
 
 #include "ssm.h"
 
+
+struct opts_part{
+    char *s;
+    int val;
+    char *l;
+    char *description;
+    int has_arg;
+    ssm_algo_t algo;
+};
+
+
 void ssm_load_options(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv[])
 {
     struct opts_part all_opts[] = {
@@ -105,7 +116,6 @@ void ssm_load_options(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
     long_options[n_opts].val = 0;
 
     int c;
-    char str[SSM_STR_BUFFSIZE];
 
     while (1) {
         /* getopt_long stores the option index here. */
@@ -217,7 +227,7 @@ void ssm_load_options(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
             break;
 
         case 'V': //size
-	    opts->size_stop = atoi(optarg);	   
+	    opts->size_stop = atof(optarg);	   
             break;
 
         case 'X': //chunk

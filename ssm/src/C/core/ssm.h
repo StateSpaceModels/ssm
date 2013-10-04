@@ -437,7 +437,7 @@ typedef struct
     int flag_zmq;            /**< dispatch particles across machines using a zeromq pipeline */
     int chunk;               /**< number of particles to send to each machine */
     int flag_least_squares;  /**< optimize the sum of square instead of the likelihood */
-    int size_stop;           /**< simplex size used as a stopping criteria */
+    double size_stop;        /**< simplex size used as a stopping criteria */
     char *freq;             /**< print the outputs (and reset incidences to 0 if any) every day (D), week (W), bi-week (B), month (M  or year (Y) */
     char *start;             /**< ISO 8601 date when the simulation starts*/
     char *end;               /**< ISO 8601 date when the simulation ends*/
