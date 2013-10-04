@@ -74,7 +74,7 @@ class Cmodel:
                         float(e)
                     except ValueError:
                         par_proc.add(e)
-            
+
             if 'white_noise' in r:
                 par_noise.add(r['white_noise']['sd'])
                 if r['white_noise']['id'] not in [y['id'] for y in self.white_noise]:
@@ -112,7 +112,7 @@ class Cmodel:
         ##all parameters
         self.all_par = self.par_sv + self.par_inc + self.remainder + self.par_diff + self.par_vol + self.par_noise + self.par_proc +  self.par_obs + self.par_fixed + ['t']
 
-        ##orders
+        ##orders in nav->states and nav->parameters
         self.order_states = {x:i for i,x in enumerate(self.par_sv + self.par_inc + self.par_diff + self.remainder)}
         self.order_parameters = {x:i for i,x in enumerate(self.par_sv + self.par_vol + self.par_noise + self.par_proc + self.par_obs)}
 

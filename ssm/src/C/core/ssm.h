@@ -103,7 +103,7 @@ typedef struct _nav ssm_nav_t;
  * Everything needed to perform computations (possibly in parallel)
  * and store transiant states in a thread-safe way
  */
-typedef struct /*[N_THREADS] : for parallel computing we need N_THREADS replication of the structure...*/
+typedef struct ssm_calc_t /*[N_THREADS] : for parallel computing we need N_THREADS replication of the structure...*/
 {
     int seed;
     int threads_length; /**< the total number of threads */
@@ -134,6 +134,8 @@ typedef struct /*[N_THREADS] : for parallel computing we need N_THREADS replicat
     double *y_pred; /**< used to store y predicted for Euler Maruyama */
 
     /* Kalman */
+    void (*eval_Q)(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, struct ssm_calc_t *calc);
+
     gsl_vector *_pred_error;    /**< [nav->observed_length] */
     gsl_matrix *_St;            /**< [nav->observed_length][nav->observed_length] */
     gsl_matrix *_Stm1;          /**< [nav->observed_length][nav->observed_length] */
@@ -448,7 +450,7 @@ typedef struct
     char *end;               /**< ISO 8601 date when the simulation ends*/
     int skip;                /**< number of days to skip (used to skip transient dynamics) */
     char *server;            /**< domain name or IP address of the particule server (e.g 127.0.0.1) */
-    int flag_no_filter;      /**< do not filter */      
+    int flag_no_filter;      /**< do not filter */
 } ssm_options_t;
 
 
@@ -551,8 +553,9 @@ char **ssm_load_jc1_new(json_t *container, const char *name);
 void ssm_load_options(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv[]);
 
 /* fitness.c */
-double ssm_log_likelihood(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav);
-double ssm_sum_square(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav);
+double ssm_sanitize_likelihood(double like, ssm_fitness_t *fitness, ssm_nav_t *nav);
+double ssm_log_likelihood(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness);
+double ssm_sum_square(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness);
 
 /* prediction_util.c */
 void ssm_X_copy(ssm_X_t *dest, ssm_X_t *src);
@@ -618,7 +621,7 @@ int main(int argc, char *argv[]);
 ssm_err_code_t ssm_check_and_correct_Ct(ssm_X_t *X, ssm_calc_t *calc);
 ssm_err_code_t ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav);
 ssm_err_code_t ssm_kalman_update(ssm_X_t *X, ssm_row_t *row, double t, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *like);
-double ssm_diff_derivative(double jac_tpl, ssm_X_t *X, ssm_nav_t *nav, int ind);
+double ssm_diff_derivative(double jac_tpl, const double X[], ssm_state_t *state);
 
 
 /*********************************/
@@ -671,10 +674,10 @@ void ssm_eval_jac(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ss
 void ssm_eval_Ht(ssm_X_t *p_X, ssm_row_t *row, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
 
 /* Q_template.c */
-void ssm_evalQ_no_dem_sto(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-void ssm_evalQ_no_env_sto(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-void ssm_evalQ_full(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-void ssm_evalQ_no_dem_sto_no_env_sto(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+void ssm_eval_Q_no_dem_sto(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+void ssm_eval_Q_no_env_sto(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+void ssm_eval_Q_full(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+void ssm_eval_Q_no_dem_sto_no_env_sto(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
 
 /* step_ekf_template.c */
 int ssm_step_ekf(double t, const double X[], double f[], void *params);

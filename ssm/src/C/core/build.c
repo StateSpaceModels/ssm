@@ -270,7 +270,7 @@ void _ssm_state_free(ssm_state_t *state)
 
 
 void ssm_nav_free(ssm_nav_t *nav)
-{   
+{
     int i;
 
     _ssm_it_states_free(nav->states_sv);
@@ -286,20 +286,20 @@ void ssm_nav_free(ssm_nav_t *nav)
 
     _ssm_it_parameters_free(nav->theta_all);
     _ssm_it_parameters_free(nav->theta_no_icsv_no_icdiff);
-    _ssm_it_parameters_free(nav->theta_icsv_icdiff); 
+    _ssm_it_parameters_free(nav->theta_icsv_icdiff);
 
     for(i=0; i<nav->parameters_length; i++){
-	_ssm_parameter_free(nav->parameters[i]);
+        _ssm_parameter_free(nav->parameters[i]);
     }
     free(nav->parameters);
 
     for(i=0; i<nav->states_length; i++){
-	_ssm_state_free(nav->states[i]);
+        _ssm_state_free(nav->states[i]);
     }
     free(nav->states);
 
     for(i=0; i<nav->observed_length; i++){
-	_ssm_observed_free(nav->observed[i]);
+        _ssm_observed_free(nav->observed[i]);
     }
     free(nav->observed);
 
@@ -444,7 +444,7 @@ void ssm_data_free(ssm_data_t *data)
     free(data->ind_nonan);
 
     for(i=0; i< data->length; i++){
-	_ssm_row_free(data->rows[i]);
+        _ssm_row_free(data->rows[i]);
     }
     free(data->rows);
 
@@ -518,6 +518,32 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (doubl
         calc->yerr = ssm_d1_new(dim_ode);
 
         if(nav->implementation == SSM_EKF){
+
+            int can_run;
+
+            if ( (nav->noises_off & (SSM_NO_DEM_STO)) && (nav->noises_off & (SSM_NO_WHITE_NOISE)) )  {
+                calc->eval_Q = &ssm_eval_Q_no_dem_sto_no_env_sto;
+                can_run = 0;
+            } else if ((nav->noises_off & SSM_NO_DEM_STO) && !(nav->noises_off & SSM_NO_WHITE_NOISE)) {
+                calc->eval_Q = &ssm_eval_Q_no_dem_sto;
+                can_run = nav->par_noise->length;
+            } else if (!(nav->noises_off & SSM_NO_DEM_STO) && (nav->noises_off & SSM_NO_WHITE_NOISE)) {
+                calc->eval_Q = &ssm_eval_Q_no_env_sto;
+                can_run = 1;
+            } else {
+                calc->eval_Q = &ssm_eval_Q_full;
+                can_run = 1;
+            }
+
+            if(!(nav->noises_off & SSM_NO_DIFF)){
+                can_run += nav->states_diff->length;
+            }
+
+            if(!can_run){
+                ssm_print_err("kalman methods must be used with at least one brownian motion.");
+                exit(EXIT_FAILURE);
+            }
+
             int n_s = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
             int n_o = nav->observed_length;
             calc->_pred_error = gsl_vector_calloc(n_o);
@@ -673,9 +699,9 @@ void ssm_calc_free(ssm_calc_t *calc, ssm_nav_t *nav)
         }
 
     } else if (nav->implementation == SSM_SDE){
-	free(calc->y_pred);
+        free(calc->y_pred);
     } else if (nav->implementation == SSM_PSR){
-	ssm_psr_free(calc);
+        ssm_psr_free(calc);
     }
 
     free(calc->to_be_sorted);
@@ -683,12 +709,12 @@ void ssm_calc_free(ssm_calc_t *calc, ssm_nav_t *nav)
 
     int k;
     for(k=0; k< calc->covariates_length; k++) {
-	if(calc->spline[k]){
-	    gsl_spline_free(calc->spline[k]);
-	}
-	if(calc->acc[k]){
-	    gsl_interp_accel_free(calc->acc[k]);	    
-	}
+        if(calc->spline[k]){
+            gsl_spline_free(calc->spline[k]);
+        }
+        if(calc->acc[k]){
+            gsl_interp_accel_free(calc->acc[k]);
+        }
     }
 
     free(calc->spline);
@@ -746,7 +772,7 @@ ssm_options_t *ssm_options_new(void)
         ssm_print_err("Allocation impossible for ssm_options_t *");
         exit(EXIT_FAILURE);
     }
-    
+
     //alloc char *
     opts->freeze_forcing = ssm_c1_new(SSM_STR_BUFFSIZE);
     opts->path = ssm_c1_new(SSM_STR_BUFFSIZE);
@@ -823,7 +849,7 @@ ssm_fitness_t *ssm_fitness_new(ssm_data_t *data, ssm_options_t *opts)
         ssm_print_err("Allocation impossible for ssm_fitness_t *");
         exit(EXIT_FAILURE);
     }
-    
+
     fitness->J = opts->J;
     fitness->data_length = data->length;
     fitness->like_min = opts->like_min;
@@ -838,11 +864,11 @@ ssm_fitness_t *ssm_fitness_new(ssm_data_t *data, ssm_options_t *opts)
 
     fitness->weights = ssm_d1_new(fitness->J);
     fitness->select = ssm_u2_new(fitness->data_length, fitness->J);
-    
+
     fitness->cum_status = malloc(fitness->J * sizeof (ssm_err_code_t));
     if(fitness->cum_status == NULL) {
-	ssm_print_err("Allocation impossible for fitness->cum_status");
-	exit(EXIT_FAILURE);
+        ssm_print_err("Allocation impossible for fitness->cum_status");
+        exit(EXIT_FAILURE);
     }
 
     fitness->n_all_fail = 0;
@@ -860,7 +886,7 @@ void ssm_fitness_free(ssm_fitness_t *fitness)
 {
     free(fitness->weights);
     ssm_u2_free(fitness->select, fitness->data_length);
-    
+
     free(fitness->cum_status);
 
     free(fitness->prior_probs);
@@ -877,9 +903,9 @@ ssm_X_t *ssm_X_new(int size, ssm_options_t *opts)
         exit(EXIT_FAILURE);
     }
 
-    X->length = size; 
-    
-    X->dt = 1.0/ ((double) round(1.0/opts->dt)); //IMPORTANT: for non adaptive time step methods, we ensure an integer multiple of dt in between 2 data points    
+    X->length = size;
+
+    X->dt = 1.0/ ((double) round(1.0/opts->dt)); //IMPORTANT: for non adaptive time step methods, we ensure an integer multiple of dt in between 2 data points
     X->dt0 = X->dt;
 
     X->proj = ssm_d1_new(X->length);
@@ -904,7 +930,7 @@ ssm_X_t **ssm_J_X_new(ssm_fitness_t *fitness, int size, ssm_options_t *opts)
     }
 
     for(i=0; i<fitness->J; i++){
-	X[i] = ssm_X_new(size, opts);
+        X[i] = ssm_X_new(size, opts);
     }
 
     return X;
@@ -913,9 +939,9 @@ ssm_X_t **ssm_J_X_new(ssm_fitness_t *fitness, int size, ssm_options_t *opts)
 void ssm_J_X_free(ssm_X_t **X, ssm_fitness_t *fitness)
 {
     int i;
-    
+
     for(i=0; i<fitness->J; i++){
-	ssm_X_free(X[i]);
+        ssm_X_free(X[i]);
     }
 
     free(X);
@@ -931,7 +957,7 @@ ssm_X_t ***ssm_D_J_X_new(ssm_data_t *data, ssm_fitness_t *fitness, int size, ssm
     }
 
     for(i=0; i<data->length+1; i++){
-	X[i] = ssm_J_X_new(fitness, size, opts);
+        X[i] = ssm_J_X_new(fitness, size, opts);
     }
 
     return X;
@@ -940,9 +966,9 @@ ssm_X_t ***ssm_D_J_X_new(ssm_data_t *data, ssm_fitness_t *fitness, int size, ssm
 void ssm_D_J_X_free(ssm_X_t ***X, ssm_data_t *data, ssm_fitness_t *fitness)
 {
     int i;
-    
+
     for(i=0; i<data->length+1; i++){
-	ssm_J_X_free(X[i], fitness);
+        ssm_J_X_free(X[i], fitness);
     }
 
     free(X);
@@ -957,12 +983,12 @@ ssm_hat_t *ssm_hat_new(int size)
         exit(EXIT_FAILURE);
     }
 
-    hat->length = size; 
+    hat->length = size;
 
     hat->states = ssm_d1_new(hat->length);
     hat->states_95 = ssm_d2_new(hat->length, 2);
 
-    return hat;   
+    return hat;
 }
 
 void ssm_hat_free(ssm_hat_t *hat)
@@ -970,7 +996,7 @@ void ssm_hat_free(ssm_hat_t *hat)
     free(hat->states);
     ssm_d2_free(hat->states_95, hat->length);
 
-    free(hat);       
+    free(hat);
 }
 
 
@@ -985,7 +1011,7 @@ ssm_hat_t **ssm_D_hat_new(ssm_data_t *data, int size)
     }
 
     for(i=0; i<data->length+1; i++){
-	hat[i] = ssm_hat_new(size);
+        hat[i] = ssm_hat_new(size);
     }
 
     return hat;
@@ -995,9 +1021,9 @@ ssm_hat_t **ssm_D_hat_new(ssm_data_t *data, int size)
 void ssm_D_hat_free(ssm_hat_t **hat, ssm_data_t *data)
 {
     int i;
-    
+
     for(i=0; i<data->length +1; i++){
-	ssm_hat_free(hat[i]);
+        ssm_hat_free(hat[i]);
     }
 
     free(hat);

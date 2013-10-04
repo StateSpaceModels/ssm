@@ -78,6 +78,8 @@ class Builder(Data, Ccoder):
 
         ##methods whose results are use multiple times
         step_ode_sde = self.step_ode_sde()
+        jac = self.jac(step_ode_sde['sf'])
+
         self.render('ode_sde', {'is_diff': is_diff, 'step':step_ode_sde, 'orders': orders})
 
         parameters = self.parameters()
@@ -108,12 +110,12 @@ class Builder(Data, Ccoder):
 
         self.render('Ht', {'Ht': self.Ht(), 'is_diff': is_diff, 'orders': orders})
 
-        self.render('jac', {'jac': self.jac(step_ode_sde['sf']), 'is_diff': is_diff, 'step':self.step_ode_sde(), 'orders': orders})
+        self.render('jac', {'jac': jac, 'is_diff': is_diff, 'orders': orders})
 
-        self.render('step_ekf', {'is_diff': is_diff, 'step':self.step_ode_sde(), 'orders': orders})
+        self.render('step_ekf', {'is_diff': is_diff, 'step': step_ode_sde, 'orders': orders})
 
         self.render('check_ic', parameters)
-        
+
     def write_data(self):
 
         x = {'starts': [x.isoformat() for x in self.starts], 'data': self.prepare_data(), 'covariates': self.prepare_covariates()}

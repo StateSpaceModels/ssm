@@ -29,15 +29,15 @@ static double f_inv_der_tpl_skl_{{ p.id }}(double x)
 
 {% for p in parameters %}
 {% if 'prior' in p %}
-{% if p.prior.distribution == 'uniform' and (p.prior.lower != p.prior.upper) %}
+{% if p.prior.distribution == 'uniform' %}
 static double f_prior_tpl_{{ p.id }}(double x)
 {
     return gsl_ran_flat_pdf(x, {{ p.prior.lower }}, {{ p.prior.upper }});
 }
-{% elif p.prior.distribution == 'normal' and (p.prior.sd != 0.0) %}
+{% elif p.prior.distribution == 'normal' %}
 static double f_prior_tpl_{{ p.id }}(double x)
 {
-    return gsl_ran_gaussian_pdf( (x - {{ p.prior.mu }}), {{ p.prior.sd }} );
+    return gsl_ran_gaussian_pdf( (x - {{ p.prior.mean }}), {{ p.prior.sd }} );
 }
 {% endif %}
 {% endif %}
@@ -82,8 +82,9 @@ static double f_par2user_tpl_{{ p.id }}(double x, ssm_input_t *par, ssm_calc_t *
 
 
 {% for rem, def in f_remainders.items() %}
-static double f_remainder_tpl_{{ rem }}(ssm_X_t *X, ssm_calc_t *calc, double t)
+static double f_remainder_tpl_{{ rem }}(ssm_X_t *p_X, ssm_calc_t *calc, double t)
 {
+    double *X = p_X->proj;
     return {{ def }};
 }
 {% endfor %}
@@ -146,8 +147,8 @@ ssm_parameter_t **ssm_parameters_new(int *parameters_length)
     parameters[{{ loop.index0 }}]->f_par2user = &f_user2par_tpl_{{ p.id }};
     parameters[{{ loop.index0 }}]->f_user2par = &f_par2user_tpl_{{ p.id }};
     {% else %}
-    parameters[{{ loop.index0 }}]->f_par2user = &f_user_par_id;
-    parameters[{{ loop.index0 }}]->f_user2par = &f_user_par_id;
+    parameters[{{ loop.index0 }}]->f_par2user = &ssm_f_user_par_id;
+    parameters[{{ loop.index0 }}]->f_user2par = &ssm_f_user_par_id;
     {% endif %}
     {% endfor %}
 
@@ -163,7 +164,7 @@ ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters)
     *states_length = ({{ states|length }} + {{ sde|length }}  + {{ remainders|length }});
 
     ssm_state_t **states;
-    states = malloc(({{ states|length }} + {{ sde|length }} + {{ remainders|length }}) * sizeof (ssm_states_t *));
+    states = malloc(({{ states|length }} + {{ sde|length }} + {{ remainders|length }}) * sizeof (ssm_state_t *));
     if (states == NULL) {
         ssm_print_err("Allocation impossible for ssm_state_t **");
         exit(EXIT_FAILURE);

@@ -4,34 +4,35 @@
 
 {% for x in observed %}
 
-static double (*f_likelihood_tpl_{{ x.id }}) (double y, ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
+static double f_likelihood_tpl_{{ x.id }}(double y, ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
 {
+    double like;
     double *X = p_X->proj;
     double gsl_mu = {{ x.pdf.mean }};
     double gsl_sd = {{ x.pdf.sd }};
 
     if (y > 0.0) {
-        like=gsl_cdf_gaussian_P(y+0.5-gsl_mu, gsl_sd)-gsl_cdf_gaussian_P(y-0.5-gsl_mu, gsl_sd);
+        like = gsl_cdf_gaussian_P(y + 0.5 - gsl_mu, gsl_sd) - gsl_cdf_gaussian_P(y - 0.5 - gsl_mu, gsl_sd);
     } else {
-        like=gsl_cdf_gaussian_P(y+0.5-gsl_mu, gsl_sd);
+        like = gsl_cdf_gaussian_P(y + 0.5 - gsl_mu, gsl_sd);
     }
 
-    return sanitize_likelihood(like);
+    return like;
 }
 
-static double (*f_obs_mean_tpl_{{ x.id }}) (ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
+static double f_obs_mean_tpl_{{ x.id }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
 {
     double *X = p_X->proj;
     return {{ x.pdf.mean }};
 }
 
-static double (*f_obs_var_tpl_{{ x.id }}) (ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
+static double f_obs_var_tpl_{{ x.id }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
 {
     double *X = p_X->proj;
     return pow({{ x.pdf.sd }}, 2);
 }
 
-static double (*f_obs_tpl_{{ x.id }}) (ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
+static double f_obs_tpl_{{ x.id }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
 {
     double *X = p_X->proj;
     double gsl_mu = {{ x.pdf.mean }};

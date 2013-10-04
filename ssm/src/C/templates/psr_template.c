@@ -7,7 +7,7 @@
  */
 void ssm_psr_new(ssm_calc_t *calc)
 {
-    unsigned int *tab = ssm_u1_new({{ alloc|length }}); 
+    unsigned int *tab = ssm_u1_new({{ alloc|length }});
 
     /*automaticaly generated code: dimension of prob and inc*/
     {% for x in alloc %}
@@ -56,24 +56,24 @@ void ssm_step_psr(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_ca
     {% endif %}
 
     {% if is_diff %}
-    for(i=0; i<states_diff->length; i++){       
-	ssm_parameter_t *p = states_diff->p[i];
-	if(is_diff){
-	    diffed[i] = p->f_inv(X[p->offset]);
-	} else {
-	    diffed[i] = gsl_vector_get(par, p->ic->offset);
-	}
+    for(i=0; i<states_diff->length; i++){
+        ssm_state_t *p = states_diff->p[i];
+        if(is_diff){
+            diffed[i] = p->f_inv(X[p->offset]);
+        } else {
+            diffed[i] = gsl_vector_get(par, p->ic->offset);
+        }
     }
     {% endif %}
 
     /*1-generate noise increments (if any) (automaticaly generated code)*/
     {% if white_noise %}
     if(nav->noises_off & SSM_NO_WHITE_NOISE){
-	{% for n in white_noise %}
-	{{ n.id }} = 1.0;{% endfor %}
+        {% for n in white_noise %}
+        {{ n.id }} = 1.0;{% endfor %}
     } else {
-	{% for n in white_noise %}
-	{{ n.id }} = gsl_ran_gamma(calc->randgsl, (dt)/ pow(gsl_vector_get(par, ORDER_{{ n.sd }}), 2), pow(gsl_vector_get(par, ORDER_{{ n.sd }}), 2))/dt;{% endfor %}
+        {% for n in white_noise %}
+        {{ n.id }} = gsl_ran_gamma(calc->randgsl, (dt)/ pow(gsl_vector_get(par, ORDER_{{ n.sd }}), 2), pow(gsl_vector_get(par, ORDER_{{ n.sd }}), 2))/dt;{% endfor %}
     }
     {% endif %}
 
