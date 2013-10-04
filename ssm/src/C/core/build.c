@@ -585,3 +585,76 @@ ssm_calc_t **ssm_N_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (do
 
     return calc;
 }
+
+
+ssm_options_t *ssm_options_new(void)
+{
+    ssm_options_t *opts = malloc(sizeof(ssm_options_t));
+
+    //alloc char *
+    opts->freeze_forcing = ssm_c1_new(SSM_STR_BUFFSIZE);
+    opts->path = ssm_c1_new(SSM_STR_BUFFSIZE);
+    opts->interpolator = ssm_c1_new(SSM_STR_BUFFSIZE);
+    opts->freq = ssm_c1_new(SSM_STR_BUFFSIZE);
+    opts->start = ssm_c1_new(SSM_STR_BUFFSIZE);
+    opts->end = ssm_c1_new(SSM_STR_BUFFSIZE);
+    opts->server = ssm_c1_new(SSM_STR_BUFFSIZE);
+
+    //fill default
+    opts->implementation;
+    opts->noises_off;
+    opts->print;
+
+    opts->id = 0;
+    opts->flag_seed_time = 0;
+    opts->flag_pipe = 0;
+    opts->flag_prior = 0;
+    opts->dt = -1.0;
+    opts->eps_abs = 1e-6;
+    opts->eps_rel = 1e-3;
+    strncpy(opts->freeze_forcing, "", SSM_STR_BUFFSIZE);
+    strncpy(opts->path, "./", SSM_STR_BUFFSIZE);
+    opts->n_thread = 1;
+    opts->like_min = 1e-17;
+    opts->J = 1;
+    opts->n_obs = -1;
+    strncpy(opts->interpolator, "linear", SSM_STR_BUFFSIZE);
+    opts->n_obs = -1;
+    opts->n_iter = 10;
+    opts->a = 0.98;
+    opts->b = 2;
+    opts->L = 0.75;
+    opts->m_switch = -1;
+    opts->flag_ic_only = 0;
+    opts->eps_switch = 50;
+    opts->eps_max = 50.0;
+    opts->flag_smooth = 0;
+    opts->alpha = 0.02;
+    opts->n_traj = 1000;
+    opts->flag_zmq = 0;
+    opts->chunk = 0;
+    opts->flag_least_squares = 0;
+    opts->size_stop = 1e-6;
+    strncpy(opts->freq, "D", SSM_STR_BUFFSIZE);
+    strncpy(opts->start, "", SSM_STR_BUFFSIZE);
+    strncpy(opts->end, "", SSM_STR_BUFFSIZE);
+    opts->skip = 0;
+    strncpy(opts->server, "127.0.0.1", SSM_STR_BUFFSIZE);
+    opts->flag_no_filter = 0;
+
+    return opts;
+}
+
+
+void ssm_options_free(ssm_options_t *opts)
+{
+    free(opts->freeze_forcing);
+    free(opts->path);
+    free(opts->interpolator);
+    free(opts->freq);
+    free(opts->start);
+    free(opts->end);
+    free(opts->server);
+
+    free(opts);
+}

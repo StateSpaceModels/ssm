@@ -508,6 +508,8 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts);
 ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts);
 ssm_calc_t *ssm_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, int thread_id, unsigned long int seed, ssm_options_t *opts);
 ssm_calc_t **ssm_N_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options_t *opts);
+ssm_options_t *ssm_options_new(void);
+void ssm_options_free(ssm_options_t *opts);
 
 /* load.c */
 json_t *ssm_load_json_stream(FILE *stream);
@@ -517,6 +519,9 @@ void ssm_par2X(ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav);
 unsigned int *ssm_load_ju1_new(json_t *container, char *name);
 double *ssm_load_jd1_new(json_t *container, char *name);
 char **ssm_load_jc1_new(json_t *container, const char *name);
+
+/* options.c */
+void ssm_load_options(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv[]);
 
 /* fitness.c */
 double ssm_log_likelihood(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav);
