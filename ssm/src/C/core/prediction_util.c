@@ -90,7 +90,7 @@ ssm_err_code_t ssm_check_no_neg_remainder(ssm_X_t *p_X, ssm_nav_t *nav, ssm_calc
 }
 
 
-ssm_f_pred_t ssm_get_f_pred(ssm_calc_t *calc, ssm_nav_t *nav)
+ssm_f_pred_t ssm_get_f_pred(ssm_nav_t *nav)
 {
     ssm_implementations_t implementation = nav->implementation;
     ssm_noises_off_t noises_off= nav->noises_off;

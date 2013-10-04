@@ -49,6 +49,16 @@ json_t *ssm_load_json_file(const char *path)
     return data;
 }
 
+json_t *ssm_load_data(ssm_options_t *opts)
+{
+    char path[SSM_STR_BUFFSIZE];
+    snprintf(path, SSM_STR_BUFFSIZE, "%s/.data.json", opts->path);
+
+    json_t *jdata = ssm_load_json_file(path);
+    free(path);
+
+    return jdata;
+}
 
 
 void ssm_input2par(ssm_par_t *par, ssm_input_t *input, ssm_calc_t *calc, ssm_nav_t *nav)

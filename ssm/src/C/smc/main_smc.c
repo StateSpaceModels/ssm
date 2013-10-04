@@ -18,79 +18,79 @@
 
 #include "ssm.h"
 
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[])
+{
+    int j, n, np1, t0, t1;
 
-    json_t parameters = ssm_load_json_stream(stdin);
-    json_t *settings = load_settings(SSM_PATH_SETTINGS);
+    ssm_options_t *opts = ssm_options_new();
+    ssm_load_options(opts, SSM_SMC, argc, argv);
 
-    ssm_nav_t *nav = ssm_nav_new(settings, parameters);
-    ssm_data_t *data = ssm_data_new(settings, n_obs);
+    json_t *jparameters = ssm_load_json_stream(stdin);
+    json_t *jdata = ssm_load_data(opts);
 
-
-    ssm_input_t *input = ssm_input_new(parameters, nav);
+    ssm_nav_t *nav = ssm_nav_new(jparameters, opts);
+    ssm_data_t *data = ssm_data_new(jdata, nav, opts);
+    ssm_input_t *input = ssm_input_new(jparameters, nav);
     ssm_par_t *par = ssm_par_new(nav);
-    ssm_input2par(par, input, calc, nav);
+    ssm_fitness_t *fitness = ssm_fitness_new(data, opts);
+    ssm_calc_t **calc = ssm_N_calc_new(jdata, nav->states_sv->length + nav->states_inc->length + nav->states_diff->length, ssm_step_ode, NULL, nav, data, fitness, opts);
+    ssm_X_t ***D_J_X = ssm_D_J_X_new(data, fitness, nav->states_sv->length + nav->states_inc->length + nav->states_diff->length, opts);
+    ssm_X_t ***D_J_X_tmp = ssm_D_J_X_new(data, fitness, nav->states_sv->length + nav->states_inc->length + nav->states_diff->length, opts);
 
-    ssm_X_t ***D_J_X = ssm_D_J_X_new(data->n_data +1, J, nav->states_sv->length + nav->states_inc->length + nav->states_diff->length, dt);
+    json_decref(jdata);
 
-    ssm_fitness_t *like = ssm_fitness_new(J, data, like_min);
-
-    ssm_calc_t **calc = ssm_N_calc_new(n_threads, ...);
-
-    json_decref(settings);
-
+    ssm_input2par(par, input, calc[0], nav);
     ssm_par2X(D_J_X[0][0], par, calc[0], nav);
-    for(j=1; j<J; j++){
-        ssm_X_copy(D_J_p_X[0][j], D_J_p_X[0][0]);
+    for(j=1; j<fitness->J; j++){
+        ssm_X_copy(D_J_X[0][j], D_J_X[0][0]);
     }
 
-    int j, n, np1, t0,t1;
-
-    for(j=0; j<like->J; j++) {
-        like->cum_status[j] = SSM_SUCCESS;
+    for(j=0; j<fitness->J; j++) {
+        fitness->cum_status[j] = SSM_SUCCESS;
     }
+
+    ssm_f_pred_t f_pred = ssm_get_f_pred(nav);
 
     for(n=0; n<data->n_obs; n++) {
         np1 = n+1;
-        t0 = (n) ? data->rows[n-1]->time: 0.0;
+        t0 = (n) ? data->rows[n-1]->time: 0;
         t1 = data->rows[n]->time;
 
         //we are going to overwrite the content of the [np1] pointer: initialise it with values from [n]
-        for(j=0;j<like->J;j++) {
+        for(j=0;j<fitness->J;j++) {
             ssm_X_copy(D_J_X[np1][j], D_J_X[n][j]);
         }
 
-        for(j=0;j<like->J;j++) {
+        for(j=0;j<fitness->J;j++) {
             ssm_X_reset_inc(D_J_X[np1][j], data->rows[n]);
-            like->cum_status[j] |= (*f_pred)(D_J_X[np1][j], t0, t1, par, nav, calc[0]);
+            fitness->cum_status[j] |= (*f_pred)(D_J_X[np1][j], t0, t1, par, nav, calc[0]);
 
             if(data->rows[n]->ts_nonan_length) {
-                like->weights[j] = (like->cum_status[j] == SSM_SUCCESS) ?  exp(ssm_log_likelihood(data->rows[n], t1, D_J_X[np1][j], par, calc[0], nav)) : 0.0;
-                like->cum_status[j] = SSM_SUCCESS;
+                fitness->weights[j] = (fitness->cum_status[j] == SSM_SUCCESS) ?  exp(ssm_log_likelihood(data->rows[n], t1, D_J_X[np1][j], par, calc[0], nav)) : 0.0;
+                fitness->cum_status[j] = SSM_SUCCESS;
             }
         }
 
         if(data->rows[n]->ts_nonan_length) {
-            if(ssm_weight(like, n)) {
-                ssm_systematic_sampling(like, calc[0], n);
+            if(ssm_weight(fitness, data->rows[n], n)) {
+                ssm_systematic_sampling(fitness, calc[0], n);
             }
-            ssm_resample_X(like, &(D_J_X[np1]), &(D_J_X_tmp[np1]), n);
+            ssm_resample_X(fitness, &(D_J_X[np1]), &(D_J_X_tmp[np1]), n);
         }
     }
 
-    json_decref(parameters);
+    json_decref(jparameters);
+
+    ssm_D_J_X_free(D_J_X, data, fitness);
+    ssm_N_calc_free(calc, nav);
 
     ssm_data_free(data);
     ssm_nav_free(nav);
 
     ssm_input_free(input);
     ssm_par_free(par);
-
-    ssm_D_J_X_free(D_J_X);
-
-    ssm_N_calc_free(calc);
-
-    ssm_fitness_free(like);
+   
+    ssm_fitness_free(fitness);
 
     return 0;
 }

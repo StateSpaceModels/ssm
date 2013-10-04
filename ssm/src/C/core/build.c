@@ -769,7 +769,7 @@ ssm_options_t *ssm_options_new(void)
     opts->eps_abs = 1e-6;
     opts->eps_rel = 1e-3;
     strncpy(opts->freeze_forcing, "", SSM_STR_BUFFSIZE);
-    strncpy(opts->path, "./", SSM_STR_BUFFSIZE);
+    strncpy(opts->path, ".", SSM_STR_BUFFSIZE);
     opts->n_thread = 1;
     opts->like_min = 1e-17;
     opts->J = 1;

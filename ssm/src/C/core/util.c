@@ -72,3 +72,4 @@ int ssm_sanitize_n_threads(int n_threads, ssm_fitness_t *fitness)
         return n_threads;
     }
 }
+
