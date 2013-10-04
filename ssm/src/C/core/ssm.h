@@ -505,9 +505,17 @@ void _ssm_it_states_free(ssm_it_states_t *it);
 ssm_it_parameters_t *_ssm_it_parameters_new(int length);
 void _ssm_it_parameters_free(ssm_it_parameters_t *it);
 ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts);
+void _ssm_observed_free(ssm_observed_t *observed);
+void _ssm_parameter_free(ssm_parameter_t *parameter);
+void _ssm_state_free(ssm_state_t *state);
+void ssm_nav_free(ssm_nav_t *nav);
 ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts);
+void _ssm_row_free(ssm_row_t *row);
+void ssm_data_free(ssm_data_t *data);
 ssm_calc_t *ssm_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, int thread_id, unsigned long int seed, ssm_options_t *opts);
 ssm_calc_t **ssm_N_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options_t *opts);
+void ssm_calc_free(ssm_calc_t *calc, ssm_nav_t *nav);
+void ssm_N_calc_free(ssm_calc_t **calc, ssm_nav_t *nav);
 ssm_options_t *ssm_options_new(void);
 void ssm_options_free(ssm_options_t *opts);
 
@@ -534,16 +542,16 @@ void ssm_ran_multinomial (const gsl_rng * r, const size_t K, unsigned int N, con
 double ssm_correct_rate(double rate, double dt);
 ssm_err_code_t ssm_check_no_neg_remainder(ssm_X_t *p_X, ssm_nav_t *nav, ssm_calc_t *calc, double t);
 ssm_f_pred_t ssm_get_f_pred(ssm_calc_t *calc, ssm_nav_t *nav);
-ssm_err_code_t ssm_f_prediction_ode(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_ode                          (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
 ssm_err_code_t ssm_f_prediction_sde_no_dem_sto_no_white_noise(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_sde_no_dem_sto_no_diff(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_sde_no_white_noise_no_diff(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_sde_no_dem_sto(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_sde_no_white_noise(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_sde_no_diff(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_sde_full(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_psr(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_psr_no_diff(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_no_dem_sto_no_diff       (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_no_white_noise_no_diff   (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_no_dem_sto               (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_no_white_noise           (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_no_diff                  (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_full                     (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_psr                          (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_psr_no_diff                  (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
 
 
 /* smc.c */
@@ -618,7 +626,8 @@ void ssm_step_sde_full(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_nav_t *nav, s
 void ssm_step_sde_no_dem_sto_no_white_noise(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
 
 /* psr_template.c */
-void ssm_alloc_psr(ssm_calc_t *calc);
+void ssm_psr_new(ssm_calc_t *calc);
+void ssm_psr_free(ssm_calc_t *calc);
 void ssm_step_psr(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
 
 /* jac_template */

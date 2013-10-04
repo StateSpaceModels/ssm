@@ -21,7 +21,7 @@
 /**
  * Alloc memory for the psr implementation
  */
-void ssm_alloc_psr(ssm_calc_t *calc)
+void ssm_psr_new(ssm_calc_t *calc)
 {
     unsigned int *tab = ssm_u1_new({{ alloc|length }}); 
 
@@ -34,6 +34,12 @@ void ssm_alloc_psr(ssm_calc_t *calc)
     calc->inc = ssm_u2_var_new({{ alloc|length }}, tab);
 
     free(tab);
+}
+
+void ssm_psr_free(ssm_calc_t *calc)
+{
+    ssm_d2_free(calc->prob, {{ alloc|length }});
+    ssm_u2_free(calc->inc, {{ alloc|length }});
 }
 
 

@@ -111,7 +111,7 @@ ssm_parameter_t **ssm_parameters_new(int *parameters_length)
     ssm_parameter_t **parameters;
     parameters = malloc({{ pars|length }} * sizeof (ssm_parameter_t *));
     if (parameters == NULL) {
-        print_err("Allocation impossible for ssm_parameter_t **");
+        ssm_print_err("Allocation impossible for ssm_parameter_t **");
         exit(EXIT_FAILURE);
     }
 
@@ -119,14 +119,14 @@ ssm_parameter_t **ssm_parameters_new(int *parameters_length)
     for(i=0; i< {{ pars|length }}; i++){
         parameters[i] = malloc(sizeof (ssm_parameter_t));
         if (parameters[i] == NULL) {
-            print_err("Allocation impossible for ssm_parameter_t *");
+            ssm_print_err("Allocation impossible for ssm_parameter_t *");
             exit(EXIT_FAILURE);
         }
     }
 
     {% for p in pars %}
     //{{ p.id }}
-    parameters[{{ loop.index0 }}]->name = "{{ p.id }}";
+    parameters[{{ loop.index0 }}]->name = strdup("{{ p.id }}");
     parameters[{{ loop.index0 }}]->offset = {{ loop.index0 }};
 
     {% if 'prior' in p and 'lower' in p.prior and 'upper' in p.prior and (p.prior.lower !=0 or p.prior.upper !=1) and (p.prior.lower != p.prior.upper) %}
@@ -181,7 +181,7 @@ ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters)
     ssm_state_t **states;
     states = malloc(({{ states|length }} + {{ sde|length }}) * sizeof (ssm_states_t *));
     if (states == NULL) {
-        print_err("Allocation impossible for ssm_state_t **");
+        ssm_print_err("Allocation impossible for ssm_state_t **");
         exit(EXIT_FAILURE);
     }
 
@@ -189,14 +189,14 @@ ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters)
     for(i=0; i< ({{ states|length }} + {{ sde|length }}); i++){
         states[i] = malloc(sizeof (ssm_state_t));
         if (states[i] == NULL) {
-            print_err("Allocation impossible for ssm_state_t *");
+            ssm_print_err("Allocation impossible for ssm_state_t *");
             exit(EXIT_FAILURE);
         }
     }
 
     {% for p in states %}
     //{{ p }}
-    states[{{ loop.index0 }}]->name = "{{ p }}";
+    states[{{ loop.index0 }}]->name = strdup("{{ p }}");
     states[{{ loop.index0 }}]->offset = {{ loop.index0 }};
 
     states[{{ loop.index0 }}]->f = &ssm_f_id;
@@ -212,7 +212,7 @@ ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters)
 
     {% for p in sde %}
     //{{ p.id }}
-    states[{{ loop.index0 + states|length }}]->name = "{{ p.id }}";
+    states[{{ loop.index0 + states|length }}]->name = strdup("{{ p.id }}");
     states[{{ loop.index0 + states|length }}]->offset = {{ loop.index0 + states|length }};
 
     {% if 'transformation' in p %}

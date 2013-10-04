@@ -68,7 +68,7 @@ ssm_observed_t **ssm_observed_new(int *observed_length)
     ssm_observed_t **observed;
     observed = malloc({{ observed|length }} * sizeof (ssm_observed_t *));
     if (observed == NULL) {
-        print_err("Allocation impossible for ssm_observed_t **");
+        ssm_print_err("Allocation impossible for ssm_observed_t **");
         exit(EXIT_FAILURE);
     }
 
@@ -76,13 +76,13 @@ ssm_observed_t **ssm_observed_new(int *observed_length)
     for(i=0; i< {{ observed|length }}; i++){
         observed[i] = malloc(sizeof (ssm_observed_t));
         if (observed[i] == NULL) {
-            print_err("Allocation impossible for ssm_observed_t *");
+            ssm_print_err("Allocation impossible for ssm_observed_t *");
             exit(EXIT_FAILURE);
         }
     }
 
     {% for x in observed %}
-    observed[{{ loop.index0 }}]->name = "{{ x.id }}";
+    observed[{{ loop.index0 }}]->name = strdup("{{ x.id }}");
     observed[{{ loop.index0 }}]->offset = {{ loop.index0 }};
     observed[{{ loop.index0 }}]->f_likelihood = &f_likelihood_tpl_{{ x.id }};
     observed[{{ loop.index0 }}]->f_obs_mean = &f_obs_mean_tpl_{{ x.id }};

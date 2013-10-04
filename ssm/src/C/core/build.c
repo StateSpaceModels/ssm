@@ -250,6 +250,64 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
 }
 
 
+void _ssm_observed_free(ssm_observed_t *observed)
+{
+    free(observed->name);
+    free(observed);
+}
+
+void _ssm_parameter_free(ssm_parameter_t *parameter)
+{
+    free(parameter->name);
+    free(parameter);
+}
+
+void _ssm_state_free(ssm_state_t *state)
+{
+    free(state->name);
+    free(state);
+}
+
+
+void ssm_nav_free(ssm_nav_t *nav)
+{   
+    int i;
+
+    _ssm_it_states_free(nav->states_sv);
+    _ssm_it_states_free(nav->states_remainders);
+    _ssm_it_states_free(nav->states_inc);
+    _ssm_it_states_free(nav->states_diff);
+
+    _ssm_it_parameters_free(nav->par_all);
+    _ssm_it_parameters_free(nav->par_noise);
+    _ssm_it_parameters_free(nav->par_vol);
+    _ssm_it_parameters_free(nav->par_icsv);
+    _ssm_it_parameters_free(nav->par_icdiff);
+
+    _ssm_it_parameters_free(nav->theta_all);
+    _ssm_it_parameters_free(nav->theta_no_icsv_no_icdiff);
+    _ssm_it_parameters_free(nav->theta_icsv_icdiff); 
+
+    for(i=0; i<nav->parameters_length; i++){
+	_ssm_parameter_free(nav->parameters[i]);
+    }
+    free(nav->parameters);
+
+    for(i=0; i<nav->states_length; i++){
+	_ssm_state_free(nav->states[i]);
+    }
+    free(nav->states);
+
+    for(i=0; i<nav->observed_length; i++){
+	_ssm_observed_free(nav->observed[i]);
+    }
+    free(nav->observed);
+
+    free(nav);
+}
+
+
+
 ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
 {
     char str[SSM_STR_BUFFSIZE];
@@ -366,6 +424,34 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
     return data;
 }
 
+
+void _ssm_row_free(ssm_row_t *row)
+{
+    free(row->date);
+    free(row->observed);
+    free(row->values);
+    free(row->states_reset);
+
+    free(row);
+}
+
+
+void ssm_data_free(ssm_data_t *data)
+{
+    int i;
+
+    ssm_c2_free(data->dates_t0, data->ts_length);
+    free(data->ind_nonan);
+
+    for(i=0; i< data->length; i++){
+	_ssm_row_free(data->rows[i]);
+    }
+    free(data->rows);
+
+    free(data);
+}
+
+
 ssm_calc_t *ssm_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, int thread_id, unsigned long int seed, ssm_options_t *opts)
 {
     ssm_calc_t *calc = malloc(sizeof (ssm_calc_t));
@@ -450,7 +536,7 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (doubl
     } else if (nav->implementation == SSM_SDE){
         calc->y_pred = ssm_d1_new(dim_ode);
     } else if (nav->implementation == SSM_PSR){
-        ssm_alloc_psr(calc);
+        ssm_psr_new(calc);
     }
 
     /**************************/
@@ -558,6 +644,72 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (doubl
 
     return calc;
 }
+
+
+void ssm_calc_free(ssm_calc_t *calc, ssm_nav_t *nav)
+{
+    gsl_rng_free(calc->randgsl);
+
+    if (nav->implementation == SSM_ODE  || nav->implementation == SSM_EKF){
+
+        gsl_odeiv2_step_free(calc->step);
+        gsl_odeiv2_evolve_free(calc->evolve);
+        gsl_odeiv2_control_free(calc->control);
+
+        free(calc->yerr);
+
+        if(nav->implementation == SSM_EKF){
+            gsl_vector_free(calc->_pred_error);
+            gsl_matrix_free(calc->_St);
+            gsl_matrix_free(calc->_Stm1);
+            gsl_matrix_free(calc->_Rt);
+            gsl_matrix_free(calc->_Ht);
+            gsl_matrix_free(calc->_Kt);
+            gsl_matrix_free(calc->_Tmp_N_SV_N_TS);
+            gsl_matrix_free(calc->_Tmp_N_TS_N_SV);
+            gsl_matrix_free(calc->_Q);
+            gsl_matrix_free(calc->_FtCt);
+            gsl_matrix_free(calc->_Ft);
+        }
+
+    } else if (nav->implementation == SSM_SDE){
+	free(calc->y_pred);
+    } else if (nav->implementation == SSM_PSR){
+	ssm_psr_free(calc);
+    }
+
+    free(calc->to_be_sorted);
+    free(calc->index_sorted);
+
+    int k;
+    for(k=0; k< calc->covariates_length; k++) {
+	if(calc->spline[k]){
+	    gsl_spline_free(calc->spline[k]);
+	}
+	if(calc->acc[k]){
+	    gsl_interp_accel_free(calc->acc[k]);	    
+	}
+    }
+
+    free(calc->spline);
+    free(calc->acc);
+
+    free(calc);
+}
+
+
+void ssm_N_calc_free(ssm_calc_t **calc, ssm_nav_t *nav)
+{
+    int n;
+    int threads_length = calc[0]->threads_length;
+
+    for(n=0; n<threads_length; n++) {
+        ssm_calc_free(calc[n], nav);
+    }
+
+    free(calc);
+}
+
 
 
 ssm_calc_t **ssm_N_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options_t *opts)
