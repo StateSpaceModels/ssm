@@ -1,22 +1,6 @@
-/**************************************************************************
- *    This file is part of ssm.
- *
- *    ssm is free software: you can redistribute it and/or modify it
- *    under the terms of the GNU General Public License as published
- *    by the Free Software Foundation, either version 3 of the
- *    License, or (at your option) any later version.
- *
- *    ssm is distributed in the hope that it will be useful, but
- *    WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    GNU General Public License for more details.
- *
- *    You should have received a copy of the GNU General Public
- *    License along with ssm.  If not, see
- *    <http://www.gnu.org/licenses/>.
- *************************************************************************/
+{% extends "ordered.tpl" %}
 
-#include "ssm.h"
+{% block code %}
 
 {% for p in skeletons %}
 {% if 'transformation' in p %}
@@ -97,7 +81,7 @@ static double f_par2user_tpl_{{ p.id }}(double x, ssm_input_t *par, ssm_calc_t *
 {% endfor %}
 
 
-{% for rem, def in remainders.items() %}
+{% for rem, def in f_remainders.items() %}
 static double f_remainder_tpl_{{ rem }}(ssm_X_t *X, ssm_calc_t *calc, double t)
 {
     return {{ def }};
@@ -176,10 +160,10 @@ ssm_parameter_t **ssm_parameters_new(int *parameters_length)
  */
 ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters)
 {
-    *states_length = ({{ states|length }} + {{ sde|length }});
+    *states_length = ({{ states|length }} + {{ sde|length }}  + {{ remainders|length }});
 
     ssm_state_t **states;
-    states = malloc(({{ states|length }} + {{ sde|length }}) * sizeof (ssm_states_t *));
+    states = malloc(({{ states|length }} + {{ sde|length }} + {{ remainders|length }}) * sizeof (ssm_states_t *));
     if (states == NULL) {
         ssm_print_err("Allocation impossible for ssm_state_t **");
         exit(EXIT_FAILURE);
@@ -204,7 +188,7 @@ ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters)
     states[{{ loop.index0 }}]->f_derivative = &ssm_f_id;
     states[{{ loop.index0 }}]->f_inv_derivative = &ssm_f_id;
 
-    states[{{ loop.index0 }}]->f_remainder = {% if p in remainders %}&f_remainder_tpl_{{ p }}{% else %}NULL{% endif %};
+    states[{{ loop.index0 }}]->f_remainder = NULL;
 
     states[{{ loop.index0 }}]->ic = {% if p in par_sv %}parameters[{{ loop.index0 }}]{% else %}NULL{% endif %};
     {% endfor %}
@@ -232,5 +216,25 @@ ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters)
     states[{{ loop.index0 + states|length }}]->ic = {% if 'ic' in p %}parameters[{{ p.ic }}]{% else %}NULL{% endif %};
     {% endfor %}
 
+
+    {% for p in remainders %}
+    //{{ p }}
+    states[{{ loop.index0 + states|length + sde|length }}]->name = strdup("{{ p }}");
+    states[{{ loop.index0 + states|length + sde|length }}]->offset = -1;
+
+    states[{{ loop.index0 + states|length + sde|length }}]->f = &ssm_f_id;
+    states[{{ loop.index0 + states|length + sde|length }}]->f_inv = &ssm_f_id;
+    states[{{ loop.index0 + states|length + sde|length }}]->f_derivative = &ssm_f_id;
+    states[{{ loop.index0 + states|length + sde|length }}]->f_inv_derivative = &ssm_f_id;
+
+    states[{{ loop.index0 + states|length + sde|length }}]->f_remainder = &f_remainder_tpl_{{ p }};
+
+    states[{{ loop.index0 + states|length + sde|length }}]->ic = NULL;
+    {% endfor %}
+
+
     return states;
 }
+
+
+{% endblock %}

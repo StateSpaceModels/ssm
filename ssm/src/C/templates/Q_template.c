@@ -1,34 +1,19 @@
-/**************************************************************************
- *    This file is part of ssm.
- *
- *    ssm is free software: you can redistribute it and/or modify it
- *    under the terms of the GNU General Public License as published
- *    by the Free Software Foundation, either version 3 of the
- *    License, or (at your option) any later version.
- *
- *    ssm is distributed in the hope that it will be useful, but
- *    WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    GNU General Public License for more details.
- *
- *    You should have received a copy of the GNU General Public
- *    License along with ssm.  If not, see
- *    <http://www.gnu.org/licenses/>.
- *************************************************************************/
+{% extends "ordered.tpl" %}
 
-#include "ssm.h"
-
-
+{% block code %}
 
 /**
  * Diffusion function for the Extended Kalman Filter
  */
 {% for noises_off, tpl in Q.items() %}
-void ssm_evalQ_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc){
-
-    double *X = p_X->proj;
+void ssm_evalQ_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc)
+{
     int i, j;
 
+    gsl_matrix *Q = calc->_Q;
+    ssm_it_states_t *states_diff = nav->states_diff;
+    ssm_it_states_t *states_inc = nav->states_inc;
+    ssm_it_states_t *states_sv = nav->states_sv;
 
     {% if is_diff  %}
     int is_diff = ! (nav->noises_off & SSM_NO_DIFF);
@@ -51,7 +36,7 @@ void ssm_evalQ_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm_
 
     {% if is_diff %}
     for(i=0; i<states_diff->length; i++){
-	ssm_parameter_t *p = states_diff->p[i];
+	ssm_state_t *p = states_diff->p[i];
 	{% if noises_off != 'ode'%}
 	if(is_diff){
 	    diffed[i] = p->f_inv(X[p->offset]);
@@ -100,15 +85,15 @@ void ssm_evalQ_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm_
     {% for x in tpl.Q_obs %}
 
     {% if x.i.is_obs %}
-    i = states_inc->p[{{ x.i }}]->offset;
+    i = states_inc->p[{{ x.i.ind }}]->offset;
     {% else %}
-    i = states_sv->p[{{ x.i }}]->offset;
+    i = states_sv->p[{{ x.i.ind }}]->offset;
     {% endif %}
 
     {% if x.j.is_obs %}
-    j = states_inc->p[{{ x.j }}]->offset;
+    j = states_inc->p[{{ x.j.ind }}]->offset;
     {% else %}
-    j = states_sv->p[{{ x.j }}]->offset;
+    j = states_sv->p[{{ x.j.ind }}]->offset;
     {% endif %}
 
     gsl_matrix_set(Q, i, j, term);
@@ -128,8 +113,8 @@ void ssm_evalQ_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm_
     ///////////////////////////////////////////
     if(is_diff){
 	{% for eq in diff %}
-	i = it->p[{{ loop.index0 }}]->offset;
-	gsl_matrix_set(Q, i, i, pow({{eq}},2));
+	i = states_diff->p[{{ loop.index0 }}]->offset;
+	//TODO: FIX gsl_matrix_set(Q, i, i, pow({{ eq }},2));
 	{% endfor %}
     }
     {% endif %}
@@ -138,3 +123,4 @@ void ssm_evalQ_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm_
 {% endfor %}
 
 
+{% endblock %}

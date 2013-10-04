@@ -1,31 +1,12 @@
-/**************************************************************************
- *    This file is part of ssm.
- *
- *    ssm is free software: you can redistribute it and/or modify it
- *    under the terms of the GNU General Public License as published
- *    by the Free Software Foundation, either version 3 of the
- *    License, or (at your option) any later version.
- *
- *    ssm is distributed in the hope that it will be useful, but
- *    WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    GNU General Public License for more details.
- *
- *    You should have received a copy of the GNU General Public
- *    License along with ssm.  If not, see
- *    <http://www.gnu.org/licenses/>.
- *************************************************************************/
+{% extends "ordered.tpl" %}
 
-#include "ssm.h"
-
-
+{% block code %}
 
 void ssm_eval_jac(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc)
 {
 
-    double *X = p_X->proj;
     int i, j;
-    gsl_matrix *Ft = calc->Ft;
+    gsl_matrix *Ft = calc->_Ft;
 
     ssm_it_states_t *states_diff = nav->states_diff;
     ssm_it_states_t *states_inc = nav->states_inc;
@@ -49,7 +30,7 @@ void ssm_eval_jac(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ss
 
     {% if is_diff %}
     for(i=0; i<states_diff->length; i++){
-        ssm_parameter_t *p = states_diff->p[i];
+        ssm_state_t *p = states_diff->p[i];
         {% if noises_off != 'ode'%}
         if(is_diff){
             diffed[i] = p->f_inv(X[p->offset]);
@@ -77,7 +58,7 @@ void ssm_eval_jac(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ss
     gsl_matrix_set(Ft,
                    states_sv->p[{{ outer_loop.index0 }}]->offset,
                    states_sv->p[{{ loop.index0 }}]->offset,
-                   _r[{{ jac_ii|safe }}]);
+                   _r[{{ jac_ii }}]);
     {% endfor %}
     {% endfor %}
 
@@ -89,7 +70,7 @@ void ssm_eval_jac(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ss
     gsl_matrix_set(Ft,
                    states_inc->p[{{ outer_loop.index0 }}]->offset,
                    states_sv->p[{{ loop.index0 }}]->offset,
-                   _r[{{ jac_ii|safe }}]);
+                   _r[{{ jac_ii }}]);
     {% endfor %}
     {% endfor %}
 
@@ -105,7 +86,7 @@ void ssm_eval_jac(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ss
         gsl_matrix_set(Ft,
                        states_sv->p[{{ outer_loop.index0 }}]->offset,
                        states_diff->p[{{ loop.index0 }}]->offset,
-                       _r[{{ jac_ii|safe }}]);
+                       _r[{{ jac_ii }}]); //TODO FIX: add drift_derivative
         {% endfor %}
         {% endfor %}
 
@@ -117,7 +98,7 @@ void ssm_eval_jac(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ss
         gsl_matrix_set(Ft,
                        states_inc->p[{{ outer_loop.index0 }}]->offset,
                        nav->states_diff->p[{{ loop.index0 }}]->offset,
-                       _r[{{ jac_ii|safe }}]);
+                       _r[{{ jac_ii }}]); //TODO FIX: add drift_derivative
         {% endfor %}
         {% endfor %}
 
@@ -125,3 +106,7 @@ void ssm_eval_jac(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ss
     {% endif %}
 
 }
+
+
+{% endblock %}
+

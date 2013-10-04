@@ -1,31 +1,13 @@
-/**************************************************************************
- *    This file is part of ssm.
- *
- *    ssm is free software: you can redistribute it and/or modify it
- *    under the terms of the GNU General Public License as published
- *    by the Free Software Foundation, either version 3 of the
- *    License, or (at your option) any later version.
- *
- *    ssm is distributed in the hope that it will be useful, but
- *    WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    GNU General Public License for more details.
- *
- *    You should have received a copy of the GNU General Public
- *    License along with ssm.  If not, see
- *    <http://www.gnu.org/licenses/>.
- *************************************************************************/
+{% extends "ordered.tpl" %}
 
-#include "ssm.h"
-
-
+{% block code %}
 
 void ssm_eval_Ht(ssm_X_t *p_X, ssm_row_t *row, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc)
 {
 
     double *X = p_X->proj;
     int i, j;
-    gsl_matrix *Ht = calc->Ht;
+    gsl_matrix *Ht = calc->_Ht;
     int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
 
     ssm_it_states_t *states_diff = nav->states_diff;
@@ -45,7 +27,7 @@ void ssm_eval_Ht(ssm_X_t *p_X, ssm_row_t *row, double t, ssm_par_t *par, ssm_nav
 
     {% if is_diff %}
     for(i=0; i<states_diff->length; i++){
-        ssm_parameter_t *p = states_diff->p[i];
+        ssm_state_t *p = states_diff->p[i];
         {% if noises_off != 'ode'%}
         if(is_diff){
             diffed[i] = p->f_inv(X[p->offset]);
@@ -94,7 +76,10 @@ void ssm_eval_Ht(ssm_X_t *p_X, ssm_row_t *row, double t, ssm_par_t *par, ssm_nav
 
     for(i=0; i< m; i++){
         for(j=0; j< row->ts_nonan_length; j++){
-            gsl_matrix_set(Ht,i,j) = gsl_matrix_get(Ht,i,row->observed[j]->offset);
+            gsl_matrix_set(Ht,i,j, gsl_matrix_get(Ht,i,row->observed[j]->offset));
         }
     }
 }
+
+{% endblock %}
+

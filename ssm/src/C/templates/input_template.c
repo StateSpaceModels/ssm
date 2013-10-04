@@ -49,7 +49,7 @@ ssm_input_t *ssm_input_new(json_t *jparameters, ssm_nav_t *nav)
                 } else {
                     char str[SSM_STR_BUFFSIZE];
                     sprintf(str, "error: parameters.values.%s is not a number\n", it->p[i]->name);
-                    print_err(str);
+                    ssm_print_err(str);
                     exit(EXIT_FAILURE);
                 }
             }

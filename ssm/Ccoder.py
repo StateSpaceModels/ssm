@@ -58,7 +58,7 @@ class Ccoder(Cmodel):
                 return 'X[ORDER_{0}]'.format(term)
 
         elif term in self.par_fixed:
-            return 'gsl_spline_eval(p_calc->spline[ORDER_{0}],{1},calc->acc[ORDER_{0}])'.format(term, '0.0' if set_t0 else 't')
+            return 'gsl_spline_eval(calc->spline[ORDER_{0}],{1},calc->acc[ORDER_{0}])'.format(term, '0.0' if set_t0 else 't')
 
         elif term in self.par_proc or term in self.par_vol or term in self.par_noise or term in self.par_obs:
             if ('diff__' + term) in self.par_diff:
@@ -182,7 +182,7 @@ class Ccoder(Cmodel):
         skeletons = skeletons and skeletons['skeleton']
         #TODO support ode skeletons += self.get_resource('ode')
 
-        states = self.par_sv + self.remainder + self.par_inc
+        states = self.par_sv + self.par_inc
         pars = self.par_sv + self.par_vol + self.par_noise + self.par_proc + self.par_obs
 
         #make C code for f_, f_inv f_der, f_der_inv
@@ -201,26 +201,29 @@ class Ccoder(Cmodel):
         pdict = {x['id']:x for x in parameters}
         sdict = {'diff__' + x['id']: x for x in skeletons}
 
-        remainders = {}
+        f_remainders = {}
+        f_remainders_par = {}
         for x in self.get_resource('populations'):
             if 'remainder' in x:
                 rem = x['remainder']['id']
                 eq = x['remainder']['pop_size'] + ' - ' + ' - '.join([r for r in x['composition'] if r != rem])
-                remainders[rem] = self.make_C_term(eq, True)
+                f_remainders[rem] = self.make_C_term(eq, True)
+                f_remainders_par[rem] = self.make_C_term(eq, True, force_par=True, set_t0=True)
 
         # Initial compartment sizes in cases of no remainder
-        ic = {}
+        ic = []
         for x in self.get_resource('populations'):
             if 'remainder' not in x:
-                for c in  x['composition']:
-                    ic.append(self.make_C_term(eq, True))
+                ic.append([self.make_C_term(eq, True, force_par=True, set_t0=True) for t in x['composition']])
 
         return {
             'parameters': parameters,
             'skeletons': skeletons,
             'par_sv': self.par_sv,
             'states': states,
-            'remainders': remainders,
+            'remainders': self.remainder,
+            'f_remainders': f_remainders,
+            'f_remainders_par': f_remainders_par,
             'ic': ic,
             'sde': [sdict[x] for x in self.par_diff],
             'pars': [pdict[x] for x in pars]
@@ -257,6 +260,31 @@ class Ccoder(Cmodel):
                 'icdiff': [self.order_parameters[x.split('diff__')[1]] for x in self.par_diff]
             }
         }
+
+
+
+    def orders(self):
+        """
+        #define and #undef
+        """
+
+        order_univ = []
+        N_PAR_SV = len(self.par_sv)
+        univ = ['U']
+        if self.remainder:
+            univ += self.remainder
+
+        for i, X in enumerate(univ):
+            order_univ.append({'name': X, 'order': len(self.par_sv)+i})
+
+        return {
+            'var': self.par_sv + self.par_vol + self.par_noise + self.par_proc + self.par_obs,
+            'diff': self.par_diff,
+            'covariates': self.par_fixed,
+            'universe': order_univ
+        }
+
+
 
 
 
@@ -631,24 +659,6 @@ class Ccoder(Cmodel):
             return []
 
 
-
-
-
-    def print_order(self):
-        """
-        #define and #undef
-        """
-
-        order_univ = []
-        N_PAR_SV = len(self.par_sv)
-        univ = ['U']
-        if self.remainder:
-            univ += [self.remainder]
-
-        for i, X in enumerate(univ):
-            order_univ.append({'name': X, 'order': N_PAR_SV+i})
-
-        return {'var': self.par_sv + self.par_proc + self.par_obs, 'diff': self.diff_var, 'data': self.par_fixed, 'universe': order_univ}
 
 
 

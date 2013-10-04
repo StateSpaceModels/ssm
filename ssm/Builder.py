@@ -74,20 +74,25 @@ class Builder(Data, Ccoder):
 
         is_diff = True if len(self.par_diff) > 0 else False
 
+        orders = self.orders()
+
         ##methods whose results are use multiple times
         step_ode_sde = self.step_ode_sde()
-        self.render('ode_sde', {'is_diff': is_diff, 'step':step_ode_sde})
+        self.render('ode_sde', {'is_diff': is_diff, 'step':step_ode_sde, 'orders': orders})
 
         parameters = self.parameters()
+        parameters['orders'] = orders
         self.render('transform', parameters)
         self.render('input', parameters)
 
         observed = self.observed()
+        observed['orders'] = orders
         self.render('observed', observed)
 
         self.render('iterator', {'iterators':self.iterators()})
 
         psr = {
+            'orders': orders,
             'alloc': self.alloc_psr(),
             'is_diff': is_diff,
             'white_noise': self.white_noise,
@@ -97,17 +102,17 @@ class Builder(Data, Ccoder):
         }
         self.render('psr', psr)
 
-        self.render('diff', {'diff': self.compute_diff()})
+        self.render('diff', {'diff': self.compute_diff(), 'orders': orders})
 
-        self.render('Q', {'Q': self.eval_Q(), 'is_diff': is_diff, 'step':self.step_ode_sde(), 'diff': self.compute_diff()})
+        self.render('Q', {'Q': self.eval_Q(), 'is_diff': is_diff, 'step':self.step_ode_sde(), 'diff': self.compute_diff(), 'orders': orders})
 
-        self.render('Ht', {'Ht': self.Ht(), 'is_diff': is_diff})
+        self.render('Ht', {'Ht': self.Ht(), 'is_diff': is_diff, 'orders': orders})
 
-        self.render('jac', {'jac': self.jac(step_ode_sde['sf']), 'is_diff': is_diff, 'step':self.step_ode_sde()})
+        self.render('jac', {'jac': self.jac(step_ode_sde['sf']), 'is_diff': is_diff, 'step':self.step_ode_sde(), 'orders': orders})
 
-        self.render('step_ekf', {'is_diff': is_diff, 'step':self.step_ode_sde()})
+        self.render('step_ekf', {'is_diff': is_diff, 'step':self.step_ode_sde(), 'orders': orders})
 
-        self.render('check_ic', {'parameters': parameters})
+        self.render('check_ic', parameters)
         
     def write_data(self):
 
