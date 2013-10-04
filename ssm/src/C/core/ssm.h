@@ -194,7 +194,7 @@ typedef struct  /* ([N_DATA+1]) */
     int length;             /**< number of states */
     double *states;         /**< [self.length] best estimates */
     double **states_95;     /**< [self.length][2] 2.5% and 97.5% quantiles */
-} ssm_X_hat_t;
+} ssm_hat_t;
 
 
 
@@ -525,9 +525,14 @@ void ssm_fitness_free(ssm_fitness_t *fitness);
 ssm_X_t *ssm_X_new(int size, ssm_options_t *opts);
 void ssm_X_free(ssm_X_t *X);
 ssm_X_t **ssm_J_X_new(ssm_fitness_t *fitness, int size, ssm_options_t *opts);
-void ssm_J_X_free(ssm_fitness_t *fitness, ssm_X_t **X);
+void ssm_J_X_free(ssm_X_t **X, ssm_fitness_t *fitness);
 ssm_X_t ***ssm_D_J_X_new(ssm_data_t *data, ssm_fitness_t *fitness, int size, ssm_options_t *opts);
-void ssm_D_J_X_free(ssm_data_t *data, ssm_fitness_t *fitness, ssm_X_t ***X);
+void ssm_D_J_X_free(ssm_X_t ***X, ssm_data_t *data, ssm_fitness_t *fitness);
+ssm_hat_t *ssm_hat_new(int size);
+void ssm_hat_free(ssm_hat_t *hat);
+ssm_hat_t **ssm_D_hat_new(ssm_data_t *data, int size);
+void ssm_D_hat_free(ssm_hat_t **hat, ssm_data_t *data);
+
 
 /* load.c */
 json_t *ssm_load_json_stream(FILE *stream);

@@ -882,7 +882,7 @@ ssm_X_t *ssm_X_new(int size, ssm_options_t *opts)
     X->dt = 1.0/ ((double) round(1.0/opts->dt)); //IMPORTANT: for non adaptive time step methods, we ensure an integer multiple of dt in between 2 data points    
     X->dt0 = X->dt;
 
-    X->proj = ssm_d1_new(size);
+    X->proj = ssm_d1_new(X->length);
 
     return X;
 }
@@ -910,7 +910,7 @@ ssm_X_t **ssm_J_X_new(ssm_fitness_t *fitness, int size, ssm_options_t *opts)
     return X;
 }
 
-void ssm_J_X_free(ssm_fitness_t *fitness, ssm_X_t **X)
+void ssm_J_X_free(ssm_X_t **X, ssm_fitness_t *fitness)
 {
     int i;
     
@@ -930,20 +930,75 @@ ssm_X_t ***ssm_D_J_X_new(ssm_data_t *data, ssm_fitness_t *fitness, int size, ssm
         exit(EXIT_FAILURE);
     }
 
-    for(i=0; i<data->length; i++){
+    for(i=0; i<data->length+1; i++){
 	X[i] = ssm_J_X_new(fitness, size, opts);
     }
 
     return X;
 }
 
-void ssm_D_J_X_free(ssm_data_t *data, ssm_fitness_t *fitness, ssm_X_t ***X)
+void ssm_D_J_X_free(ssm_X_t ***X, ssm_data_t *data, ssm_fitness_t *fitness)
 {
     int i;
     
-    for(i=0; i<data->length; i++){
-	ssm_J_X_free(fitness, X[i]);
+    for(i=0; i<data->length+1; i++){
+	ssm_J_X_free(X[i], fitness);
     }
 
     free(X);
+}
+
+
+ssm_hat_t *ssm_hat_new(int size)
+{
+    ssm_hat_t *hat = malloc(sizeof (ssm_hat_t));
+    if (hat==NULL) {
+        ssm_print_err("Allocation impossible for ssm_hat_t");
+        exit(EXIT_FAILURE);
+    }
+
+    hat->length = size; 
+
+    hat->states = ssm_d1_new(hat->length);
+    hat->states_95 = ssm_d2_new(hat->length, 2);
+
+    return hat;   
+}
+
+void ssm_hat_free(ssm_hat_t *hat)
+{
+    free(hat->states);
+    ssm_d2_free(hat->states_95, hat->length);
+
+    free(hat);       
+}
+
+
+ssm_hat_t **ssm_D_hat_new(ssm_data_t *data, int size)
+{
+    int i;
+
+    ssm_hat_t **hat = malloc((data->length+1) * sizeof (ssm_hat_t *));
+    if (hat==NULL) {
+        ssm_print_err("Allocation impossible for ssm_hat_t *");
+        exit(EXIT_FAILURE);
+    }
+
+    for(i=0; i<data->length+1; i++){
+	hat[i] = ssm_hat_new(size);
+    }
+
+    return hat;
+}
+
+
+void ssm_D_hat_free(ssm_hat_t **hat, ssm_data_t *data)
+{
+    int i;
+    
+    for(i=0; i<data->length +1; i++){
+	ssm_hat_free(hat[i]);
+    }
+
+    free(hat);
 }
