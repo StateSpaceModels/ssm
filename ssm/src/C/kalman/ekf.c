@@ -27,9 +27,10 @@ ssm_err_code_t ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X,
     int i, j, status;
     ssm_err_code_t cum_status = SSM_SUCCESS;
     int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
+    
 
     // sub-matrices and sub-vectors of working variables are extracted as not all tseries are observed
-    gsl_vector_view pred_error = gsl_vector_subvector(&calc->_pred_error[0],0,row->ts_nonan_length);
+    gsl_vector_view pred_error = gsl_vector_subvector(calc->_pred_error,0,row->ts_nonan_length);
     gsl_matrix_view St = gsl_matrix_submatrix(calc->_St,0,0,row->ts_nonan_length,row->ts_nonan_length);
     gsl_matrix_view Stm1 = gsl_matrix_submatrix(calc->_Stm1,0,0,row->ts_nonan_length,row->ts_nonan_length);
     gsl_matrix_view Rt = gsl_matrix_submatrix(calc->_Rt,0,0,row->ts_nonan_length,row->ts_nonan_length);
@@ -100,7 +101,7 @@ ssm_err_code_t ssm_kalman_update(ssm_X_t *X, ssm_row_t *row, double t, ssm_par_t
 
     int status;
     int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
-    gsl_vector_view pred_error = gsl_vector_subvector(&calc->_pred_error[0],0,row->ts_nonan_length);
+    gsl_vector_view pred_error = gsl_vector_subvector(calc->_pred_error,0,row->ts_nonan_length);
     gsl_matrix_view Kt = gsl_matrix_submatrix(calc->_Kt,0,0,m,row->ts_nonan_length);
     gsl_matrix_view Tmp = gsl_matrix_submatrix(calc->_Tmp_N_TS_N_SV,0,0,row->ts_nonan_length,m);
     gsl_vector_view X_sv = gsl_vector_view_array(X->proj,m);
