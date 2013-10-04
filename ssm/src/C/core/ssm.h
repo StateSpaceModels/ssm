@@ -147,9 +147,9 @@ typedef struct ssm_calc_t /*[N_THREADS] : for parallel computing we need N_THREA
     gsl_matrix *_Q;             /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
     gsl_matrix *_FtCt;          /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
     gsl_matrix *_Ft;            /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
-    gsl_vector *eval_nkal;      /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
-    gsl_matrix *evec_nkal;      /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
-    gsl_eigen_symmv_workspace *w_eigen_vv;  /**< workspace to compute eigen values and eigen vector for symmetric matrix */
+    gsl_vector *_eval;      /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
+    gsl_matrix *_evec;      /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
+    gsl_eigen_symmv_workspace *_w_eigen_vv;  /**< workspace to compute eigen values and eigen vector for symmetric matrix */
 
     //multi-threaded sorting
     double *to_be_sorted;  /**< [fitness->J] array of the J particle to be sorted*/

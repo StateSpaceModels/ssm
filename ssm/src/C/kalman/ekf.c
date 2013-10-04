@@ -28,9 +28,8 @@
  * but this is the most natural way to go as far as I know.
  * We shouldn't need this anymore with the Square-Root Unscented Kalman Filter.
  */
-ssm_err_code_t check_and_correct_Ct(ssm_X_t *X, ssm_calc_t *calc)
+ssm_err_code_t check_and_correct_Ct(ssm_X_t *X, ssm_calc_t *calc, ssm_nav_t *nav)
 {
-    char str[STR_BUFFSIZE];
 
     int i,j;
     ssm_err_code_t cum_status = SSM_SUCCESS;
@@ -42,12 +41,14 @@ ssm_err_code_t check_and_correct_Ct(ssm_X_t *X, ssm_calc_t *calc)
     // Ct = (Ct + Ct')/2
 
 
-    gsl_matrix *Temp = calc->Ft; // temporary matrix
-    gsl_matrix_memcpy(Temp, Ct);	// temp = Ct
+    gsl_matrix *Temp = calc->_Ft; // temporary matrix
+    int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
+    gsl_matrix_view Ct =  gsl_matrix_view_array(&X->proj[m], m, m);
+    gsl_matrix_memcpy(Temp, &Ct.matrix);	// temp = Ct
 
-    for(i=0; i< Ct->size1; i++){
-	for(j=0; j< Ct->size2; j++){
-	    gsl_matrix_set(Ct, i, j, ((gsl_matrix_get(Temp, i, j) + gsl_matrix_get(Temp, j, i)) / 2.0) ); 	   
+    for(i=0; i< m; i++){
+	for(j=0; j< m; j++){
+	    gsl_matrix_set(&Ct.matrix, i, j, ((gsl_matrix_get(Temp, i, j) + gsl_matrix_get(Temp, j, i)) / 2.0) ); 	   
 	}
     }
     
@@ -57,9 +58,9 @@ ssm_err_code_t check_and_correct_Ct(ssm_X_t *X, ssm_calc_t *calc)
     // Bringing negative eigen values of Ct back to zero
 
     // compute the eigen values and vectors of Ct
-    gsl_vector *eval = calc->eval;	    // to store the eigen values    
-    gsl_matrix *evec = calc->evec;      // to store the eigen vectors
-    gsl_eigen_symmv_workspace *w = calc->w_eigen_vv;
+    gsl_vector *eval = calc->_eval;	    // to store the eigen values    
+    gsl_matrix *evec = calc->_evec;      // to store the eigen vectors
+    gsl_eigen_symmv_workspace *w = calc->_w_eigen_vv;
 
     //IMPORTANT: The diagonal and lower triangular part of Ct are destroyed during the computation so we do the computation on temp
     status = gsl_eigen_symmv(Temp, eval, evec, w);
@@ -69,7 +70,7 @@ ssm_err_code_t check_and_correct_Ct(ssm_X_t *X, ssm_calc_t *calc)
 
     int change_basis = 0;
     // eval = max(eval,0) and diag(eval)
-    for (i=0; i<N_KAL; i++) {
+    for (i=0; i<m; i++) {
         if (gsl_vector_get(eval,i) < 0.0) {
             gsl_vector_set(eval, i, 0.0); // keeps bringing negative eigen values to 0
 	    change_basis = 1;
@@ -78,7 +79,7 @@ ssm_err_code_t check_and_correct_Ct(ssm_X_t *X, ssm_calc_t *calc)
     }
 
     if(change_basis){
-	gsl_matrix *Temp2 = p->FtCt; // temporary matrix
+	gsl_matrix *Temp2 = calc->_FtCt; // temporary matrix
 
 	//////////////////
 	// basis change //
@@ -91,7 +92,7 @@ ssm_err_code_t check_and_correct_Ct(ssm_X_t *X, ssm_calc_t *calc)
 	cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
 
 	// Ct = 1.0*evec*Temp2 + 0.0*Temp2;
-	status = gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, evec, Temp2, 0.0, Ct);
+	status = gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, 1.0, evec, Temp2, 0.0, &Ct.matrix);
 	cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
     }
 
@@ -140,7 +141,7 @@ ssm_err_code_t ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X,
     }
 
     // positivity and symetry could have been lost when propagating Ct
-    cum_status |= ssm_err_code_t check_and_correct_Ct(X, calc);
+    cum_status |= check_and_correct_Ct(X, calc, nav);
 
 
     // sc_st = Ht' * Ct * Ht + sc_rt
@@ -215,11 +216,11 @@ ssm_err_code_t ssm_kalman_update(ssm_X_t *X, ssm_row_t *row, double t, ssm_par_t
     cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
 
     // positivity and symmetry could have been lost when updating Ct
-    cum_status |= ssm_err_code_t check_and_correct_Ct(X, calc);
+    cum_status |= check_and_correct_Ct(X, calc, nav);
     
     // loglik
 
-    like->loglik += log(dmvnorm(row->ts_nonan_length, pred_error, St);
+    like->log_like += log(dmvnorm(row->ts_nonan_length, pred_error, St));
 
     return cum_status;
 }
