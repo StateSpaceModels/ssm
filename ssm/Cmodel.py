@@ -86,14 +86,13 @@ class Cmodel:
         #par_diff (state variable for diffusions)
         par_diff = []
 
-        for x in self.get_resource('sde')['skeleton']:
+        for x in self.get_resource('sde')['drift']:
             par_diff.append(x['id'])
 
         self.par_diff = ['diff__' + x for x in sorted(par_diff)]
 
         #par_vol (volatilites)
-        self.par_vol = sorted(set([x for subl in self.get_resource('sde')['sigma'] for x in subl if x != 0]))
-
+        self.par_vol = sorted(set([x for subl in self.get_resource('sde')['dispersion'] for x in subl if x != 0]))
 
         #par_obs
         par_obs = set();

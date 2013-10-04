@@ -178,15 +178,15 @@ class Ccoder(Cmodel):
                 else:
                     p['f_par2user'] = 'x'
 
-        skeletons = self.get_resource('sde')
-        skeletons = skeletons and skeletons['skeleton']
-        #TODO support ode skeletons += self.get_resource('ode')
+        drifts = self.get_resource('sde')
+        drifts = drifts and drifts['drift']
+        #TODO support ode drifts += self.get_resource('ode')
 
         states = self.par_sv + self.par_inc
         pars = self.par_sv + self.par_vol + self.par_noise + self.par_proc + self.par_obs
 
         #make C code for f_, f_inv f_der, f_der_inv
-        for p in skeletons:
+        for p in drifts:
             if 'transformation' in p:
                 p['f'] = self.make_C_term(p['transformation'], True, human=True, xify=p['id'], set_t0=True)
                 p['f_inv'] = self.make_C_term(p['transformation']+ '- x', True, inverse=p['id'], human=True, set_t0=True)
@@ -199,7 +199,7 @@ class Ccoder(Cmodel):
         #sort parameters
         #start by making dict:
         pdict = {x['id']:x for x in parameters}
-        sdict = {'diff__' + x['id']: x for x in skeletons}
+        sdict = {'diff__' + x['id']: x for x in drifts}
 
         f_remainders = {}
         f_remainders_par = {}
@@ -218,7 +218,7 @@ class Ccoder(Cmodel):
 
         return {
             'parameters': parameters,
-            'skeletons': skeletons,
+            'drifts': drifts,
             'par_sv': self.par_sv,
             'states': states,
             'remainders': self.remainder,
@@ -644,15 +644,16 @@ class Ccoder(Cmodel):
     def compute_diff(self):
 
         sde = self.get_resource('sde')
-        if sde and 'sigma' in sde:
-            sigma = sde['sigma']
-            diff = []
-            for x in sigma:
+        if sde and 'dispersion' in sde:
+            dispersion = sde['dispersion']
+            diff.terms = []
+            diff.n_browns = len(dispersion[0])
+            for x in dispersion:
                 term = ''
                 for i, y in enumerate(x):
                     if y:
                         term += (' + ' if term else '') + self.make_C_term(y, True) + ' * _w[{0}]'.format(i)
-                diff.append(term)
+                diff.terms.append(term)
             return diff
 
         else:
@@ -1013,7 +1014,17 @@ class Ccoder(Cmodel):
             for j in range(N_ENV_STO):
                 Ls_env[i][j] = Ls[i][N_REAC + j]
 
+        ############################
+        ## Create Q_sde
+        ############################
 
+        sde = self.get_resource('sde')
+        if sde and 'dispersion' in sde:
+            dispersion = sde['dispersion']
+            # Q_sde = dispersion * dispersion' 
+            Q_sde = matrix_product(dispersion, zip(*dispersion)) 
+
+        
         #####################################################################################
         ##we create 4 versions of Q (no_dem_sto, no_env_sto, no_dem_sto_no_env_sto and full)
         #####################################################################################
@@ -1028,17 +1039,21 @@ class Ccoder(Cmodel):
         Qs_env = matrix_product(Qs_env, zip(*Ls_env))
 
         calc_Q = {'no_dem_sto': {'Q_proc':[],
-                                 'Q_obs':[],
-                                 'Q': Qs_env},
+                                 'Q_inc':[],
+                                 'Q_cm': Qs_env,
+                                 'Q_sde': []},
                   'no_env_sto': {'Q_proc':[],
-                                 'Q_obs':[],
-                                 'Q': Qs_dem},
+                                 'Q_inc':[],
+                                 'Q_cm': Qs_dem,
+                                 'Q_sde': []},
                   'full': {'Q_proc':[],
-                           'Q_obs':[],
-                           'Q': Qs},
+                           'Q_inc':[],
+                           'Q_cm': Qs,
+                           'Q_sde': []},
                   'no_dem_sto_no_env_sto':{'Q_proc':[],
-                                           'Q_obs':[],
-                                           'Q': []}}
+                                           'Q_inc':[],
+                                           'Q_cm': [],
+                                           'Q_sde': []}}
 
         if debug:
             for k in calc_Q:
@@ -1052,49 +1067,57 @@ class Ccoder(Cmodel):
                 for i, x in enumerate(self.par_inc_def):
                     print N_PAR_SV+ i, x
 
-                for i in range(len(calc_Q[k]['Q'])):
+                for i in range(len(calc_Q[k]['Q_cm'])):
                     for j in range(i+1):
-                        if calc_Q[k]['Q'][i][j]:
+                        if calc_Q[k]['Q_cm'][i][j]:
                             print '----------'
                             #print Q[i][j]
-                            print 'Q[{0}][{1}]: '.format(i, j),  self.make_C_term(calc_Q[k]['Q'][i][j], True, human=True)
+                            print 'Q_cm[{0}][{1}]: '.format(i, j),  self.make_C_term(calc_Q[k]['Q_cm'][i][j], True, human=True)
                             if i != j:
-                                print 'Q[{0}][{1}] == Q[{1}][{0}]: '.format(i, j), self.make_C_term(calc_Q[k]['Q'][i][j], True, human=True) == self.make_C_term(calc_Q[k]['Q'][j][i], True, human=True)
+                                print 'Q_cm[{0}][{1}] == Q_cm[{1}][{0}]: '.format(i, j), self.make_C_term(calc_Q[k]['Q_cm'][i][j], True, human=True) == self.make_C_term(calc_Q[k]['Q_cm'][j][i], True, human=True)
 
 
         #convert in a version easy to template in C
         #Note that we only template the lower triangle (Q is symmetrical)
         for k, tpl in calc_Q.iteritems():
-            if tpl['Q']:
-                for i  in range(len(tpl['Q'])):
+            if tpl['Q_cm']:
+                for i  in range(len(tpl['Q_cm'])):
                     for j in range(i+1):
-                        if tpl['Q'][i][j]:
+                        if tpl['Q_cm'][i][j]:
                             if i< N_PAR_SV and j < N_PAR_SV:
-                                tpl['Q_proc'].append({'i': i, 'j': j, 'rate': self.make_C_term(tpl['Q'][i][j], True)})
+                                tpl['Q_proc'].append({'i': i, 'j': j, 'term': self.make_C_term(tpl['Q_cm'][i][j], True)})
                             else:
-                                tpl['Q_obs'].append({'i': {'is_obs': False, 'ind': i} if i < N_PAR_SV else {'is_obs': True, 'ind': i - N_PAR_SV},
-                                                     'j': {'is_obs': False, 'ind': j} if j < N_PAR_SV else {'is_obs': True, 'ind': j - N_PAR_SV},
-                                                     'rate': self.make_C_term(tpl['Q'][i][j], True)})
+                                tpl['Q_inc'].append({'i': {'is_inc': False, 'ind': i} if i < N_PAR_SV else {'is_inc': True, 'ind': i - N_PAR_SV},
+                                                     'j': {'is_inc': False, 'ind': j} if j < N_PAR_SV else {'is_inc': True, 'ind': j - N_PAR_SV},
+                                                     'term': self.make_C_term(tpl['Q_cm'][i][j], True)})
+            if sde:
+                for i in range(len(Q_sde)):
+                    for j in range(i+1):
+                        if Q_sde[i][j]:
+                            tpl['Q_sde'].append({'i': i, 'j': j, 'term': self.make_C_term(Q_sde[i][j], True)})
+
 
         ##cache special functions
         for key in calc_Q:
-            if calc_Q[key]['Q']:
+            if calc_Q[key]['Q_cm']:
 
-                optim_rates_proc = [x['rate'] for x in calc_Q[key]['Q_proc']]
-                optim_rates_obs = [x['rate'] for x in calc_Q[key]['Q_obs']]
-                optim_rates = optim_rates_proc + optim_rates_obs
+                optim_rates_proc = [x['term'] for x in calc_Q[key]['Q_proc']]
+                optim_rates_inc = [x['term'] for x in calc_Q[key]['Q_inc']]
+                optim_rates = optim_rates_proc + optim_rates_inc
 
                 calc_Q[key]['sf'] = self.cache_special_function_C(optim_rates, prefix='_sf[cac]')
 
                 for i in range(len(optim_rates_proc)):
-                    calc_Q[key]['Q_proc'][i]['rate'] = optim_rates[i]
+                    calc_Q[key]['Q_proc'][i]['term'] = optim_rates[i]
 
                 n_proc = len(optim_rates_proc)
-                for i in range(len(optim_rates_obs)):
-                    calc_Q[key]['Q_obs'][i]['rate'] = optim_rates[n_proc + i]
+                for i in range(len(optim_rates_inc)):
+                    calc_Q[key]['Q_inc'][i]['term'] = optim_rates[n_proc + i]
 
             else:
                 calc_Q[key]['sf'] = []
+
+        
 
 
         return calc_Q

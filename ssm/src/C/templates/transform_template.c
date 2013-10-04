@@ -2,7 +2,7 @@
 
 {% block code %}
 
-{% for p in skeletons %}
+{% for p in drifts %}
 {% if 'transformation' in p %}
 static double f_tpl_skl_{{ p.id }}(double x)
 {

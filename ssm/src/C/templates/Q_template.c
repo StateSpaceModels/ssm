@@ -23,7 +23,7 @@ void ssm_evalQ_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm_
     // demographic stochasticity and white noise terms (if any) //
     //////////////////////////////////////////////////////////////
 
-    {% if tpl.Q_proc or tpl.Q_obs %}
+    {% if tpl.Q_proc or tpl.Q_inc %}
     double term;
 
     {% if is_diff  %}
@@ -49,7 +49,7 @@ void ssm_evalQ_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm_
     }
     {% endif %}
 
-    {% endif %} // tpl.Q_proc or tpl.Q_obs
+    {% endif %} // tpl.Q_proc or tpl.Q_ins
 
 
     /* caches */
@@ -64,7 +64,7 @@ void ssm_evalQ_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm_
     {% for x in tpl.Q_proc %}
     i = {{ x.i }};
     j = {{ x.j }};
-    term = {{ x.rate|safe }};
+    term = {{ x.term|safe }};
 
     gsl_matrix_set(Q, i, j, term);
     
@@ -77,20 +77,20 @@ void ssm_evalQ_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm_
     {% endif %}
 
     /*
-      Q_obs contains only term involving at least one observed
+      Q_inc contains only term involving at least one incidence
       variable.
     */
-    {% if tpl.Q_obs %}
+    {% if tpl.Q_inc %}
 
-    {% for x in tpl.Q_obs %}
+    {% for x in tpl.Q_inc %}
 
-    {% if x.i.is_obs %}
+    {% if x.i.is_inc %}
     i = states_inc->p[{{ x.i.ind }}]->offset;
     {% else %}
     i = states_sv->p[{{ x.i.ind }}]->offset;
     {% endif %}
 
-    {% if x.j.is_obs %}
+    {% if x.j.is_inc %}
     j = states_inc->p[{{ x.j.ind }}]->offset;
     {% else %}
     j = states_sv->p[{{ x.j.ind }}]->offset;
@@ -98,7 +98,7 @@ void ssm_evalQ_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm_
 
     gsl_matrix_set(Q, i, j, term);
     
-    {% if x.i != x.j %}
+    {% if x.i.ind != x.j.ind %}
     gsl_matrix_set(Q, j, i, term);
     {% endif %}
 
@@ -112,9 +112,17 @@ void ssm_evalQ_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm_
     // diff term (volatility^2 on diagonal) //
     ///////////////////////////////////////////
     if(is_diff){
-	{% for eq in diff %}
-	i = states_diff->p[{{ loop.index0 }}]->offset;
-	//TODO: FIX gsl_matrix_set(Q, i, i, pow({{ eq }},2));
+	{% for x in tpl.Q_sde %}
+	i = states_diff->p[{{ x.i }}]->offset;
+	j = states_diff->p[{{ x.j }}]->offset;
+	
+	term = {{ x.term }};
+
+	gsl_matrix_set(Q, i, j, term);
+	{% if x.i != x.j %}
+	gsl_matrix_set(Q, j, i, term);
+	{% endif %}
+
 	{% endfor %}
     }
     {% endif %}

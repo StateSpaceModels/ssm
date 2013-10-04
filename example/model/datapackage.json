@@ -47,11 +47,11 @@
     {
       "name": "sde",
       "data": {
-        "skeleton": [
+        "drift": [
           {"id": "r0_paris", "f": 0.0, "transformation": "log(r0_paris)"},
           {"id": "r0_nyc",   "f": 0.0, "transformation": "log(r0_nyc)"}
         ],
-        "sigma":[
+        "dispersion":[
           ["vol", 0],
           [0, "vol"]
         ]
