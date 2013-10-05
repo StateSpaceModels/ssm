@@ -24,7 +24,7 @@
 ssm_err_code_t ssm_log_prob_proposal(double *log_like, ssm_theta_t *proposed, ssm_theta_t *mean, ssm_var_t *var, double sd_fac, ssm_nav_t *nav, int is_mvn)
 {
 
-    int i, offset;
+    int i;
     ssm_parameter_t *p;
     double p_tmp =0.0;
     double Lp = 0.0;
@@ -92,7 +92,7 @@ ssm_err_code_t ssm_log_prob_proposal(double *log_like, ssm_theta_t *proposed, ss
  * means it doesn't immediatly return on failure). This is usefull for
  * the --prior option.
  */
-ssm_err_code_t log_prob_prior(double *log_like, ssm_theta_t *mean, ssm_var_t *var, ssn_nav_t *nav, ssm_fitness_t *fitness)
+ssm_err_code_t log_prob_prior(double *log_like, ssm_theta_t *mean, ssm_var_t *var, ssm_nav_t *nav, ssm_fitness_t *fitness)
 {
     int i;
     ssm_parameter_t *p;
@@ -133,17 +133,17 @@ int ssm_metropolis_hastings(double *alpha, ssm_theta_t *proposed, ssm_theta_t *m
     double ran;
 
     double lproposal_new, lproposal_prev, lprior_new, lprior_prev;
-    ssm_err_code rc_proposal_new =  ssm_log_prob_proposal(&lproposal_new,  proposed, mean,     var, sd_fac, nav,  is_mvn); /* q{ theta* | theta(i-1) }*/
-    ssm_err_code rc_proposal_prev = ssm_log_prob_proposal(&lproposal_prev, mean,     proposed, var, sd_fac, nav, is_mvn);  /* q{ theta(i-1) | theta* }*/
-    ssm_err_code rc_prior_new  =    ssm_log_prob_prior(&lprior_new,        proposed,           var, nav, fitness);         /* p{theta*} */
-    ssm_err_code rc_prior_prev =    ssm_log_prob_prior(&lprior_prev,       mean,               var, nav, fitness);         /* p{theta(i-1)} */
+    ssm_err_code_t rc_proposal_new =  ssm_log_prob_proposal(&lproposal_new,  proposed, mean,     var, sd_fac, nav,  is_mvn); /* q{ theta* | theta(i-1) }*/
+    ssm_err_code_t rc_proposal_prev = ssm_log_prob_proposal(&lproposal_prev, mean,     proposed, var, sd_fac, nav, is_mvn);  /* q{ theta(i-1) | theta* }*/
+    ssm_err_code_t rc_prior_new  =    ssm_log_prob_prior(&lprior_new,        proposed,           var, nav, fitness);         /* p{theta*} */
+    ssm_err_code_t rc_prior_prev =    ssm_log_prob_prior(&lprior_prev,       mean,               var, nav, fitness);         /* p{theta(i-1)} */
 
     if( (rc_proposal_new == SSM_SUCCESS) && (rc_proposal_prev == SSM_SUCCESS) && (rc_prior_new == SSM_SUCCESS) && (rc_prior_prev == SSM_SUCCESS) ) {
 
         // ( p{theta*}(y)  p{theta*} ) / ( p{theta(i-1)}(y) p{theta(i-1)} )  *  q{ theta(i-1) | theta* } / q{ theta* | theta(i-1) }
         *alpha = exp( (fitness->log_like_new - fitness->log_like_prev + lproposal_prev - lproposal_new + lprior_new - lprior_prev) );
 
-        ran = gsl_ran_flat(p_calc->randgsl, 0.0, 1.0);
+        ran = gsl_ran_flat(calc->randgsl, 0.0, 1.0);
 
         if(ran < *alpha) {
             return 1; //accepted

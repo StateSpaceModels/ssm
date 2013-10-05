@@ -116,7 +116,7 @@ void ssm_cov_emp(double *x_bar, gsl_vector *x, gsl_matrix *cov, double m)
     double val;
 
     /* lower triangle and diagonal */
-    for (i=0; i < p_best->length; i++) {
+    for (i=0; i < x->size; i++) {
         for (k=0; k <= i; k++) {
 	    //Cov_n = C_n/n
 	    //C_n = sum_{i=1,n} (x_i-x_bar_n)(y_i-y_bar_n)
@@ -131,17 +131,16 @@ void ssm_cov_emp(double *x_bar, gsl_vector *x, gsl_matrix *cov, double m)
     }
     
     /* fill upper triangle */
-    for (i=0; i < p_best->length; i++) {
+    for (i=0; i < x->size; i++) {
         for (k=0; k < i; k++) {
             val = gsl_matrix_get(cov, i, k);
             gsl_matrix_set(cov, k, i, val);
         }
     }
 
-    //update x_bar
-    for (i=0; i < p_best->length; i++) {
+    /* update x_bar */
+    for (i=0; i < x->size; i++) {
         x_bar[i] += (gsl_vector_get(x, i) - x_bar[i]) / m;
     }
 
 }
-
