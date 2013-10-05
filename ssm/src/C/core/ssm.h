@@ -575,6 +575,7 @@ double ssm_dmvnorm(const int n, const gsl_vector *x, const gsl_vector *mean, con
 /* prediction_util.c */
 void ssm_X_copy(ssm_X_t *dest, ssm_X_t *src);
 void ssm_X_reset_inc(ssm_X_t *X, ssm_row_t *row);
+void ssm_X_reset_inc_and_cov(ssm_X_t *X, ssm_row_t *row, ssm_nav_t *nav);
 void ssm_ran_multinomial (const gsl_rng * r, const size_t K, unsigned int N, const double p[], unsigned int n[]);
 double ssm_correct_rate(double rate, double dt);
 ssm_err_code_t ssm_check_no_neg_remainder(ssm_X_t *p_X, ssm_nav_t *nav, ssm_calc_t *calc, double t);

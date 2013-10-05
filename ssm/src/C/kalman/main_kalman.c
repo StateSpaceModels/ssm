@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     int j, n, np1, t0,t1;
 
     ssm_options_t *opts = ssm_options_new();
-    ssm_load_options(opts, SSM_SMC, argc, argv);
+    ssm_load_options(opts, SSM_KALMAN, argc, argv);
 
     json_t *jparameters = ssm_load_json_stream(stdin);
     json_t *jdata = ssm_load_data(opts);
@@ -41,8 +41,6 @@ int main(int argc, char *argv[])
     ssm_input2par(par, input, calc, nav);
     ssm_par2X(X, par, calc, nav);
 
-    int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
-
     fitness->cum_status[0] = SSM_SUCCESS;
     
     ssm_f_pred_t f_pred = ssm_get_f_pred(nav);
@@ -53,7 +51,7 @@ int main(int argc, char *argv[])
         t1 = data->rows[n]->time;
 		    
 	// Reset incidence
-	ssm_X_reset_inc(X, data->rows[n]);
+	ssm_X_reset_inc_and_cov(X, data->rows[n], nav);
 	
 	// Predict
 	fitness->cum_status[0] |= (*f_pred)(X, t0, t1, par, nav, calc);

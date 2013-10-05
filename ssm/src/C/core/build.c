@@ -542,7 +542,7 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (doubl
             }
 
             if(!can_run){
-                ssm_print_err("kalman methods must be used with at least one brownian motion.");
+                ssm_print_err("Kalman methods must be used with at least one source of stochasticity in the process.");
                 exit(EXIT_FAILURE);
             }
 
