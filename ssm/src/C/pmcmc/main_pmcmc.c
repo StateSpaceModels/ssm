@@ -38,8 +38,8 @@ int main(int argc, char *argv[])
     ssm_input_t *input = ssm_input_new(jparameters, nav);
     ssm_par_t *par = ssm_par_new(input, calc[0], nav);
 
-    ssm_theta_t *theta = ssm_theta_new(nav);
-    ssm_theta_t *proposed = ssm_theta_new(nav);
+    ssm_theta_t *theta = ssm_theta_new(input, nav);
+    ssm_theta_t *proposed = ssm_theta_new(input, nav);
     ssm_var_t *var_input = ssm_var_new(jparameters, nav);
     ssm_var_t *var; //the covariance matrix used;
     ssm_adapt_t *adapt = ssm_adapt_new(nav, opts);
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     fitness->log_like_prev = fitness->log_like_new;
 
     if(nav->print & SSM_PRINT_TRACE){
-	ssm_print_trace(stdout, par, nav, calc, fitness->log_like, m);
+	ssm_print_trace(stdout, theta, nav, calc, fitness->log_like, m);
     }
 
     ////////////////

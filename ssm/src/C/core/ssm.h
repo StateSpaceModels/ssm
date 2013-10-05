@@ -548,7 +548,7 @@ unsigned int ***ssm_u3_varp2_new(int n, unsigned int p1, unsigned int *p2);
 void ssm_input_free(ssm_input_t *input);
 ssm_par_t *ssm_par_new(ssm_input_t *input, ssm_calc_t *calc, ssm_nav_t *nav);
 void ssm_par_free(ssm_par_t *par);
-ssm_theta_t *ssm_theta_new(ssm_nav_t *nav);
+ssm_theta_t *ssm_theta_new(ssm_input_t* input, ssm_nav_t *nav);
 void ssm_theta_free(ssm_theta_t *theta);
 ssm_var_t *ssm_var_new(json_t *jparameters, ssm_nav_t *nav);
 void ssm_var_free(ssm_var_t *var);
