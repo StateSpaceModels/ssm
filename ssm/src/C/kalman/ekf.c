@@ -189,6 +189,7 @@ ssm_err_code_t ssm_kalman_update(ssm_X_t *X, ssm_row_t *row, double t, ssm_par_t
     int status;
     int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
     gsl_vector_view pred_error = gsl_vector_subvector(calc->_pred_error,0,row->ts_nonan_length);
+    gsl_vector_view zero = gsl_vector_subvector(calc->_zero,0,row->ts_nonan_length);
     gsl_matrix_view Kt = gsl_matrix_submatrix(calc->_Kt,0,0,m,row->ts_nonan_length);
     gsl_matrix_view Tmp = gsl_matrix_submatrix(calc->_Tmp_N_TS_N_SV,0,0,row->ts_nonan_length,m);
     gsl_vector_view X_sv = gsl_vector_view_array(X->proj,m);
@@ -220,7 +221,7 @@ ssm_err_code_t ssm_kalman_update(ssm_X_t *X, ssm_row_t *row, double t, ssm_par_t
     
     // loglik
 
-    like->log_like += log(dmvnorm(row->ts_nonan_length, pred_error, St));
+    like->log_like += log(ssm_dmvnorm(row->ts_nonan_length, &pred_error.vector, &zero.vector, &St.matrix));
 
     return cum_status;
 }

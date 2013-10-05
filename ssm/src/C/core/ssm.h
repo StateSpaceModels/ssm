@@ -137,6 +137,7 @@ typedef struct ssm_calc_t /*[N_THREADS] : for parallel computing we need N_THREA
     void (*eval_Q)(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, struct ssm_calc_t *calc);
 
     gsl_vector *_pred_error;    /**< [nav->observed_length] */
+    gsl_vector *_zero;          /**< [nav->observed_length] */
     gsl_matrix *_St;            /**< [nav->observed_length][nav->observed_length] */
     gsl_matrix *_Stm1;          /**< [nav->observed_length][nav->observed_length] */
     gsl_matrix *_Rt;            /**< [nav->observed_length][nav->observed_length] */
@@ -567,6 +568,9 @@ void ssm_load_options(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
 double ssm_sanitize_likelihood(double like, ssm_fitness_t *fitness, ssm_nav_t *nav);
 double ssm_log_likelihood(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness);
 double ssm_sum_square(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness);
+
+/* mvn.c */
+double ssm_dmvnorm(const int n, const gsl_vector *x, const gsl_vector *mean, const gsl_matrix *var);
 
 /* prediction_util.c */
 void ssm_X_copy(ssm_X_t *dest, ssm_X_t *src);

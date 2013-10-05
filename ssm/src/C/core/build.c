@@ -549,6 +549,7 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (doubl
             int n_s = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
             int n_o = nav->observed_length;
             calc->_pred_error = gsl_vector_calloc(n_o);
+	    calc->_zero = gsl_vector_calloc(n_o);
             calc->_St = gsl_matrix_calloc(n_o, n_o);
             calc->_Stm1 = gsl_matrix_calloc(n_o, n_o);
             calc->_Rt = gsl_matrix_calloc(n_o, n_o);
