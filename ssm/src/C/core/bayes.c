@@ -179,3 +179,16 @@ ssm_var_t *ssm_get_var_sd_fac(double *sd_fac, ssm_adapt_t *a, ssm_var_t *var, ss
 	
     return ((m * a->ar) >= a->m_switch) ? a->var_sampling: var;	     
 }
+
+
+
+/**
+ * Compute acceptance rate using an average filter and smoothed
+ * acceptance rate using a low pass filter (a.k.a exponential
+ * smoothing or exponential moving average)
+ */
+void ssm_ar(ssm_adapt_t *a, int is_accepted, int m)
+{
+    a->ar_smoothed = (1.0 - a->alpha) * a->ar_smoothed + a->alpha * is_accepted;
+    a->ar += ( ((double) is_accepted - a->ar) / ((double) (m + 1)) );
+}
