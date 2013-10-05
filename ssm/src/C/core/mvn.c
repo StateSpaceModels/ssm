@@ -108,7 +108,7 @@ double ssm_dmvnorm(const int n, const gsl_vector *x, const gsl_vector *mean, con
  * @param x       current best estimate of the parameters;
  * @param  m the current mcmc iteration index
  */
-void ssm_cov_emp(ssm_adapt_t *adapt, ssm_theta_t *x, int m)
+void ssm_adapt_var(ssm_adapt_t *adapt, ssm_theta_t *x, int m)
 {
     int i, k;
 

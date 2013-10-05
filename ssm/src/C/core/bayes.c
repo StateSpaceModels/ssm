@@ -161,7 +161,7 @@ int ssm_metropolis_hastings(double *alpha, ssm_theta_t *proposed, ssm_theta_t *m
  * (depending on the iteration value and options) and the evaluated
  * tuning factor sd_fac
  */
-ssm_var_t *ssm_get_var_sd_fac(double *sd_fac, ssm_adapt_t *a, ssm_var_t *var, ssm_nav_t *nav, int m)
+ssm_var_t *ssm_adapt_eps_var_sd_fac(double *sd_fac, ssm_adapt_t *a, ssm_var_t *var, ssm_nav_t *nav, int m)
 {
     // evaluate epsilon(m) = epsilon(m-1) * exp(a^(m-1) * (acceptance_rate(m-1) - 0.234))
 
@@ -187,8 +187,30 @@ ssm_var_t *ssm_get_var_sd_fac(double *sd_fac, ssm_adapt_t *a, ssm_var_t *var, ss
  * acceptance rate using a low pass filter (a.k.a exponential
  * smoothing or exponential moving average)
  */
-void ssm_ar(ssm_adapt_t *a, int is_accepted, int m)
+void ssm_adapt_ar(ssm_adapt_t *a, int is_accepted, int m)
 {
     a->ar_smoothed = (1.0 - a->alpha) * a->ar_smoothed + a->alpha * is_accepted;
     a->ar += ( ((double) is_accepted - a->ar) / ((double) (m + 1)) );
+}
+
+
+
+void ssm_theta_ran(ssm_theta_t *proposed, ssm_theta_t *mean, ssm_var_t *var, double sd_fac, ssm_calc_t *calc, ssm_nav_t *nav, int is_mvn)
+{    
+    int i;
+
+    if(is_mvn){
+	ssm_rmvnorm(calc->randgsl, nav->theta_all->length, mean, var, sd_fac, proposed);
+    } else { //iid gaussians	
+	for (i=0; i< nav->theta_all->length ; i++) {	    
+	    gsl_vector_set(proposed, i, gsl_vector_get(mean, i) + gsl_ran_gaussian(calc->randgsl, sd_fac*sqrt(gsl_matrix_get(var, i, i))));
+	}
+    }
+
+}
+
+
+int ssm_theta_copy(ssm_theta_t *dest, ssm_theta_t *src)
+{
+    return gsl_vector_memcpy(dest, src);   
 }

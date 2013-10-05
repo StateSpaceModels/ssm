@@ -52,7 +52,7 @@ void ssm_theta_free(ssm_theta_t *theta)
     gsl_vector_free(theta);
 }
 
-ssm_var_t *ssm_var_new(ssm_nav_t *nav, json_t *jparameters)
+ssm_var_t *ssm_var_new(json_t *jparameters, ssm_nav_t *nav)
 {
     gsl_matrix *m = gsl_matrix_calloc(nav->theta_all->length, nav->theta_all->length);
 

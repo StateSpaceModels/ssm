@@ -549,7 +549,7 @@ ssm_par_t *ssm_par_new(ssm_input_t *input, ssm_calc_t *calc, ssm_nav_t *nav);
 void ssm_par_free(ssm_par_t *par);
 ssm_theta_t *ssm_theta_new(ssm_nav_t *nav);
 void ssm_theta_free(ssm_theta_t *theta);
-ssm_var_t *ssm_var_new(ssm_nav_t *nav, json_t *jparameters);
+ssm_var_t *ssm_var_new(json_t *jparameters, ssm_nav_t *nav);
 void ssm_var_free(ssm_var_t *var);
 ssm_it_states_t *_ssm_it_states_new(int length);
 void _ssm_it_states_free(ssm_it_states_t *it);
@@ -606,7 +606,7 @@ double ssm_sum_square(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_
 /* mvn.c */
 int ssm_rmvnorm(const gsl_rng *r, const int n, const gsl_vector *mean, const gsl_matrix *var, double sd_fac, gsl_vector *result);
 double ssm_dmvnorm(const int n, const gsl_vector *x, const gsl_vector *mean, const gsl_matrix *var, double sd_fac);
-void ssm_cov_emp(ssm_adapt_t *adapt, ssm_theta_t *x, int m);
+void ssm_adapt_var(ssm_adapt_t *adapt, ssm_theta_t *x, int m);
 
 /* prediction_util.c */
 void ssm_X_copy(ssm_X_t *dest, ssm_X_t *src);
@@ -673,8 +673,10 @@ void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *n
 ssm_err_code_t ssm_log_prob_proposal(double *log_like, ssm_theta_t *proposed, ssm_theta_t *mean, ssm_var_t *var, double sd_fac, ssm_nav_t *nav, int is_mvn);
 ssm_err_code_t ssm_log_prob_prior(double *log_like, ssm_theta_t *mean, ssm_var_t *var, ssm_nav_t *nav, ssm_fitness_t *fitness);
 int ssm_metropolis_hastings(double *alpha, ssm_theta_t *proposed, ssm_theta_t *mean, gsl_matrix *var, double sd_fac, ssm_fitness_t *fitness , ssm_nav_t *nav, ssm_calc_t *calc, int is_mvn);
-ssm_var_t *ssm_get_var_sd_fac(double *sd_fac, ssm_adapt_t *a, ssm_var_t *var, ssm_nav_t *nav, int m);
-void ssm_ar(ssm_adapt_t *a, int is_accepted, int m);
+ssm_var_t *ssm_adapt_eps_var_sd_fac(double *sd_fac, ssm_adapt_t *a, ssm_var_t *var, ssm_nav_t *nav, int m);
+void ssm_adapt_ar(ssm_adapt_t *a, int is_accepted, int m);
+void ssm_theta_ran(ssm_theta_t *proposed, ssm_theta_t *mean, ssm_var_t *var, double sd_fac, ssm_calc_t *calc, ssm_nav_t *nav, int is_mvn);
+int ssm_theta_copy(ssm_theta_t *dest, ssm_theta_t *src);
 
 
 /****************************/
