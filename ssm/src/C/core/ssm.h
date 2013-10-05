@@ -290,7 +290,6 @@ typedef struct
     double (*f_obs_mean)             (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
     double (*f_obs_var)              (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
     double (*f_obs_ran)              (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
-
 } ssm_observed_t;
 
 

@@ -20,11 +20,11 @@ void ssm_step_sde_{{ noises_off }}(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_n
     double *X = p_X->proj;
     double dt = p_X->dt;
     double *f = calc->y_pred;
+    ssm_it_states_t *states_sv = nav->states_sv;
     {% endif %}
 
     ssm_it_states_t *states_diff = nav->states_diff;
     ssm_it_states_t *states_inc = nav->states_inc;
-    ssm_it_states_t *states_sv = nav->states_sv;
 
     double _r[{{ step.caches|length }}];
 

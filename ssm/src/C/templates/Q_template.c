@@ -9,14 +9,18 @@
 void ssm_eval_Q_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc)
 {
     int i, j;
-
+    double term;
     gsl_matrix *Q = calc->_Q;
-    ssm_it_states_t *states_diff = nav->states_diff;
+
+    {% if tpl.Q_inc %}
     ssm_it_states_t *states_inc = nav->states_inc;
     ssm_it_states_t *states_sv = nav->states_sv;
+    {% endif %}
+
 
     {% if is_diff  %}
     int is_diff = ! (nav->noises_off & SSM_NO_DIFF);
+    ssm_it_states_t *states_diff = nav->states_diff;
     {% endif %}
 
     //////////////////////////////////////////////////////////////
@@ -24,7 +28,6 @@ void ssm_eval_Q_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm
     //////////////////////////////////////////////////////////////
 
     {% if tpl.Q_proc or tpl.Q_inc or tpl.Q_sde %}
-    double term;
 
     {% if is_diff  %}
     double diffed[states_diff->length];
