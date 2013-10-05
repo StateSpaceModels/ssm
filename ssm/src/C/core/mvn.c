@@ -105,14 +105,16 @@ double ssm_dmvnorm(const int n, const gsl_vector *x, const gsl_vector *mean, con
  * algorithm: see
  * http://en.wikipedia.org/wiki/Algorithms%5Ffor%5Fcalculating%5Fvariance#Covariance
  *
- * @param x_bar   mean sampling Em(X) 1st order mean needed to compute the sampling covariance;
  * @param x       current best estimate of the parameters;
- * @param cov     sampling covariance;
-
+ * @param  m the current mcmc iteration index
  */
-void ssm_cov_emp(double *x_bar, gsl_vector *x, gsl_matrix *cov, double m)
+void ssm_cov_emp(ssm_adapt_t *adapt, ssm_theta_t *x, int m)
 {
     int i, k;
+
+    double *x_bar = adapt->mean_sampling;   
+    gsl_matrix *cov = adapt->var_sampling;
+    double dm = (double) m;
     double val;
 
     /* lower triangle and diagonal */
@@ -122,11 +124,11 @@ void ssm_cov_emp(double *x_bar, gsl_vector *x, gsl_matrix *cov, double m)
 	    //C_n = sum_{i=1,n} (x_i-x_bar_n)(y_i-y_bar_n)
 	    //C_n = C_{n-1} + (n-1)/n(x_n -x_bar_{n-1})(y_n -y_bar_{n-1})
 	    //val = (n-1)/n(x_n -x_bar_{n-1})(y_n -y_bar_{n-1})
-            val = ((m - 1.0) / m) * (gsl_vector_get(x, i) - x_bar[i]) * (gsl_vector_get(x, k) - x_bar[k]);
+            val = ((dm - 1.0) / dm) * (gsl_vector_get(x, i) - x_bar[i]) * (gsl_vector_get(x, k) - x_bar[k]);
 
 	    //C_n = C_{n-1} + val
 	    //NOTE: we track the covariance and not C_n. However C_n =  covariance * n  so C_{n-1} = cov_{n-1} * (n-1) hence the fomula below
-            gsl_matrix_set(cov, i, k, (((m-1.0)*gsl_matrix_get(cov, i, k)) + val ) / m);
+            gsl_matrix_set(cov, i, k, (((dm-1.0)*gsl_matrix_get(cov, i, k)) + val ) / dm);
         }
     }
     
@@ -140,7 +142,7 @@ void ssm_cov_emp(double *x_bar, gsl_vector *x, gsl_matrix *cov, double m)
 
     /* update x_bar */
     for (i=0; i < x->size; i++) {
-        x_bar[i] += (gsl_vector_get(x, i) - x_bar[i]) / m;
+        x_bar[i] += (gsl_vector_get(x, i) - x_bar[i]) / dm;
     }
 
 }

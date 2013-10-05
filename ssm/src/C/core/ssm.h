@@ -454,13 +454,48 @@ typedef struct
     int chunk;               /**< number of particles to send to each machine */
     int flag_least_squares;  /**< optimize the sum of square instead of the likelihood */
     double size_stop;        /**< simplex size used as a stopping criteria */
-    char *freq;             /**< print the outputs (and reset incidences to 0 if any) every day (D), week (W), bi-week (B), month (M  or year (Y) */
+    char *freq;              /**< print the outputs (and reset incidences to 0 if any) every day (D), week (W), bi-week (B), month (M  or year (Y) */
     char *start;             /**< ISO 8601 date when the simulation starts*/
     char *end;               /**< ISO 8601 date when the simulation ends*/
     int skip;                /**< number of days to skip (used to skip transient dynamics) */
     char *server;            /**< domain name or IP address of the particule server (e.g 127.0.0.1) */
     int flag_no_filter;      /**< do not filter */
 } ssm_options_t;
+
+
+
+
+/**
+ * Adaptive tunning of MCMC algo
+ */
+typedef struct
+{
+    double ar;          /**< the global acceptance rate */
+    double ar_smoothed; /**< as computed with exponential smoothing (http://en.wikipedia.org/wiki/Exponential_smoothing) */
+
+    double eps;         /**< epsilon factor */
+    double eps_a;       /**< cooling factor */
+    double eps_max;     /**< max value for epsilon */
+    int    eps_switch;  /**< number of iterations before tuning epsilon */
+
+
+    int m_switch;       /**< number of iterations using empirical covariance */
+
+    int flag_smooth; /**<boolean: do we tune epsilon with the value of the acceptance rate obtained with exponential smoothing ? (1 yes 0 no) */
+    double alpha; /**< smoothing factor (The term smoothing factor is
+		     something of a misnomer, as larger values of
+		     alpha actually reduce the level of smoothing, and
+		     in the limiting case with alpha = 1 the output
+		     series is just the same as the original series
+		     (with lag of one time unit). */
+
+    double *mean_sampling;         /**< [ssm_nav_t->theta_all->length] Em(X) 1st order mean needed to compute the sampling covariance */
+    gsl_matrix *var_sampling;      /**< [ssm_nav_t->theta_all->length][ssm_nav_t->theta_all->length] Sampling covariance */
+
+} ssm_adapt_t;
+
+
+
 
 
 /****************************/
@@ -547,6 +582,8 @@ ssm_hat_t *ssm_hat_new(ssm_nav_t *nav);
 void ssm_hat_free(ssm_hat_t *hat);
 ssm_hat_t **ssm_D_hat_new(ssm_data_t *data, ssm_nav_t *nav);
 void ssm_D_hat_free(ssm_hat_t **hat, ssm_data_t *data);
+ssm_adapt_t *ssm_adapt_new(ssm_nav_t *nav, ssm_options_t * opts);
+void ssm_adapt_free(ssm_adapt_t *adapt);
 
 /* load.c */
 json_t *ssm_load_json_stream(FILE *stream);
@@ -569,7 +606,7 @@ double ssm_sum_square(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_
 /* mvn.c */
 int ssm_rmvnorm(const gsl_rng *r, const int n, const gsl_vector *mean, const gsl_matrix *var, double sd_fac, gsl_vector *result);
 double ssm_dmvnorm(const int n, const gsl_vector *x, const gsl_vector *mean, const gsl_matrix *var, double sd_fac);
-void ssm_cov_emp(double *x_bar, gsl_vector *x, gsl_matrix *cov, double m);
+void ssm_cov_emp(ssm_adapt_t *adapt, ssm_theta_t *x, int m);
 
 /* prediction_util.c */
 void ssm_X_copy(ssm_X_t *dest, ssm_X_t *src);

@@ -27,7 +27,7 @@ ssm_err_code_t ssm_log_prob_proposal(double *log_like, ssm_theta_t *proposed, ss
     int i;
     ssm_parameter_t *p;
     double p_tmp =0.0;
-    double Lp = 0.0;
+    double lp = 0.0;
     
     if (is_mvn) {
         p_tmp = ssm_dmvnorm(proposed->size, proposed, mean, var, sd_fac);
@@ -67,20 +67,20 @@ ssm_err_code_t ssm_log_prob_proposal(double *log_like, ssm_theta_t *proposed, ss
 	}
 
 	if (!is_mvn) {
-	    Lp += log(p_tmp);
+	    lp += log(p_tmp);
 	}
     }
 
     if (is_mvn) {
-	Lp = log(p_tmp);
+	lp = log(p_tmp);
     }
 
     //check AGAIN for numerical issues (taking log could have created issues)
-    if((isinf(Lp)==1) || (isnan(Lp)==1)) {
+    if((isinf(lp)==1) || (isnan(lp)==1)) {
 	return SSM_ERR_LIKE;
     }
     
-    *log_like = Lp;
+    *log_like = lp;
 
     return SSM_SUCCESS;
 }
@@ -98,7 +98,7 @@ ssm_err_code_t log_prob_prior(double *log_like, ssm_theta_t *mean, ssm_var_t *va
     ssm_parameter_t *p;
     int is_err = 0;
     double p_tmp = 0.0;
-    double Lp = 0.0;
+    double lp = 0.0;
     double back_transformed; //prior are on the natural scale, so we transform the parameter
 
     for(i=0; i<nav->theta_all->length; i++) {
@@ -116,10 +116,10 @@ ssm_err_code_t log_prob_prior(double *log_like, ssm_theta_t *mean, ssm_var_t *va
 	    p_tmp = (p_tmp <= fitness->like_min) ? fitness->like_min : p_tmp;
 	}
 
-	Lp += log(p_tmp); 
+	lp += log(p_tmp); 
     }
 
-    *log_like = Lp;
+    *log_like = lp;
 
     return (is_err) ? SSM_ERR_LIKE: SSM_SUCCESS;
 }

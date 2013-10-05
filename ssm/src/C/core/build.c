@@ -1060,3 +1060,49 @@ void ssm_D_hat_free(ssm_hat_t **hat, ssm_data_t *data)
 
     free(hat);
 }
+
+
+ssm_adapt_t *ssm_adapt_new(ssm_nav_t *nav, ssm_options_t * opts)
+{
+    ssm_adapt_t *p = malloc(sizeof (ssm_adapt_t));
+    if(p == NULL) {
+        ssm_print_err("allocation impossible for ssm_adapt_t");
+        exit(EXIT_FAILURE);
+    }
+
+    p->ar = 1.0;
+    p->ar_smoothed = 1.0;
+
+    p->eps = 1.0;
+    p->eps_max = opts->eps_max;
+    p->eps_switch = opts->eps_switch;
+    p->eps_a = opts->a;
+
+    int min_switch = 5.0*pow(nav->theta_all->length, 2);   
+    if (opts->m_switch < 0) {
+        p->m_switch = min_switch;
+    } else {
+        p->m_switch = opts->m_switch;
+	if ( (p->m_switch < min_switch) && !(nav->print & SSM_QUIET)) {
+	    char str[SSM_STR_BUFFSIZE];
+	    snprintf(str, SSM_STR_BUFFSIZE, "warning: covariance switching iteration (%i) is smaller than proposed one (%i)", p->m_switch, min_switch);
+	    ssm_print_warning(str);
+	}    
+    } 
+
+    p->flag_smooth = opts->flag_smooth;
+    p->alpha = opts->alpha;
+
+    p->mean_sampling = ssm_d1_new(nav->theta_all->length);
+    p->var_sampling = gsl_matrix_calloc(nav->theta_all->length, nav->theta_all->length);
+    
+    return p;
+}
+
+void ssm_adapt_free(ssm_adapt_t *adapt)
+{
+    free(adapt->mean_sampling);
+    gsl_matrix_free(adapt->var_sampling);
+
+    free(adapt);
+}
