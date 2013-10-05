@@ -505,10 +505,9 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fi
     /*******************/
     /* implementations */
     /*******************/
+    int dim = _ssm_dim_X(nav);
 
     if (nav->implementation == SSM_ODE || nav->implementation == SSM_EKF){
-
-	int dim = _ssm_dim_X(nav);
 
         calc->T = gsl_odeiv2_step_rkf45;
         calc->control = gsl_odeiv2_control_y_new(opts->eps_abs, opts->eps_rel);
@@ -565,7 +564,7 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fi
         }
 
     } else if (nav->implementation == SSM_SDE){
-        calc->y_pred = ssm_d1_new(dim_ode);
+        calc->y_pred = ssm_d1_new(dim);
     } else if (nav->implementation == SSM_PSR){
         ssm_psr_new(calc);
     }

@@ -533,7 +533,7 @@ void _ssm_row_free(ssm_row_t *row);
 void ssm_data_free(ssm_data_t *data);
 ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, int thread_id, unsigned long int seed, ssm_options_t *opts);
 void ssm_calc_free(ssm_calc_t *calc, ssm_nav_t *nav);
-ssm_calc_t **ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options_t *opts);
+ssm_calc_t **ssm_N_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options_t *opts);
 void ssm_N_calc_free(ssm_calc_t **calc, ssm_nav_t *nav);
 ssm_options_t *ssm_options_new(void);
 void ssm_options_free(ssm_options_t *opts);
