@@ -337,6 +337,13 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
     data->length = json_array_size(jdata_data);
     data->ts_length = nav->observed_length;
 
+    //n_obs
+    if(opts->n_obs >= 0){
+        data->n_obs = (opts->n_obs < data->length) ? opts->n_obs : data->length;
+    } else {
+        data->n_obs = data->length;
+    }
+
     ssm_row_t **rows = malloc(data->length * sizeof (ssm_row_t *));
     if (rows==NULL) {
         ssm_print_err("Allocation impossible for ssm_data_row_t **");
@@ -344,6 +351,7 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
     }
 
     data->length_nonan = 0;
+    data->n_obs_nonan = 0;
     data->ind_nonan = ssm_u1_new(data->length);
 
     for (i=0; i< data->length; i++){
@@ -420,17 +428,14 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
         if(rows[i]->ts_nonan_length){
             data->ind_nonan[data->length_nonan] = i;
             data->length_nonan += 1;
+	    if(i< data->n_obs){
+		data->n_obs_nonan += 1;
+	    }
         }
     }
 
     data->rows = rows;
 
-    //n_obs
-    if(opts->n_obs >= 0){
-        data->n_obs = (opts->n_obs < data->length) ? opts->n_obs : data->length;
-    } else {
-        data->n_obs = data->length;
-    }
 
     return data;
 }

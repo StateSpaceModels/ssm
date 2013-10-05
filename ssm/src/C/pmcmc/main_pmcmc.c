@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 
     fitness->log_like_new = p_like->log_like;
 
-    //TODO SAMPLE TRAJ
+    ssm_sample_traj_print(stout, D_J_X, par, nav, calc, data, fitness, m);
 
     //the initial iteration is "accepted"
     fitness->log_like_prev = fitness->log_like_new;
@@ -73,11 +73,15 @@ int main(int argc, char *argv[])
     int is_accepted;
     double ratio;
     for(m=1; m<n_iter; m++) {
-        // generate new theta	
+
 	var = ssm_adapt_eps_var_sd_fac(&sd_fac, adapt, var_input, nav, m);
-	ssm_theta_ran(proposed, theta, var, sd_fac, calc, nav, 1);
-	ssm_theta2input(input, proposed, nav);
-	ssm_input2par(par, input, calc, nav);
+	do {
+	    ssm_theta_ran(proposed, theta, var, sd_fac, calc, nav, 1);
+	    ssm_theta2input(input, proposed, nav);
+	    ssm_input2par(par, input, calc, nav);
+	}
+	while (ssm_check_ic(par, calc) != SSM_SUCCESS);
+
 	ssm_par2X(D_J_X[0][0], par, calc[0], nav);
 	for(j=1; j<fitness->J; j++){
 	    ssm_X_copy(D_J_X[0][j], D_J_X[0][0]);
@@ -97,12 +101,16 @@ int main(int argc, char *argv[])
 	ssm_adapt_ar(adapt, is_accepted, m); //compute acceptance rate
 
 	ssm_adapt_var(adapt, theta, m);  //compute empirical variance
+
+	ssm_sample_traj_print(stout, D_J_X, par, nav, calc, data, fitness, m);
+
     }
 
 
     json_decref(jparameters);
 
     ssm_D_J_X_free(D_J_X, data, fitness);
+    ssm_D_J_X_free(D_J_X_tmp, data, fitness);
     ssm_N_calc_free(calc, nav);
 
     ssm_data_free(data);

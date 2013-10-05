@@ -388,6 +388,7 @@ typedef struct
     int ts_length;           /**< the number of time series */
     char** dates_t0;         /**< [this.ts_length] the dates at t0 (before the first data point)*/
     int n_obs;               /**< the number of data point to taken into account for inference */
+    int n_obs_nonan;         /**< the number of data point to taken into account for inference discarding lines where all ts are NaN  */
 
     ssm_row_t **rows;   /**< [this.length] the data values */
     int length_nonan;        /**< number of data points with at least one time series != NaN */
@@ -659,10 +660,11 @@ void ssm_json_dumpf(FILE *stream, const char *flag, json_t *msg);
 void ssm_print_log(char *msg);
 void ssm_print_warning(char *msg);
 void ssm_print_err(char *msg);
-void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, const int index, const double t);
+void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, const int index);
 void ssm_print_trace(FILE *stream, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, const int index, const double fitness);
-void ssm_print_pred_res(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, ssm_fitness_t *fitness, const double t);
+void ssm_print_pred_res(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, ssm_fitness_t *fitness);
 void ssm_print_hat(FILE *stream, ssm_hat_t *hat, ssm_nav_t *nav, ssm_row_t *row);
+void ssm_sample_traj_print(FILE *stream, ssm_X_t ***D_J_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_data_t *data, ssm_fitness_t *fitness, const int index);
 
 /* hat.c */
 void ssm_ci95(double *hat_95, ssm_calc_t *calc, ssm_fitness_t *fitness);
@@ -702,7 +704,7 @@ ssm_parameter_t **ssm_parameters_new(int *parameters_length);
 ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters);
 
 /* check_IC_template */
-ssm_err_code_t ssm_check_IC(ssm_par_t *par, ssm_calc_t *calc);
+ssm_err_code_t ssm_check_ic(ssm_par_t *par, ssm_calc_t *calc);
 
 /* iterator_template.c */
 ssm_it_states_t *ssm_it_states_sv_new(ssm_state_t **states);

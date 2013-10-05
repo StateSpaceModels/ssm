@@ -83,6 +83,7 @@ int main(int argc, char *argv[])
     json_decref(jparameters);
 
     ssm_D_J_X_free(D_J_X, data, fitness);
+    ssm_D_J_X_free(D_J_X_tmp, data, fitness);
     ssm_N_calc_free(calc, nav);
 
     ssm_data_free(data);
