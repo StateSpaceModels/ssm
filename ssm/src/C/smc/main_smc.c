@@ -33,9 +33,9 @@ int main(int argc, char *argv[])
     ssm_input_t *input = ssm_input_new(jparameters, nav);
     ssm_par_t *par = ssm_par_new(nav);
     ssm_fitness_t *fitness = ssm_fitness_new(data, opts);
-    ssm_calc_t **calc = ssm_N_calc_new(jdata, nav->states_sv_inc->length + nav->states_diff->length, ssm_step_ode, NULL, nav, data, fitness, opts);
-    ssm_X_t ***D_J_X = ssm_D_J_X_new(data, fitness, nav->states_sv_inc->length + nav->states_diff->length, opts);
-    ssm_X_t ***D_J_X_tmp = ssm_D_J_X_new(data, fitness, nav->states_sv_inc->length + nav->states_diff->length, opts);
+    ssm_calc_t **calc = ssm_N_calc_new(jdata, nav, data, fitness, opts);
+    ssm_X_t ***D_J_X = ssm_D_J_X_new(data, fitness, nav, opts);
+    ssm_X_t ***D_J_X_tmp = ssm_D_J_X_new(data, fitness, nav, opts);
 
     json_decref(jdata);
 
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
         }
 
         for(j=0;j<fitness->J;j++) {
-            ssm_X_reset_inc(D_J_X[np1][j], data->rows[n]);
+            ssm_X_reset_inc(D_J_X[np1][j], data->rows[n], nav);
             fitness->cum_status[j] |= (*f_pred)(D_J_X[np1][j], t0, t1, par, nav, calc[0]);
 
             if(data->rows[n]->ts_nonan_length) {

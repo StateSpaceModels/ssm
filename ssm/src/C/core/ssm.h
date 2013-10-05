@@ -531,19 +531,20 @@ void ssm_nav_free(ssm_nav_t *nav);
 ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts);
 void _ssm_row_free(ssm_row_t *row);
 void ssm_data_free(ssm_data_t *data);
-ssm_calc_t *ssm_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, int thread_id, unsigned long int seed, ssm_options_t *opts);
-ssm_calc_t **ssm_N_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options_t *opts);
+ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, int thread_id, unsigned long int seed, ssm_options_t *opts);
 void ssm_calc_free(ssm_calc_t *calc, ssm_nav_t *nav);
+ssm_calc_t **ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options_t *opts);
 void ssm_N_calc_free(ssm_calc_t **calc, ssm_nav_t *nav);
 ssm_options_t *ssm_options_new(void);
 void ssm_options_free(ssm_options_t *opts);
 ssm_fitness_t *ssm_fitness_new(ssm_data_t *data, ssm_options_t *opts);
 void ssm_fitness_free(ssm_fitness_t *fitness);
-ssm_X_t *ssm_X_new(int size, ssm_options_t *opts);
+int _ssm_dim_X(ssm_nav_t *nav);
+ssm_X_t *ssm_X_new(ssm_nav_t *nav, ssm_options_t *opts);
 void ssm_X_free(ssm_X_t *X);
-ssm_X_t **ssm_J_X_new(ssm_fitness_t *fitness, int size, ssm_options_t *opts);
+ssm_X_t **ssm_J_X_new(ssm_fitness_t *fitness, ssm_nav_t *nav, ssm_options_t *opts);
 void ssm_J_X_free(ssm_X_t **X, ssm_fitness_t *fitness);
-ssm_X_t ***ssm_D_J_X_new(ssm_data_t *data, ssm_fitness_t *fitness, int size, ssm_options_t *opts);
+ssm_X_t ***ssm_D_J_X_new(ssm_data_t *data, ssm_fitness_t *fitness, ssm_nav_t *nav, ssm_options_t *opts);
 void ssm_D_J_X_free(ssm_X_t ***X, ssm_data_t *data, ssm_fitness_t *fitness);
 ssm_hat_t *ssm_hat_new(ssm_nav_t *nav);
 void ssm_hat_free(ssm_hat_t *hat);
@@ -573,8 +574,7 @@ double ssm_dmvnorm(const int n, const gsl_vector *x, const gsl_vector *mean, con
 
 /* prediction_util.c */
 void ssm_X_copy(ssm_X_t *dest, ssm_X_t *src);
-void ssm_X_reset_inc(ssm_X_t *X, ssm_row_t *row);
-void ssm_X_reset_inc_and_cov(ssm_X_t *X, ssm_row_t *row, ssm_nav_t *nav);
+void ssm_X_reset_inc(ssm_X_t *X, ssm_row_t *row, ssm_nav_t *nav);
 void ssm_ran_multinomial (const gsl_rng * r, const size_t K, unsigned int N, const double p[], unsigned int n[]);
 double ssm_correct_rate(double rate, double dt);
 ssm_err_code_t ssm_check_no_neg_remainder(ssm_X_t *p_X, ssm_nav_t *nav, ssm_calc_t *calc, double t);

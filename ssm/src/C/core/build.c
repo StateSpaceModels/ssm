@@ -508,21 +508,18 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fi
 
     if (nav->implementation == SSM_ODE || nav->implementation == SSM_EKF){
 
-	int dim_ode = nav->states_sv_inc->length + nav->states_diff->length;
-	if(nav->implementation == SSM_EKF){
-	    dim_ode += pow(dim_ode, 2);
-	}
+	int dim = _ssm_dim_X(nav);
 
         calc->T = gsl_odeiv2_step_rkf45;
         calc->control = gsl_odeiv2_control_y_new(opts->eps_abs, opts->eps_rel);
-        calc->step = gsl_odeiv2_step_alloc(calc->T, dim_ode);
-        calc->evolve = gsl_odeiv2_evolve_alloc(dim_ode);
-        (calc->sys).function = func_step_ode;
-        (calc->sys).jacobian = jacobian;
-        (calc->sys).dimension= dim_ode;
+        calc->step = gsl_odeiv2_step_alloc(calc->T, dim);
+        calc->evolve = gsl_odeiv2_evolve_alloc(dim);
+        (calc->sys).function =  (nav->implementation == SSM_ODE) ? &ssm_step_ode: &ssm_step_ekf;
+        (calc->sys).jacobian = NULL;
+        (calc->sys).dimension= dim;
         (calc->sys).params= calc;
 
-        calc->yerr = ssm_d1_new(dim_ode);
+        calc->yerr = ssm_d1_new(dim);
 
         if(nav->implementation == SSM_EKF){
 
@@ -733,21 +730,7 @@ void ssm_calc_free(ssm_calc_t *calc, ssm_nav_t *nav)
 }
 
 
-void ssm_N_calc_free(ssm_calc_t **calc, ssm_nav_t *nav)
-{
-    int n;
-    int threads_length = calc[0]->threads_length;
-
-    for(n=0; n<threads_length; n++) {
-        ssm_calc_free(calc[n], nav);
-    }
-
-    free(calc);
-}
-
-
-
-ssm_calc_t **ssm_N_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options_t *opts)
+ssm_calc_t **ssm_N_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options_t *opts)
 {
     int i;
     int n_threads = ssm_sanitize_n_threads(opts->n_thread, fitness);
@@ -767,11 +750,25 @@ ssm_calc_t **ssm_N_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (do
     seed += opts->id; /*we ensure uniqueness of seed in case of parrallel runs*/
 
     for (i=0; i< n_threads; i++) {
-        calc[i] = ssm_calc_new(jdata, dim_ode, func_step_ode, jacobian, nav, data, fitness, i, seed, opts);
+        calc[i] = ssm_calc_new(jdata, nav, data, fitness, i, seed, opts);
     }
 
     return calc;
 }
+
+
+void ssm_N_calc_free(ssm_calc_t **calc, ssm_nav_t *nav)
+{
+    int n;
+    int threads_length = calc[0]->threads_length;
+
+    for(n=0; n<threads_length; n++) {
+        ssm_calc_free(calc[n], nav);
+    }
+
+    free(calc);
+}
+
 
 
 ssm_options_t *ssm_options_new(void)
@@ -904,7 +901,16 @@ void ssm_fitness_free(ssm_fitness_t *fitness)
 }
 
 
-ssm_X_t *ssm_X_new(int size, ssm_options_t *opts)
+int _ssm_dim_X(ssm_nav_t *nav)
+{
+    int dim = nav->states_sv_inc->length + nav->states_diff->length;
+    if(nav->implementation == SSM_EKF){
+	dim += pow(dim, 2);
+    }
+    return dim;
+}
+
+ssm_X_t *ssm_X_new(ssm_nav_t *nav, ssm_options_t *opts)
 {
     ssm_X_t *X = malloc(sizeof (ssm_X_t));
     if (X==NULL) {
@@ -912,7 +918,7 @@ ssm_X_t *ssm_X_new(int size, ssm_options_t *opts)
         exit(EXIT_FAILURE);
     }
 
-    X->length = size;
+    X->length = _ssm_dim_X(nav);
 
     X->dt = 1.0/ ((double) round(1.0/opts->dt)); //IMPORTANT: for non adaptive time step methods, we ensure an integer multiple of dt in between 2 data points
     X->dt0 = X->dt;
@@ -929,7 +935,7 @@ void ssm_X_free(ssm_X_t *X)
 }
 
 
-ssm_X_t **ssm_J_X_new(ssm_fitness_t *fitness, int size, ssm_options_t *opts)
+ssm_X_t **ssm_J_X_new(ssm_fitness_t *fitness, ssm_nav_t *nav, ssm_options_t *opts)
 {
     int i;
     ssm_X_t **X = malloc(fitness->J * sizeof (ssm_X_t *));
@@ -939,7 +945,7 @@ ssm_X_t **ssm_J_X_new(ssm_fitness_t *fitness, int size, ssm_options_t *opts)
     }
 
     for(i=0; i<fitness->J; i++){
-        X[i] = ssm_X_new(size, opts);
+        X[i] = ssm_X_new(nav, opts);
     }
 
     return X;
@@ -956,7 +962,7 @@ void ssm_J_X_free(ssm_X_t **X, ssm_fitness_t *fitness)
     free(X);
 }
 
-ssm_X_t ***ssm_D_J_X_new(ssm_data_t *data, ssm_fitness_t *fitness, int size, ssm_options_t *opts)
+ssm_X_t ***ssm_D_J_X_new(ssm_data_t *data, ssm_fitness_t *fitness, ssm_nav_t *nav, ssm_options_t *opts)
 {
     int i;
     ssm_X_t ***X = malloc((data->length+1) * sizeof (ssm_X_t **));
@@ -966,7 +972,7 @@ ssm_X_t ***ssm_D_J_X_new(ssm_data_t *data, ssm_fitness_t *fitness, int size, ssm
     }
 
     for(i=0; i<data->length+1; i++){
-        X[i] = ssm_J_X_new(fitness, size, opts);
+        X[i] = ssm_J_X_new(fitness, nav, opts);
     }
 
     return X;

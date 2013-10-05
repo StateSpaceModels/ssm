@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     ssm_input_t *input = ssm_input_new(jparameters, nav);
     ssm_par_t *par = ssm_par_new(nav);
     ssm_fitness_t *fitness = ssm_fitness_new(data, opts);
-    ssm_calc_t *calc = ssm_calc_new(jdata, nav->states_sv_inc->length + nav->states_diff->length, ssm_step_ode, NULL, nav, data, fitness, opts);
+    ssm_calc_t *calc = ssm_calc_new(jdata, nav, data, fitness, opts);
     ssm_X_t *X = ssm_X_new(data->n_data +1, nav);
  
     json_decref(jdata);
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
         t1 = data->rows[n]->time;
 		    
 	// Reset incidence
-	ssm_X_reset_inc_and_cov(X, data->rows[n], nav);
+	ssm_X_reset_inc(X, data->rows[n], nav);
 	
 	// Predict
 	fitness->cum_status[0] |= (*f_pred)(X, t0, t1, par, nav, calc);
