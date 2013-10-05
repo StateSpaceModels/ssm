@@ -673,6 +673,9 @@ void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *n
 ssm_err_code_t ssm_log_prob_proposal(double *log_like, ssm_theta_t *proposed, ssm_theta_t *mean, ssm_var_t *var, double sd_fac, ssm_nav_t *nav, int is_mvn);
 ssm_err_code_t ssm_log_prob_prior(double *log_like, ssm_theta_t *mean, ssm_var_t *var, ssm_nav_t *nav, ssm_fitness_t *fitness);
 int ssm_metropolis_hastings(double *alpha, ssm_theta_t *proposed, ssm_theta_t *mean, gsl_matrix *var, double sd_fac, ssm_fitness_t *fitness , ssm_nav_t *nav, ssm_calc_t *calc, int is_mvn);
+ssm_var_t *ssm_get_var_sd_fac(double *sd_fac, ssm_adapt_t *a, ssm_var_t *var, ssm_nav_t *nav, int m);
+
+
 
 /****************************/
 /* kalman function signatures */

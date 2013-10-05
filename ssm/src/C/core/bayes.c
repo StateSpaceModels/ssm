@@ -155,3 +155,27 @@ int ssm_metropolis_hastings(double *alpha, ssm_theta_t *proposed, ssm_theta_t *m
 
     return 0;
 }
+
+/**
+ * return the empirical covariance matrix or the initial one
+ * (depending on the iteration value and options) and the evaluated
+ * tuning factor sd_fac
+ */
+ssm_var_t *ssm_get_var_sd_fac(double *sd_fac, ssm_adapt_t *a, ssm_var_t *var, ssm_nav_t *nav, int m)
+{
+    // evaluate epsilon(m) = epsilon(m-1) * exp(a^(m-1) * (acceptance_rate(m-1) - 0.234))
+
+    if ( (m > a->eps_switch) && ( m * a->ar < a->m_switch) ) {
+	double ar = (a->flag_smooth) ? a->ar_smoothed : a->ar;
+	a->eps *=  exp(pow(a->eps_a, (double) (m-1)) * (ar - 0.234));
+    } else {  // after switching epsilon is set back to 1
+	a->eps = 1.0;
+    }
+
+    a->eps = GSL_MIN(a->eps, a->eps_max);
+	
+    // evaluate tuning factor sd_fac = epsilon * 2.38/sqrt(n_to_be_estimated)
+    *sd_fac = a->eps * 2.38/sqrt(nav->theta_all->length);
+	
+    return ((m * a->ar) >= a->m_switch) ? a->var_sampling: var;	     
+}
