@@ -454,7 +454,7 @@ void ssm_data_free(ssm_data_t *data)
 }
 
 
-ssm_calc_t *ssm_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (double t, const double y[], double dydt[], void * params), int (* jacobian) (double t, const double y[], double * dfdy, double dfdt[], void * params), ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, int thread_id, unsigned long int seed, ssm_options_t *opts)
+ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, int thread_id, unsigned long int seed, ssm_options_t *opts)
 {
     ssm_calc_t *calc = malloc(sizeof (ssm_calc_t));
     if (calc==NULL) {
@@ -507,6 +507,11 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (doubl
     /*******************/
 
     if (nav->implementation == SSM_ODE || nav->implementation == SSM_EKF){
+
+	int dim_ode = nav->states_sv_inc->length + nav->states_diff->length;
+	if(nav->implementation == SSM_EKF){
+	    dim_ode += pow(dim_ode, 2);
+	}
 
         calc->T = gsl_odeiv2_step_rkf45;
         calc->control = gsl_odeiv2_control_y_new(opts->eps_abs, opts->eps_rel);
