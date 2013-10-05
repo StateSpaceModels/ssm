@@ -28,7 +28,7 @@
  *  NOTE: if fitness is NULL, 1.0/calc->J is assumed as a weight
  */
 
-void ssm_CI95(double *hat_95, ssm_calc_t *calc, ssm_fitness_t *fitness)
+void ssm_ci95(double *hat_95, ssm_calc_t *calc, ssm_fitness_t *fitness)
 {
     int k;
     double weight_cum;
@@ -100,7 +100,7 @@ void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *n
             calc->to_be_sorted[j] = J_X[j]->proj[offset]; //gsl_sort_index requires an array to be sorted and our particles are in J_X->proj so we use an helper array (calc->to_be_sorted)
             hat->states[offset] += calc->to_be_sorted[j]*weights[ *j_weights ];
         }
-        ssm_CI95(hat->states_95[offset], calc, fitness);
+        ssm_ci95(hat->states_95[offset], calc, fitness);
     }
 
     //remainders
@@ -112,7 +112,7 @@ void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *n
             calc->to_be_sorted[j] = state->f_remainder(J_X[j], calc, t);
             hat->remainders[offset] += calc->to_be_sorted[j]*weights[ *j_weights ];
         }
-        ssm_CI95(hat->remainders_95[offset], calc, fitness);
+        ssm_ci95(hat->remainders_95[offset], calc, fitness);
     }
 
     //diffusions
@@ -124,7 +124,7 @@ void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *n
             calc->to_be_sorted[j] = state->f_inv(J_X[j]->proj[state->offset]);
             hat->states[offset] += calc->to_be_sorted[j]*weights[ *j_weights ];
         }
-        ssm_CI95(hat->states_95[offset], calc, fitness);
+        ssm_ci95(hat->states_95[offset], calc, fitness);
     }
 
     //observed
@@ -136,7 +136,7 @@ void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *n
             calc->to_be_sorted[j] = observed->f_obs_mean(J_X[j], J_par[ *j_par ], calc, t);
             hat->observed[offset] += calc->to_be_sorted[j]*weights[ *j_weights ];
         }
-        ssm_CI95(hat->observed_95[offset], calc, fitness);
+        ssm_ci95(hat->observed_95[offset], calc, fitness);
     }
 
 }

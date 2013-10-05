@@ -55,7 +55,6 @@ json_t *ssm_load_data(ssm_options_t *opts)
     snprintf(path, SSM_STR_BUFFSIZE, "%s/.data.json", opts->path);
 
     json_t *jdata = ssm_load_json_file(path);
-    free(path);
 
     return jdata;
 }

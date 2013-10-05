@@ -22,7 +22,7 @@ void ssm_print_log(char *data)
 {
     json_t *root;
     root = json_pack("{s,s,s,s}", "id", "log", "data", data);
-    json_dumpf(root, stdout, 0); printf("\n");
+    json_dumpf(root, stdout, JSON_COMPACT); printf("\n");
     fflush(stdout);
     json_decref(root);
 }
@@ -31,7 +31,7 @@ void ssm_print_warning(char *data)
 {
     json_t *root;
     root = json_pack("{s,s,s,s}", "id", "wrn", "data", data);
-    json_dumpf(root, stdout, 0); printf("\n");
+    json_dumpf(root, stdout, JSON_COMPACT); printf("\n");
     fflush(stdout);
     json_decref(root);
 }
@@ -40,7 +40,7 @@ void ssm_print_err(char *data)
 {
     json_t *root;
     root = json_pack("{s,s,s,s}", "id", "err", "data", data);
-    json_dumpf(root, stderr, 0); fprintf(stderr,"\n");
+    json_dumpf(root, stderr, JSON_COMPACT); fprintf(stderr,"\n");
     fflush(stderr);
     json_decref(root);
 }
@@ -163,10 +163,10 @@ void ssm_print_pred_res(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *n
         y = row->values[ts];
         res = (y - pred)/sqrt(var_state + var_obs);
 
-        snprintf(key, SSM_STR_BUFFSIZE, "%s_%s", "pred", observed->name);
+        snprintf(key, SSM_STR_BUFFSIZE, "pred_%s", observed->name);
         json_object_set_new(jout, key, json_real(pred));
 
-        snprintf(key, SSM_STR_BUFFSIZE, "%s_%s", "res", observed->name);
+        snprintf(key, SSM_STR_BUFFSIZE, "res_%s", observed->name);
         json_object_set_new(jout, key, (isnan(res)==1)? json_null(): json_real(res));
     }
 
@@ -176,3 +176,61 @@ void ssm_print_pred_res(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *n
 }
 
 
+void ssm_print_hat(FILE *stream, ssm_hat_t *hat, ssm_nav_t *nav, ssm_row_t *row)
+{
+    int i;
+    char key[SSM_STR_BUFFSIZE];
+
+    ssm_state_t *state;
+    ssm_observed_t *observed;
+
+    json_t *jout = json_object();
+    json_object_set_new(jout, "date", json_string(row->date));
+
+    for(i=0; i< nav->states_sv_inc->length; i++) {
+	state = nav->states_sv_inc->p[i];
+	json_object_set_new(jout, state->name, json_real(hat->states[state->offset]));	
+
+	snprintf(key, SSM_STR_BUFFSIZE, "lower_%s", state->name);
+	json_object_set_new(jout, key, json_real(hat->states_95[state->offset][0]));
+
+	snprintf(key, SSM_STR_BUFFSIZE, "upper_%s", state->name);
+	json_object_set_new(jout, key, json_real(hat->states_95[state->offset][1]));
+    }
+
+    for(i=0; i< nav->states_remainders->length; i++) {
+	state = nav->states_remainders->p[i];
+	json_object_set_new(jout, state->name, json_real(hat->remainders[state->offset]));	
+
+	snprintf(key, SSM_STR_BUFFSIZE, "lower_%s", state->name);
+	json_object_set_new(jout, key, json_real(hat->remainders_95[state->offset][0]));
+
+	snprintf(key, SSM_STR_BUFFSIZE, "upper_%s", state->name);
+	json_object_set_new(jout, key, json_real(hat->remainders_95[state->offset][1]));
+    }
+
+    for(i=0; i< nav->states_diff->length; i++) {
+	state = nav->states_diff->p[i];
+	json_object_set_new(jout, state->name, json_real(hat->states[state->offset]));	
+
+	snprintf(key, SSM_STR_BUFFSIZE, "lower_%s", state->name);
+	json_object_set_new(jout, key, json_real(hat->states_95[state->offset][0]));
+
+	snprintf(key, SSM_STR_BUFFSIZE, "upper_%s", state->name);
+	json_object_set_new(jout, key, json_real(hat->states_95[state->offset][1]));
+    }
+
+    for(i=0; i< nav->observed_length; i++) {
+	observed = nav->observed[i];
+
+	json_object_set_new(jout, observed->name, json_real(hat->observed[observed->offset]));	
+
+	snprintf(key, SSM_STR_BUFFSIZE, "lower_%s", observed->name);
+	json_object_set_new(jout, key, json_real(hat->observed_95[observed->offset][0]));
+
+	snprintf(key, SSM_STR_BUFFSIZE, "upper_%s", observed->name);
+	json_object_set_new(jout, key, json_real(hat->observed_95[observed->offset][1]));
+    }
+    
+    ssm_json_dumpf(stream, "hat", jout);
+}
