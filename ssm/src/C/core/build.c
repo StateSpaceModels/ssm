@@ -890,8 +890,6 @@ ssm_fitness_t *ssm_fitness_new(ssm_data_t *data, ssm_options_t *opts)
     fitness->log_like_prev = 0.0;
     fitness->log_like_new = 0.0;
 
-    fitness->prior_probs = ssm_d1_new(fitness->J);
-
     return fitness;
 }
 
@@ -902,8 +900,6 @@ void ssm_fitness_free(ssm_fitness_t *fitness)
     ssm_u2_free(fitness->select, fitness->data_length);
 
     free(fitness->cum_status);
-
-    free(fitness->prior_probs);
 
     free(fitness);
 }

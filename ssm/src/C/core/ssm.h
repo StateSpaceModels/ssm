@@ -359,9 +359,6 @@ typedef struct
     double log_like_prev;
     double log_like_new;
 
-    /* prob priors */
-    double *prior_probs;     /**< [this.J] prior probabilites */
-
 } ssm_fitness_t;
 
 
@@ -570,7 +567,9 @@ double ssm_log_likelihood(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, 
 double ssm_sum_square(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness);
 
 /* mvn.c */
-double ssm_dmvnorm(const int n, const gsl_vector *x, const gsl_vector *mean, const gsl_matrix *var);
+int ssm_rmvnorm(const gsl_rng *r, const int n, const gsl_vector *mean, const gsl_matrix *var, double sd_fac, gsl_vector *result);
+double ssm_dmvnorm(const int n, const gsl_vector *x, const gsl_vector *mean, const gsl_matrix *var, double sd_fac);
+void ssm_cov_emp(double *x_bar, gsl_vector *x, gsl_matrix *cov, double m);
 
 /* prediction_util.c */
 void ssm_X_copy(ssm_X_t *dest, ssm_X_t *src);
@@ -579,17 +578,16 @@ void ssm_ran_multinomial (const gsl_rng * r, const size_t K, unsigned int N, con
 double ssm_correct_rate(double rate, double dt);
 ssm_err_code_t ssm_check_no_neg_remainder(ssm_X_t *p_X, ssm_nav_t *nav, ssm_calc_t *calc, double t);
 ssm_f_pred_t ssm_get_f_pred(ssm_nav_t *nav);
-ssm_err_code_t ssm_f_prediction_ode                          (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_sde_no_dem_sto_no_white_noise(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_sde_no_dem_sto_no_diff       (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_sde_no_white_noise_no_diff   (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_sde_no_dem_sto               (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_sde_no_white_noise           (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_sde_no_diff                  (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_sde_full                     (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_psr                          (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_psr_no_diff                  (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-
+ssm_err_code_t ssm_f_prediction_ode                           (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_no_dem_sto_no_white_noise (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_no_dem_sto_no_diff        (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_no_white_noise_no_diff    (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_no_dem_sto                (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_no_white_noise            (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_no_diff                   (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_full                      (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_psr                           (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_psr_no_diff                   (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
 
 /* smc.c */
 int ssm_weight(ssm_fitness_t *fitness, ssm_row_t *row, int n);
@@ -632,6 +630,12 @@ void ssm_print_hat(FILE *stream, ssm_hat_t *hat, ssm_nav_t *nav, ssm_row_t *row)
 /* hat.c */
 void ssm_ci95(double *hat_95, ssm_calc_t *calc, ssm_fitness_t *fitness);
 void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_fitness_t *fitness, const double t, int is_J_par);
+
+
+/* bayes.c */
+ssm_err_code_t ssm_log_prob_proposal(double *log_like, ssm_theta_t *proposed, ssm_theta_t *mean, ssm_var_t *var, double sd_fac, ssm_nav_t *nav, int is_mvn);
+ssm_err_code_t ssm_log_prob_prior(double *log_like, ssm_theta_t *mean, ssm_var_t *var, ssn_nav_t *nav, ssm_fitness_t *fitness);
+int ssm_metropolis_hastings(double *alpha, ssm_theta_t *proposed, ssm_theta_t *mean, gsl_matrix *var, double sd_fac, ssm_fitness_t *fitness , ssm_nav_t *nav, ssm_calc_t *calc, int is_mvn);
 
 /****************************/
 /* kalman function signatures */
