@@ -221,7 +221,7 @@ ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters)
     {% for p in remainders %}
     //{{ p }}
     states[{{ loop.index0 + states|length + sde|length }}]->name = strdup("{{ p }}");
-    states[{{ loop.index0 + states|length + sde|length }}]->offset = -1;
+    states[{{ loop.index0 + states|length + sde|length }}]->offset = {{ loop.index0 }}; //offset restart at 0 for remainders as they are appart in ssm_hat_t and non existent in ssm_X_t.
 
     states[{{ loop.index0 + states|length + sde|length }}]->f = &ssm_f_id;
     states[{{ loop.index0 + states|length + sde|length }}]->f_inv = &ssm_f_id;

@@ -65,19 +65,14 @@ void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm
     json_object_set_new(jout, "index", json_integer(index)); //j or m
     json_object_set_new(jout, "date", json_string(row->date));
 
-    for(i=0; i<nav->states_sv->length; i++){
-        state = nav->states_sv->p[i];
+    for(i=0; i<nav->states_sv_inc->length; i++){
+        state = nav->states_sv_inc->p[i];
         json_object_set_new(jout, state->name, json_real(X[state->offset]));
     }
 
     for(i=0; i<nav->states_remainders->length; i++){
         state = nav->states_sv->p[i];
         json_object_set_new(jout, state->name, json_real(state->f_remainder(p_X, calc, t)));
-    }
-
-    for(i=0; i<nav->states_inc->length; i++){
-        state = nav->states_sv->p[i];
-        json_object_set_new(jout, state->name, json_real(X[state->offset]));
     }
 
     for(i=0; i<nav->states_diff->length; i++){
@@ -179,3 +174,5 @@ void ssm_print_pred_res(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *n
 
     ssm_json_dumpf(stream, "predres", jout);
 }
+
+

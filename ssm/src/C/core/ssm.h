@@ -152,8 +152,9 @@ typedef struct ssm_calc_t /*[N_THREADS] : for parallel computing we need N_THREA
     gsl_eigen_symmv_workspace *_w_eigen_vv;  /**< workspace to compute eigen values and eigen vector for symmetric matrix */
 
     //multi-threaded sorting
-    double *to_be_sorted;  /**< [fitness->J] array of the J particle to be sorted*/
-    size_t *index_sorted;  /**< [fitness->J] index of the sorted weights used to compute 95% confidence interval */
+    int J;                 /**< ssm_fitness_t->J */
+    double *to_be_sorted;  /**< [this->J] array of the J particle to be sorted*/
+    size_t *index_sorted;  /**< [this->J] index of the sorted weights used to compute 95% confidence interval */
 
     //interpolators for covariates
     int covariates_length;   /**< number of covariates */
@@ -186,19 +187,29 @@ typedef struct  /* optionaly [N_DATA+1][J] for MIF and pMCMC "+1" is for initial
 
     double dt;  /**< the integration time step (for ODE solved with adaptive time step solvers) */
     double dt0; /**< the integration time step initially picked by the user */
+
 } ssm_X_t;
 
 
 /**
  * The best estimates of the states variables (including observed
- * variables and diffusions) (weighted average of projected values,
+ * variables and diffusions and remainders) (weighted average of projected values,
  * weighted by the likelihood)
  */
 typedef struct  /* ([N_DATA+1]) */
 {
-    int length;             /**< number of states */
-    double *states;         /**< [self.length] best estimates */
-    double **states_95;     /**< [self.length][2] 2.5% and 97.5% quantiles */
+    int states_length;      /**< number of states (== nav->states_sv_inc->length + nav->states_diff->length) */
+    double *states;         /**< [this.length] best estimates */
+    double **states_95;     /**< [this.length][2] 2.5% and 97.5% quantiles */
+
+    int remainders_length;
+    double *remainders;     /**< [this.remainders_length] best estimates */
+    double **remainders_95; /**< [this.remainders_length][2] 2.5% and 97.5% quantiles */
+
+    int observed_length;    /**< number of observed variable (== ssm_nav_t->observed_length) */
+    double *observed;       /**< [this.observed_length] best estimates */
+    double **observed_95;   /**< [this.observed_length][2] 2.5% and 97.5% quantiles */
+
 } ssm_hat_t;
 
 
@@ -241,7 +252,7 @@ typedef struct
 typedef struct
 {
     char *name; /**< name of the state */
-    int offset; /**< order of the state in X */
+    int offset; /**< order of the state in X or hat (for remainders it is hat->remainders) */
 
     ssm_parameter_t *ic;  /**< pointer to the initial condition (or NULL) */
 
@@ -301,9 +312,10 @@ struct _nav
     ssm_observed_t **observed; /**< [this.observed_length] */
 
     //navigating withing par
-    ssm_it_states_t *states_sv;         /**< to iterate on the state variables (not including remainders or inc) *only* */
+    ssm_it_states_t *states_sv;         /**< to iterate on the state variables (not including remainders or incidences) *only* */
     ssm_it_states_t *states_remainders; /**< to iterate on the remainders *only* */
-    ssm_it_states_t *states_inc;        /**< to iterate on the state variables *only* */
+    ssm_it_states_t *states_inc;        /**< to iterate on the incidences *only* */
+    ssm_it_states_t *states_sv_inc;     /**< to iterate on the state variables and incidences *only* */
     ssm_it_states_t *states_diff;       /**< to iterate on states following a diffusion *only* */
 
     ssm_it_parameters_t *par_all;       /**< to iterate on every parameters */
@@ -533,11 +545,10 @@ ssm_X_t **ssm_J_X_new(ssm_fitness_t *fitness, int size, ssm_options_t *opts);
 void ssm_J_X_free(ssm_X_t **X, ssm_fitness_t *fitness);
 ssm_X_t ***ssm_D_J_X_new(ssm_data_t *data, ssm_fitness_t *fitness, int size, ssm_options_t *opts);
 void ssm_D_J_X_free(ssm_X_t ***X, ssm_data_t *data, ssm_fitness_t *fitness);
-ssm_hat_t *ssm_hat_new(int size);
+ssm_hat_t *ssm_hat_new(ssm_nav_t *nav);
 void ssm_hat_free(ssm_hat_t *hat);
-ssm_hat_t **ssm_D_hat_new(ssm_data_t *data, int size);
+ssm_hat_t **ssm_D_hat_new(ssm_data_t *data, ssm_nav_t *nav);
 void ssm_D_hat_free(ssm_hat_t **hat, ssm_data_t *data);
-
 
 /* load.c */
 json_t *ssm_load_json_stream(FILE *stream);
@@ -613,12 +624,13 @@ void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm
 void ssm_print_trace(FILE *stream, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, const int index, const double fitness);
 void ssm_print_pred_res(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, ssm_fitness_t *fitness, const double t);
 
+/* hat.c */
+void ssm_CI95(double *hat_95, ssm_calc_t *calc, ssm_fitness_t *fitness);
+void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_fitness_t *fitness, const double t, int is_J_par);
+
 /****************************/
 /* kalman function signatures */
 /****************************/
-
-/* main_kalman.c */
-int main(int argc, char *argv[]);
 
 /* ekf.c */
 
@@ -646,6 +658,7 @@ ssm_err_code_t ssm_check_IC(ssm_par_t *par, ssm_calc_t *calc);
 ssm_it_states_t *ssm_it_states_sv_new(ssm_state_t **states);
 ssm_it_states_t *ssm_it_states_remainders_new(ssm_state_t **states);
 ssm_it_states_t *ssm_it_states_inc_new(ssm_state_t **states);
+ssm_it_states_t *ssm_it_states_sv_inc_new(ssm_state_t **states);
 ssm_it_states_t *ssm_it_states_diff_new(ssm_state_t **states);
 ssm_it_parameters_t *ssm_it_parameters_all_new(ssm_parameter_t **parameters);
 ssm_it_parameters_t *ssm_it_parameters_noise_new(ssm_parameter_t **parameters);

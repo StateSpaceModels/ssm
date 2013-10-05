@@ -167,6 +167,7 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
     nav->states_sv = ssm_it_states_sv_new(nav->states);
     nav->states_remainders = ssm_it_states_remainders_new(nav->states);
     nav->states_inc = ssm_it_states_inc_new(nav->states);
+    nav->states_sv_inc = ssm_it_states_sv_inc_new(nav->states);
     nav->states_diff = ssm_it_states_diff_new(nav->states);
 
     nav->par_all = ssm_it_parameters_all_new(nav->parameters);
@@ -276,6 +277,7 @@ void ssm_nav_free(ssm_nav_t *nav)
     _ssm_it_states_free(nav->states_sv);
     _ssm_it_states_free(nav->states_remainders);
     _ssm_it_states_free(nav->states_inc);
+    _ssm_it_states_free(nav->states_sv_inc);
     _ssm_it_states_free(nav->states_diff);
 
     _ssm_it_parameters_free(nav->par_all);
@@ -569,6 +571,7 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, int dim_ode, int (*func_step_ode) (doubl
     /* multi-threaded sorting */
     /**************************/
 
+    calc->J = fitness->J;
     calc->to_be_sorted = ssm_d1_new(fitness->J);
     calc->index_sorted = ssm_st1_new(fitness->J);
 
@@ -975,7 +978,7 @@ void ssm_D_J_X_free(ssm_X_t ***X, ssm_data_t *data, ssm_fitness_t *fitness)
 }
 
 
-ssm_hat_t *ssm_hat_new(int size)
+ssm_hat_t *ssm_hat_new(ssm_nav_t *nav)
 {
     ssm_hat_t *hat = malloc(sizeof (ssm_hat_t));
     if (hat==NULL) {
@@ -983,10 +986,17 @@ ssm_hat_t *ssm_hat_new(int size)
         exit(EXIT_FAILURE);
     }
 
-    hat->length = size;
+    hat->states_length = nav->states_sv_inc->length + nav->states_diff->length;
+    hat->states = ssm_d1_new(hat->states_length);
+    hat->states_95 = ssm_d2_new(hat->states_length, 2);
 
-    hat->states = ssm_d1_new(hat->length);
-    hat->states_95 = ssm_d2_new(hat->length, 2);
+    hat->remainders_length = nav->states_remainders->length;
+    hat->remainders = ssm_d1_new(hat->remainders_length);
+    hat->remainders_95 = ssm_d2_new(hat->remainders_length, 2);
+
+    hat->observed_length = nav->observed_length;
+    hat->observed = ssm_d1_new(hat->observed_length);
+    hat->observed_95 = ssm_d2_new(hat->observed_length, 2);
 
     return hat;
 }
@@ -994,13 +1004,19 @@ ssm_hat_t *ssm_hat_new(int size)
 void ssm_hat_free(ssm_hat_t *hat)
 {
     free(hat->states);
-    ssm_d2_free(hat->states_95, hat->length);
+    ssm_d2_free(hat->states_95, hat->states_length);
+
+    free(hat->remainders);
+    ssm_d2_free(hat->remainders_95, hat->remainders_length);
+
+    free(hat->observed);
+    ssm_d2_free(hat->observed_95, hat->observed_length);
 
     free(hat);
 }
 
 
-ssm_hat_t **ssm_D_hat_new(ssm_data_t *data, int size)
+ssm_hat_t **ssm_D_hat_new(ssm_data_t *data, ssm_nav_t *nav)
 {
     int i;
 
@@ -1011,7 +1027,7 @@ ssm_hat_t **ssm_D_hat_new(ssm_data_t *data, int size)
     }
 
     for(i=0; i<data->length+1; i++){
-        hat[i] = ssm_hat_new(size);
+        hat[i] = ssm_hat_new(nav);
     }
 
     return hat;

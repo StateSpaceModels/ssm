@@ -250,7 +250,8 @@ class Ccoder(Cmodel):
                 'sv': [self.order_states[x] for x in self.par_sv],
                 'remainders': [self.order_states[x] for x in self.remainder],
                 'inc': [self.order_states[x] for x in self.par_inc],
-                'diff': [self.order_states[x] for x in self.par_diff],
+                'sv_inc': [self.order_states[x] for x in (self.par_sv + self.par_inc)],
+                'diff': [self.order_states[x] for x in self.par_diff]                
             },
             'parameter': {
                 'all': [self.order_parameters[x] for x in (self.par_sv + self.par_vol + self.par_noise + self.par_proc + self.par_obs)],
