@@ -547,13 +547,14 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fi
             }
 
             if(!can_run){
-                ssm_print_err("kalman methods must be used with at least one brownian motion.");
+                ssm_print_err("Kalman methods must be used with at least one source of stochasticity in the process.");
                 exit(EXIT_FAILURE);
             }
 
             int n_s = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
             int n_o = nav->observed_length;
             calc->_pred_error = gsl_vector_calloc(n_o);
+	    calc->_zero = gsl_vector_calloc(n_o);
             calc->_St = gsl_matrix_calloc(n_o, n_o);
             calc->_Stm1 = gsl_matrix_calloc(n_o, n_o);
             calc->_Rt = gsl_matrix_calloc(n_o, n_o);

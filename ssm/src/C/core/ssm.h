@@ -137,6 +137,7 @@ typedef struct ssm_calc_t /*[N_THREADS] : for parallel computing we need N_THREA
     void (*eval_Q)(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, struct ssm_calc_t *calc);
 
     gsl_vector *_pred_error;    /**< [nav->observed_length] */
+    gsl_vector *_zero;          /**< [nav->observed_length] */
     gsl_matrix *_St;            /**< [nav->observed_length][nav->observed_length] */
     gsl_matrix *_Stm1;          /**< [nav->observed_length][nav->observed_length] */
     gsl_matrix *_Rt;            /**< [nav->observed_length][nav->observed_length] */
@@ -289,7 +290,6 @@ typedef struct
     double (*f_obs_mean)             (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
     double (*f_obs_var)              (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
     double (*f_obs_ran)              (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
-
 } ssm_observed_t;
 
 
@@ -568,9 +568,13 @@ double ssm_sanitize_likelihood(double like, ssm_fitness_t *fitness, ssm_nav_t *n
 double ssm_log_likelihood(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness);
 double ssm_sum_square(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness);
 
+/* mvn.c */
+double ssm_dmvnorm(const int n, const gsl_vector *x, const gsl_vector *mean, const gsl_matrix *var);
+
 /* prediction_util.c */
 void ssm_X_copy(ssm_X_t *dest, ssm_X_t *src);
 void ssm_X_reset_inc(ssm_X_t *X, ssm_row_t *row);
+void ssm_X_reset_inc_and_cov(ssm_X_t *X, ssm_row_t *row, ssm_nav_t *nav);
 void ssm_ran_multinomial (const gsl_rng * r, const size_t K, unsigned int N, const double p[], unsigned int n[]);
 double ssm_correct_rate(double rate, double dt);
 ssm_err_code_t ssm_check_no_neg_remainder(ssm_X_t *p_X, ssm_nav_t *nav, ssm_calc_t *calc, double t);

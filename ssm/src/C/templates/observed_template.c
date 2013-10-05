@@ -72,7 +72,7 @@ ssm_observed_t **ssm_observed_new(int *observed_length)
     observed[{{ loop.index0 }}]->f_likelihood = &f_likelihood_tpl_{{ x.id }};
     observed[{{ loop.index0 }}]->f_obs_mean = &f_obs_mean_tpl_{{ x.id }};
     observed[{{ loop.index0 }}]->f_obs_var = &f_obs_var_tpl_{{ x.id }};
-    observed[{{ loop.index0 }}]->f_obs = &f_obs_ran_tpl_{{ x.id }};
+    observed[{{ loop.index0 }}]->f_obs_ran = &f_obs_ran_tpl_{{ x.id }};
     {% endfor %}
 
     return observed;

@@ -17,7 +17,6 @@ int ssm_step_ekf(double t, const double X[], double f[], void *params)
 
     ssm_it_states_t *states_diff = nav->states_diff;
     ssm_it_states_t *states_inc = nav->states_inc;
-    ssm_it_states_t *states_sv = nav->states_sv;
     int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
 
     gsl_matrix *Ft = calc->_Ft;

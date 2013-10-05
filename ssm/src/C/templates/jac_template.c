@@ -5,7 +5,7 @@
 void ssm_eval_jac(const double X[], double t, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc)
 {
 
-    int i, j;
+    int i;
     gsl_matrix *Ft = calc->_Ft;
 
     ssm_it_states_t *states_diff = nav->states_diff;

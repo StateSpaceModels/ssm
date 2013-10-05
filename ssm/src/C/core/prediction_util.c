@@ -34,6 +34,21 @@ void ssm_X_reset_inc(ssm_X_t *X, ssm_row_t *row)
     }
 }
 
+void ssm_X_reset_inc_and_cov(ssm_X_t *X, ssm_row_t *row, ssm_nav_t *nav)
+{
+    int i,j;
+    int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
+    gsl_matrix_view Ct =  gsl_matrix_view_array(&X->proj[m], m, m);
+
+    for(i=0; i<row->states_reset_length; i++){
+        X->proj[ row->states_reset[i]->offset ] = 0.0;
+        for(j=0; j<m; j++){
+	    gsl_matrix_set(&Ct.matrix,row->states_reset[i]->offset,j,0);
+	    gsl_matrix_set(&Ct.matrix,j,row->states_reset[i]->offset,0);
+	}
+    }
+}
+
 /**
  * Modified version of gsl_ran_multinomial to avoid a loop. We avoid
  * to recompute the total sum of p (called norm in GSL) as it will
