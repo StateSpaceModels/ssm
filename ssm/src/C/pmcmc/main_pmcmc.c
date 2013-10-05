@@ -45,6 +45,9 @@ int main(int argc, char *argv[])
     ssm_adapt_t *adapt = ssm_adapt_new(nav, opts);
 
     int n_iter = opts->n_iter;
+    int n_traj = GSL_MIN(n_iter, opts->n_traj);
+    int thin_traj = (int) ( (double) n_iter / (double) n_traj); //the thinning interval
+
 
     /////////////////////////
     // initialization step //
@@ -61,10 +64,15 @@ int main(int argc, char *argv[])
 
     fitness->log_like_new = p_like->log_like;
 
-    ssm_sample_traj_print(stout, D_J_X, par, nav, calc, data, fitness, m);
-
+    if ( ( nav->print & SSM_PRINT_X_SMOOTH ) && data->n_obs ) {
+	ssm_sample_traj_print(stdout, D_J_X, par, nav, calc, data, fitness, m);
+    }
     //the initial iteration is "accepted"
     fitness->log_like_prev = fitness->log_like_new;
+
+    if(nav->print & SSM_PRINT_TRACE){
+	ssm_print_trace(stdout, par, nav, calc, fitness->log_like, m);
+    }
 
     ////////////////
     // iterations //
@@ -96,13 +104,24 @@ int main(int argc, char *argv[])
         if (is_accepted) {
 	    fitness->log_like_prev = fitness->log_like_new;
 	    ssm_theta_copy(theta, proposed);
+	} else {
+	    fitness->log_like = fitness->log_like_prev;
+	    //reset par so that print_X got the right values
+	    ssm_theta2input(input, theta, nav);
+	    ssm_input2par(par, input, calc, nav);	    
 	}
  
 	ssm_adapt_ar(adapt, is_accepted, m); //compute acceptance rate
 
 	ssm_adapt_var(adapt, theta, m);  //compute empirical variance
 
-	ssm_sample_traj_print(stout, D_J_X, par, nav, calc, data, fitness, m);
+	if ( (nav->print & SSM_PRINT_X_SMOOTH) && ( (m % thin_traj) == 0)  && data->n_obs ) {
+	    ssm_sample_traj_print(stdout, D_J_X, par, nav, calc, data, fitness, m);
+	}
+
+	if(nav->print & SSM_PRINT_TRACE){
+	    ssm_print_trace(stdout, theta, nav, calc, fitness->log_like, m);
+	}
 
     }
 

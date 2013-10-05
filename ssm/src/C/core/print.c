@@ -101,7 +101,7 @@ void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm
 /**
  * fitness is either log likelihood or sum of square
  */
-void ssm_print_trace(FILE *stream, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, const int index, const double fitness)
+void ssm_print_trace(FILE *stream, ssm_theta_t *theta, ssm_nav_t *nav, const double fitness, const int index)
 {
     int i;
     ssm_parameter_t *parameter;
@@ -111,7 +111,7 @@ void ssm_print_trace(FILE *stream, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *c
 
     for(i=0; i < nav->theta_all->length; i++) {
         parameter = nav->theta_all->p[i];
-        json_object_set_new(jout, parameter->name, json_real(parameter->f_par2user(gsl_vector_get(par, parameter->offset), par, calc)));
+        json_object_set_new(jout, parameter->name, json_real(parameter->f_inv(gsl_vector_get(theta, parameter->offset))));
     }
 
     json_object_set_new(jout, "fitness", isnan(fitness) ? json_null() : json_real(fitness));
