@@ -30,13 +30,14 @@ int main(int argc, char *argv[])
 
     ssm_nav_t *nav = ssm_nav_new(jparameters, opts);
     ssm_data_t *data = ssm_data_new(jdata, nav, opts);
-    ssm_input_t *input = ssm_input_new(jparameters, nav);
-    ssm_par_t *par = ssm_par_new(nav);
     ssm_fitness_t *fitness = ssm_fitness_new(data, opts);
-    ssm_calc_t *calc = ssm_calc_new(jdata, nav, data, fitness, opts);
+    ssm_calc_t *calc = ssm_calc_new(jdata, nav, data, fitness, opts, 0);
     ssm_X_t *X = ssm_X_new(data->n_data +1, nav);
  
     json_decref(jdata);
+
+    ssm_input_t *input = ssm_input_new(jparameters, nav);
+    ssm_par_t *par = ssm_par_new(input, calc, nav);
 
     ssm_input2par(par, input, calc, nav);
     ssm_par2X(X, par, calc, nav);

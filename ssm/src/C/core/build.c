@@ -23,9 +23,18 @@ void ssm_input_free(ssm_input_t *input)
     gsl_vector_free(input);
 }
 
-ssm_par_t *ssm_par_new(ssm_nav_t *nav)
+ssm_par_t *ssm_par_new(ssm_input_t *input, ssm_calc_t *calc, ssm_nav_t *nav)
 {
-    return gsl_vector_calloc(nav->par_all->length);
+    int i;
+    ssm_it_parameters_t *it = nav->par_all;
+
+    ssm_par_t *par = gsl_vector_calloc(input->size);
+
+    for(i=0; i< it->length; i++){
+        gsl_vector_set(par, it->p[i]->offset, it->p[i]->f_user2par(gsl_vector_get(input, it->p[i]->offset), input, calc));
+    }
+
+    return par;
 }
 
 void ssm_par_free(ssm_par_t *par)
@@ -454,7 +463,7 @@ void ssm_data_free(ssm_data_t *data)
 }
 
 
-ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, int thread_id, unsigned long int seed, ssm_options_t *opts)
+ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options_t *opts, int thread_id)
 {
     ssm_calc_t *calc = malloc(sizeof (ssm_calc_t));
     if (calc==NULL) {
@@ -498,6 +507,14 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fi
     } else {
         Type = gsl_rng_ranlxs0; //gsl_rng_ranlxs2 is better than gsl_rng_ranlxs0 but 2 times slower
     }
+
+    unsigned long int seed;
+    if(opts->flag_seed_time){
+        seed = (unsigned) time(NULL);
+    } else{
+        seed=2;
+    }
+    seed += opts->id; /*we ensure uniqueness of seed in case of parrallel runs*/
 
     calc->randgsl = gsl_rng_alloc(Type);
     gsl_rng_set(calc->randgsl, seed + thread_id);
@@ -740,16 +757,8 @@ ssm_calc_t **ssm_N_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm
         exit(EXIT_FAILURE);
     }
 
-    unsigned long int seed;
-    if(opts->flag_seed_time){
-        seed = (unsigned) time(NULL);
-    } else{
-        seed=2;
-    }
-    seed += opts->id; /*we ensure uniqueness of seed in case of parrallel runs*/
-
     for (i=0; i< n_threads; i++) {
-        calc[i] = ssm_calc_new(jdata, nav, data, fitness, i, seed, opts);
+        calc[i] = ssm_calc_new(jdata, nav, data, fitness, opts, i);
     }
 
     return calc;

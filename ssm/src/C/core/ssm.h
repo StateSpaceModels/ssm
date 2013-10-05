@@ -513,7 +513,7 @@ unsigned int ***ssm_u3_varp2_new(int n, unsigned int p1, unsigned int *p2);
 
 /* build.c */
 void ssm_input_free(ssm_input_t *input);
-ssm_par_t *ssm_par_new(ssm_nav_t *nav);
+ssm_par_t *ssm_par_new(ssm_input_t *input, ssm_calc_t *calc, ssm_nav_t *nav);
 void ssm_par_free(ssm_par_t *par);
 ssm_theta_t *ssm_theta_new(ssm_nav_t *nav);
 void ssm_theta_free(ssm_theta_t *theta);
@@ -531,7 +531,7 @@ void ssm_nav_free(ssm_nav_t *nav);
 ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts);
 void _ssm_row_free(ssm_row_t *row);
 void ssm_data_free(ssm_data_t *data);
-ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, int thread_id, unsigned long int seed, ssm_options_t *opts);
+ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options_t *opts, int thread_id);
 void ssm_calc_free(ssm_calc_t *calc, ssm_nav_t *nav);
 ssm_calc_t **ssm_N_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options_t *opts);
 void ssm_N_calc_free(ssm_calc_t **calc, ssm_nav_t *nav);

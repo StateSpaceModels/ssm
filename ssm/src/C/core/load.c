@@ -60,14 +60,27 @@ json_t *ssm_load_data(ssm_options_t *opts)
 }
 
 
-void ssm_input2par(ssm_par_t *par, ssm_input_t *input, ssm_calc_t *calc, ssm_nav_t *nav)
+void ssm_theta2input(ssm_input_t *input, ssm_theta_t *theta, ssm_nav_t *nav)
 {
+    int i;
     ssm_it_parameters_t *it = nav->theta_all;
 
+    for(i=0; i< it->length; i++){
+        gsl_vector_set(input, it->p[i]->offset, it->p[i]->f_inv(gsl_vector_get(theta, i)));
+    }
+}
+
+/**
+ * we only update theta component of par as par as been initialized
+ * from input (by construction)
+ */
+void ssm_input2par(ssm_par_t *par, ssm_input_t *input, ssm_calc_t *calc, ssm_nav_t *nav)
+{
     int i;
+    ssm_it_parameters_t *it = nav->theta_all;
 
     for(i=0; i< it->length; i++){
-        gsl_vector_set(par, i, it->p[i]->f_user2par(gsl_vector_get(input, i), input, calc));
+        gsl_vector_set(par, it->p[i]->offset, it->p[i]->f_user2par(gsl_vector_get(input, it->p[i]->offset), input, calc));
     }
 }
 
