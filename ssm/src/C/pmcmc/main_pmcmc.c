@@ -55,7 +55,6 @@ int main(int argc, char *argv[])
     int j;
     int m = 0;
 
-    ssm_input2par(par, input, calc[0], nav);
     ssm_par2X(D_J_X[0][0], par, calc[0], nav);
     for(j=1; j<fitness->J; j++){
         ssm_X_copy(D_J_X[0][j], D_J_X[0][0]);
