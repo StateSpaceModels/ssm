@@ -141,6 +141,14 @@ void ssm_print_pred_res(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *n
 
     char key[SSM_STR_BUFFSIZE];
 
+    //EKF specific
+    int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
+    gsl_matrix_const_view Ct   = gsl_matrix_const_view_array(&X[m], m, m);	
+
+    //non EKF
+    int j;
+    double kn, M2, delta, x;
+
     json_t *jout = json_object();
     json_object_set_new(jout, "date", json_string(row->date));
 
@@ -150,17 +158,11 @@ void ssm_print_pred_res(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *n
 	y = row->values[ts];
         
 	if (implementation == SSM_EKF) {
-	    int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
-	    gsl_matrix_const_view Ct   = gsl_matrix_const_view_array(&X[m], m, m);	
 	    var_obs = observed->obs_var(p_X, par, calc, t);
 	    pred = observed->f_obs_mean(p_X, par, calc, t);
 	    var_state = var_f_x(p_X, par,nav, calc, t);
-	    res = (y - pred)/sqrt(var_state + var_obs);
-	
-	} else {
-	    int j;
-	    double kn, M2, delta, x;
-	
+	    res = (y - pred)/sqrt(var_state + var_obs);	
+	} else {	
 	    kn=0.0;
 	    pred=0.0;
 	    var_obs=0.0;
