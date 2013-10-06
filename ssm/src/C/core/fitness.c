@@ -39,11 +39,12 @@ double ssm_sanitize_likelihood(double like, ssm_fitness_t *fitness, ssm_nav_t *n
 }
 
 
-double ssm_log_likelihood(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness)
+double ssm_log_likelihood(ssm_row_t *row, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness)
 {
     int i;
     double like;
     double loglike = 0.0;
+    double t = row->time;
 
     for(i=0; i< row->ts_nonan_length; i++){
         like = ssm_sanitize_likelihood(row->observed[i]->f_likelihood(row->values[i], X, par, calc, t), fitness, nav);
@@ -54,10 +55,11 @@ double ssm_log_likelihood(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, 
 }
 
 
-double ssm_sum_square(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness)
+double ssm_sum_square(ssm_row_t *row, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness)
 {
     int i;
     double ss = 0.0;
+    double t = row->time;
 
     for(i=0; i< row->ts_nonan_length; i++){
         ss += pow( row->values[i] - row->observed[i]->f_obs_mean(X, par, calc, t), 2 );

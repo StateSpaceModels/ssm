@@ -341,9 +341,6 @@ typedef struct
     double like_min; /**< mimimun value of the likelihood */
     double log_like_min; /**< mimimun value of the log likelihood */
 
-    double err_square_n; /**< square of error (data-prediction) at n */
-    double err_square;   /**< square of error (data-prediction) */
-
     double ess_n;               /**< effective sample size at n (sum(weight))^2 / sum(weight^2)*/
     double log_like_n ;         /**< log likelihood for the best parameter at n*/
     double log_like;            /**< log likelihood for the best parameter*/
@@ -358,9 +355,6 @@ typedef struct
     /* for bayesian methods */
     double log_like_prev;
     double log_like_new;
-
-    /* prob priors */
-    double *prior_probs;     /**< [this.J] prior probabilites */
 
 } ssm_fitness_t;
 
@@ -391,6 +385,7 @@ typedef struct
     int ts_length;           /**< the number of time series */
     char** dates_t0;         /**< [this.ts_length] the dates at t0 (before the first data point)*/
     int n_obs;               /**< the number of data point to taken into account for inference */
+    int n_obs_nonan;         /**< the number of data point to taken into account for inference discarding lines where all ts are NaN  */
 
     ssm_row_t **rows;   /**< [this.length] the data values */
     int length_nonan;        /**< number of data points with at least one time series != NaN */
@@ -457,13 +452,47 @@ typedef struct
     int chunk;               /**< number of particles to send to each machine */
     int flag_least_squares;  /**< optimize the sum of square instead of the likelihood */
     double size_stop;        /**< simplex size used as a stopping criteria */
-    char *freq;             /**< print the outputs (and reset incidences to 0 if any) every day (D), week (W), bi-week (B), month (M  or year (Y) */
+    char *freq;              /**< print the outputs (and reset incidences to 0 if any) every day (D), week (W), bi-week (B), month (M  or year (Y) */
     char *start;             /**< ISO 8601 date when the simulation starts*/
     char *end;               /**< ISO 8601 date when the simulation ends*/
-    int skip;                /**< number of days to skip (used to skip transient dynamics) */
     char *server;            /**< domain name or IP address of the particule server (e.g 127.0.0.1) */
     int flag_no_filter;      /**< do not filter */
 } ssm_options_t;
+
+
+
+
+/**
+ * Adaptive tunning of MCMC algo
+ */
+typedef struct
+{
+    double ar;          /**< the global acceptance rate */
+    double ar_smoothed; /**< as computed with exponential smoothing (http://en.wikipedia.org/wiki/Exponential_smoothing) */
+
+    double eps;         /**< epsilon factor */
+    double eps_a;       /**< cooling factor */
+    double eps_max;     /**< max value for epsilon */
+    int    eps_switch;  /**< number of iterations before tuning epsilon */
+
+
+    int m_switch;       /**< number of iterations using empirical covariance */
+
+    int flag_smooth; /**<boolean: do we tune epsilon with the value of the acceptance rate obtained with exponential smoothing ? (1 yes 0 no) */
+    double alpha; /**< smoothing factor (the term smoothing factor is
+		     something of a misnomer, as larger values of
+		     alpha actually reduce the level of smoothing, and
+		     in the limiting case with alpha = 1 the output
+		     series is just the same as the original series
+		     (with lag of one time unit). */
+
+    double *mean_sampling;         /**< [ssm_nav_t->theta_all->length] Em(X) 1st order mean needed to compute the sampling covariance */
+    gsl_matrix *var_sampling;      /**< [ssm_nav_t->theta_all->length][ssm_nav_t->theta_all->length] Sampling covariance */
+
+} ssm_adapt_t;
+
+
+
 
 
 /****************************/
@@ -513,11 +542,11 @@ unsigned int ***ssm_u3_varp2_new(int n, unsigned int p1, unsigned int *p2);
 
 /* build.c */
 void ssm_input_free(ssm_input_t *input);
-ssm_par_t *ssm_par_new(ssm_nav_t *nav);
+ssm_par_t *ssm_par_new(ssm_input_t *input, ssm_calc_t *calc, ssm_nav_t *nav);
 void ssm_par_free(ssm_par_t *par);
-ssm_theta_t *ssm_theta_new(ssm_nav_t *nav);
+ssm_theta_t *ssm_theta_new(ssm_input_t* input, ssm_nav_t *nav);
 void ssm_theta_free(ssm_theta_t *theta);
-ssm_var_t *ssm_var_new(ssm_nav_t *nav, json_t *jparameters);
+ssm_var_t *ssm_var_new(json_t *jparameters, ssm_nav_t *nav);
 void ssm_var_free(ssm_var_t *var);
 ssm_it_states_t *_ssm_it_states_new(int length);
 void _ssm_it_states_free(ssm_it_states_t *it);
@@ -531,7 +560,7 @@ void ssm_nav_free(ssm_nav_t *nav);
 ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts);
 void _ssm_row_free(ssm_row_t *row);
 void ssm_data_free(ssm_data_t *data);
-ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, int thread_id, unsigned long int seed, ssm_options_t *opts);
+ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options_t *opts, int thread_id);
 void ssm_calc_free(ssm_calc_t *calc, ssm_nav_t *nav);
 ssm_calc_t **ssm_N_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options_t *opts);
 void ssm_N_calc_free(ssm_calc_t **calc, ssm_nav_t *nav);
@@ -550,11 +579,14 @@ ssm_hat_t *ssm_hat_new(ssm_nav_t *nav);
 void ssm_hat_free(ssm_hat_t *hat);
 ssm_hat_t **ssm_D_hat_new(ssm_data_t *data, ssm_nav_t *nav);
 void ssm_D_hat_free(ssm_hat_t **hat, ssm_data_t *data);
+ssm_adapt_t *ssm_adapt_new(ssm_nav_t *nav, ssm_options_t * opts);
+void ssm_adapt_free(ssm_adapt_t *adapt);
 
 /* load.c */
 json_t *ssm_load_json_stream(FILE *stream);
 json_t *ssm_load_json_file(const char *path);
 json_t *ssm_load_data(ssm_options_t *opts);
+void ssm_theta2input(ssm_input_t *input, ssm_theta_t *theta, ssm_nav_t *nav);
 void ssm_input2par(ssm_par_t *par, ssm_input_t *input, ssm_calc_t *calc, ssm_nav_t *nav);
 void ssm_par2X(ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav);
 unsigned int *ssm_load_ju1_new(json_t *container, char *name);
@@ -566,11 +598,13 @@ void ssm_load_options(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
 
 /* fitness.c */
 double ssm_sanitize_likelihood(double like, ssm_fitness_t *fitness, ssm_nav_t *nav);
-double ssm_log_likelihood(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness);
-double ssm_sum_square(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness);
+double ssm_log_likelihood(ssm_row_t *row, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness);
+double ssm_sum_square(ssm_row_t *row, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness);
 
 /* mvn.c */
-double ssm_dmvnorm(const int n, const gsl_vector *x, const gsl_vector *mean, const gsl_matrix *var);
+int ssm_rmvnorm(const gsl_rng *r, const int n, const gsl_vector *mean, const gsl_matrix *var, double sd_fac, gsl_vector *result);
+double ssm_dmvnorm(const int n, const gsl_vector *x, const gsl_vector *mean, const gsl_matrix *var, double sd_fac);
+void ssm_adapt_var(ssm_adapt_t *adapt, ssm_theta_t *x, int m);
 
 /* prediction_util.c */
 void ssm_X_copy(ssm_X_t *dest, ssm_X_t *src);
@@ -579,17 +613,16 @@ void ssm_ran_multinomial (const gsl_rng * r, const size_t K, unsigned int N, con
 double ssm_correct_rate(double rate, double dt);
 ssm_err_code_t ssm_check_no_neg_remainder(ssm_X_t *p_X, ssm_nav_t *nav, ssm_calc_t *calc, double t);
 ssm_f_pred_t ssm_get_f_pred(ssm_nav_t *nav);
-ssm_err_code_t ssm_f_prediction_ode                          (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_sde_no_dem_sto_no_white_noise(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_sde_no_dem_sto_no_diff       (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_sde_no_white_noise_no_diff   (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_sde_no_dem_sto               (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_sde_no_white_noise           (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_sde_no_diff                  (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_sde_full                     (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_psr                          (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-ssm_err_code_t ssm_f_prediction_psr_no_diff                  (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
-
+ssm_err_code_t ssm_f_prediction_ode                           (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_no_dem_sto_no_white_noise (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_no_dem_sto_no_diff        (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_no_white_noise_no_diff    (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_no_dem_sto                (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_no_white_noise            (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_no_diff                   (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_sde_full                      (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_psr                           (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
+ssm_err_code_t ssm_f_prediction_psr_no_diff                   (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
 
 /* smc.c */
 int ssm_weight(ssm_fitness_t *fitness, ssm_row_t *row, int n);
@@ -624,18 +657,33 @@ void ssm_json_dumpf(FILE *stream, const char *flag, json_t *msg);
 void ssm_print_log(char *msg);
 void ssm_print_warning(char *msg);
 void ssm_print_err(char *msg);
-void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, const int index, const double t);
-void ssm_print_trace(FILE *stream, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, const int index, const double fitness);
-void ssm_print_pred_res(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, ssm_fitness_t *fitness, const double t);
+void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, const int index);
+void ssm_print_trace(FILE *stream, ssm_theta_t *theta, ssm_nav_t *nav, const double fitness, const int index);
+void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, ssm_fitness_t *fitness);
 void ssm_print_hat(FILE *stream, ssm_hat_t *hat, ssm_nav_t *nav, ssm_row_t *row);
+void ssm_sample_traj_print(FILE *stream, ssm_X_t ***D_J_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_data_t *data, ssm_fitness_t *fitness, const int index);
+void ssm_print_ar(FILE *stream, ssm_adapt_t *adapt, const int index);
 
 /* hat.c */
 void ssm_ci95(double *hat_95, ssm_calc_t *calc, ssm_fitness_t *fitness);
 void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_fitness_t *fitness, const double t, int is_J_par);
 
-/****************************/
+
+/* bayes.c */
+ssm_err_code_t ssm_log_prob_proposal(double *log_like, ssm_theta_t *proposed, ssm_theta_t *theta, ssm_var_t *var, double sd_fac, ssm_nav_t *nav, int is_mvn);
+ssm_err_code_t ssm_log_prob_prior(double *log_like, ssm_theta_t *theta, ssm_nav_t *nav, ssm_fitness_t *fitness);
+int ssm_metropolis_hastings(double *alpha, ssm_theta_t *proposed, ssm_theta_t *theta, gsl_matrix *var, double sd_fac, ssm_fitness_t *fitness , ssm_nav_t *nav, ssm_calc_t *calc, int is_mvn);
+ssm_var_t *ssm_adapt_eps_var_sd_fac(double *sd_fac, ssm_adapt_t *a, ssm_var_t *var, ssm_nav_t *nav, int m);
+void ssm_adapt_ar(ssm_adapt_t *a, int is_accepted, int m);
+void ssm_theta_ran(ssm_theta_t *proposed, ssm_theta_t *theta, ssm_var_t *var, double sd_fac, ssm_calc_t *calc, ssm_nav_t *nav, int is_mvn);
+int ssm_theta_copy(ssm_theta_t *dest, ssm_theta_t *src);
+
+/* simplex.c */
+void ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_simplex)(const gsl_vector *x, void *params), ssm_nav_t *nav, double size_stop, int n_iter);
+
+/******************************/
 /* kalman function signatures */
-/****************************/
+/******************************/
 
 /* ekf.c */
 ssm_err_code_t ssm_check_and_correct_Ct(ssm_X_t *X, ssm_calc_t *calc);
@@ -656,7 +704,7 @@ ssm_parameter_t **ssm_parameters_new(int *parameters_length);
 ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters);
 
 /* check_IC_template */
-ssm_err_code_t ssm_check_IC(ssm_par_t *par, ssm_calc_t *calc);
+ssm_err_code_t ssm_check_ic(ssm_par_t *par, ssm_calc_t *calc);
 
 /* iterator_template.c */
 ssm_it_states_t *ssm_it_states_sv_new(ssm_state_t **states);

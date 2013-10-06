@@ -53,13 +53,16 @@ void ssm_json_dumpf(FILE *stream, const char *id, json_t *data)
     json_decref(root);
 }
 
-void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, const int index, const double t)
+void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, const int index)
 {
+    //TODO handle t0 (ie before first data point)
+
     int i;
 
     ssm_state_t *state;
     ssm_observed_t *observed;
     double *X = p_X->proj;
+    double t = (double) row->time;
 
     json_t *jout = json_object();
     json_object_set_new(jout, "index", json_integer(index)); //j or m
@@ -86,7 +89,7 @@ void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm
     }
 
     char key[SSM_STR_BUFFSIZE];
-    snprintf(key, SSM_STR_BUFFSIZE, "%s_%s", "ran", observed->name);
+    snprintf(key, SSM_STR_BUFFSIZE, "ran_%s", observed->name);
     for(i=0; i<nav->observed_length; i++){
         observed = nav->observed[i];
         json_object_set_new(jout, key, json_real(observed->f_obs_ran(p_X, par, calc, t)));
@@ -98,7 +101,7 @@ void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm
 /**
  * fitness is either log likelihood or sum of square
  */
-void ssm_print_trace(FILE *stream, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, const int index, const double fitness)
+void ssm_print_trace(FILE *stream, ssm_theta_t *theta, ssm_nav_t *nav, const double fitness, const int index)
 {
     int i;
     ssm_parameter_t *parameter;
@@ -108,7 +111,7 @@ void ssm_print_trace(FILE *stream, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *c
 
     for(i=0; i < nav->theta_all->length; i++) {
         parameter = nav->theta_all->p[i];
-        json_object_set_new(jout, parameter->name, json_real(parameter->f_par2user(gsl_vector_get(par, parameter->offset), par, calc)));
+        json_object_set_new(jout, parameter->name, json_real(parameter->f_inv(gsl_vector_get(theta, parameter->offset))));
     }
 
     json_object_set_new(jout, "fitness", isnan(fitness) ? json_null() : json_real(fitness));
@@ -129,11 +132,12 @@ void ssm_print_trace(FILE *stream, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *c
  * when there is information)
  */
 
-void ssm_print_pred_res(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, ssm_fitness_t *fitness, const double t)
+void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, ssm_fitness_t *fitness)
 {
     int ts, j;
     double pred, var_obs, var_state, kn, M2, delta, x, y, res;
     ssm_observed_t *observed;
+    double t = (double) row->time;
 
     char key[SSM_STR_BUFFSIZE];
 
@@ -149,12 +153,12 @@ void ssm_print_pred_res(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *n
 
         for(j=0; j <fitness->J ; j++) {
             kn += 1.0;
-            x = observed->f_obs_mean(p_X, par, calc, t);
+            x = observed->f_obs_mean(J_X[j], par, calc, t);
 
             delta = x - pred;
             pred += delta/kn;
             M2 += delta*(x - pred);
-            var_obs += observed->f_obs_var(p_X, par, calc, t);
+            var_obs += observed->f_obs_var(J_X[j], par, calc, t);
         }
 
         var_state = M2/(kn - 1.0);
@@ -234,3 +238,87 @@ void ssm_print_hat(FILE *stream, ssm_hat_t *hat, ssm_nav_t *nav, ssm_row_t *row)
     
     ssm_json_dumpf(stream, "hat", jout);
 }
+
+
+/**
+ * The key is to understand that: X_resampled[j] = X[select[j]] so select
+ * give the index of the resample ancestor...
+ * The ancestor of particle j is select[j]
+ *
+ * With n index: X[n+1][j] = X[n][select[n][j]]
+ *
+ * Other caveat: D_J_p_X are in [N_DATA+1] ([0] contains the initial conditions)
+ * select is in [N_DATA], times is in [N_DATA]
+ */
+void ssm_sample_traj_print(FILE *stream, ssm_X_t ***D_J_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_data_t *data, ssm_fitness_t *fitness, const int index)
+{
+    int j_sel;
+    int n, nn, indn;
+
+    double ran, cum_weights;
+
+    ssm_X_t *X_sel;
+
+    ran=gsl_ran_flat(calc->randgsl, 0.0, 1.0);
+
+    j_sel=0;
+    cum_weights=fitness->weights[0];
+
+    while (cum_weights < ran) {
+        cum_weights += fitness->weights[++j_sel];
+    }
+
+    //print traj of ancestors of particle j_sel;
+
+    //!!! we assume that the last data point contain information'
+    X_sel = D_J_X[data->n_obs][j_sel]; // N_DATA-1 <=> data->indn_data_nonan[N_DATA_NONAN-1]
+    ssm_print_X(stream, X_sel, par, nav, calc, data->rows[data->n_obs-1], index);
+
+    //printing all ancesters up to previous observation time
+    for(nn = (data->ind_nonan[data->n_obs_nonan-1]-1); nn > data->ind_nonan[data->n_obs_nonan-2]; nn--) {
+        X_sel = D_J_X[ nn + 1 ][j_sel];
+	ssm_print_X(stream, X_sel, par, nav, calc, data->rows[nn], index);
+    }
+
+    for(n = (data->n_obs_nonan-2); n >= 1; n--) {
+	//indentifying index of the path that led to sampled particule
+	indn = data->ind_nonan[n];
+	j_sel = fitness->select[indn][j_sel];
+        X_sel = D_J_X[ indn + 1 ][j_sel];
+      
+	ssm_print_X(stream, X_sel, par, nav, calc, data->rows[indn], index);
+	
+	//printing all ancesters up to previous observation time
+        for(nn= (indn-1); nn > data->ind_nonan[n-1]; nn--) {
+            X_sel = D_J_X[ nn + 1 ][j_sel];
+	    ssm_print_X(stream, X_sel, par, nav, calc, data->rows[nn], index);
+        }
+    }
+
+    indn = data->ind_nonan[0];
+    j_sel = fitness->select[indn][j_sel];
+    X_sel = D_J_X[indn+1][j_sel];
+    
+    for(nn=indn; nn>=0; nn--) {       
+	X_sel = D_J_X[ nn + 1 ][j_sel];
+	ssm_print_X(stream, X_sel, par, nav, calc, data->rows[nn], index);
+    }
+
+    //TODO nn=-1 (for initial conditions)
+
+}
+
+
+void ssm_print_ar(FILE *stream, ssm_adapt_t *adapt, const int index)
+{
+
+    json_t *jout = json_object();
+    json_object_set_new(jout, "index", json_integer(index)); // m
+
+    json_object_set_new(jout, "ar", json_real(adapt->ar));
+    json_object_set_new(jout, "ar_smoothed", json_real(adapt->ar_smoothed));
+    json_object_set_new(jout, "eps", json_real(adapt->eps));
+
+    ssm_json_dumpf(stream, "ar", jout);
+}
+

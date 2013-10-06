@@ -5,7 +5,7 @@
 /**
  * Checking if initial conditions are valid
  */
-ssm_err_code_t ssm_check_IC(ssm_par_t *par, ssm_calc_t *calc)
+ssm_err_code_t ssm_check_ic(ssm_par_t *par, ssm_calc_t *calc)
 {
 
     ssm_err_code_t cum_status = SSM_SUCCESS;

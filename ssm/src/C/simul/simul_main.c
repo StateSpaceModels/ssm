@@ -18,61 +18,67 @@
 
 #include "ssm.h"
 
+
 int main(int argc, char *argv[])
 {
-    int j, n, np1, t0,t1;
+    int j, n, t0, t1;
 
     ssm_options_t *opts = ssm_options_new();
-    ssm_load_options(opts, SSM_KALMAN, argc, argv);
-
+    ssm_load_options(opts, SSM_SIMUL, argc, argv);
+    
     json_t *jparameters = ssm_load_json_stream(stdin);
     json_t *jdata = ssm_load_data(opts);
 
     ssm_nav_t *nav = ssm_nav_new(jparameters, opts);
     ssm_data_t *data = ssm_data_new(jdata, nav, opts);
     ssm_fitness_t *fitness = ssm_fitness_new(data, opts);
-    ssm_calc_t *calc = ssm_calc_new(jdata, nav, data, fitness, opts, 0);
-    ssm_X_t *X = ssm_X_new(data->n_data +1, nav);
- 
+    ssm_calc_t **calc = ssm_N_calc_new(jdata, nav, data, fitness, opts);
+    ssm_X_t *J_X = ssm_X_new(fitness, nav, opts);
+    ssm_hat_t *hat = ssm_hat_new(nav);
+
     json_decref(jdata);
 
     ssm_input_t *input = ssm_input_new(jparameters, nav);
-    ssm_par_t *par = ssm_par_new(input, calc, nav);
+    ssm_par_t *par = ssm_par_new(input, calc[0], nav);
 
-    ssm_input2par(par, input, calc, nav);
-    ssm_par2X(X, par, calc, nav);
-
-    fitness->cum_status[0] = SSM_SUCCESS;
-    
     ssm_f_pred_t f_pred = ssm_get_f_pred(nav);
-
-    for(n=0; n<data->n_obs; n++) {
-	np1 = n+1;
-	t0 = (n) ? data->rows[n-1]->time: 0;
-        t1 = data->rows[n]->time;
-		    
-	// Reset incidence
-	ssm_X_reset_inc(X, data->rows[n], nav);
-	
-	// Predict
-	fitness->cum_status[0] |= (*f_pred)(X, t0, t1, par, nav, calc);
-
-	// Update
-	fitness->cum_status[0] |= ssm_kalman_update(X, data->rows[n], t1, par, calc, nav, fitness);
+    
+    for(j=0; j<fitness->J; j++) {
+        fitness->cum_status[j] = SSM_SUCCESS;
     }
 
-    json_decref(parameters);
+    for(n=0; n<data->length; n++) {
+	t0 = (n) ? data->rows[n-1]->time: 0;
+	t1 = data->rows[n]->time;
 
-    ssm_X_free(X);
-    ssm_calc_free(calc);
+        for(j=0;j<fitness->J;j++) {
+	    ssm_X_reset_inc(J_X[j], data->rows[n], nav);
+	    fitness->cum_status[j] |= f_pred(J_X[0], t0, t1, par, nav, calc[0]);
+	}
 
+	if (nav->print & SSM_PRINT_HAT) {
+	    ssm_hat_eval(hat, D_J_X[np1], &par, nav, calc[0], NULL, t1, 0);
+	    ssm_print_hat(stdout, hat, nav, data->rows[n]);
+        }
+
+	if (nav->print & SSM_PRINT_X) {
+	    for(j=0; j<fitness->J; j++) {
+		ssm_print_X(stdout, J_X[j], par, nav, calc[0], data->rows[n], j);
+	    }
+	}
+    }
+    
+    json_decref(jparameters);
+
+    ssm_J_X_free(X, fitness);
+    ssm_N_calc_free(calc, nav);
     ssm_data_free(data);
     ssm_nav_free(nav);
-    
+    ssm_fitness_free(fitness);
+    ssm_hat_free(hat);
+
     ssm_input_free(input);
     ssm_par_free(par);
-    
-    ssm_fitness_free(fitness);
 
     return 0;
 }

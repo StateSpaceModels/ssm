@@ -76,7 +76,6 @@ void ssm_ci95(double *hat_95, ssm_calc_t *calc, ssm_fitness_t *fitness)
  *  the weights are taken to be 1/calc->J
  *  is_J_par true J_par (ssm_par_t[J]) instead of &par
  */
-
 void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_fitness_t *fitness, const double t, int is_J_par)
 {
 

@@ -23,9 +23,23 @@ void ssm_input_free(ssm_input_t *input)
     gsl_vector_free(input);
 }
 
-ssm_par_t *ssm_par_new(ssm_nav_t *nav)
+/**
+ * if input is NULL return empty par
+ */
+ssm_par_t *ssm_par_new(ssm_input_t *input, ssm_calc_t *calc, ssm_nav_t *nav)
 {
-    return gsl_vector_calloc(nav->par_all->length);
+
+    ssm_it_parameters_t *it = nav->par_all;
+    ssm_par_t *par = gsl_vector_calloc(it->length);
+
+    if(input){
+	int i;
+	for(i=0; i< it->length; i++){
+	    gsl_vector_set(par, it->p[i]->offset, it->p[i]->f_user2par(gsl_vector_get(input, it->p[i]->offset), input, calc));
+	}
+    }
+
+    return par;
 }
 
 void ssm_par_free(ssm_par_t *par)
@@ -33,9 +47,25 @@ void ssm_par_free(ssm_par_t *par)
     gsl_vector_free(par);
 }
 
-ssm_theta_t *ssm_theta_new(ssm_nav_t *nav)
+/**
+ * if input is NULL return empty theta
+ */
+ssm_theta_t *ssm_theta_new(ssm_input_t* input, ssm_nav_t *nav)
 {
-    return gsl_vector_calloc(nav->theta_all->length);
+
+    ssm_theta_t *theta = gsl_vector_calloc(nav->theta_all->length);
+
+    if(input) {
+	int i;
+	ssm_parameter_t *p;
+	
+	for(i=0; i< nav->theta_all->length; i++){
+	    p = nav->theta_all->p[i];
+	    gsl_vector_set(theta, i, p->f(gsl_vector_get(input, p->offset)));	
+	}
+    }
+
+    return theta;
 }
 
 void ssm_theta_free(ssm_theta_t *theta)
@@ -43,7 +73,7 @@ void ssm_theta_free(ssm_theta_t *theta)
     gsl_vector_free(theta);
 }
 
-ssm_var_t *ssm_var_new(ssm_nav_t *nav, json_t *jparameters)
+ssm_var_t *ssm_var_new(json_t *jparameters, ssm_nav_t *nav)
 {
     gsl_matrix *m = gsl_matrix_calloc(nav->theta_all->length, nav->theta_all->length);
 
@@ -328,6 +358,13 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
     data->length = json_array_size(jdata_data);
     data->ts_length = nav->observed_length;
 
+    //n_obs
+    if(opts->n_obs >= 0){
+        data->n_obs = (opts->n_obs < data->length) ? opts->n_obs : data->length;
+    } else {
+        data->n_obs = data->length;
+    }
+
     ssm_row_t **rows = malloc(data->length * sizeof (ssm_row_t *));
     if (rows==NULL) {
         ssm_print_err("Allocation impossible for ssm_data_row_t **");
@@ -335,6 +372,7 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
     }
 
     data->length_nonan = 0;
+    data->n_obs_nonan = 0;
     data->ind_nonan = ssm_u1_new(data->length);
 
     for (i=0; i< data->length; i++){
@@ -411,17 +449,14 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
         if(rows[i]->ts_nonan_length){
             data->ind_nonan[data->length_nonan] = i;
             data->length_nonan += 1;
+	    if(i< data->n_obs){
+		data->n_obs_nonan += 1;
+	    }
         }
     }
 
     data->rows = rows;
 
-    //n_obs
-    if(opts->n_obs >= 0){
-        data->n_obs = (opts->n_obs < data->length) ? opts->n_obs : data->length;
-    } else {
-        data->n_obs = data->length;
-    }
 
     return data;
 }
@@ -454,7 +489,7 @@ void ssm_data_free(ssm_data_t *data)
 }
 
 
-ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, int thread_id, unsigned long int seed, ssm_options_t *opts)
+ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options_t *opts, int thread_id)
 {
     ssm_calc_t *calc = malloc(sizeof (ssm_calc_t));
     if (calc==NULL) {
@@ -498,6 +533,14 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fi
     } else {
         Type = gsl_rng_ranlxs0; //gsl_rng_ranlxs2 is better than gsl_rng_ranlxs0 but 2 times slower
     }
+
+    unsigned long int seed;
+    if(opts->flag_seed_time){
+        seed = (unsigned) time(NULL);
+    } else{
+        seed=2;
+    }
+    seed += opts->id; /*we ensure uniqueness of seed in case of parrallel runs*/
 
     calc->randgsl = gsl_rng_alloc(Type);
     gsl_rng_set(calc->randgsl, seed + thread_id);
@@ -740,16 +783,8 @@ ssm_calc_t **ssm_N_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm
         exit(EXIT_FAILURE);
     }
 
-    unsigned long int seed;
-    if(opts->flag_seed_time){
-        seed = (unsigned) time(NULL);
-    } else{
-        seed=2;
-    }
-    seed += opts->id; /*we ensure uniqueness of seed in case of parrallel runs*/
-
     for (i=0; i< n_threads; i++) {
-        calc[i] = ssm_calc_new(jdata, nav, data, fitness, i, seed, opts);
+        calc[i] = ssm_calc_new(jdata, nav, data, fitness, opts, i);
     }
 
     return calc;
@@ -825,7 +860,6 @@ ssm_options_t *ssm_options_new(void)
     strncpy(opts->freq, "D", SSM_STR_BUFFSIZE);
     strncpy(opts->start, "", SSM_STR_BUFFSIZE);
     strncpy(opts->end, "", SSM_STR_BUFFSIZE);
-    opts->skip = 0;
     strncpy(opts->server, "127.0.0.1", SSM_STR_BUFFSIZE);
     opts->flag_no_filter = 0;
 
@@ -860,9 +894,6 @@ ssm_fitness_t *ssm_fitness_new(ssm_data_t *data, ssm_options_t *opts)
     fitness->like_min = opts->like_min;
     fitness->log_like_min = log(fitness->like_min);
 
-    fitness->err_square_n = 0.0;
-    fitness->err_square = 0.0;
-
     fitness->ess_n = 0.0;
     fitness->log_like_n = 0.0;
     fitness->log_like = 0.0;
@@ -881,8 +912,6 @@ ssm_fitness_t *ssm_fitness_new(ssm_data_t *data, ssm_options_t *opts)
     fitness->log_like_prev = 0.0;
     fitness->log_like_new = 0.0;
 
-    fitness->prior_probs = ssm_d1_new(fitness->J);
-
     return fitness;
 }
 
@@ -893,8 +922,6 @@ void ssm_fitness_free(ssm_fitness_t *fitness)
     ssm_u2_free(fitness->select, fitness->data_length);
 
     free(fitness->cum_status);
-
-    free(fitness->prior_probs);
 
     free(fitness);
 }
@@ -1054,4 +1081,50 @@ void ssm_D_hat_free(ssm_hat_t **hat, ssm_data_t *data)
     }
 
     free(hat);
+}
+
+
+ssm_adapt_t *ssm_adapt_new(ssm_nav_t *nav, ssm_options_t * opts)
+{
+    ssm_adapt_t *a = malloc(sizeof (ssm_adapt_t));
+    if(a == NULL) {
+        ssm_print_err("allocation impossible for ssm_adapt_t");
+        exit(EXIT_FAILURE);
+    }
+
+    a->ar = 1.0;
+    a->ar_smoothed = 1.0;
+
+    a->eps = 1.0;
+    a->eps_max = opts->eps_max;
+    a->eps_switch = opts->eps_switch;
+    a->eps_a = opts->a;
+
+    int min_switch = 5.0*pow(nav->theta_all->length, 2);   
+    if (opts->m_switch < 0) {
+        a->m_switch = min_switch;
+    } else {
+        a->m_switch = opts->m_switch;
+	if ( (a->m_switch < min_switch) && !(nav->print & SSM_QUIET)) {
+	    char str[SSM_STR_BUFFSIZE];
+	    snprintf(str, SSM_STR_BUFFSIZE, "warning: covariance switching iteration (%i) is smaller than proposed one (%i)", a->m_switch, min_switch);
+	    ssm_print_warning(str);
+	}    
+    } 
+
+    a->flag_smooth = opts->flag_smooth;
+    a->alpha = opts->alpha;
+
+    a->mean_sampling = ssm_d1_new(nav->theta_all->length);
+    a->var_sampling = gsl_matrix_calloc(nav->theta_all->length, nav->theta_all->length);
+    
+    return a;
+}
+
+void ssm_adapt_free(ssm_adapt_t *adapt)
+{
+    free(adapt->mean_sampling);
+    gsl_matrix_free(adapt->var_sampling);
+
+    free(adapt);
 }
