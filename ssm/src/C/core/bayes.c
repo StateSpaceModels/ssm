@@ -92,7 +92,7 @@ ssm_err_code_t ssm_log_prob_proposal(double *log_like, ssm_theta_t *proposed, ss
  * means it doesn't immediatly return on failure). This is usefull for
  * the --prior option.
  */
-ssm_err_code_t log_prob_prior(double *log_like, ssm_theta_t *mean, ssm_var_t *var, ssm_nav_t *nav, ssm_fitness_t *fitness)
+ssm_err_code_t log_prob_prior(double *log_like, ssm_theta_t *mean, ssm_nav_t *nav, ssm_fitness_t *fitness)
 {
     int i;
     ssm_parameter_t *p;
@@ -135,8 +135,8 @@ int ssm_metropolis_hastings(double *alpha, ssm_theta_t *proposed, ssm_theta_t *m
     double lproposal_new, lproposal_prev, lprior_new, lprior_prev;
     ssm_err_code_t rc_proposal_new =  ssm_log_prob_proposal(&lproposal_new,  proposed, mean,     var, sd_fac, nav,  is_mvn); /* q{ theta* | theta(i-1) }*/
     ssm_err_code_t rc_proposal_prev = ssm_log_prob_proposal(&lproposal_prev, mean,     proposed, var, sd_fac, nav, is_mvn);  /* q{ theta(i-1) | theta* }*/
-    ssm_err_code_t rc_prior_new  =    ssm_log_prob_prior(&lprior_new,        proposed,           var, nav, fitness);         /* p{theta*} */
-    ssm_err_code_t rc_prior_prev =    ssm_log_prob_prior(&lprior_prev,       mean,               var, nav, fitness);         /* p{theta(i-1)} */
+    ssm_err_code_t rc_prior_new  =    ssm_log_prob_prior(&lprior_new,        proposed,                        nav, fitness); /* p{theta*} */
+    ssm_err_code_t rc_prior_prev =    ssm_log_prob_prior(&lprior_prev,       mean,                            nav, fitness); /* p{theta(i-1)} */
 
     if( (rc_proposal_new == SSM_SUCCESS) && (rc_proposal_prev == SSM_SUCCESS) && (rc_prior_new == SSM_SUCCESS) && (rc_prior_prev == SSM_SUCCESS) ) {
 

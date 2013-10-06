@@ -601,8 +601,8 @@ void ssm_load_options(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
 
 /* fitness.c */
 double ssm_sanitize_likelihood(double like, ssm_fitness_t *fitness, ssm_nav_t *nav);
-double ssm_log_likelihood(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness);
-double ssm_sum_square(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness);
+double ssm_log_likelihood(ssm_row_t *row, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness);
+double ssm_sum_square(ssm_row_t *row, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness);
 
 /* mvn.c */
 int ssm_rmvnorm(const gsl_rng *r, const int n, const gsl_vector *mean, const gsl_matrix *var, double sd_fac, gsl_vector *result);
@@ -674,17 +674,19 @@ void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *n
 
 /* bayes.c */
 ssm_err_code_t ssm_log_prob_proposal(double *log_like, ssm_theta_t *proposed, ssm_theta_t *mean, ssm_var_t *var, double sd_fac, ssm_nav_t *nav, int is_mvn);
-ssm_err_code_t ssm_log_prob_prior(double *log_like, ssm_theta_t *mean, ssm_var_t *var, ssm_nav_t *nav, ssm_fitness_t *fitness);
+ssm_err_code_t ssm_log_prob_prior(double *log_like, ssm_theta_t *mean, ssm_nav_t *nav, ssm_fitness_t *fitness);
 int ssm_metropolis_hastings(double *alpha, ssm_theta_t *proposed, ssm_theta_t *mean, gsl_matrix *var, double sd_fac, ssm_fitness_t *fitness , ssm_nav_t *nav, ssm_calc_t *calc, int is_mvn);
 ssm_var_t *ssm_adapt_eps_var_sd_fac(double *sd_fac, ssm_adapt_t *a, ssm_var_t *var, ssm_nav_t *nav, int m);
 void ssm_adapt_ar(ssm_adapt_t *a, int is_accepted, int m);
 void ssm_theta_ran(ssm_theta_t *proposed, ssm_theta_t *mean, ssm_var_t *var, double sd_fac, ssm_calc_t *calc, ssm_nav_t *nav, int is_mvn);
 int ssm_theta_copy(ssm_theta_t *dest, ssm_theta_t *src);
 
+/* simplex.c */
+void ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_simplex)(const gsl_vector *x, void *params), ssm_nav_t *nav, double size_stop, int n_iter);
 
-/****************************/
+/******************************/
 /* kalman function signatures */
-/****************************/
+/******************************/
 
 /* ekf.c */
 ssm_err_code_t ssm_check_and_correct_Ct(ssm_X_t *X, ssm_calc_t *calc);

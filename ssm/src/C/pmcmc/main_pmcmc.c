@@ -65,13 +65,13 @@ int main(int argc, char *argv[])
     fitness->log_like_new = p_like->log_like;
 
     if ( ( nav->print & SSM_PRINT_X_SMOOTH ) && data->n_obs ) {
-	ssm_sample_traj_print(stdout, D_J_X, par, nav, calc, data, fitness, m);
+	ssm_sample_traj_print(stdout, D_J_X, par, nav, calc[0], data, fitness, m);
     }
     //the initial iteration is "accepted"
     fitness->log_like_prev = fitness->log_like_new;
 
     if(nav->print & SSM_PRINT_TRACE){
-	ssm_print_trace(stdout, theta, nav, calc, fitness->log_like, m);
+	ssm_print_trace(stdout, theta, nav, calc[0], fitness->log_like, m);
     }
 
     ////////////////
@@ -84,13 +84,15 @@ int main(int argc, char *argv[])
 
 	var = ssm_adapt_eps_var_sd_fac(&sd_fac, adapt, var_input, nav, m);
 	do {
-	    ssm_theta_ran(proposed, theta, var, sd_fac, calc, nav, 1);
+	    ssm_theta_ran(proposed, theta, var, sd_fac, calc[0], nav, 1);
 	    ssm_theta2input(input, proposed, nav);
-	    ssm_input2par(par, input, calc, nav);
+	    ssm_input2par(par, input, calc[0], nav);
 	}
-	while (ssm_check_ic(par, calc) != SSM_SUCCESS);
+	while (ssm_check_ic(par, calc[0]) != SSM_SUCCESS);
 
 	ssm_par2X(D_J_X[0][0], par, calc[0], nav);
+	D_J_X[0][0]->dt = D_J_X[0][0]->dt0;
+
 	for(j=1; j<fitness->J; j++){
 	    ssm_X_copy(D_J_X[0][j], D_J_X[0][0]);
 	}

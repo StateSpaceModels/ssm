@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
     for(n=0; n<data->n_obs; n++) {
         np1 = n+1;
         t0 = (n) ? data->rows[n-1]->time: 0;
-        t1 = data->rows[n]->time;
+        t1 = data->rows[n]->time;xo
 
         //we are going to overwrite the content of the [np1] pointer: initialise it with values from [n]
         for(j=0;j<fitness->J;j++) {
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
             fitness->cum_status[j] |= (*f_pred)(D_J_X[np1][j], t0, t1, par, nav, calc[0]);
 
             if(data->rows[n]->ts_nonan_length) {
-                fitness->weights[j] = (fitness->cum_status[j] == SSM_SUCCESS) ?  exp(ssm_log_likelihood(data->rows[n], t1, D_J_X[np1][j], par, calc[0], nav, fitness)) : 0.0;
+                fitness->weights[j] = (fitness->cum_status[j] == SSM_SUCCESS) ?  exp(ssm_log_likelihood(data->rows[n], D_J_X[np1][j], par, calc[0], nav, fitness)) : 0.0;
                 fitness->cum_status[j] = SSM_SUCCESS;
             }
         }

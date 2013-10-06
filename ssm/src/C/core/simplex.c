@@ -19,10 +19,10 @@
 #include "ssm.h"
 
 /**
- * simplex algo using GSL. Straightforward adaptation of the GSL doc *
+ * simplex algo using GSL. Straightforward adaptation of the GSL doc
  * example
  */
-void simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_simplex)(const gsl_vector *x, void *params), ssm_nav_t *nav, double size_stop, int n_iter)
+void ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_simplex)(const gsl_vector *x, void *params), ssm_nav_t *nav, double size_stop, int n_iter)
 {
     char str[SSM_STR_BUFFSIZE];
 
@@ -41,11 +41,10 @@ void simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_simple
 
     int i;
     for (i=0; i<nav->theta_all->length; i++) {
-	gsl_vector_set(x, i, gsl_vector_get(theta, i)); //note the sqrt !!
+	gsl_vector_set(x, i, gsl_vector_get(theta, i));
 	gsl_vector_set(jump_sizes, i, sqrt(gsl_matrix_get(var, i, i))); //note the sqrt !!
     }
 
-    /* Initialize method and iterate */
     minex_func.n = nav->theta_all->length;
     minex_func.f = f_simplex;
     minex_func.params = params;
@@ -77,6 +76,8 @@ void simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_simple
 
     } while (status == GSL_CONTINUE && iter < n_iter);
 
+
+    gsl_vector_memcpy(theta, gsl_multimin_fminimizer_x(simp));
 
     gsl_multimin_fminimizer_free(simp);
     gsl_vector_free(x);
