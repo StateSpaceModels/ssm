@@ -132,12 +132,21 @@ void ssm_print_trace(FILE *stream, ssm_theta_t *theta, ssm_nav_t *nav, const dou
  * when there is information)
  */
 
-void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, ssm_fitness_t *fitness)
+
+void ssm_print_pred_res(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, ssm_fitness_t *fitness, const double t)
 {
-    int ts, j;
-    double pred, var_obs, var_state, kn, M2, delta, x, y, res;
+    int ts;
+    double pred, var_obs, var_state, y, res;
     ssm_observed_t *observed;
-    double t = (double) row->time;
+
+
+    if (implementation == SSM_EKF) {
+	int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
+	gsl_matrix_const_view Ct   = gsl_matrix_const_view_array(&X[m], m, m);
+    } else {
+	int j;
+	double kn, M2, delta, x;
+    }
 
     char key[SSM_STR_BUFFSIZE];
 
@@ -145,27 +154,41 @@ void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *
     json_object_set_new(jout, "date", json_string(row->date));
 
     for(ts=0; ts<row->ts_nonan_length; ts++) {
-        kn=0.0;
-        pred=0.0;
-        var_obs=0.0;
-        M2=0.0;
-        observed = row->observed[ts];
 
-        for(j=0; j <fitness->J ; j++) {
-            kn += 1.0;
-            x = observed->f_obs_mean(J_X[j], par, calc, t);
+	observed = row->observed[ts];
+	y = row->values[ts];
+        
+	if (implementation == SSM_EKF) {
+	
+	    var_obs = observed->obs_var(p_X, par, calc, t);
+	    pred = observed->f_obs_mean(p_X, par, calc, t);
+	    var_state = var_f_x(p_X, par,nav, calc, t);
+	    res = (y - pred)/sqrt(var_state + var_obs);
+	
+	} else {
+	
+	    kn=0.0;
+	    pred=0.0;
+	    var_obs=0.0;
+	    M2=0.0;
+        
+	    for(j=0; j <fitness->J ; j++) {
+		kn += 1.0;
+		x = observed->f_obs_mean(p_X[j], par, calc, t);
+		
+		delta = x - pred;
+		pred += delta/kn;
+		M2 += delta*(x - pred);
+		var_obs += observed->f_obs_var(p_X[j], par, calc, t);
+	    }
 
-            delta = x - pred;
-            pred += delta/kn;
-            M2 += delta*(x - pred);
-            var_obs += observed->f_obs_var(J_X[j], par, calc, t);
-        }
 
-        var_state = M2/(kn - 1.0);
-        var_obs /= ((double) fitness->J);
+	    var_state = M2/(kn - 1.0);
+	    var_obs /= ((double) fitness->J);
+	    
+	    res = (y - pred)/sqrt(var_state + var_obs);
+	}
 
-        y = row->values[ts];
-        res = (y - pred)/sqrt(var_state + var_obs);
 
         snprintf(key, SSM_STR_BUFFSIZE, "pred_%s", observed->name);
         json_object_set_new(jout, key, json_real(pred));
