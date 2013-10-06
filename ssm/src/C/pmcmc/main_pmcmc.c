@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 	    ssm_theta_copy(theta, proposed);
 	} else {
 	    fitness->log_like = fitness->log_like_prev;
-	    //reset par so that print_X got the right values
+	    //reset par so that the prints (X, sample_traj) got the right values
 	    ssm_theta2input(input, theta, nav);
 	    ssm_input2par(par, input, calc, nav);	    
 	}
@@ -119,8 +119,12 @@ int main(int argc, char *argv[])
 	    ssm_sample_traj_print(stdout, D_J_X, par, nav, calc, data, fitness, m);
 	}
 
-	if(nav->print & SSM_PRINT_TRACE){
+	if (nav->print & SSM_PRINT_TRACE){
 	    ssm_print_trace(stdout, theta, nav, calc, fitness->log_like, m);
+	}
+
+	if (nav->print & SSM_PRINT_ACC) {
+	    ssm_print_ar(stdout, adapt, m);
 	}
 
     }

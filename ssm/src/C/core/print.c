@@ -89,7 +89,7 @@ void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm
     }
 
     char key[SSM_STR_BUFFSIZE];
-    snprintf(key, SSM_STR_BUFFSIZE, "%s_%s", "ran", observed->name);
+    snprintf(key, SSM_STR_BUFFSIZE, "ran_%s", observed->name);
     for(i=0; i<nav->observed_length; i++){
         observed = nav->observed[i];
         json_object_set_new(jout, key, json_real(observed->f_obs_ran(p_X, par, calc, t)));
@@ -307,3 +307,18 @@ void ssm_sample_traj_print(FILE *stream, ssm_X_t ***D_J_X, ssm_par_t *par, ssm_n
     //TODO nn=-1 (for initial conditions)
 
 }
+
+
+void ssm_print_ar(FILE *stream, ssm_adapt_t *adapt, const int index)
+{
+
+    json_t *jout = json_object();
+    json_object_set_new(jout, "index", json_integer(index)); // m
+
+    json_object_set_new(jout, "ar", json_real(adapt->ar));
+    json_object_set_new(jout, "ar_smoothed", json_real(adapt->ar_smoothed));
+    json_object_set_new(jout, "eps", json_real(adapt->eps));
+
+    ssm_json_dumpf(stream, "ar", jout);
+}
+
