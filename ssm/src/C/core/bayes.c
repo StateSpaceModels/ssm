@@ -21,7 +21,7 @@
 /**
  * compute the log of the prob of the proposal
  */
-ssm_err_code_t ssm_log_prob_proposal(double *log_like, ssm_theta_t *proposed, ssm_theta_t *mean, ssm_var_t *var, double sd_fac, ssm_nav_t *nav, int is_mvn)
+ssm_err_code_t ssm_log_prob_proposal(double *log_like, ssm_theta_t *proposed, ssm_theta_t *theta, ssm_var_t *var, double sd_fac, ssm_nav_t *nav, int is_mvn)
 {
 
     int i;
@@ -30,7 +30,7 @@ ssm_err_code_t ssm_log_prob_proposal(double *log_like, ssm_theta_t *proposed, ss
     double lp = 0.0;
     
     if (is_mvn) {
-        p_tmp = ssm_dmvnorm(proposed->size, proposed, mean, var, sd_fac);
+        p_tmp = ssm_dmvnorm(proposed->size, proposed, theta, var, sd_fac);
     }
 
     for(i=0; i<nav->theta_all->length; i++) {
@@ -38,7 +38,7 @@ ssm_err_code_t ssm_log_prob_proposal(double *log_like, ssm_theta_t *proposed, ss
 	p = nav->theta_all->p[i];
 
 	if (!is_mvn) {
-	    p_tmp = gsl_ran_gaussian_pdf((gsl_vector_get(proposed, p->offset)-gsl_vector_get(mean, p->offset)), sd_fac*sqrt(gsl_matrix_get(var, p->offset, p->offset)));
+	    p_tmp = gsl_ran_gaussian_pdf((gsl_vector_get(proposed, p->offset)-gsl_vector_get(theta, p->offset)), sd_fac*sqrt(gsl_matrix_get(var, p->offset, p->offset)));
 	}
 
 	/*
@@ -92,7 +92,7 @@ ssm_err_code_t ssm_log_prob_proposal(double *log_like, ssm_theta_t *proposed, ss
  * means it doesn't immediatly return on failure). This is usefull for
  * the --prior option.
  */
-ssm_err_code_t log_prob_prior(double *log_like, ssm_theta_t *mean, ssm_nav_t *nav, ssm_fitness_t *fitness)
+ssm_err_code_t log_prob_prior(double *log_like, ssm_theta_t *theta, ssm_nav_t *nav, ssm_fitness_t *fitness)
 {
     int i;
     ssm_parameter_t *p;
@@ -105,7 +105,7 @@ ssm_err_code_t log_prob_prior(double *log_like, ssm_theta_t *mean, ssm_nav_t *na
 
 	p = nav->theta_all->p[i];
 
-	back_transformed = p->f_inv(gsl_vector_get(mean, p->offset));
+	back_transformed = p->f_inv(gsl_vector_get(theta, p->offset));
 	p_tmp = p->prior(back_transformed);
 
 	//check for numerical issues
@@ -128,15 +128,15 @@ ssm_err_code_t log_prob_prior(double *log_like, ssm_theta_t *mean, ssm_nav_t *na
 /**
  * return accepted (1) or rejected (0)
  */
-int ssm_metropolis_hastings(double *alpha, ssm_theta_t *proposed, ssm_theta_t *mean, gsl_matrix *var, double sd_fac, ssm_fitness_t *fitness , ssm_nav_t *nav, ssm_calc_t *calc, int is_mvn)
+int ssm_metropolis_hastings(double *alpha, ssm_theta_t *proposed, ssm_theta_t *theta, gsl_matrix *var, double sd_fac, ssm_fitness_t *fitness , ssm_nav_t *nav, ssm_calc_t *calc, int is_mvn)
 {
     double ran;
 
     double lproposal_new, lproposal_prev, lprior_new, lprior_prev;
-    ssm_err_code_t rc_proposal_new =  ssm_log_prob_proposal(&lproposal_new,  proposed, mean,     var, sd_fac, nav,  is_mvn); /* q{ theta* | theta(i-1) }*/
-    ssm_err_code_t rc_proposal_prev = ssm_log_prob_proposal(&lproposal_prev, mean,     proposed, var, sd_fac, nav, is_mvn);  /* q{ theta(i-1) | theta* }*/
+    ssm_err_code_t rc_proposal_new =  ssm_log_prob_proposal(&lproposal_new,  proposed, theta,     var, sd_fac, nav,  is_mvn); /* q{ theta* | theta(i-1) }*/
+    ssm_err_code_t rc_proposal_prev = ssm_log_prob_proposal(&lproposal_prev, theta,     proposed, var, sd_fac, nav, is_mvn);  /* q{ theta(i-1) | theta* }*/
     ssm_err_code_t rc_prior_new  =    ssm_log_prob_prior(&lprior_new,        proposed,                        nav, fitness); /* p{theta*} */
-    ssm_err_code_t rc_prior_prev =    ssm_log_prob_prior(&lprior_prev,       mean,                            nav, fitness); /* p{theta(i-1)} */
+    ssm_err_code_t rc_prior_prev =    ssm_log_prob_prior(&lprior_prev,       theta,                            nav, fitness); /* p{theta(i-1)} */
 
     if( (rc_proposal_new == SSM_SUCCESS) && (rc_proposal_prev == SSM_SUCCESS) && (rc_prior_new == SSM_SUCCESS) && (rc_prior_prev == SSM_SUCCESS) ) {
 
@@ -195,15 +195,15 @@ void ssm_adapt_ar(ssm_adapt_t *a, int is_accepted, int m)
 
 
 
-void ssm_theta_ran(ssm_theta_t *proposed, ssm_theta_t *mean, ssm_var_t *var, double sd_fac, ssm_calc_t *calc, ssm_nav_t *nav, int is_mvn)
+void ssm_theta_ran(ssm_theta_t *proposed, ssm_theta_t *theta, ssm_var_t *var, double sd_fac, ssm_calc_t *calc, ssm_nav_t *nav, int is_mvn)
 {    
     int i;
 
     if(is_mvn){
-	ssm_rmvnorm(calc->randgsl, nav->theta_all->length, mean, var, sd_fac, proposed);
+	ssm_rmvnorm(calc->randgsl, nav->theta_all->length, theta, var, sd_fac, proposed);
     } else { //iid gaussians	
 	for (i=0; i< nav->theta_all->length ; i++) {	    
-	    gsl_vector_set(proposed, i, gsl_vector_get(mean, i) + gsl_ran_gaussian(calc->randgsl, sd_fac*sqrt(gsl_matrix_get(var, i, i))));
+	    gsl_vector_set(proposed, i, gsl_vector_get(theta, i) + gsl_ran_gaussian(calc->randgsl, sd_fac*sqrt(gsl_matrix_get(var, i, i))));
 	}
     }
 

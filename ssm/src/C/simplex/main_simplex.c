@@ -44,20 +44,20 @@ static double f_simplex(const gsl_vector *theta, void *params)
     unsigned int n, t0, t1;
     double fitness;
 
-    struct s_simplex *params = (struct s_simplex *) params;
-    ssm_data_t *data = params->data;
-    ssm_nav_t *nav = params->nav;
-    ssm_calc_t *calc = params->calc;
-    ssm_input_t *input = params->input; 
-    ssm_par_t *par = params->par; 
-    ssm_X_t *X = params->X;
-    ssm_fitness_t *fit = params->fitness;
-    int flag_prior = params->flag_prior;
-    int flag_least_squares = params->flag_least_squares;
+    struct s_simplex *p = (struct s_simplex *) params;
+    ssm_data_t *data = p->data;
+    ssm_nav_t *nav = p->nav;
+    ssm_calc_t *calc = p->calc;
+    ssm_input_t *input = p->input; 
+    ssm_par_t *par = p->par; 
+    ssm_X_t *X = p->X;
+    ssm_fitness_t *fit = p->fitness;
+    int flag_prior = p->flag_prior;
+    int flag_least_squares = p->flag_least_squares;
 
     ssm_err_code_t status = SSM_SUCCESS;
 
-    if(ssm_check_IC_assign_theta_remainder(p_best->mean, p_data)){
+    if(ssm_check_ic(par, calc) != SSM_SUCCESS){
 
 	if (!(nav->print & SSM_QUIET)) {
 	    ssm_print_warning("constraints on initial conditions have not been respected: assigning bad fitness");
@@ -66,10 +66,10 @@ static double f_simplex(const gsl_vector *theta, void *params)
 
     } else {
 
-	ssm_theta2input(input, theta, nav);
+	ssm_theta2input(input, (gsl_vector *) theta, nav);
 	ssm_input2par(par, input, calc, nav);
-	ssm_par2X(D_J_X[0][0], par, calc, nav);
-	p_X->dt = p_X->dt0;
+	ssm_par2X(X, par, calc, nav);
+	X->dt = X->dt0;
 
 	fitness=0.0;
 
@@ -78,7 +78,7 @@ static double f_simplex(const gsl_vector *theta, void *params)
 	    t1 = data->rows[n]->time;
 
             ssm_X_reset_inc(X, data->rows[n], nav);
-	    status |= f_prediction_ode(X, t0, t1, par, nav, calc);
+	    status |= ssm_f_prediction_ode(X, t0, t1, par, nav, calc);
 
 	    if(data->rows[n]->ts_nonan_length) {
 		if (flag_least_squares) {
@@ -92,18 +92,16 @@ static double f_simplex(const gsl_vector *theta, void *params)
 	if( status != SSM_SUCCESS ){
 	    fitness = (flag_least_squares) ? LARGEST_SUM_OF_SQUARE: SMALLEST_LOG_LIKE;
 	    if (!(nav->print & SSM_QUIET)) {
-		print_warning("warning: something went wrong");
+		ssm_print_warning("warning: something went wrong");
 	    }
 	}
 	
 	if (flag_prior && !flag_least_squares) {
 	    double log_prob_prior_value;
-	    ssm_err_code_t rc = log_prob_prior(&log_prob_prior_value, theta, nav, fit);
-
+	    ssm_err_code_t rc = ssm_log_prob_prior(&log_prob_prior_value, (gsl_vector *) theta, nav, fit);
 	    if(rc != SSM_SUCCESS && !(nav->print & SSM_QUIET)){
-		print_warning("error log_prob_prior computation");
+		ssm_print_warning("error log_prob_prior computation");
 	    }
-
 	    fitness += log_prob_prior_value;
 	}
 

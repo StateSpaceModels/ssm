@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
     /////////////////////////
     // initialization step //
     /////////////////////////
+    int j;
     int m = 0;
 
     ssm_input2par(par, input, calc[0], nav);
@@ -62,7 +63,7 @@ int main(int argc, char *argv[])
 
     //TODO: RUN SMC
 
-    fitness->log_like_new = p_like->log_like;
+    fitness->log_like_new = fitness->log_like;
 
     if ( ( nav->print & SSM_PRINT_X_SMOOTH ) && data->n_obs ) {
 	ssm_sample_traj_print(stdout, D_J_X, par, nav, calc[0], data, fitness, m);
@@ -71,7 +72,7 @@ int main(int argc, char *argv[])
     fitness->log_like_prev = fitness->log_like_new;
 
     if(nav->print & SSM_PRINT_TRACE){
-	ssm_print_trace(stdout, theta, nav, calc[0], fitness->log_like, m);
+	ssm_print_trace(stdout, theta, nav, fitness->log_like, m);
     }
 
     ////////////////
@@ -99,9 +100,9 @@ int main(int argc, char *argv[])
 
 	//TODO: RUN SMC
 
-	fitness->log_like_new = p_like->log_like;
+	fitness->log_like_new = fitness->log_like;
 
-	is_accepted =  ssm_metropolis_hastings(&ratio, proposed, theta, var, sd_fac, fitness, nav, calc, 1);
+	is_accepted =  ssm_metropolis_hastings(&ratio, proposed, theta, var, sd_fac, fitness, nav, calc[0], 1);
 
         if (is_accepted) {
 	    fitness->log_like_prev = fitness->log_like_new;
@@ -110,7 +111,7 @@ int main(int argc, char *argv[])
 	    fitness->log_like = fitness->log_like_prev;
 	    //reset par so that the prints (X, sample_traj) got the right values
 	    ssm_theta2input(input, theta, nav);
-	    ssm_input2par(par, input, calc, nav);	    
+	    ssm_input2par(par, input, calc[0], nav);	    
 	}
  
 	ssm_adapt_ar(adapt, is_accepted, m); //compute acceptance rate
@@ -118,11 +119,11 @@ int main(int argc, char *argv[])
 	ssm_adapt_var(adapt, theta, m);  //compute empirical variance
 
 	if ( (nav->print & SSM_PRINT_X_SMOOTH) && ( (m % thin_traj) == 0)  && data->n_obs ) {
-	    ssm_sample_traj_print(stdout, D_J_X, par, nav, calc, data, fitness, m);
+	    ssm_sample_traj_print(stdout, D_J_X, par, nav, calc[0], data, fitness, m);
 	}
 
 	if (nav->print & SSM_PRINT_TRACE){
-	    ssm_print_trace(stdout, theta, nav, calc, fitness->log_like, m);
+	    ssm_print_trace(stdout, theta, nav, fitness->log_like, m);
 	}
 
 	if (nav->print & SSM_PRINT_ACC) {

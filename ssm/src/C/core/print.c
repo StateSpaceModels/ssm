@@ -132,7 +132,7 @@ void ssm_print_trace(FILE *stream, ssm_theta_t *theta, ssm_nav_t *nav, const dou
  * when there is information)
  */
 
-void ssm_print_pred_res(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, ssm_fitness_t *fitness)
+void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, ssm_fitness_t *fitness)
 {
     int ts, j;
     double pred, var_obs, var_state, kn, M2, delta, x, y, res;
@@ -153,12 +153,12 @@ void ssm_print_pred_res(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *n
 
         for(j=0; j <fitness->J ; j++) {
             kn += 1.0;
-            x = observed->f_obs_mean(p_X, par, calc, t);
+            x = observed->f_obs_mean(J_X[j], par, calc, t);
 
             delta = x - pred;
             pred += delta/kn;
             M2 += delta*(x - pred);
-            var_obs += observed->f_obs_var(p_X, par, calc, t);
+            var_obs += observed->f_obs_var(J_X[j], par, calc, t);
         }
 
         var_state = M2/(kn - 1.0);

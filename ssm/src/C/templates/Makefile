@@ -19,31 +19,31 @@ $(LIB): $(OBJ)
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 simul: libssmtpl.a
-	$(CC) $(CFLAGS) -L. -o $@ -lssm_simul $(LDFLAGS)
+	$(CC) $(CFLAGS) -L. -o $@ -lssmsimul $(LDFLAGS)
 
 simplex: libssmtpl.a
-	$(CC) $(CFLAGS) -L. -o $@ -lssm_simplex $(LDFLAGS)
+	$(CC) $(CFLAGS) -L. -o $@ -lssmsimplex $(LDFLAGS)
 
 smc: libssmtpl.a
-	$(CC) $(CFLAGS) -L. -o $@ -lssm_smc $(LDFLAGS) 
+	$(CC) $(CFLAGS) -L. -o $@ -lssmsmc $(LDFLAGS) 
 
 mif: libssmtpl.a
-	$(CC) $(CFLAGS) -L. -o $@ -lssm_mif $(LDFLAGS)  
+	$(CC) $(CFLAGS) -L. -o $@ -lssmmif $(LDFLAGS)  
 
 pmcmc: libssmtpl.a
-	$(CC) $(CFLAGS) -L. -o $@ -lssm_pmcmc $(LDFLAGS)  
+	$(CC) $(CFLAGS) -L. -o $@ -lssmpmcmc $(LDFLAGS)  
 
 kalman: libssmtpl.a
-	$(CC) $(CFLAGS) -L. -o $@ -lssm_kalman $(LDFLAGS) 
+	$(CC) $(CFLAGS) -L. -o $@ -lssmkalman $(LDFLAGS) 
 
 ksimplex: libssmtpl.a
-	$(CC) $(CFLAGS) -L. -o $@ -lssm_ksimplex $(LDFLAGS)
+	$(CC) $(CFLAGS) -L. -o $@ -lssmksimplex $(LDFLAGS)
 
 kmcmc: libssmtpl.a
-	$(CC) $(CFLAGS) -L. -o $@ -lssm_kmcmc $(LDFLAGS)
+	$(CC) $(CFLAGS) -L. -o $@ -lssmkmcmc $(LDFLAGS)
 
 worker: libssmtpl.a
-	$(CC) $(CFLAGS) -L. -o $@ -lssm_worker $(LDFLAGS) 
+	$(CC) $(CFLAGS) -L. -o $@ -lssmworker $(LDFLAGS) 
 
 .PHONY: clean
 
