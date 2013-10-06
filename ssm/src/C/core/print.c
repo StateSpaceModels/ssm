@@ -142,8 +142,11 @@ void ssm_print_pred_res(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *n
     char key[SSM_STR_BUFFSIZE];
 
     //EKF specific
-    int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
-    gsl_matrix_const_view Ct   = gsl_matrix_const_view_array(&X[m], m, m);	
+    gsl_matrix_const_view Ct;
+    if (implementation == SSM_EKF) {
+	int m = nav->states_sv_inc->length + nav->states_diff->length;
+	Ct= gsl_matrix_const_view_array(&X[m], m, m);	
+    }
 
     //non EKF
     int j;
