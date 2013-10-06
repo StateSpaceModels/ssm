@@ -85,10 +85,10 @@ void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *n
     int offset;
 
     //if fitness is NULL all the weights are set to 1.0/J
-    int zero = 0;
+    int _zero = 0;
     double invJ[1] = {1.0 / (double) calc->J};
-    int *j_par = (is_J_par) ? &j: &zero;
-    int *j_weights = (fitness) ? &j: &zero;
+    int *j_par = (is_J_par) ? &j: &_zero;
+    int *j_weights = (fitness) ? &j: &_zero;
     double *weights = (fitness) ? fitness->weights: invJ;
     
     //sv and incidences

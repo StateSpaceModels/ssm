@@ -41,6 +41,19 @@ int main(int argc, char *argv[])
     ssm_input_t *input = ssm_input_new(jparameters, nav);
     ssm_par_t *par = ssm_par_new(input, calc[0], nav);
 
+    ssm_par_t **J_par = malloc(fitness->J * sizeof (ssm_par_t *));
+    if(J_par == NULL) {
+        ssm_print_err("Allocation impossible for ssm_par_t *");
+        exit(EXIT_FAILURE);
+    }
+    for(j=0; j<fitness->J; j++) {
+	J_par[j] = ssm_par_new(NULL, calc[0], nav);
+	//TODO load from parameters.predicton
+	ssm_par2X(J_X[j], J_par[j], calc[0], nav);
+    }
+
+    
+
     ssm_f_pred_t f_pred = ssm_get_f_pred(nav);
     
     for(j=0; j<fitness->J; j++) {

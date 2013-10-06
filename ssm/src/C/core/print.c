@@ -111,7 +111,7 @@ void ssm_print_trace(FILE *stream, ssm_theta_t *theta, ssm_nav_t *nav, const dou
 
     for(i=0; i < nav->theta_all->length; i++) {
         parameter = nav->theta_all->p[i];
-        json_object_set_new(jout, parameter->name, json_real(parameter->f_inv(gsl_vector_get(theta, parameter->offset))));
+        json_object_set_new(jout, parameter->name, json_real(parameter->f_inv(gsl_vector_get(theta, i))));
     }
 
     json_object_set_new(jout, "fitness", isnan(fitness) ? json_null() : json_real(fitness));
