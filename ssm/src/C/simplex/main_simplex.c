@@ -163,3 +163,7 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+
+
+#undef LARGEST_SUM_OF_SQUARE
+#undef SMALLEST_LOG_LIKE

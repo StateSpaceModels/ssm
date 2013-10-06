@@ -455,7 +455,6 @@ typedef struct
     char *freq;              /**< print the outputs (and reset incidences to 0 if any) every day (D), week (W), bi-week (B), month (M  or year (Y) */
     char *start;             /**< ISO 8601 date when the simulation starts*/
     char *end;               /**< ISO 8601 date when the simulation ends*/
-    int skip;                /**< number of days to skip (used to skip transient dynamics) */
     char *server;            /**< domain name or IP address of the particule server (e.g 127.0.0.1) */
     int flag_no_filter;      /**< do not filter */
 } ssm_options_t;

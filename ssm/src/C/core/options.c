@@ -56,10 +56,8 @@ void ssm_load_options(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
         {"F", 'F', "freq",           "print the outputs (and reset incidences to 0 if any) every day (D), week (W), bi-week (B), month (M) or year (Y)", required_argument,  SSM_SIMUL },
         {"V", 'V', "size",           "simplex size used as stopping criteria", required_argument,  SSM_KSIMPLEX | SSM_SIMPLEX },
         {"X", 'X', "chunk",          "number of particles sent to each machine", required_argument,  SSM_PMCMC },
-        {"R", 'R', "skip",           "number of days to skip (used to skip transient dynamics)", required_argument,  SSM_SIMUL },
         {"Q", 'Q', "interpolator",   "gsl interpolator for covariates", required_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
-
-        {"i", 'i', "server",         "domain name or IP address of the particule server (e.g 127.0.0.1)", required_argument,  SSM_WORKER }, //not enough capital letter :(
+        {"R", 'R', "server",         "domain name or IP address of the particule server (e.g 127.0.0.1)", required_argument,  SSM_WORKER },
 
 
         {"h", 'h', "help",           "print the usage on stdout", no_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
@@ -234,15 +232,11 @@ void ssm_load_options(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
 	    opts->chunk = atoi(optarg);	   
             break;
 
-        case 'R': //skip
-	    opts->skip = atoi(optarg);	   	    
-            break;
-
         case 'Q': //interpolator
 	    strncpy(opts->interpolator, optarg, SSM_STR_BUFFSIZE);
             break;
 
-        case 'i': //server
+        case 'R': //server
 	    strncpy(opts->server, optarg, SSM_STR_BUFFSIZE);
             break;
 

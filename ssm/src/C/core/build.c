@@ -860,7 +860,6 @@ ssm_options_t *ssm_options_new(void)
     strncpy(opts->freq, "D", SSM_STR_BUFFSIZE);
     strncpy(opts->start, "", SSM_STR_BUFFSIZE);
     strncpy(opts->end, "", SSM_STR_BUFFSIZE);
-    opts->skip = 0;
     strncpy(opts->server, "127.0.0.1", SSM_STR_BUFFSIZE);
     opts->flag_no_filter = 0;
 
