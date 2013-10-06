@@ -848,6 +848,39 @@ class Ccoder(Cmodel):
                 'Ht_diff': Ht_diff}
 
 
+    def h_grads(self):
+        """compute the gradients of the observation functions using Sympy in order to compute the prediction variance through first-order Taylor expansions"""
+        obs = copy.deepcopy(self.obs_model)
+        h_grads = {}
+
+        for x in obs:
+            term = {}
+            term['id'] = x['id']
+            term['grads'] = []
+            grad = {}
+            for s in range(len(self.par_sv)):
+                Cterm = self.make_C_term(x['pdf']['mean'], True, derivate=self.par_sv[s])
+                if Cterm!='0':
+                    grad['Cterm']=Cterm
+                    grad['ind']=s
+                    term['grads'].append(grad)
+            for s in range(len(self.par_inc)):
+                Cterm = self.make_C_term(x['pdf']['mean'], True, derivate=self.par_inc[s])
+                if Cterm!='0':
+                    grad['Cterm']=Cterm
+                    grad['ind']= s + len(self.par_sv)
+                    term['grads'].append(grad)
+            for s in range(len(self.par_diff)):
+                Cterm = self.make_C_term(x['pdf']['mean'], True, derivate=self.par_diff[s])
+                if Cterm!='0':
+                    grad['Cterm']=Cterm
+                    grad['ind']= s + len(self.par_sv) + len(self.par_inc)
+                    term['grads'].append(grad)
+            h_grads[x['id']]=term
+
+
+        return {'h_grads': h_grads}
+
     def der_mean_proc_obs(self):
         """compute jacobian matrix of the mean of the obs process (assumed to be Gaussian) using Sympy"""
 

@@ -90,7 +90,7 @@ class Builder(Data, Ccoder):
         observed = self.observed()
         observed['orders'] = orders
         self.render('observed', observed)
-
+        
         self.render('iterator', {'iterators':self.iterators()})
 
         psr = {
@@ -113,6 +113,8 @@ class Builder(Data, Ccoder):
         self.render('jac', {'jac': jac, 'is_diff': is_diff, 'orders': orders})
 
         self.render('step_ekf', {'is_diff': is_diff, 'step': step_ode_sde, 'orders': orders})
+
+        self.render('h_grads', {'h_grads': self.h_grads(), 'is_diff': is_diff, 'orders': orders})
 
         self.render('check_ic', parameters)
 
