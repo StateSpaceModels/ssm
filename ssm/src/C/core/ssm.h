@@ -221,7 +221,8 @@ typedef struct  /* ([N_DATA+1]) */
 typedef struct
 {
     char *name; /**< name of the parameter */
-    int offset; /**< order of the parameter in par */
+    int offset; /**< order of the parameter in ssm_par_t and ssm_input_t */
+    int offset_theta; /**< order of the parameter in ssm_theta_t (-1 if the parameter is not in ssm_theta_t)*/
 
     double (*f) (double); /**< transformation (log, logit...) */
     double (*f_inv) (double); /**< inverse of f (f*f_inv=identity) */
@@ -256,7 +257,7 @@ typedef struct
 typedef struct
 {
     char *name; /**< name of the state */
-    int offset; /**< order of the state in X or hat (for remainders it is hat->remainders) */
+    int offset; /**< order of the state in ssm_X_t or ssm_hat_t (for remainders it is hat->remainders) */
 
     ssm_parameter_t *ic;  /**< pointer to the initial condition (or NULL) */
 

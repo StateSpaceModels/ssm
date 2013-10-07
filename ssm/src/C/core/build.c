@@ -245,10 +245,12 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
                             if( ssm_in_par(nav->par_noise, nav->par_all->p[i]->name) ) {
                                 if(!(nav->noises_off & SSM_NO_WHITE_NOISE)){
                                     nav->theta_all->p[nav->theta_all->length] = nav->par_all->p[i];
+				    nav->theta_all->p[nav->theta_all->length]->offset_theta = nav->theta_all->length;
                                     nav->theta_all->length += 1;
                                 }
                             } else {
                                 nav->theta_all->p[nav->theta_all->length] = nav->par_all->p[i];
+				nav->theta_all->p[nav->theta_all->length]->offset_theta = nav->theta_all->length;
                                 nav->theta_all->length += 1;
                             }
 
