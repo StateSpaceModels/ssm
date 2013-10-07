@@ -739,7 +739,7 @@ class Ccoder(Cmodel):
 
             #see doc of kalman.c diff_derivative()
             for sy in self.par_diff:
-                Cterm = self.make_C_term(odeDict[self.par_sv[s]], True, derivate=sy[6:len(sy)])
+                Cterm = self.make_C_term(odeDict[self.par_sv[s]], True, derivate=sy.split('diff__')[1])
                 jac_diff[s].append({'value': Cterm,
                                     'der': self.make_C_term(sy, True),
                                     'name': sy,
@@ -859,7 +859,7 @@ class Ccoder(Cmodel):
             term['grads'] = []
             grad = {}
             for s in (self.par_sv + self.par_inc + self.par_diff):
-                Cterm = self.make_C_term(x['pdf']['mean'], True, derivate=s)
+                Cterm = self.make_C_term(x['pdf']['mean'], True, derivate=s if 'diff__' not in s else s.split('diff__')[1])
                 if Cterm!='0':
                     grad['Cterm'] = Cterm
                     grad['ind'] = self.order_states[s]
