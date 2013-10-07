@@ -881,19 +881,6 @@ class Ccoder(Cmodel):
 
         return {'h_grads': h_grads}
 
-    ##TODO UPDATE TO NEW GRAMMAR
-    def der_mean_proc_obs(self):
-        """compute jacobian matrix of the mean of the obs process (assumed to be Gaussian) using Sympy"""
-
-        return self.make_C_term(self.obs_model['mean'], True, derivate='x')
-
-    ##TODO UPDATE TO NEW GRAMMAR
-    def der2_mean_proc_obs(self):
-        """compute the second derivative of the mean of the obs process (assumed to be Gaussian) using Sympy"""
-
-        first = self.make_C_term(self.obs_model['mean'], True, derivate='x', human=True)
-
-        return self.make_C_term(first, True, derivate='x')
 
 
     def eval_Q(self, debug = False):
