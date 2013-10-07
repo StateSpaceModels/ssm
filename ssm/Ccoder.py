@@ -848,6 +848,7 @@ class Ccoder(Cmodel):
                 'Ht_diff': Ht_diff}
 
 
+    ##TODO FIX (dicts overwrite themselves...)
     def h_grads(self):
         """compute the gradients of the observation functions using Sympy in order to compute the prediction variance through first-order Taylor expansions"""
         obs = copy.deepcopy(self.obs_model)
@@ -870,11 +871,13 @@ class Ccoder(Cmodel):
 
         return {'h_grads': h_grads}
 
+    ##TODO UPDATE TO NEW GRAMMAR
     def der_mean_proc_obs(self):
         """compute jacobian matrix of the mean of the obs process (assumed to be Gaussian) using Sympy"""
 
         return self.make_C_term(self.obs_model['mean'], True, derivate='x')
 
+    ##TODO UPDATE TO NEW GRAMMAR
     def der2_mean_proc_obs(self):
         """compute the second derivative of the mean of the obs process (assumed to be Gaussian) using Sympy"""
 
