@@ -858,24 +858,13 @@ class Ccoder(Cmodel):
             term['id'] = x['id']
             term['grads'] = []
             grad = {}
-            for s in range(len(self.par_sv)):
-                Cterm = self.make_C_term(x['pdf']['mean'], True, derivate=self.par_sv[s])
+            for s in (self.par_sv + self.par_inc + self.par_diff):
+                Cterm = self.make_C_term(x['pdf']['mean'], True, derivate=s)
                 if Cterm!='0':
-                    grad['Cterm']=Cterm
-                    grad['ind']=s
+                    grad['Cterm'] = Cterm
+                    grad['ind'] = self.order_states[s]
                     term['grads'].append(grad)
-            for s in range(len(self.par_inc)):
-                Cterm = self.make_C_term(x['pdf']['mean'], True, derivate=self.par_inc[s])
-                if Cterm!='0':
-                    grad['Cterm']=Cterm
-                    grad['ind']= s + len(self.par_sv)
-                    term['grads'].append(grad)
-            for s in range(len(self.par_diff)):
-                Cterm = self.make_C_term(x['pdf']['mean'], True, derivate=self.par_diff[s])
-                if Cterm!='0':
-                    grad['Cterm']=Cterm
-                    grad['ind']= s + len(self.par_sv) + len(self.par_inc)
-                    term['grads'].append(grad)
+
             h_grads[x['id']]=term
 
 
