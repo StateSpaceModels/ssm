@@ -18,37 +18,15 @@
 
 #include "ssm.h"
 
-{% for o in orders.var %}
-#define ORDER_{{ o }} {{ loop.index0 }}{% endfor %}
 
-{% for o in orders.inc %}
-#define ORDER_{{ o.name }} {{ o.order }}{% endfor %}
-
-{% for o in orders.univ_rem %}
-#define ORDER_{{ o.name }} {{ o.order }}{% endfor %}
-
-{% for o in orders.diff %}
-#define ORDER_{{ o }} {{ loop.index0 }}{% endfor %}
-
-{% for o in orders.covariates %}
-#define ORDER_{{ o }} {{ loop.index0 }}{% endfor %}
-
+{% for x, v in orders.items() %}
+{% for o in v %}
+#define ORDER_{{ o.name }} {{ o.order }}{% endfor %}{% endfor %}
 
 {% block code %}
 {% endblock %}
 
-{% for o in orders.var %}
-#undef ORDER_{{ o }}{% endfor %}
 
-{% for o in orders.inc %}
-#undef ORDER_{{ o.name }}{% endfor %}
-
-{% for o in orders.universe %}
-#undef ORDER_{{ o.name }}{% endfor %}
-
-{% for o in orders.diff %}
-#undef ORDER_{{ o }}{% endfor %}
-
-{% for o in orders.covariates %}
-#undef ORDER_{{ o }}{% endfor %}
-
+{% for x, v in orders.items() %}
+{% for o in v %}
+#undef ORDER_{{ o.name }}{% endfor %}{% endfor %}

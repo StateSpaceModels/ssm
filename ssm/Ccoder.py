@@ -282,17 +282,15 @@ class Ccoder(Cmodel):
         """
         #define and #undef
         """
-
-        N_PAR_SV = len(self.par_sv)
         univ_rem = ['U']
         if self.remainder:
             univ_rem += self.remainder
 
         return {
-            'var': self.par_sv + self.par_noise + self.par_proc + self.par_obs + self.par_other,
-            'diff': self.par_diff,
-            'inc': [{'name': x, 'order':len(self.par_sv) + o} for o,x in enumerate(self.par_inc)],
-            'covariates': self.par_fixed,
+            'var': [{'name': x, 'order': self.order_parameters[x]} for x in (self.par_sv + self.par_noise + self.par_proc + self.par_obs + self.par_other)],
+            'diff': [{'name': x, 'order': o} for o,x in enumerate(self.par_diff) ],
+            'inc': [{'name': x, 'order': self.order_states[x]} for x in self.par_inc],
+            'covariates': [{'name': x, 'order': o} for o,x in enumerate(self.par_fixed)] ,
             'univ_rem': [{'name': x, 'order': len(self.par_sv)+o} for o,x in enumerate(univ_rem) ]
         }
 

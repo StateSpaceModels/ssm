@@ -127,6 +127,7 @@ class Cmodel:
         self.all_par = par_ssm + self.par_other + ['t']        
 
         ##orders in nav->states and nav->parameters
+        ## !!par_sv must be first in both order_states and order_parameters, remainder must be last in order_states
         self.order_states = {x:i for i,x in enumerate(self.par_sv + self.par_inc + self.par_diff + self.remainder)}
         self.order_parameters = {x:i for i,x in enumerate(self.par_sv + self.par_noise + self.par_proc + self.par_obs + self.par_other)}
 
