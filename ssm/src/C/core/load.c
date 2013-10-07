@@ -70,6 +70,43 @@ void ssm_theta2input(ssm_input_t *input, ssm_theta_t *theta, ssm_nav_t *nav)
     }
 }
 
+
+void ssm_thetaforced2input(ssm_input_t *input, json_t *theta_forced, json_t *forced, ssm_X_t *X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, double t)
+{
+    int i;
+    ssm_parameter_t *p;
+    json_t *jval; 
+    double x;
+    char str[SSM_STR_BUFFSIZE];
+
+    for(i=0; i< nav->par_all->length; i++){
+	p = nav->par_all->[i];
+	jval = json_object_get(theta_forced, p->name);
+	if(jval){
+
+	    if(json_is_number(jval)) {
+		x = json_number_value(jval);
+	    } else {
+		sprintf(str, "error: forced.%s is not a number\n", p->namename);
+		ssm_print_err(str);
+		exit(EXIT_FAILURE);
+	    }
+
+	    if(p->ic && forced, p->name){	       
+	    } else {
+		gsl_vector_set(input, p->offset, x);
+	    }
+	    
+	}
+
+
+
+
+
+    }
+}
+
+
 /**
  * we only update theta component of par as par as been initialized
  * from input (by construction)

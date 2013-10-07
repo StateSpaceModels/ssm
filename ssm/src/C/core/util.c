@@ -36,6 +36,23 @@ int ssm_in_par(ssm_it_parameters_t *it, const char *name)
 
 
 /**
+ * check if name is in json array
+ */
+int ssm_in_jarray(json_t *jarray, const char *name)
+{
+    int i;
+    for(i=0; i<json_array_size(jarray); i++){
+        if(strcmp(json_string_value(json_array_get(jarray, i)), name) == 0){
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+
+
+/**
  * tranform --interpolation argument into gsl_interp_type *.
  */
 const gsl_interp_type *ssm_str_to_interp_type(const char *optarg)

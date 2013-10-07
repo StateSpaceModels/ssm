@@ -43,7 +43,7 @@ static double f_prior_tpl_{{ p.id }}(double x)
 {% endif %}
 
 {# we create custom functions for logit_ab transformation (to enclose a and b). This is the case only for logit_ab #}
-{% if 'prior' in p and 'lower' in p.prior and 'upper' in p.prior and (p.prior.lower !=0 or p.prior.upper !=1) and (p.prior.lower != p.prior.upper) %}
+{% if 'prior' in p and 'lower' in p.prior and 'upper' in p.prior and (p.prior.lower !=0 or p.prior.upper !=1) %}
 static double f_tpl_{{ p.id }}(double x)
 {
     return ssm_f_logit_ab(x, {{ p.prior.lower }}, {{ p.prior.upper }});
@@ -72,10 +72,10 @@ static double f_user2par_tpl_{{ p.id }}(double x, ssm_input_t *par, ssm_calc_t *
     return {{ p.f_user2par }};
 }
 {% endif %}
-{% if 'f_state2prior' in p %}
-static double f_state2prior_tpl_{{ p.id }}(double x, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t)
+{% if 'f_2prior' in p %}
+static double f_2prior_tpl_{{ p.id }}(double x, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t)
 {
-    return {{ p.f_state2prior }};
+    return {{ p.f_2prior }};
 }
 {% endif %}
 {% endfor %}
@@ -120,44 +120,41 @@ ssm_parameter_t **ssm_parameters_new(int *parameters_length)
 
     {% for p in pars %}
     //{{ p.id }}
-    parameters[{{ loop.index0 }}]->name = strdup("{{ p.id }}");
-    parameters[{{ loop.index0 }}]->offset = {{ loop.index0 }};
-    parameters[{{ loop.index0 }}]->offset_theta = -1;
+    parameters[{{ order_parameters[p.id] }}]->name = strdup("{{ p.id }}");
+    parameters[{{ order_parameters[p.id] }}]->offset = {{ order_parameters[p.id] }};
+    parameters[{{ order_parameters[p.id] }}]->offset_theta = -1;
 
-    {% if 'prior' in p and 'lower' in p.prior and 'upper' in p.prior and (p.prior.lower !=0 or p.prior.upper !=1) and (p.prior.lower != p.prior.upper) %}
-    parameters[{{ loop.index0 }}]->f = &f_tpl_{{ p.id }};
-    parameters[{{ loop.index0 }}]->f_inv = &f_inv_tpl_{{ p.id }};
-    parameters[{{ loop.index0 }}]->f_derivative = &f_der_tpl_{{ p.id }};
-    parameters[{{ loop.index0 }}]->f_inv_derivative = &f_inv_der_tpl_{{ p.id }};
+    {% if 'prior' in p and 'lower' in p.prior and 'upper' in p.prior and (p.prior.lower !=0 or p.prior.upper !=1) %}
+    parameters[{{ order_parameters[p.id] }}]->f = &f_tpl_{{ p.id }};
+    parameters[{{ order_parameters[p.id] }}]->f_inv = &f_inv_tpl_{{ p.id }};
+    parameters[{{ order_parameters[p.id] }}]->f_derivative = &f_der_tpl_{{ p.id }};
+    parameters[{{ order_parameters[p.id] }}]->f_inv_derivative = &f_inv_der_tpl_{{ p.id }};
     {% elif 'prior' in p and 'lower' in p.prior and p.prior.lower ==0 and 'upper' not in p.prior %}
-    parameters[{{ loop.index0 }}]->f = &ssm_f_log;
-    parameters[{{ loop.index0 }}]->f_inv = &ssm_f_inv_log;
-    parameters[{{ loop.index0 }}]->f_derivative = &ssm_f_der_log;
-    parameters[{{ loop.index0 }}]->f_inv_derivative = &ssm_f_inv_der_log;
+    parameters[{{ order_parameters[p.id] }}]->f = &ssm_f_log;
+    parameters[{{ order_parameters[p.id] }}]->f_inv = &ssm_f_inv_log;
+    parameters[{{ order_parameters[p.id] }}]->f_derivative = &ssm_f_der_log;
+    parameters[{{ order_parameters[p.id] }}]->f_inv_derivative = &ssm_f_inv_der_log;
     {% elif 'prior' in p and 'lower' in p.prior and 'upper' in p.prior and p.prior.lower == 0 and p.prior.upper == 1 %}
-    parameters[{{ loop.index0 }}]->f = &ssm_f_logit;
-    parameters[{{ loop.index0 }}]->f_inv = &ssm_f_inv_logit;
-    parameters[{{ loop.index0 }}]->f_derivative = &ssm_f_der_logit;
-    parameters[{{ loop.index0 }}]->f_inv_derivative = &ssm_f_inv_der_logit;
+    parameters[{{ order_parameters[p.id] }}]->f = &ssm_f_logit;
+    parameters[{{ order_parameters[p.id] }}]->f_inv = &ssm_f_inv_logit;
+    parameters[{{ order_parameters[p.id] }}]->f_derivative = &ssm_f_der_logit;
+    parameters[{{ order_parameters[p.id] }}]->f_inv_derivative = &ssm_f_inv_der_logit;
     {% else %}
-    parameters[{{ loop.index0 }}]->f = &ssm_f_id;
-    parameters[{{ loop.index0 }}]->f_inv = &ssm_f_id;
-    parameters[{{ loop.index0 }}]->f_derivative = &ssm_f_id;
-    parameters[{{ loop.index0 }}]->f_inv_derivative = &ssm_f_id;
+    parameters[{{ order_parameters[p.id] }}]->f = &ssm_f_id;
+    parameters[{{ order_parameters[p.id] }}]->f_inv = &ssm_f_id;
+    parameters[{{ order_parameters[p.id] }}]->f_derivative = &ssm_f_id;
+    parameters[{{ order_parameters[p.id] }}]->f_inv_derivative = &ssm_f_id;
     {% endif %}
 
     {% if 'prior' in p and 'distribution' in p.prior and p.prior.distribution != 'fixed' %}
-    parameters[{{ loop.index0 }}]->prior = &f_prior_tpl_{{ p.id }};
+    parameters[{{ order_parameters[p.id] }}]->prior = &f_prior_tpl_{{ p.id }};
     {# TODO: fixed case #}
     {% else %}
-    parameters[{{ loop.index0 }}]->prior = NULL;
+    parameters[{{ order_parameters[p.id] }}]->prior = NULL;
     {% endif %}
-
-    {% if 'transformation' in p %}
-    parameters[{{ loop.index0 }}]->f_user2par = &f_par2user_tpl_{{ p.id }};
-    {% else %}
-    parameters[{{ loop.index0 }}]->f_user2par = &ssm_f_user_par_id;
-    {% endif %}
+    
+    parameters[{{ order_parameters[p.id] }}]->f_user2par = &{% if 'transformation' in p %}f_par2user_tpl_{{ p.id }}{% else %}ssm_f_user_par_id{% endif %};
+    parameters[{{ order_parameters[p.id] }}]->f_2prior = &{% if 'f_2prior' in p %}ssm_f_2prior_tpl_{{ p.id }}{% else %}ssm_f_2prior_id{% endif %};    
     {% endfor %}
 
     return parameters;
@@ -189,62 +186,56 @@ ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters)
 
     {% for p in states %}
     //{{ p }}
-    states[{{ loop.index0 }}]->name = strdup("{{ p }}");
-    states[{{ loop.index0 }}]->offset = {{ loop.index0 }};
+    states[{{ order_states[p] }}]->name = strdup("{{ p }}");
+    states[{{ order_states[p] }}]->offset = {{ order_states[p] }};
 
-    states[{{ loop.index0 }}]->f = &ssm_f_id;
-    states[{{ loop.index0 }}]->f_inv = &ssm_f_id;
-    states[{{ loop.index0 }}]->f_derivative = &ssm_f_id;
-    states[{{ loop.index0 }}]->f_inv_derivative = &ssm_f_id;
+    states[{{ order_states[p] }}]->f = &ssm_f_id;
+    states[{{ order_states[p] }}]->f_inv = &ssm_f_id;
+    states[{{ order_states[p] }}]->f_derivative = &ssm_f_id;
+    states[{{ order_states[p] }}]->f_inv_derivative = &ssm_f_id;
 
-    states[{{ loop.index0 }}]->f_remainder = NULL;
+    states[{{ order_states[p] }}]->f_remainder = NULL;
 
-    states[{{ loop.index0 }}]->f_state2prior = {% if 'f_state2prior' in pdict[p] %}&f_state2prior_tpl_{{ p }}{% else %}&ssm_f_state2prior_id{% endif %};
-
-    states[{{ loop.index0 }}]->ic = {% if p in par_sv %}parameters[{{ loop.index0 }}]{% else %}NULL{% endif %};
+    states[{{ order_states[p] }}]->ic = {% if p in par_sv %}parameters[{{ order_states[p] }}]{% else %}NULL{% endif %};
     {% endfor %}
-
 
     {% for p in sde %}
     //{{ p.id }}
-    states[{{ loop.index0 + states|length }}]->name = strdup("{{ p.id }}");
-    states[{{ loop.index0 + states|length }}]->offset = {{ loop.index0 + states|length }};
+    states[{{ order_states['diff__' + p.id] }}]->name = strdup("{{ p.id }}");
+    states[{{ order_states['diff__' + p.id] }}]->offset = {{ order_states['diff__' + p.id] }};
 
     {% if 'transformation' in p %}
-    states[{{ loop.index0 + states|length }}]->f = &f_tpl_skl_{{ p.id }};
-    states[{{ loop.index0 + states|length }}]->f_inv = &f_inv_tpl_skl_{{ p.id }};
-    states[{{ loop.index0 + states|length }}]->f_derivative = &f_der_tpl_skl_{{ p.id }};
-    states[{{ loop.index0 + states|length }}]->f_inv_derivative = &f_inv_der_tpl_skl_{{ p.id }};
+    states[{{ order_states['diff__' + p.id] }}]->f = &f_tpl_skl_{{ p.id }};
+    states[{{ order_states['diff__' + p.id] }}]->f_inv = &f_inv_tpl_skl_{{ p.id }};
+    states[{{ order_states['diff__' + p.id] }}]->f_derivative = &f_der_tpl_skl_{{ p.id }};
+    states[{{ order_states['diff__' + p.id] }}]->f_inv_derivative = &f_inv_der_tpl_skl_{{ p.id }};
     {% else %}
-    states[{{ loop.index0 + states|length }}]->f = &ssm_f_id;
-    states[{{ loop.index0 + states|length }}]->f_inv = &ssm_f_id;
-    states[{{ loop.index0 + states|length }}]->f_derivative = &ssm_f_id;
-    states[{{ loop.index0 + states|length }}]->f_inv_derivative = &ssm_f_id;
+    states[{{ order_states['diff__' + p.id] }}]->f = &ssm_f_id;
+    states[{{ order_states['diff__' + p.id] }}]->f_inv = &ssm_f_id;
+    states[{{ order_states['diff__' + p.id] }}]->f_derivative = &ssm_f_id;
+    states[{{ order_states['diff__' + p.id] }}]->f_inv_derivative = &ssm_f_id;
     {% endif %}
 
-    states[{{ loop.index0 + states|length }}]->f_remainder = NULL;
-    states[{{ loop.index0 + states|length }}]->f_state2prior = {% if 'f_state2prior' in pdict[p] %}&f_state2prior_tpl_{{ p.id }}{% else %}&ssm_f_state2prior_id{% endif %};
+    states[{{ order_states['diff__' + p.id] }}]->f_remainder = NULL;
 
-    states[{{ loop.index0 + states|length }}]->ic = {% if 'ic' in p %}parameters[{{ p.ic }}]{% else %}NULL{% endif %};
+    states[{{ order_states['diff__' + p.id] }}]->ic = {% if 'offset_ic' in p %}parameters[{{ p.offset_ic }}]{% else %}NULL{% endif %};
     {% endfor %}
 
 
     {% for p in remainders %}
     //{{ p }}
-    states[{{ loop.index0 + states|length + sde|length }}]->name = strdup("{{ p }}");
-    states[{{ loop.index0 + states|length + sde|length }}]->offset = {{ loop.index0 }}; //offset restart at 0 for remainders as they are appart in ssm_hat_t and non existent in ssm_X_t.
+    states[{{ order_states[p] }}]->name = strdup("{{ p }}");
+    states[{{ order_states[p] }}]->offset = {{ loop.index0 }}; //!!!! offset restart at 0 for remainders as they are appart in ssm_hat_t and non existent in ssm_X_t.
 
-    states[{{ loop.index0 + states|length + sde|length }}]->f = &ssm_f_id;
-    states[{{ loop.index0 + states|length + sde|length }}]->f_inv = &ssm_f_id;
-    states[{{ loop.index0 + states|length + sde|length }}]->f_derivative = &ssm_f_id;
-    states[{{ loop.index0 + states|length + sde|length }}]->f_inv_derivative = &ssm_f_id;
+    states[{{ order_states[p] }}]->f = &ssm_f_id;
+    states[{{ order_states[p] }}]->f_inv = &ssm_f_id;
+    states[{{ order_states[p] }}]->f_derivative = &ssm_f_id;
+    states[{{ order_states[p] }}]->f_inv_derivative = &ssm_f_id;
 
-    states[{{ loop.index0 + states|length + sde|length }}]->f_remainder = &f_remainder_tpl_{{ p }};
-    states[{{ loop.index0 + states|length + sde|length }}]->f_state2prior = {% if 'f_state2prior' in pdict[p] %}&f_state2prior_tpl_{{ p }}{% else %}&ssm_f_state2prior_id{% endif %};
+    states[{{ order_states[p] }}]->f_remainder = &f_remainder_tpl_{{ p }};
 
-    states[{{ loop.index0 + states|length + sde|length }}]->ic = NULL;
+    states[{{ order_states[p] }}]->ic = NULL;
     {% endfor %}
-
 
     return states;
 }

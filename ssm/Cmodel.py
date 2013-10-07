@@ -26,7 +26,6 @@ class Cmodel:
     parse a JSON model description
     """
 
-
     def __init__(self, model,  **kwargs):
         self.model = model
 
@@ -39,15 +38,16 @@ class Cmodel:
         self.remainder = [x['remainder']['id'] for x in self.get_resource('populations') if 'remainder' in x]
         self.ur = ['U'] + self.remainder
 
+        parameters = self.get_resource('parameters')
+
         #par_fixed
-        par_fixed = [x['id'] for x in self.get_resource('parameters') if 'prior' in x and 'path' in x['prior']]
+        par_fixed = [x['id'] for x in parameters if 'prior' in x and 'path' in x['prior']]
         self.par_fixed = sorted(par_fixed)
 
 
         #par_sv and par_inc (incidence)
         par_sv = set()
         par_inc = set()
-
 
         for r in self.get_resource('reactions'):
             if r['from'] not in self.ur:
@@ -80,28 +80,38 @@ class Cmodel:
                 if r['white_noise']['id'] not in [y['id'] for y in self.white_noise]:
                     self.white_noise.append(r['white_noise'])
 
-        self.par_proc = sorted(list(par_proc))
         self.par_noise = sorted(list(par_noise))
+
+        ##add parameter within sde.dispersion to par_proc
+        sde = self.get_resource('sde')
+
+        disp = [x for subl in sde['dispersion'] for x in subl if x != 0] if 'dispersion' in sde else []
+        for x in disp:
+            el =  self.change_user_input(x)
+            for e in el:
+                if e not in self.op and e not in self.special_functions and e not in self.par_sv and e not in self.par_fixed:
+                    try:
+                        float(e)
+                    except ValueError:
+                        par_proc.add(e)
+            
+        self.par_proc = sorted(list(par_proc))
 
         #par_diff (state variable for diffusions)
         par_diff = []
-
-        for x in self.get_resource('sde')['drift']:
+        for x in sde.get('drift', []):
             par_diff.append(x['id'])
 
         self.par_diff = ['diff__' + x for x in sorted(par_diff)]
 
-        #par_vol (volatilites)
-        self.par_vol = sorted(set([x for subl in self.get_resource('sde')['dispersion'] for x in subl if x != 0]))
-
         #par_obs
         par_obs = set();
-        priors = [x['id'] for x in self.get_resource('parameters')]
+        priors = [x['id'] for x in parameters]
         for o in self.get_resource('observations'):
             for p in [o['pdf']['mean'], o['pdf']['sd']]:
                 el =  self.change_user_input(p)
                 for e in el:
-                    if e not in self.op and e not in self.special_functions and e not in self.par_sv and e not in self.par_vol and e not in self.par_noise and e not in self.par_proc and e not in self.par_fixed and e not in self.par_inc:
+                    if e not in self.op and e not in self.special_functions and e not in self.par_sv and e not in self.par_noise and e not in self.par_proc and e not in self.par_fixed and e not in self.par_inc:
                         try:
                             float(e)
                         except ValueError:
@@ -109,23 +119,26 @@ class Cmodel:
 
         self.par_obs = sorted(list(par_obs))
 
+        ##par_other
+        par_ssm = self.par_sv + self.par_inc + self.remainder + self.par_diff + self.par_noise + self.par_proc +  self.par_obs + self.par_fixed
+        self.par_other = sorted([x['id'] for x in parameters if x['id'] not in par_ssm])
+
         ##all parameters
-        self.all_par = self.par_sv + self.par_inc + self.remainder + self.par_diff + self.par_vol + self.par_noise + self.par_proc +  self.par_obs + self.par_fixed + ['t']
+        self.all_par = par_ssm + self.par_other + ['t']        
 
         ##orders in nav->states and nav->parameters
         self.order_states = {x:i for i,x in enumerate(self.par_sv + self.par_inc + self.par_diff + self.remainder)}
-        self.order_parameters = {x:i for i,x in enumerate(self.par_sv + self.par_vol + self.par_noise + self.par_proc + self.par_obs)}
+        self.order_parameters = {x:i for i,x in enumerate(self.par_sv + self.par_noise + self.par_proc + self.par_obs + self.par_other)}
 
         #map prior id to id
         self.map_prior_id2id = {}
-        for p in self.get_resource('parameters'):
+        for p in parameters:
             if 'prior' in p and 'id' in p['prior']:
                 self.map_prior_id2id[p['prior']['id']] = p['id']
 
 
         # proc_model
         self.proc_model = copy.deepcopy(self.get_resource('reactions'))
-
 
         # obs_model
         self.obs_model = copy.deepcopy(self.get_resource('observations'))
@@ -165,7 +178,6 @@ class Cmodel:
             self.par_inc_def.append([x for x in self.proc_model if "tracked" in x and inc in x['tracked'] ])
 
 
-
     def change_user_input(self, reaction):
         """transform the reaction in smtg that we can parse in a programming language:
         example: change_user_input('r0*2*correct_rate(v)') -> ['r0', '*', '2', '*', 'correct_rate', '(', 'v', ')']"""
@@ -196,7 +208,6 @@ class Cmodel:
         r = [x for x in self.model['resources'] if x['name']==key]
 
         return r and r[0]['data']
-
 
 
 

@@ -234,6 +234,8 @@ typedef struct
 
     double (*f_user2par) (double, ssm_input_t *, ssm_calc_t *); /**< from original user scale to par */
 
+    double (*f_2prior) (double x, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t); /**< transform x comming from an X output to an input in user unit (prior) */
+
 } ssm_parameter_t;
 
 
@@ -268,9 +270,6 @@ typedef struct
 
     double (*f_remainder) (ssm_X_t *X, ssm_calc_t *calc, double t); /**< compute the remainder value */
     double (*f_remainder_var) (ssm_X_t *X, ssm_calc_t *calc, ssm_nav_t *nav, double t); /**< compute the remainder value */
-
-    double (*f_state2prior) (double x, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t); /**< transform a state to an initial condition */
-
 } ssm_state_t;
 
 
@@ -327,7 +326,6 @@ struct _nav
 
     ssm_it_parameters_t *par_all;       /**< to iterate on every parameters */
     ssm_it_parameters_t *par_noise;     /**< to iterate on white_noises sd *only* */
-    ssm_it_parameters_t *par_vol;       /**< to iterate on volatilities *only* */
     ssm_it_parameters_t *par_icsv;      /**< to iterate on the initial condition of the state variables *only* */
     ssm_it_parameters_t *par_icdiff;    /**< to iterate on the initial condition of the diffusions *only* */
 
@@ -652,10 +650,11 @@ double ssm_f_der_inv_logit(double x);
 double ssm_f_der_logit_ab(double x, double a, double b);
 double ssm_f_der_inv_logit_ab(double x, double a, double b);
 double ssm_f_user_par_id(double x, ssm_input_t *par, ssm_calc_t *calc);
-double ssm_f_state2prior_id(double x, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
+double ssm_f_2prior_id(double x, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
 
 /* util.c */
 int ssm_in_par(ssm_it_parameters_t *it, const char *name);
+int ssm_in_jarray(json_t *array, const char *name);
 const gsl_interp_type *ssm_str_to_interp_type(const char *optarg);
 int ssm_sanitize_n_threads(int n_threads, ssm_fitness_t *fitness);
 

@@ -60,7 +60,7 @@ class Ccoder(Cmodel):
         elif term in self.par_fixed:
             return 'gsl_spline_eval(calc->spline[ORDER_{0}],{1},calc->acc[ORDER_{0}])'.format(term, '0.0' if set_t0 else 't')
 
-        elif term in self.par_proc or term in self.par_vol or term in self.par_noise or term in self.par_obs:
+        elif term in self.par_proc or term in self.par_noise or term in self.par_obs or term in self.par_other:
             if ('diff__' + term) in self.par_diff:
                 return 'diffed[ORDER_diff__{0}]'.format(term)
             else:
@@ -166,21 +166,18 @@ class Ccoder(Cmodel):
         """
         Everything needed to create ssm_parameter_t, ssm_state_t and load ssm_input_t
         """
-
         parameters = copy.deepcopy(self.get_resource('parameters'))
 
         for p in parameters:
             if 'transformation' in p:
                 p['f_user2par'] = self.make_C_term(p['transformation'], True, force_par=True, xify=p['prior']['id'] if ('prior' in p and 'id' in p['prior']) else p['id'], set_t0=True)
 
-                ## maybe one day but not yet...
+                ## inverse of the transformation function
                 ## if 'prior' in p and 'id' in p['prior']:
                 ##     p['f_par2user'] = self.make_C_term(p['transformation']+ '-' + p['id'], True, inverse=p['prior']['id'], force_par=True, xify=p['id'], set_t0=True)
-                ## else:
-                ##     p['f_par2user'] = 'x'
 
-            if 'state_to_prior' in p:
-                p['f_state2prior'] = self.make_C_term(p['state_to_prior'], True, xify=p['id'])
+            if 'to_prior' in p:
+                p['f_2prior'] = self.make_C_term(p['to_prior'], True, xify=p['id'])
 
 
         drifts = self.get_resource('sde')
@@ -188,7 +185,7 @@ class Ccoder(Cmodel):
         #TODO support ode drifts += self.get_resource('ode')
 
         states = self.par_sv + self.par_inc
-        pars = self.par_sv + self.par_vol + self.par_noise + self.par_proc + self.par_obs
+        pars = self.par_sv + self.par_noise + self.par_proc + self.par_obs + self.par_other
 
         #make C code for f_, f_inv f_der, f_der_inv
         for p in drifts:
@@ -198,8 +195,9 @@ class Ccoder(Cmodel):
                 p['f_der'] = self.make_C_term(p['transformation'], True, derivate=p['id'], human=True, xify=p['id'], set_t0=True)
                 p['f_der_inv'] = self.make_C_term(p['f_inv'], True, derivate='x', human=True, set_t0=True)
 
-            if p['id'] in pars:
-                p['ic'] = pars.index(p['id'])
+            if p['id'] in self.order_parameters:
+                p['offset_ic'] = self.order_parameters[p['id']]
+                
 
         #sort parameters
         #start by making dict:
@@ -232,7 +230,8 @@ class Ccoder(Cmodel):
 
         return {
             'parameters': parameters,
-            'pdict': pdict,
+            'order_parameters': self.order_parameters,
+            'order_states': self.order_states,
             'drifts': drifts,
             'par_sv': self.par_sv,
             'states': states,
@@ -270,9 +269,8 @@ class Ccoder(Cmodel):
                 'diff': [self.order_states[x] for x in self.par_diff]                
             },
             'parameter': {
-                'all': [self.order_parameters[x] for x in (self.par_sv + self.par_vol + self.par_noise + self.par_proc + self.par_obs)],
+                'all': [self.order_parameters[x] for x in (self.par_sv + self.par_noise + self.par_proc + self.par_obs + self.par_other)],
                 'noise': [self.order_parameters[x] for x in self.par_noise],
-                'vol': [self.order_parameters[x] for x in self.par_vol],
                 'icsv': [self.order_parameters[x] for x in self.par_sv],
                 'icdiff': [self.order_parameters[x.split('diff__')[1]] for x in self.par_diff]
             }
@@ -291,14 +289,12 @@ class Ccoder(Cmodel):
             univ_rem += self.remainder
 
         return {
-            'var': self.par_sv + self.par_vol + self.par_noise + self.par_proc + self.par_obs,
+            'var': self.par_sv + self.par_noise + self.par_proc + self.par_obs + self.par_other,
             'diff': self.par_diff,
             'inc': [{'name': x, 'order':len(self.par_sv) + o} for o,x in enumerate(self.par_inc)],
             'covariates': self.par_fixed,
             'univ_rem': [{'name': x, 'order': len(self.par_sv)+o} for o,x in enumerate(univ_rem) ]
         }
-
-
 
 
 

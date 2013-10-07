@@ -123,7 +123,7 @@
           "id": "S_paris",
           "description": "Number of susceptible",
           "transformation": "pr_S_paris*N_paris",
-          "state_to_prior": "S_paris/N_paris",
+          "to_prior": "S_paris/N_paris",
           "prior": {
             "id": "pr_S_paris",
             "description": "Proportion of susceptible",
@@ -144,7 +144,7 @@
           "description": "Number of infectious",
           "keywords": ["infectious"],
           "transformation": "pr_I_paris*N_paris",
-          "state_to_prior": "I_paris/N_paris",
+          "to_prior": "I_paris/N_paris",
           "prior": {
             "id": "pr_I_paris",
             "description": "Proportion of infectious",
@@ -159,7 +159,7 @@
           "description": "Number of infectious",
           "keywords": ["infectious"],
           "transformation": "10^-pr_I_nyc * N_nyc",
-          "state_to_prior": "I_paris/N_paris",
+          "to_prior": "I_paris/N_paris",
           "prior": {
             "id": "pr_I_nyc",
             "description": "exponent (10^-x) to get a proportion of infectious",

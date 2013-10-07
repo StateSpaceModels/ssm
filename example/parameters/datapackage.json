@@ -51,7 +51,7 @@
     {
       "name": "prediction",
       "data": {
-        "forced": ["S_paris", "I_paris", "S_nyc", "I_nyc"],
+        "to_prior": ["S_paris", "I_paris", "S_nyc", "I_nyc"],
         "start": "2013-07-11",
         "values": [
           {
