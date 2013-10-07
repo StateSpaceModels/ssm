@@ -233,7 +233,6 @@ typedef struct
     double (*prior) (double x); /**< prior */
 
     double (*f_user2par) (double, ssm_input_t *, ssm_calc_t *); /**< from original user scale to par */
-    double (*f_par2user) (double, ssm_par_t *, ssm_calc_t *); /**< from par to original user scale */
 
 } ssm_parameter_t;
 
@@ -269,6 +268,8 @@ typedef struct
 
     double (*f_remainder) (ssm_X_t *X, ssm_calc_t *calc, double t); /**< compute the remainder value */
     double (*f_remainder_var) (ssm_X_t *X, ssm_calc_t *calc, ssm_nav_t *nav, double t); /**< compute the remainder value */
+
+    double (*f_state2prior) (double x, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t); /**< transform a state to an initial condition */
 
 } ssm_state_t;
 
@@ -651,7 +652,7 @@ double ssm_f_der_inv_logit(double x);
 double ssm_f_der_logit_ab(double x, double a, double b);
 double ssm_f_der_inv_logit_ab(double x, double a, double b);
 double ssm_f_user_par_id(double x, ssm_input_t *par, ssm_calc_t *calc);
-
+double ssm_f_state2prior_id(double x, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
 
 /* util.c */
 int ssm_in_par(ssm_it_parameters_t *it, const char *name);

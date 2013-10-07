@@ -167,16 +167,21 @@ class Ccoder(Cmodel):
         Everything needed to create ssm_parameter_t, ssm_state_t and load ssm_input_t
         """
 
-        parameters = self.get_resource('parameters')
+        parameters = copy.deepcopy(self.get_resource('parameters'))
 
         for p in parameters:
             if 'transformation' in p:
                 p['f_user2par'] = self.make_C_term(p['transformation'], True, force_par=True, xify=p['prior']['id'] if ('prior' in p and 'id' in p['prior']) else p['id'], set_t0=True)
 
-                if 'prior' in p and 'id' in p['prior']:
-                    p['f_par2user'] = self.make_C_term(p['transformation']+ '-' + p['id'], True, inverse=p['prior']['id'], force_par=True, xify=p['id'], set_t0=True)
-                else:
-                    p['f_par2user'] = 'x'
+                ## maybe one day but not yet...
+                ## if 'prior' in p and 'id' in p['prior']:
+                ##     p['f_par2user'] = self.make_C_term(p['transformation']+ '-' + p['id'], True, inverse=p['prior']['id'], force_par=True, xify=p['id'], set_t0=True)
+                ## else:
+                ##     p['f_par2user'] = 'x'
+
+            if 'state_to_prior' in p:
+                p['f_state2prior'] = self.make_C_term(p['state_to_prior'], True, xify=p['id'])
+
 
         drifts = self.get_resource('sde')
         drifts = drifts and drifts['drift']
@@ -227,6 +232,7 @@ class Ccoder(Cmodel):
 
         return {
             'parameters': parameters,
+            'pdict': pdict,
             'drifts': drifts,
             'par_sv': self.par_sv,
             'states': states,

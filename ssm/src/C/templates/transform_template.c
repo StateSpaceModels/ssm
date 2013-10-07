@@ -72,10 +72,10 @@ static double f_user2par_tpl_{{ p.id }}(double x, ssm_input_t *par, ssm_calc_t *
     return {{ p.f_user2par }};
 }
 {% endif %}
-{% if 'f_par2user' in p %}
-static double f_par2user_tpl_{{ p.id }}(double x, ssm_par_t *par, ssm_calc_t *calc)
+{% if 'f_state2prior' in p %}
+static double f_state2prior_tpl_{{ p.id }}(double x, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t)
 {
-    return {{ p.f_par2user }};
+    return {{ p.f_state2prior }};
 }
 {% endif %}
 {% endfor %}
@@ -154,10 +154,8 @@ ssm_parameter_t **ssm_parameters_new(int *parameters_length)
     {% endif %}
 
     {% if 'transformation' in p %}
-    parameters[{{ loop.index0 }}]->f_par2user = &f_user2par_tpl_{{ p.id }};
     parameters[{{ loop.index0 }}]->f_user2par = &f_par2user_tpl_{{ p.id }};
     {% else %}
-    parameters[{{ loop.index0 }}]->f_par2user = &ssm_f_user_par_id;
     parameters[{{ loop.index0 }}]->f_user2par = &ssm_f_user_par_id;
     {% endif %}
     {% endfor %}
@@ -201,6 +199,8 @@ ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters)
 
     states[{{ loop.index0 }}]->f_remainder = NULL;
 
+    states[{{ loop.index0 }}]->f_state2prior = {% if 'f_state2prior' in pdict[p] %}&f_state2prior_tpl_{{ p }}{% else %}&ssm_f_state2prior_id{% endif %};
+
     states[{{ loop.index0 }}]->ic = {% if p in par_sv %}parameters[{{ loop.index0 }}]{% else %}NULL{% endif %};
     {% endfor %}
 
@@ -223,6 +223,7 @@ ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters)
     {% endif %}
 
     states[{{ loop.index0 + states|length }}]->f_remainder = NULL;
+    states[{{ loop.index0 + states|length }}]->f_state2prior = {% if 'f_state2prior' in pdict[p] %}&f_state2prior_tpl_{{ p.id }}{% else %}&ssm_f_state2prior_id{% endif %};
 
     states[{{ loop.index0 + states|length }}]->ic = {% if 'ic' in p %}parameters[{{ p.ic }}]{% else %}NULL{% endif %};
     {% endfor %}
@@ -239,6 +240,7 @@ ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters)
     states[{{ loop.index0 + states|length + sde|length }}]->f_inv_derivative = &ssm_f_id;
 
     states[{{ loop.index0 + states|length + sde|length }}]->f_remainder = &f_remainder_tpl_{{ p }};
+    states[{{ loop.index0 + states|length + sde|length }}]->f_state2prior = {% if 'f_state2prior' in pdict[p] %}&f_state2prior_tpl_{{ p }}{% else %}&ssm_f_state2prior_id{% endif %};
 
     states[{{ loop.index0 + states|length + sde|length }}]->ic = NULL;
     {% endfor %}

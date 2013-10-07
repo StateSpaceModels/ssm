@@ -159,3 +159,8 @@ double ssm_f_user_par_id(double x, ssm_input_t *par, ssm_calc_t *calc)
 {
     return x;
 }
+
+double ssm_f_state2prior_id(double x, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t)
+{
+    return x;
+}
