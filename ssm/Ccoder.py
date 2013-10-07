@@ -749,7 +749,7 @@ class Ccoder(Cmodel):
 
             #see doc of kalman.c diff_derivative()
             for sy in self.par_diff:
-                Cterm = self.make_C_term(odeDict[self.par_sv[s]], True, derivate=sy[6:len(sy)])
+                Cterm = self.make_C_term(odeDict[self.par_sv[s]], True, derivate=sy.split('diff__')[1])
                 jac_diff[s].append({'value': Cterm,
                                     'der': self.make_C_term(sy, True),
                                     'name': sy,
@@ -858,6 +858,7 @@ class Ccoder(Cmodel):
                 'Ht_diff': Ht_diff}
 
 
+    ##TODO FIX (dicts overwrite themselves...)
     def h_grads(self):
         """compute the gradients of the observation functions using Sympy in order to compute the prediction variance through first-order Taylor expansions"""
         obs = copy.deepcopy(self.obs_model)
@@ -868,34 +869,25 @@ class Ccoder(Cmodel):
             term['id'] = x['id']
             term['grads'] = []
             grad = {}
-            for s in range(len(self.par_sv)):
-                Cterm = self.make_C_term(x['pdf']['mean'], True, derivate=self.par_sv[s])
+            for s in (self.par_sv + self.par_inc + self.par_diff):
+                Cterm = self.make_C_term(x['pdf']['mean'], True, derivate=s if 'diff__' not in s else s.split('diff__')[1])
                 if Cterm!='0':
-                    grad['Cterm']=Cterm
-                    grad['ind']=s
+                    grad['Cterm'] = Cterm
+                    grad['ind'] = self.order_states[s]
                     term['grads'].append(grad)
-            for s in range(len(self.par_inc)):
-                Cterm = self.make_C_term(x['pdf']['mean'], True, derivate=self.par_inc[s])
-                if Cterm!='0':
-                    grad['Cterm']=Cterm
-                    grad['ind']= s + len(self.par_sv)
-                    term['grads'].append(grad)
-            for s in range(len(self.par_diff)):
-                Cterm = self.make_C_term(x['pdf']['mean'], True, derivate=self.par_diff[s])
-                if Cterm!='0':
-                    grad['Cterm']=Cterm
-                    grad['ind']= s + len(self.par_sv) + len(self.par_inc)
-                    term['grads'].append(grad)
+
             h_grads[x['id']]=term
 
 
         return {'h_grads': h_grads}
 
+    ##TODO UPDATE TO NEW GRAMMAR
     def der_mean_proc_obs(self):
         """compute jacobian matrix of the mean of the obs process (assumed to be Gaussian) using Sympy"""
 
         return self.make_C_term(self.obs_model['mean'], True, derivate='x')
 
+    ##TODO UPDATE TO NEW GRAMMAR
     def der2_mean_proc_obs(self):
         """compute the second derivative of the mean of the obs process (assumed to be Gaussian) using Sympy"""
 

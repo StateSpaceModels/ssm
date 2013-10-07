@@ -231,24 +231,26 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
             for(i=0; i<nav->par_all->length; i++){
                 json_t *jcov_i = json_object_get(values, nav->par_all->p[i]->name);
                 if(jcov_i){
-                    json_t *jcov_ij = json_object_get(jcov_i, nav->par_all->p[i]->name);
-                    if(jcov_ij){
-                        if(!json_is_number(jcov_ij)) {
+                    json_t *jcov_ii = json_object_get(jcov_i, nav->par_all->p[i]->name);
+                    if(jcov_ii){
+                        if(!json_is_number(jcov_ii)) {
                             char str[SSM_STR_BUFFSIZE];
                             sprintf(str, "error: parameters.covariance.%s.%s is not a number\n", nav->par_all->p[i]->name, nav->par_all->p[i]->name);
                             ssm_print_err(str);
                             exit(EXIT_FAILURE);
                         }
 
-                        if(json_number_value(jcov_ij) > 0.0){
+                        if(json_number_value(jcov_ii) > 0.0){
 
                             if( ssm_in_par(nav->par_noise, nav->par_all->p[i]->name) ) {
                                 if(!(nav->noises_off & SSM_NO_WHITE_NOISE)){
                                     nav->theta_all->p[nav->theta_all->length] = nav->par_all->p[i];
+				    nav->theta_all->p[nav->theta_all->length]->offset_theta = nav->theta_all->length;
                                     nav->theta_all->length += 1;
                                 }
                             } else {
                                 nav->theta_all->p[nav->theta_all->length] = nav->par_all->p[i];
+				nav->theta_all->p[nav->theta_all->length]->offset_theta = nav->theta_all->length;
                                 nav->theta_all->length += 1;
                             }
 

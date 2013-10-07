@@ -131,8 +131,6 @@ void ssm_print_trace(FILE *stream, ssm_theta_t *theta, ssm_nav_t *nav, const dou
  * ssm_data_t.length_nonan times by opposed to ssm_data_t.length (ie
  * when there is information)
  */
-
-
 void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, ssm_fitness_t *fitness, const double t)
 {
     int ts;
@@ -178,13 +176,11 @@ void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *
 		var_obs += observed->f_obs_var(J_X[j], par, calc, t);
 	    }
 
-
 	    var_state = M2/(kn - 1.0);
 	    var_obs /= ((double) fitness->J);
 	    
 	    res = (y - pred)/sqrt(var_state + var_obs);
 	}
-
 
         snprintf(key, SSM_STR_BUFFSIZE, "pred_%s", observed->name);
         json_object_set_new(jout, key, json_real(pred));

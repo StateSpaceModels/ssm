@@ -122,6 +122,7 @@ ssm_parameter_t **ssm_parameters_new(int *parameters_length)
     //{{ p.id }}
     parameters[{{ loop.index0 }}]->name = strdup("{{ p.id }}");
     parameters[{{ loop.index0 }}]->offset = {{ loop.index0 }};
+    parameters[{{ loop.index0 }}]->offset_theta = -1;
 
     {% if 'prior' in p and 'lower' in p.prior and 'upper' in p.prior and (p.prior.lower !=0 or p.prior.upper !=1) and (p.prior.lower != p.prior.upper) %}
     parameters[{{ loop.index0 }}]->f = &f_tpl_{{ p.id }};
