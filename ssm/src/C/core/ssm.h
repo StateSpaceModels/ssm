@@ -264,6 +264,7 @@ typedef struct
     double (*f_inv_derivative) (double); /**< derivative of f_inv */
 
     double (*f_remainder) (ssm_X_t *X, ssm_calc_t *calc, double t); /**< compute the remainder value */
+    double (*f_remainder_var) (ssm_X_t *X, ssm_calc_t *calc, ssm_nav_t *nav, double t); /**< compute the remainder value */
 
 } ssm_state_t;
 
@@ -290,6 +291,7 @@ typedef struct
     double (*f_obs_mean)             (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
     double (*f_obs_var)              (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
     double (*f_obs_ran)              (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
+    double (*var_f_pred)             (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *nav, ssm_calc_t *calc, double t);
 } ssm_observed_t;
 
 
@@ -659,7 +661,7 @@ void ssm_print_warning(char *msg);
 void ssm_print_err(char *msg);
 void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, const int index);
 void ssm_print_trace(FILE *stream, ssm_theta_t *theta, ssm_nav_t *nav, const double fitness, const int index);
-void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, ssm_fitness_t *fitness);
+void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, ssm_fitness_t *fitness, const double t);
 void ssm_print_hat(FILE *stream, ssm_hat_t *hat, ssm_nav_t *nav, ssm_row_t *row);
 void ssm_sample_traj_print(FILE *stream, ssm_X_t ***D_J_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_data_t *data, ssm_fitness_t *fitness, const int index);
 void ssm_print_ar(FILE *stream, ssm_adapt_t *adapt, const int index);

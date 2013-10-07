@@ -203,18 +203,27 @@ class Ccoder(Cmodel):
 
         f_remainders = {}
         f_remainders_par = {}
+        f_remainders_var = {}
         for x in self.get_resource('populations'):
             if 'remainder' in x:
                 rem = x['remainder']['id']
                 eq = x['remainder']['pop_size'] + ' - ' + ' - '.join([r for r in x['composition'] if r != rem])
                 f_remainders[rem] = self.make_C_term(eq, True)
                 f_remainders_par[rem] = self.make_C_term(eq, True, force_par=True, set_t0=True)
+                eq = ''
+                for x_i in x['composition']:
+                    for x_j in x['composition']:
+                        if eq != '':
+                            eq += ' + '
+                        eq += 'gsl_matrix_get(&Ct.matrix,' + str(self.order_states[x_i]) +','  + str(self.order_states[x_j]) + ')';
+                f_remainders_var[rem] = eq;
 
         # Initial compartment sizes in cases of no remainder
         ic = []
         for x in self.get_resource('populations'):
             if 'remainder' not in x:
                 ic.append([self.make_C_term(eq, True, force_par=True, set_t0=True) for t in x['composition']])
+
 
         return {
             'parameters': parameters,
@@ -224,6 +233,7 @@ class Ccoder(Cmodel):
             'remainders': self.remainder,
             'f_remainders': f_remainders,
             'f_remainders_par': f_remainders_par,
+            'f_remainders_var': f_remainders_var,
             'ic': ic,
             'sde': [sdict[x] for x in self.par_diff],
             'pars': [pdict[x] for x in pars]

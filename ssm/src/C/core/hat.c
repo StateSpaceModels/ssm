@@ -83,59 +83,103 @@ void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *n
     ssm_state_t *state;
     ssm_observed_t *observed;
     int offset;
+    ssm_implementations_t implementation = nav->implementation;
 
-    //if fitness is NULL all the weights are set to 1.0/J
-    int _zero = 0;
-    double invJ[1] = {1.0 / (double) calc->J};
-    int *j_par = (is_J_par) ? &j: &_zero;
-    int *j_weights = (fitness) ? &j: &_zero;
-    double *weights = (fitness) ? fitness->weights: invJ;
+    if (implementation == SSM_EKF) {
+	int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
+	ssm_X_t *X = *J_X;
+	ssm_par_t *par = *J_par;
+	gsl_matrix_const_view Ct   = gsl_matrix_const_view_array(&X->proj[m], m, m);
+	double rem, obs, var;
+
+	//sv and incidences
+	for(i=0; i< nav->states_sv_inc->length; i++) {
+	    offset = nav->states_sv_inc->p[i]->offset;
+	    hat->states_95[offset][0] = X->proj[offset] - 1.96*gsl_matrix_get(&Ct.matrix,offset,offset);
+	    hat->states_95[offset][1] = X->proj[offset] + 1.96*gsl_matrix_get(&Ct.matrix,offset,offset);
+	}
+
+	//remainders
+	for(i=0; i< nav->states_remainders->length; i++) {
+	    state = nav->states_remainders->p[i];
+	    offset = state->offset;
+	    rem = state->f_remainder(X, calc, t);
+	    var = state->f_remainder_var(X, calc, nav, t);
+	    hat->states_95[offset][0] = rem - 1.96*var;
+	    hat->states_95[offset][1] = rem + 1.96*var;
+	}
+
+	//diffusions
+	for(i=0; i<nav->states_diff->length; i++){
+	    offset = nav->states_diff->p[i]->offset;
+	    hat->states_95[offset][0] = X->proj[offset] - 1.96*gsl_matrix_get(&Ct.matrix,offset,offset);
+	    hat->states_95[offset][1] = X->proj[offset] + 1.96*gsl_matrix_get(&Ct.matrix,offset,offset);
+	}
+
+	//observed
+	for(i=0; i< nav->observed_length; i++) {
+	    observed = nav->observed[i];
+	    offset = observed->offset;
+	    obs = observed->f_obs_mean(X, par, calc, t);
+	    var = observed->f_obs_var(X, par, calc, t);
+	    hat->states_95[offset][0] = obs - 1.96*var;
+	    hat->states_95[offset][1] = obs + 1.96*var;
+	}
+
+    } else {
+	//if fitness is NULL all the weights are set to 1.0/J
+	int _zero = 0;
+	double invJ[1] = {1.0 / (double) calc->J};
+	int *j_par = (is_J_par) ? &j: &_zero;
+	int *j_weights = (fitness) ? &j: &_zero;
+	double *weights = (fitness) ? fitness->weights: invJ;
     
-    //sv and incidences
-    for(i=0; i< nav->states_sv_inc->length; i++) {
-	offset = nav->states_sv_inc->p[i]->offset;
-        hat->states[offset] = 0.0;
-        for(j=0; j<calc->J; j++) {
-            calc->to_be_sorted[j] = J_X[j]->proj[offset]; //gsl_sort_index requires an array to be sorted and our particles are in J_X->proj so we use an helper array (calc->to_be_sorted)
-            hat->states[offset] += calc->to_be_sorted[j]*weights[ *j_weights ];
-        }
-        ssm_ci95(hat->states_95[offset], calc, fitness);
+	//sv and incidences
+	for(i=0; i< nav->states_sv_inc->length; i++) {
+	    offset = nav->states_sv_inc->p[i]->offset;
+	    hat->states[offset] = 0.0;
+	    for(j=0; j<calc->J; j++) {
+		calc->to_be_sorted[j] = J_X[j]->proj[offset]; //gsl_sort_index requires an array to be sorted and our particles are in J_X->proj so we use an helper array (calc->to_be_sorted)
+		hat->states[offset] += calc->to_be_sorted[j]*weights[ *j_weights ];
+	    }
+	    ssm_ci95(hat->states_95[offset], calc, fitness);
+	}
+	
+	//remainders
+	for(i=0; i< nav->states_remainders->length; i++) {
+	    state = nav->states_remainders->p[i];
+	    offset = state->offset;
+	    hat->remainders[offset] = 0.0;
+	    for(j=0; j<calc->J; j++) {
+		calc->to_be_sorted[j] = state->f_remainder(J_X[j], calc, t);
+		hat->remainders[offset] += calc->to_be_sorted[j]*weights[ *j_weights ];
+	    }
+	    ssm_ci95(hat->remainders_95[offset], calc, fitness);
+	}
+	
+	//diffusions
+	for(i=0; i<nav->states_diff->length; i++){
+	    state = nav->states_diff->p[i];
+	    offset = state->offset;
+	    hat->states[offset] = 0.0;
+	    for(j=0; j<calc->J; j++) {
+		calc->to_be_sorted[j] = state->f_inv(J_X[j]->proj[state->offset]);
+		hat->states[offset] += calc->to_be_sorted[j]*weights[ *j_weights ];
+	    }
+	    ssm_ci95(hat->states_95[offset], calc, fitness);
+	}
+	
+	//observed
+	for(i=0; i< nav->observed_length; i++) {
+	    observed = nav->observed[i];
+	    offset = observed->offset;
+	    hat->observed[offset] = 0.0;
+	    for(j=0; j<calc->J; j++) {
+		calc->to_be_sorted[j] = observed->f_obs_mean(J_X[j], J_par[ *j_par ], calc, t);
+		hat->observed[offset] += calc->to_be_sorted[j]*weights[ *j_weights ];
+	    }
+	    ssm_ci95(hat->observed_95[offset], calc, fitness);
+	}
+	
     }
-
-    //remainders
-    for(i=0; i< nav->states_remainders->length; i++) {
-	state = nav->states_remainders->p[i];
-	offset = state->offset;
-        hat->remainders[offset] = 0.0;
-        for(j=0; j<calc->J; j++) {
-            calc->to_be_sorted[j] = state->f_remainder(J_X[j], calc, t);
-            hat->remainders[offset] += calc->to_be_sorted[j]*weights[ *j_weights ];
-        }
-        ssm_ci95(hat->remainders_95[offset], calc, fitness);
-    }
-
-    //diffusions
-    for(i=0; i<nav->states_diff->length; i++){
-	state = nav->states_diff->p[i];
-	offset = state->offset;
-        hat->states[offset] = 0.0;
-        for(j=0; j<calc->J; j++) {
-            calc->to_be_sorted[j] = state->f_inv(J_X[j]->proj[state->offset]);
-            hat->states[offset] += calc->to_be_sorted[j]*weights[ *j_weights ];
-        }
-        ssm_ci95(hat->states_95[offset], calc, fitness);
-    }
-
-    //observed
-    for(i=0; i< nav->observed_length; i++) {
-	observed = nav->observed[i];
-	offset = observed->offset;
-        hat->observed[offset] = 0.0;
-        for(j=0; j<calc->J; j++) {
-            calc->to_be_sorted[j] = observed->f_obs_mean(J_X[j], J_par[ *j_par ], calc, t);
-            hat->observed[offset] += calc->to_be_sorted[j]*weights[ *j_weights ];
-        }
-        ssm_ci95(hat->observed_95[offset], calc, fitness);
-    }
-
 }

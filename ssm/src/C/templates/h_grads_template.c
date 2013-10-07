@@ -10,7 +10,7 @@
  * First order Taylor expansion
  * Var(f(X))= \sum_i \frac{\partial f(E(X_i))}{\partial x_i}Var(X_i)+\sum_{i\neqj}\frac{\partial f(E(X_i))}{\partial x_i}\frac{\partial f(E(X_j))}{\partial x_ij}Cov(X_i,X_j)
  */
-static double h_var_{{ y.id }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *nav, ssm_calc_t *calc, double t)
+static double var_f_pred_{{ y.id }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *nav, ssm_calc_t *calc, double t)
 {
     double res = 0;
     int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;

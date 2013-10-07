@@ -89,6 +89,15 @@ static double f_remainder_tpl_{{ rem }}(ssm_X_t *p_X, ssm_calc_t *calc, double t
 }
 {% endfor %}
 
+{% for rem, var in f_remainders_var.items() %}
+static double f_remainder_var_tpl_{{ rem }}(ssm_X_t *p_X, ssm_calc_t *calc, ssm_nav_t *nav, double t)
+{
+    int m = nav->states_sv_inc->length + nav->states_diff->length;
+    gsl_matrix_const_view Ct = gsl_matrix_const_view_array(&X[m], m, m);	
+    return {{ var }};
+}
+{% endfor %}
+
 ssm_parameter_t **ssm_parameters_new(int *parameters_length)
 {
     *parameters_length = {{ pars|length }};

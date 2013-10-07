@@ -133,20 +133,17 @@ void ssm_print_trace(FILE *stream, ssm_theta_t *theta, ssm_nav_t *nav, const dou
  */
 
 
-void ssm_print_pred_res(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, ssm_fitness_t *fitness, const double t)
+void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, ssm_fitness_t *fitness, const double t)
 {
     int ts;
     double pred, var_obs, var_state, y, res;
     ssm_observed_t *observed;
+    ssm_implementations_t implementation = nav->implementation;
 
     char key[SSM_STR_BUFFSIZE];
 
     //EKF specific
-    gsl_matrix_const_view Ct;
-    if (implementation == SSM_EKF) {
-	int m = nav->states_sv_inc->length + nav->states_diff->length;
-	Ct= gsl_matrix_const_view_array(&X[m], m, m);	
-    }
+    ssm_X_t *X = *J_X;
 
     //non EKF
     int j;
@@ -161,9 +158,9 @@ void ssm_print_pred_res(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *n
 	y = row->values[ts];
         
 	if (implementation == SSM_EKF) {
-	    var_obs = observed->obs_var(p_X, par, calc, t);
-	    pred = observed->f_obs_mean(p_X, par, calc, t);
-	    var_state = var_f_x(p_X, par,nav, calc, t);
+	    var_obs = observed->f_obs_var(X, par, calc, t);
+	    pred = observed->f_obs_mean(X, par, calc, t);
+	    var_state = observed->var_f_pred(X, par, nav, calc, t);
 	    res = (y - pred)/sqrt(var_state + var_obs);	
 	} else {	
 	    kn=0.0;
@@ -173,12 +170,12 @@ void ssm_print_pred_res(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *n
         
 	    for(j=0; j <fitness->J ; j++) {
 		kn += 1.0;
-		x = observed->f_obs_mean(p_X[j], par, calc, t);
+		x = observed->f_obs_mean(J_X[j], par, calc, t);
 		
 		delta = x - pred;
 		pred += delta/kn;
 		M2 += delta*(x - pred);
-		var_obs += observed->f_obs_var(p_X[j], par, calc, t);
+		var_obs += observed->f_obs_var(J_X[j], par, calc, t);
 	    }
 
 
