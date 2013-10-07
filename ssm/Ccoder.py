@@ -868,10 +868,10 @@ class Ccoder(Cmodel):
             term = {}
             term['id'] = x['id']
             term['grads'] = []
-            grad = {}
             for s in (self.par_sv + self.par_inc + self.par_diff):
                 Cterm = self.make_C_term(x['pdf']['mean'], True, derivate=s if 'diff__' not in s else s.split('diff__')[1])
                 if Cterm!='0':
+                    grad = {}
                     grad['Cterm'] = Cterm
                     grad['ind'] = self.order_states[s]
                     term['grads'].append(grad)
