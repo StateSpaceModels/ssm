@@ -59,6 +59,26 @@ int main(int argc, char *argv[])
 
 	// Update
 	fitness->cum_status[0] |= ssm_kalman_update(X, data->rows[n], t1, par, calc, nav, fitness);
+
+	if(!flag_no_filter && data->rows[n]->ts_nonan_length) {
+	    if (nav->print & SSM_PRINT_HAT) {
+		ssm_hat_eval(hat, &X, &par, nav, calc[0], fitness, t1, 0);
+	    }
+
+            if (nav->print & SSM_PRINT_PRED_RES) {
+		ssm_print_pred_res(stdout, &X, &par, nav, calc, data->rows[n], fitness);
+            }
+	} else if (nav->print & SSM_PRINT_HAT) { //we do not filter or all data ara NaN (no info).
+	    ssm_hat_eval(hat, &X, &par, nav, calc, NULL, t1, 0);	    
+	}
+
+	if (nav->print & SSM_PRINT_HAT) {
+	    ssm_print_hat(stdout, hat, nav, data->rows[n]);
+        }
+
+	if (nav->print & SSM_PRINT_X) {
+	    ssm_print_X(stdout, X, par, nav, calc, data->rows[n], 0);
+	}
     }
 
     json_decref(parameters);

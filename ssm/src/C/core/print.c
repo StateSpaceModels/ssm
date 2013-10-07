@@ -65,7 +65,7 @@ void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm
     double t = (double) row->time;
 
     json_t *jout = json_object();
-    json_object_set_new(jout, "index", json_integer(index)); //j or m
+    json_object_set_new(jout, "index", json_integer(index)); //j or 0
     json_object_set_new(jout, "date", json_string(row->date));
 
     for(i=0; i<nav->states_sv_inc->length; i++){
