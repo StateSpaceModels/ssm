@@ -602,7 +602,7 @@ char **ssm_load_jc1_new(json_t *container, const char *name);
 void ssm_load_options(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv[]);
 
 /* fitness.c */
-double ssm_sanitize_likelihood(double like, ssm_fitness_t *fitness, ssm_nav_t *nav);
+double ssm_sanitize_log_likelihood(double log_like, ssm_row_t *row, ssm_fitness_t *fitness, ssm_nav_t *nav);
 double ssm_log_likelihood(ssm_row_t *row, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness);
 double ssm_sum_square(ssm_row_t *row, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness);
 

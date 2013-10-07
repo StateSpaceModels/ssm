@@ -24,17 +24,17 @@
  *  log.  Also, ensures a uniform likelihood scale by making sure that
  *  everything below fitness->like_min is fitness->like_min.
  */
-double ssm_sanitize_likelihood(double like, ssm_fitness_t *fitness, ssm_nav_t *nav)
+double ssm_sanitize_log_likelihood(double log_like, ssm_row_t *row, ssm_fitness_t *fitness, ssm_nav_t *nav)
 {
-    if ((isinf(like)==1) || (isnan(like)==1) || (like<0.0) ) { //error
+    if ((isinf(log_like)==1) || (isnan(log_like)==1) || (log_like<0.0) ) { //error
         if (!(nav->print & SSM_QUIET)) {
             char str[SSM_STR_BUFFSIZE];
-            sprintf(str, "error likelihood computation, like = %g", like);
+            sprintf(str, "error likelihood computation, log_like = %g", log_like);
             ssm_print_warning(str);
         }
-        return fitness->like_min;
+        return fitness->log_like_min * row->ts_nonan_length;
     } else {
-        return (like <= fitness->like_min) ? fitness->like_min : like;
+        return GSL_MAX(fitness->log_like_min * row->ts_nonan_length, log_like);
     }
 }
 
@@ -47,11 +47,10 @@ double ssm_log_likelihood(ssm_row_t *row, ssm_X_t *X, ssm_par_t *par, ssm_calc_t
     double t = row->time;
 
     for(i=0; i< row->ts_nonan_length; i++){
-        like = ssm_sanitize_likelihood(row->observed[i]->f_likelihood(row->values[i], X, par, calc, t), fitness, nav);
-        loglike += log(like);
+        loglike += log(log(row->observed[i]->f_likelihood(row->values[i], X, par, calc, t), fitness, nav));
     }
 
-    return loglike;
+    return ssm_sanitize_likelihood(loglike, row, fitness, nav);
 }
 
 

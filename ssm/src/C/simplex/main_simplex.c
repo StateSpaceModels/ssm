@@ -18,9 +18,6 @@
 
 #include "ssm.h"
 
-#define LARGEST_SUM_OF_SQUARE 1e20
-#define SMALLEST_LOG_LIKE -1e20 
-
 struct s_simplex
 {
     ssm_data_t *data;
@@ -60,58 +57,55 @@ static double f_simplex(const gsl_vector *theta, void *params)
     if(ssm_check_ic(par, calc) != SSM_SUCCESS){
 
 	if (!(nav->print & SSM_QUIET)) {
-	    ssm_print_warning("constraints on initial conditions have not been respected: assigning bad fitness");
+	    ssm_print_warning("constraints on initial conditions have not been respected: assigning worst possible fitness");
 	}
-	fitness = (flag_least_squares) ? LARGEST_SUM_OF_SQUARE: SMALLEST_LOG_LIKE;
+	return GSL_POSINF; //GSL simplex algo minimizes so we return POSINF even for likelihood
+    } 
 
-    } else {
+    ssm_theta2input(input, (gsl_vector *) theta, nav);
+    ssm_input2par(par, input, calc, nav);
+    ssm_par2X(X, par, calc, nav);
+    X->dt = X->dt0;
 
-	ssm_theta2input(input, (gsl_vector *) theta, nav);
-	ssm_input2par(par, input, calc, nav);
-	ssm_par2X(X, par, calc, nav);
-	X->dt = X->dt0;
+    fitness=0.0;
 
-	fitness=0.0;
+    for(n=0; n<data->n_obs; n++) {
+	t0 = (n) ? data->rows[n-1]->time: 0;
+	t1 = data->rows[n]->time;
 
-	for(n=0; n<data->n_obs; n++) {
-	    t0 = (n) ? data->rows[n-1]->time: 0;
-	    t1 = data->rows[n]->time;
+	ssm_X_reset_inc(X, data->rows[n], nav);
+	status |= ssm_f_prediction_ode(X, t0, t1, par, nav, calc);
 
-            ssm_X_reset_inc(X, data->rows[n], nav);
-	    status |= ssm_f_prediction_ode(X, t0, t1, par, nav, calc);
-
-	    if(data->rows[n]->ts_nonan_length) {
-		if (flag_least_squares) {
-		    fitness += ssm_log_likelihood(data->rows[n], X, par, calc, nav, fit);
-		} else {
-		    fitness += ssm_sum_square(data->rows[n], X, par, calc, nav, fit);
-		}
-	    }
-        }
-
-	if( status != SSM_SUCCESS ){
-	    fitness = (flag_least_squares) ? LARGEST_SUM_OF_SQUARE: SMALLEST_LOG_LIKE;
-	    if (!(nav->print & SSM_QUIET)) {
-		ssm_print_warning("warning: something went wrong");
+	if(data->rows[n]->ts_nonan_length) {
+	    if (flag_least_squares) {
+		fitness += ssm_sum_square(data->rows[n], X, par, calc, nav, fit);
+	    } else {
+		fitness += ssm_log_likelihood(data->rows[n], X, par, calc, nav, fit);
 	    }
 	}
+    }
+
+    if( status != SSM_SUCCESS ){
+	if (!(nav->print & SSM_QUIET)) {
+	    ssm_print_warning("warning: something went wrong");
+	}
+	return GSL_POSINF; //GSL simplex algo minimizes so we return POSINF even for likelihood
+    }
 	
-	if (flag_prior && !flag_least_squares) {
-	    double log_prob_prior_value;
-	    ssm_err_code_t rc = ssm_log_prob_prior(&log_prob_prior_value, (gsl_vector *) theta, nav, fit);
-	    if(rc != SSM_SUCCESS && !(nav->print & SSM_QUIET)){
+    if (flag_prior && !flag_least_squares) {
+	double log_prob_prior_value;
+	ssm_err_code_t rc = ssm_log_prob_prior(&log_prob_prior_value, (gsl_vector *) theta, nav, fit);
+	if(rc != SSM_SUCCESS){
+	    if(!(nav->print & SSM_QUIET)){
 		ssm_print_warning("error log_prob_prior computation");
 	    }
+	    return GSL_POS_INF; //GSL simplex algo minimizes so we multiply by -1
+	} else {
 	    fitness += log_prob_prior_value;
 	}
-
     }
 
-    if(!flag_least_squares) {
-        fitness = -fitness; //GSL simplex algo minimizes so we multiply by -1 in case of log likelihood
-    }
-
-    return fitness;    
+    return (flag_least_squares) ? fitness: -fitness;  //GSL simplex algo minimizes so we multiply by -1 in case of log likelihood
 }
 
 
@@ -164,6 +158,3 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-
-#undef LARGEST_SUM_OF_SQUARE
-#undef SMALLEST_LOG_LIKE

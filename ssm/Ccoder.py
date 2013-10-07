@@ -858,7 +858,6 @@ class Ccoder(Cmodel):
                 'Ht_diff': Ht_diff}
 
 
-    ##TODO FIX (dicts overwrite themselves...)
     def h_grads(self):
         """compute the gradients of the observation functions using Sympy in order to compute the prediction variance through first-order Taylor expansions"""
         obs = copy.deepcopy(self.obs_model)
@@ -1154,5 +1153,3 @@ if __name__=="__main__":
 
     model = json.load(open(os.path.join('..' ,'example', 'model', 'datapackage.json')))
     m = Ccoder(model)
-
-    print m.iterators()
