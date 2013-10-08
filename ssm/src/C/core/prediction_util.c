@@ -35,15 +35,15 @@ void ssm_X_reset_inc(ssm_X_t *X, ssm_row_t *row, ssm_nav_t *nav)
 
     //reset cov (if EKF)
     if (nav->implementation == SSM_EKF){
-	int m = nav->states_sv_inc->length + nav->states_diff->length;
-	gsl_matrix_view Ct =  gsl_matrix_view_array(&X->proj[m], m, m);
-	for(i=0; i<row->states_reset_length; i++){
-	    X->proj[ row->states_reset[i]->offset ] = 0.0;
-	    for(j=0; j<m; j++){
-		gsl_matrix_set(&Ct.matrix, row->states_reset[i]->offset, j, 0);
-		gsl_matrix_set(&Ct.matrix, j, row->states_reset[i]->offset, 0);
-	    }
-	}
+        int m = nav->states_sv_inc->length + nav->states_diff->length;
+        gsl_matrix_view Ct =  gsl_matrix_view_array(&X->proj[m], m, m);
+        for(i=0; i<row->states_reset_length; i++){
+            X->proj[ row->states_reset[i]->offset ] = 0.0;
+            for(j=0; j<m; j++){
+                gsl_matrix_set(&Ct.matrix, row->states_reset[i]->offset, j, 0);
+                gsl_matrix_set(&Ct.matrix, j, row->states_reset[i]->offset, 0);
+            }
+        }
     }
 }
 
@@ -95,6 +95,9 @@ ssm_err_code_t ssm_check_no_neg_remainder(ssm_X_t *p_X, ssm_nav_t *nav, ssm_calc
 
     for(i=0; i<rem->length; i++){
         if (rem->p[i]->f_remainder(p_X, calc, t) < 0.0){
+            if (!(nav->print & SSM_QUIET)) {
+                ssm_print_warning("remainder negative");
+            }
             return SSM_ERR_REM;
         }
     }
@@ -155,6 +158,9 @@ ssm_err_code_t ssm_f_prediction_ode(ssm_X_t *p_X, double t0, double t1, ssm_par_
     while (t < t1) {
         int status = gsl_odeiv2_evolve_apply (calc->evolve, calc->control, calc->step, &(calc->sys), &t, t1, &h, y);
         if (status != GSL_SUCCESS) {
+            if (!(nav->print & SSM_QUIET)) {
+                ssm_print_warning("gsl_odeiv2 error");
+            }
             return SSM_ERR_ODE;
         }
     }

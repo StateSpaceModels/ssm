@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
         }
 
         if(!flag_no_filter && data->rows[n]->ts_nonan_length) {
-            if(ssm_weight(fitness, data->rows[n], n)) {
+            if(ssm_weight(fitness, data->rows[n], nav, n)) {
                 ssm_systematic_sampling(fitness, calc[0], n);
             }
 

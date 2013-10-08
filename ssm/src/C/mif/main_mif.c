@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
                     ssm_mif_patch_like_prior(fitness->weights, fitness, J_theta, data, nav, n, L);
                 }
 
-                int some_particle_succeeded = ssm_weight(fitness, data->rows[n], n);
+                int some_particle_succeeded = ssm_weight(fitness, data->rows[n], nav, n);
 
                 ssm_mif_mean_var_theta_theoretical(D_theta_bart[np1], D_theta_Vt[np1], J_theta, var, fitness, nav, delta*pow(cooling, 2));
                 if (nav->print & SSM_PRINT_DIAG) {

@@ -18,7 +18,7 @@
 
 #include "ssm.h"
 
-struct s_simplex
+struct s_ksimplex
 {
     ssm_data_t *data;
     ssm_nav_t *nav;
@@ -29,90 +29,82 @@ struct s_simplex
     ssm_fitness_t *fitness;
 
     int flag_prior;
-    int flag_least_squares;
 };
-
 
 /**
  * function to **minimize**
  */
-static double f_simplex(const gsl_vector *theta, void *params)
+static double f_ksimplex(const gsl_vector *theta, void *params)
 {
     unsigned int n, t0, t1;
-    double fitness;
 
-    struct s_simplex *p = (struct s_simplex *) params;
+    struct s_ksimplex *p = (struct s_ksimplex *) params;
     ssm_data_t *data = p->data;
     ssm_nav_t *nav = p->nav;
     ssm_calc_t *calc = p->calc;
     ssm_input_t *input = p->input;
     ssm_par_t *par = p->par;
     ssm_X_t *X = p->X;
-    ssm_fitness_t *fit = p->fitness;
+    ssm_fitness_t *fitness = p->fitness;
     int flag_prior = p->flag_prior;
-    int flag_least_squares = p->flag_least_squares;
-
-    ssm_err_code_t status = SSM_SUCCESS;
 
     if(ssm_check_ic(par, calc) != SSM_SUCCESS){
-
         if (!(nav->print & SSM_QUIET)) {
             ssm_print_warning("constraints on initial conditions have not been respected: assigning worst possible fitness");
         }
-        return GSL_POSINF; //GSL simplex algo minimizes so we return POSINF even for likelihood
+        return GSL_POSINF; //GSL simplex algo minimizes so we return POSINF
     }
 
     ssm_theta2input(input, (gsl_vector *) theta, nav);
     ssm_input2par(par, input, calc, nav);
     ssm_par2X(X, par, calc, nav);
     X->dt = X->dt0;
+    fitness->log_like = 0.0;
+    fitness->cum_status[0] = SSM_SUCCESS;
 
-    fitness=0.0;
+    int dim = nav->states_sv_inc->length + nav->states_diff->length;
+    gsl_matrix_view Ct = gsl_matrix_view_array(&X->proj[dim], dim, dim);
+    gsl_matrix_set_zero(&Ct.matrix);
 
     for(n=0; n<data->n_obs; n++) {
         t0 = (n) ? data->rows[n-1]->time: 0;
         t1 = data->rows[n]->time;
 
         ssm_X_reset_inc(X, data->rows[n], nav);
-        status |= ssm_f_prediction_ode(X, t0, t1, par, nav, calc);
 
-        if( status != SSM_SUCCESS ){
-            if (!(nav->print & SSM_QUIET)) {
-                ssm_print_warning("warning: something went wrong");
-            }
-            return GSL_POSINF; //GSL simplex algo minimizes so we return POSINF even for likelihood
-        }
-
+        fitness->cum_status[0] |= ssm_f_prediction_ode(X, t0, t1, par, nav, calc);
         if(data->rows[n]->ts_nonan_length) {
-            if (flag_least_squares) {
-                fitness += ssm_sum_square(data->rows[n], X, par, calc, nav, fit);
-            } else {
-                fitness += ssm_log_likelihood(data->rows[n], X, par, calc, nav, fit);
+            fitness->cum_status[0] |= ssm_kalman_update(fitness, X, data->rows[n], t1, par, calc, nav);
+            if(fitness->cum_status[0] != SSM_SUCCESS){
+                if (!(nav->print & SSM_QUIET)) {
+                    ssm_print_warning("warning: something went wrong");
+                }
+                return GSL_POSINF; //GSL simplex algo minimizes so we return POSINF
             }
         }
     }
 
-    if (flag_prior && !flag_least_squares) {
+    if (flag_prior) {
         double log_prob_prior_value;
-        ssm_err_code_t rc = ssm_log_prob_prior(&log_prob_prior_value, (gsl_vector *) theta, nav, fit);
+        ssm_err_code_t rc = ssm_log_prob_prior(&log_prob_prior_value, (gsl_vector *) theta, nav, fitness);
         if(rc != SSM_SUCCESS){
             if(!(nav->print & SSM_QUIET)){
                 ssm_print_warning("error log_prob_prior computation");
             }
             return GSL_POSINF; //GSL simplex algo minimizes so we multiply by -1
         } else {
-            fitness += log_prob_prior_value;
+            fitness->log_like += log_prob_prior_value;
         }
     }
 
-    return (flag_least_squares) ? fitness: -fitness;  //GSL simplex algo minimizes so we multiply by -1 in case of log likelihood
+    return -fitness->log_like;  //GSL simplex algo minimizes so we multiply by -1 (log likelihood)
 }
 
 
 int main(int argc, char *argv[])
 {
     ssm_options_t *opts = ssm_options_new();
-    ssm_load_options(opts, SSM_SIMPLEX, argc, argv);
+    ssm_load_options(opts, SSM_KSIMPLEX, argc, argv);
 
     json_t *jparameters = ssm_load_json_stream(stdin);
     json_t *jdata = ssm_load_data(opts);
@@ -133,14 +125,9 @@ int main(int argc, char *argv[])
     int n_iter = opts->n_iter;
     double size_stop = opts->size_stop;
 
-    struct s_simplex params = {data, nav, calc, input, par, X, fitness, opts->flag_prior, opts->flag_least_squares};
+    struct s_ksimplex params = {data, nav, calc, input, par, X, fitness, opts->flag_prior};
 
-    if (n_iter == 0 && (nav->print & SSM_PRINT_TRACE)) {
-        //simply return the sum of square or the log likelihood (can be used to do slices especially with least square where smc can't be used'...)
-        ssm_print_trace(stdout, theta, nav, f_simplex(theta, &params), 0);
-    } else {
-        ssm_simplex(theta, var, &params, &f_simplex, nav, size_stop, n_iter);
-    }
+    ssm_simplex(theta, var, &params, &f_ksimplex, nav, size_stop, n_iter);
 
     json_decref(jparameters);
 

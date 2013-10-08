@@ -632,7 +632,7 @@ ssm_err_code_t ssm_f_prediction_psr                           (ssm_X_t *p_X, dou
 ssm_err_code_t ssm_f_prediction_psr_no_diff                   (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
 
 /* smc.c */
-int ssm_weight(ssm_fitness_t *fitness, ssm_row_t *row, int n);
+int ssm_weight(ssm_fitness_t *fitness, ssm_row_t *row, ssm_nav_t *nav, int n);
 void ssm_systematic_sampling(ssm_fitness_t *fitness, ssm_calc_t *calc, int n);
 void ssm_resample_X(ssm_fitness_t *fitness, ssm_X_t ***J_p_X, ssm_X_t ***J_p_X_tmp, int n);
 void ssm_swap_X(ssm_X_t ***X, ssm_X_t ***tmp_X);
