@@ -251,3 +251,11 @@ double ssm_diff_derivative(double jac_tpl, const double X[], ssm_state_t *state)
 
     return 0.0;
 }
+
+
+void ssm_kalman_reset_Ct(ssm_X_t *X, ssm_nav_t *nav)
+{
+    int dim = nav->states_sv_inc->length + nav->states_diff->length;
+    gsl_matrix_view Ct = gsl_matrix_view_array(&X->proj[dim], dim, dim);
+    gsl_matrix_set_zero(&Ct.matrix);
+}

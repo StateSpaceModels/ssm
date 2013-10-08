@@ -62,9 +62,7 @@ static double f_ksimplex(const gsl_vector *theta, void *params)
     fitness->log_like = 0.0;
     fitness->cum_status[0] = SSM_SUCCESS;
 
-    int dim = nav->states_sv_inc->length + nav->states_diff->length;
-    gsl_matrix_view Ct = gsl_matrix_view_array(&X->proj[dim], dim, dim);
-    gsl_matrix_set_zero(&Ct.matrix);
+    ssm_kalman_reset_Ct(X, nav);
 
     for(n=0; n<data->n_obs; n++) {
         t0 = (n) ? data->rows[n-1]->time: 0;

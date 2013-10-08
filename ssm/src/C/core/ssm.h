@@ -703,7 +703,7 @@ ssm_err_code_t _ssm_check_and_correct_Ct(ssm_X_t *X, ssm_calc_t *calc, ssm_nav_t
 ssm_err_code_t ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav);
 ssm_err_code_t ssm_kalman_update(ssm_fitness_t *fitness, ssm_X_t *X, ssm_row_t *row, double t, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav);
 double ssm_diff_derivative(double jac_tpl, const double X[], ssm_state_t *state);
-
+void ssm_kalman_reset_Ct(ssm_X_t *X, ssm_nav_t *nav);
 
 /******************************/
 /* mif function signatures */

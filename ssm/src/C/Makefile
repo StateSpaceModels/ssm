@@ -1,9 +1,9 @@
 CC=clang -ferror-limit=2
-CFLAGS= -std=gnu99 -Wall -O3 -DGSL_RANGE_CHECK_OFF -I kalman -I pmcmc -I simulation -I mif -I simplex -I core
+CFLAGS= -std=gnu99 -Wall -O3 -DGSL_RANGE_CHECK_OFF -I kalman -I pmcmc -I simul -I mif -I simplex -I core
 LIB=libssm.a libssmsmc.a libssmsimplex.a libssmmif.a libssmpmcmc.a libssmkalman.a libssmksimplex.a libssmkmcmc.a libssmsimul.a libssmworker.a
 ALL_SRC= $(wildcard */*.c)
 ALL_SRC_NO_TEMPLATE=$(filter-out templates/input_template.c templates/transform_template.c templates/check_IC_template.c templates/iterator_template.c templates/observed_template.c templates/diff_template.c templates/ode_sde_template.c templates/psr_template.c templates/jac_template.c templates/Ht_template.c templates/Q_template.c templates/step_ekf_template.c, $(ALL_SRC))
-SRC=$(filter-out smc/main_smc.c simplex/main_simplex.c mif/main_mif.c worker/main_worker.c pmcmc/main_pmcmc.c kalman/main_kalman.c kalman/main_kmcmc.c kalman/main_ksimplex.c simulation/main_simul.c, $(ALL_SRC_NO_TEMPLATE))
+SRC=$(filter-out smc/main_smc.c simplex/main_simplex.c mif/main_mif.c worker/main_worker.c pmcmc/main_pmcmc.c kalman/main_kalman.c kalman/main_kmcmc.c kalman/main_ksimplex.c simul/main_simul.c, $(ALL_SRC_NO_TEMPLATE))
 INCLUDES=$(wildcard */*.h)
 OBJ= $(SRC:.c=.o)
 ALL_OBJ= $(ALL_SRC_NO_TEMPLATE:.c=.o)
@@ -39,7 +39,7 @@ libssmksimplex.a: kalman/main_ksimplex.o
 libssmkmcmc.a: kalman/main_kmcmc.o
 	ar -rcs $@ $^
 
-libssmsimul.a: simulation/main_simul.o
+libssmsimul.a: simul/main_simul.o
 	ar -rcs $@ $^
 
 libssmworker.a: worker/main_worker.o
@@ -52,7 +52,8 @@ install:
 	test -d $(PREFIX)/include || mkdir $(PREFIX)/include; cp $(INCLUDES) $(PREFIX)/include/
 
 clean:
-	rm $(ALL_OBJ)
+	rm $(ALL_OBJ); \
+	rm $(LIB)
 
 uninstall:
-	rm $(PREFIX)/{lib/libssm.a,lib/libssmsmc.a,lib/libssmsimplex.a,lib/libssmmif.a,lib/libssmpmcmc.a,lib/libssmkalman.a,lib/libssmksimplex.a,lib/libssmkmcmc.a,lib/libssmsimul.a,lib/libssmworker.a,include/ssm.h,include/mcmc_util.h,include/kalman.h,include/simplex.h,include/simulation.h,include/mif.h,include/pmcmc.h}
+	rm $(PREFIX)/{lib/libssm.a,lib/libssmsmc.a,lib/libssmsimplex.a,lib/libssmmif.a,lib/libssmpmcmc.a,lib/libssmkalman.a,lib/libssmksimplex.a,lib/libssmkmcmc.a,lib/libssmsimul.a,lib/libssmworker.a,include/ssm.h}

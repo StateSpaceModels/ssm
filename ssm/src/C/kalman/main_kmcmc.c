@@ -18,10 +18,40 @@
 
 #include "ssm.h"
 
+static ssm_err_code_t run_kalman_and_store_traj(ssm_X_t **D_X, ssm_par_t *par, ssm_fitness_t *fitness, ssm_data_t *data, ssm_calc_t *calc, ssm_nav_t *nav)
+{
+    int n, np1;
+    double t0, t1;
+    ssm_err_code_t rc;
+
+    for(n=0; n<data->n_obs; n++) {
+        t0 = (n) ? data->rows[n-1]->time: 0;
+        t1 = data->rows[n]->time;
+        np1 = n+1;
+
+        ssm_X_copy(D_X[np1], D_X[n]);
+        ssm_X_reset_inc(D_X[np1], data->rows[n], nav);
+
+        rc = ssm_f_prediction_ode(D_X[np1], t0, t1, par, nav, calc);
+        if(rc != SSM_SUCCESS){
+            return rc;
+        }
+        if(data->rows[n]->ts_nonan_length) {
+            rc = ssm_kalman_update(fitness, D_X[np1], data->rows[n], t1, par, calc, nav);
+            if(rc != SSM_SUCCESS){
+                return rc;
+            }
+        }
+    }
+
+    return SSM_SUCCESS;
+}
+
+
 int main(int argc, char *argv[])
 {
     ssm_options_t *opts = ssm_options_new();
-    ssm_load_options(opts, SSM_PMCMC, argc, argv);
+    ssm_load_options(opts, SSM_KMCMC, argc, argv);
 
     json_t *jparameters = ssm_load_json_stream(stdin);
     json_t *jdata = ssm_load_data(opts);
@@ -29,17 +59,15 @@ int main(int argc, char *argv[])
     ssm_nav_t *nav = ssm_nav_new(jparameters, opts);
     ssm_data_t *data = ssm_data_new(jdata, nav, opts);
     ssm_fitness_t *fitness = ssm_fitness_new(data, opts);
-    ssm_calc_t **calc = ssm_N_calc_new(jdata, nav, data, fitness, opts);
-    ssm_X_t ***D_J_X = ssm_D_J_X_new(data, fitness, nav, opts);
-    ssm_X_t ***D_J_X_tmp = ssm_D_J_X_new(data, fitness, nav, opts);
-    ssm_X_t **D_X = ssm_D_X_new(data, nav, opts); //to store sampled trajectories
+    ssm_calc_t *calc = ssm_calc_new(jdata, nav, data, fitness, opts, 0);
+    ssm_X_t **D_X = ssm_D_X_new(data, nav, opts); //to store trajectory
     ssm_X_t **D_X_prev = ssm_D_X_new(data, nav, opts);
 
     json_decref(jdata);
 
     ssm_input_t *input = ssm_input_new(jparameters, nav);
-    ssm_par_t *par = ssm_par_new(input, calc[0], nav);
-    ssm_par_t *par_proposed = ssm_par_new(input, calc[0], nav);
+    ssm_par_t *par = ssm_par_new(input, calc, nav);
+    ssm_par_t *par_proposed = ssm_par_new(input, calc, nav);
 
     ssm_theta_t *theta = ssm_theta_new(input, nav);
     ssm_theta_t *proposed = ssm_theta_new(input, nav);
@@ -55,18 +83,13 @@ int main(int argc, char *argv[])
     /////////////////////////
     // initialization step //
     /////////////////////////
-    int j, n;
+    int n;
     int m = 0;
-    ssm_err_code_t success = SSM_SUCCESS;
 
-    ssm_par2X(D_J_X[0][0], par, calc[0], nav);
-    for(j=1; j<fitness->J; j++){
-        ssm_X_copy(D_J_X[0][j], D_J_X[0][0]);
-    }
+    ssm_par2X(D_X[0], par, calc, nav);
 
-    //TODO: success |= run_smc(...)
+    ssm_err_code_t success = run_kalman_and_store_traj(D_X, par, fitness, data, calc, nav);
     success |= ssm_log_prob_prior(&fitness->log_prior, proposed, nav, fitness);
-
     if(success != SSM_SUCCESS){
         ssm_print_err("epic fail, initialization step failed");
         exit(EXIT_FAILURE);
@@ -77,10 +100,9 @@ int main(int argc, char *argv[])
     fitness->log_prior_prev = fitness->log_prior;
 
     if ( ( nav->print & SSM_PRINT_X_SMOOTH ) && data->n_obs ) {
-        ssm_sample_traj(D_X, D_J_X, calc[0], data, fitness);
         for(n=0; n<data->n_obs; n++){
             ssm_X_copy(D_X_prev[n+1], D_X[n+1]);
-            ssm_print_X(stdout, D_X_prev[n+1], par, nav, calc[0], data->rows[n], m);
+            ssm_print_X(stdout, D_X_prev[n+1], par, nav, calc, data->rows[n], m);
         }
     }
 
@@ -97,26 +119,22 @@ int main(int argc, char *argv[])
         success = SSM_SUCCESS;
         fitness->log_like = 0.0;
         fitness->log_prior = 0.0;
-        fitness->n_all_fail = 0;
 
         var = ssm_adapt_eps_var_sd_fac(&sd_fac, adapt, var_input, nav, m);
 
-        ssm_theta_ran(proposed, theta, var, sd_fac, calc[0], nav, 1);
+        ssm_theta_ran(proposed, theta, var, sd_fac, calc, nav, 1);
         ssm_theta2input(input, proposed, nav);
-        ssm_input2par(par_proposed, input, calc[0], nav);
+        ssm_input2par(par_proposed, input, calc, nav);
 
-        success |= ssm_check_ic(par_proposed, calc[0]);
+        success |= ssm_check_ic(par_proposed, calc);
 
         if(success == SSM_SUCCESS){
-            ssm_par2X(D_J_X[0][0], par_proposed, calc[0], nav);
-            D_J_X[0][0]->dt = D_J_X[0][0]->dt0;
+            ssm_par2X(D_X[0], par_proposed, calc, nav);
+            D_X[0]->dt = D_X[0]->dt0;
+            ssm_kalman_reset_Ct(D_X[0], nav);
 
-            for(j=1; j<fitness->J; j++){
-                ssm_X_copy(D_J_X[0][j], D_J_X[0][0]);
-            }
-
-            //TODO: success |= run_smc(...)
-            success |=  ssm_metropolis_hastings(fitness, &ratio, proposed, theta, var, sd_fac, nav, calc[0], 1);
+            success |= run_kalman_and_store_traj(D_X, par, fitness, data, calc, nav);
+            success |= ssm_metropolis_hastings(fitness, &ratio, proposed, theta, var, sd_fac, nav, calc, 1);
         }
 
         if(success == SSM_SUCCESS){ //everything went well and the proposed theta was accepted
@@ -126,7 +144,6 @@ int main(int argc, char *argv[])
             ssm_par_copy(par, par_proposed);
 
             if ( (nav->print & SSM_PRINT_X_SMOOTH) && data->n_obs ) {
-                ssm_sample_traj(D_X, D_J_X, calc[0], data, fitness);
                 for(n=0; n<data->n_obs; n++){
                     ssm_X_copy(D_X_prev[n+1], D_X[n+1]);
                 }
@@ -138,7 +155,7 @@ int main(int argc, char *argv[])
 
         if ( (nav->print & SSM_PRINT_X_SMOOTH) && ( (m % thin_traj) == 0) ) {
             for(n=0; n<data->n_obs; n++){
-                ssm_print_X(stdout, D_X_prev[n+1], par, nav, calc[0], data->rows[n], m);
+                ssm_print_X(stdout, D_X_prev[n+1], par, nav, calc, data->rows[n], m);
             }
         }
 
@@ -153,12 +170,10 @@ int main(int argc, char *argv[])
 
     json_decref(jparameters);
 
-    ssm_D_J_X_free(D_J_X, data, fitness);
-    ssm_D_J_X_free(D_J_X_tmp, data, fitness);
     ssm_D_X_free(D_X, data);
     ssm_D_X_free(D_X_prev, data);
 
-    ssm_N_calc_free(calc, nav);
+    ssm_calc_free(calc, nav);
 
     ssm_data_free(data);
     ssm_nav_free(nav);
