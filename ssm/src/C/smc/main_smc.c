@@ -76,41 +76,41 @@ int main(int argc, char *argv[])
                 ssm_systematic_sampling(fitness, calc[0], n);
             }
 
-	    if (nav->print & SSM_PRINT_HAT) {
-		ssm_hat_eval(hat, J_X, &par, nav, calc[0], fitness, t1, 0);
-	    }
+            if (nav->print & SSM_PRINT_HAT) {
+                ssm_hat_eval(hat, J_X, &par, nav, calc[0], fitness, t1, 0);
+            }
 
             ssm_resample_X(fitness, &J_X, &J_X_tmp, n);
 
-            if (nav->print & SSM_PRINT_PRED_RES) {
-		ssm_print_pred_res(stdout, J_X, par, nav, calc[0], data->rows[n], fitness);
+            if (nav->print & SSM_PRINT_DIAG) {
+                ssm_print_pred_res(stdout, J_X, par, nav, calc[0], data->rows[n], fitness);
             }
-	} else if (nav->print & SSM_PRINT_HAT) { //we do not filter or all data ara NaN (no info).
-	    ssm_hat_eval(hat, J_X, &par, nav, calc[0], NULL, t1, 0);	    
-	}
-
-        if (nav->print & SSM_PRINT_HAT) {
-	    ssm_print_hat(stdout, hat, nav, data->rows[n]);
+        } else if (nav->print & SSM_PRINT_HAT) { //we do not filter or all data ara NaN (no info).
+            ssm_hat_eval(hat, J_X, &par, nav, calc[0], NULL, t1, 0);
         }
 
-	if (nav->print & SSM_PRINT_X) {
-	    for(j=0; j<fitness->J; j++) {
-		ssm_print_X(stdout, J_X[j], par, nav, calc[0], data->rows[n], j);
-	    }
-	}
+        if (nav->print & SSM_PRINT_HAT) {
+            ssm_print_hat(stdout, hat, nav, data->rows[n]);
+        }
+
+        if (nav->print & SSM_PRINT_X) {
+            for(j=0; j<fitness->J; j++) {
+                ssm_print_X(stdout, J_X[j], par, nav, calc[0], data->rows[n], j);
+            }
+        }
     }
 
     if (flag_prior) {
-	double log_prob_prior_value;
-	ssm_err_code_t rc = ssm_log_prob_prior(&log_prob_prior_value, theta, nav, fitness);
-	if(rc != SSM_SUCCESS && !(nav->print & SSM_QUIET)){
-	    ssm_print_warning("error log_prob_prior computation");
-	}
-	fitness->log_like += log_prob_prior_value;
+        double log_prob_prior_value;
+        ssm_err_code_t rc = ssm_log_prob_prior(&log_prob_prior_value, theta, nav, fitness);
+        if(rc != SSM_SUCCESS && !(nav->print & SSM_QUIET)){
+            ssm_print_warning("error log_prob_prior computation");
+        }
+        fitness->log_like += log_prob_prior_value;
     }
 
     if (nav->print & SSM_PRINT_TRACE) {
-	ssm_print_trace(stdout, theta, nav, fitness->log_like, 0);
+        ssm_print_trace(stdout, theta, nav, fitness->log_like, 0);
     }
 
     json_decref(jparameters);

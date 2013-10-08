@@ -21,66 +21,66 @@
 /**
  * compute the log of the prob of the proposal
  */
-ssm_err_code_t ssm_log_prob_proposal(double *log_like, ssm_theta_t *proposed, ssm_theta_t *theta, ssm_var_t *var, double sd_fac, ssm_nav_t *nav, int is_mvn)
+ssm_err_code_t ssm_log_prob_proposal(double *log_proposal, ssm_theta_t *proposed, ssm_theta_t *theta, ssm_var_t *var, double sd_fac, ssm_nav_t *nav, int is_mvn)
 {
 
     int i;
     ssm_parameter_t *p;
     double p_tmp =0.0;
     double lp = 0.0;
-    
+
     if (is_mvn) {
         p_tmp = ssm_dmvnorm(proposed->size, proposed, theta, var, sd_fac);
     }
 
     for(i=0; i<nav->theta_all->length; i++) {
 
-	p = nav->theta_all->p[i];
+        p = nav->theta_all->p[i];
 
-	if (!is_mvn) {
-	    p_tmp = gsl_ran_gaussian_pdf((gsl_vector_get(proposed, p->offset)-gsl_vector_get(theta, p->offset)), sd_fac*sqrt(gsl_matrix_get(var, p->offset, p->offset)));
-	}
+        if (!is_mvn) {
+            p_tmp = gsl_ran_gaussian_pdf((gsl_vector_get(proposed, p->offset_theta)-gsl_vector_get(theta, p->offset_theta)), sd_fac*sqrt(gsl_matrix_get(var, p->offset_theta, p->offset_theta)));
+        }
 
-	/*
-	  Change of variable formula:
-	  Y = r(X) (r is assumed to be increasing) with inverse r_inv
-	  X has f for density
-	  Y has g for density
+        /*
+          Change of variable formula:
+          Y = r(X) (r is assumed to be increasing) with inverse r_inv
+          X has f for density
+          Y has g for density
 
-	  g(y) = f (r_inv (y)) * d r_inv(y)/dy
-	  In our case, the proposal takes place on a transformed scale router.f. We know g(y) but we want f(r_inv(y))
+          g(y) = f (r_inv (y)) * d r_inv(y)/dy
+          In our case, the proposal takes place on a transformed scale router.f. We know g(y) but we want f(r_inv(y))
 
-	  we therefore divide g(y) by d r_inv(y)/dy.
+          we therefore divide g(y) by d r_inv(y)/dy.
 
-	  Note that in the multivariate case, we need to
-	  divide by the determinant of the Jacobian
-	  matrix. However in our case the Jacobian is
-	  diagonal so the determinant is the product of the
-	  diagonal terms so everything generalizes nicely
-	*/
+          Note that in the multivariate case, we need to
+          divide by the determinant of the Jacobian
+          matrix. However in our case the Jacobian is
+          diagonal so the determinant is the product of the
+          diagonal terms so everything generalizes nicely
+        */
 
-	p_tmp /= p->f_inv_derivative(gsl_vector_get(proposed, p->offset));
+        p_tmp /= p->f_inv_derivative(gsl_vector_get(proposed, p->offset_theta));
 
-	//check for numerical issues
-	if( (isnan(p_tmp)==1) || (isinf(p_tmp)==1) || (p_tmp<0.0) ) {
-	    return SSM_ERR_PROPOSAL;
-	}
+        //check for numerical issues
+        if( (isnan(p_tmp)==1) || (isinf(p_tmp)==1) || (p_tmp<0.0) ) {
+            return SSM_ERR_PROPOSAL;
+        }
 
-	if (!is_mvn) {
-	    lp += log(p_tmp);
-	}
+        if (!is_mvn) {
+            lp += log(p_tmp);
+        }
     }
 
     if (is_mvn) {
-	lp = log(p_tmp);
+        lp = log(p_tmp);
     }
 
     //check AGAIN for numerical issues (taking log could have created issues)
     if((isinf(lp)==1) || (isnan(lp)==1)) {
-	return SSM_ERR_PROPOSAL;
+        return SSM_ERR_PROPOSAL;
     }
-    
-    *log_like = lp;
+
+    *log_proposal = lp;
 
     return SSM_SUCCESS;
 }
@@ -92,7 +92,7 @@ ssm_err_code_t ssm_log_prob_proposal(double *log_like, ssm_theta_t *proposed, ss
  * means it doesn't immediatly return on failure). This is usefull for
  * the --prior option.
  */
-ssm_err_code_t log_prob_prior(double *log_like, ssm_theta_t *theta, ssm_nav_t *nav, ssm_fitness_t *fitness)
+ssm_err_code_t ssm_log_prob_prior(double *log_prior, ssm_theta_t *theta, ssm_nav_t *nav, ssm_fitness_t *fitness)
 {
     int i;
     ssm_parameter_t *p;
@@ -103,23 +103,23 @@ ssm_err_code_t log_prob_prior(double *log_like, ssm_theta_t *theta, ssm_nav_t *n
 
     for(i=0; i<nav->theta_all->length; i++) {
 
-	p = nav->theta_all->p[i];
+        p = nav->theta_all->p[i];
 
-	back_transformed = p->f_inv(gsl_vector_get(theta, p->offset));
-	p_tmp = p->prior(back_transformed);
+        back_transformed = p->f_inv(gsl_vector_get(theta, p->offset_theta));
+        p_tmp = p->prior(back_transformed);
 
-	//check for numerical issues
-	if( (isnan(p_tmp)==1) || (isinf(p_tmp)==1) || (p_tmp<0.0) ) {
-	    is_err =1;    
-	    p_tmp = fitness->like_min;
-	} else {
-	    p_tmp = (p_tmp <= fitness->like_min) ? fitness->like_min : p_tmp;
-	}
+        //check for numerical issues
+        if( (isnan(p_tmp)==1) || (isinf(p_tmp)==1) || (p_tmp<0.0) ) {
+            is_err =1;
+            p_tmp = fitness->like_min;
+        } else {
+            p_tmp = (p_tmp <= fitness->like_min) ? fitness->like_min : p_tmp;
+        }
 
-	lp += log(p_tmp); 
+        lp += log(p_tmp);
     }
 
-    *log_like = lp;
+    *log_prior = lp;
 
     return (is_err) ? SSM_ERR_PRIOR: SSM_SUCCESS;
 }
@@ -150,10 +150,10 @@ ssm_err_code_t ssm_metropolis_hastings(double *alpha, ssm_theta_t *proposed, ssm
         }
     } else {
         *alpha = 0.0;
-        return success|SSM_ERR_MH; //rejected
+        return success|SSM_MH_REJECT; //rejected
     }
 
-    return SSM_ERR_MH;
+    return SSM_MH_REJECT;
 }
 
 /**
@@ -166,18 +166,18 @@ ssm_var_t *ssm_adapt_eps_var_sd_fac(double *sd_fac, ssm_adapt_t *a, ssm_var_t *v
     // evaluate epsilon(m) = epsilon(m-1) * exp(a^(m-1) * (acceptance_rate(m-1) - 0.234))
 
     if ( (m > a->eps_switch) && ( m * a->ar < a->m_switch) ) {
-	double ar = (a->flag_smooth) ? a->ar_smoothed : a->ar;
-	a->eps *=  exp(pow(a->eps_a, (double) (m-1)) * (ar - 0.234));
+        double ar = (a->flag_smooth) ? a->ar_smoothed : a->ar;
+        a->eps *=  exp(pow(a->eps_a, (double) (m-1)) * (ar - 0.234));
     } else {  // after switching epsilon is set back to 1
-	a->eps = 1.0;
+        a->eps = 1.0;
     }
 
     a->eps = GSL_MIN(a->eps, a->eps_max);
-	
+
     // evaluate tuning factor sd_fac = epsilon * 2.38/sqrt(n_to_be_estimated)
     *sd_fac = a->eps * 2.38/sqrt(nav->theta_all->length);
-	
-    return ((m * a->ar) >= a->m_switch) ? a->var_sampling: var;	     
+
+    return ((m * a->ar) >= a->m_switch) ? a->var_sampling: var;
 }
 
 
@@ -196,15 +196,15 @@ void ssm_adapt_ar(ssm_adapt_t *a, int is_accepted, int m)
 
 
 void ssm_theta_ran(ssm_theta_t *proposed, ssm_theta_t *theta, ssm_var_t *var, double sd_fac, ssm_calc_t *calc, ssm_nav_t *nav, int is_mvn)
-{    
+{
     int i;
 
     if(is_mvn){
-	ssm_rmvnorm(calc->randgsl, nav->theta_all->length, theta, var, sd_fac, proposed);
-    } else { //iid gaussians	
-	for (i=0; i< nav->theta_all->length ; i++) {	    
-	    gsl_vector_set(proposed, i, gsl_vector_get(theta, i) + gsl_ran_gaussian(calc->randgsl, sd_fac*sqrt(gsl_matrix_get(var, i, i))));
-	}
+        ssm_rmvnorm(calc->randgsl, nav->theta_all->length, theta, var, sd_fac, proposed);
+    } else { //iid gaussians
+        for (i=0; i< nav->theta_all->length ; i++) {
+            gsl_vector_set(proposed, i, gsl_vector_get(theta, i) + gsl_ran_gaussian(calc->randgsl, sd_fac*sqrt(gsl_matrix_get(var, i, i))));
+        }
     }
 
 }
@@ -212,12 +212,12 @@ void ssm_theta_ran(ssm_theta_t *proposed, ssm_theta_t *theta, ssm_var_t *var, do
 
 int ssm_theta_copy(ssm_theta_t *dest, ssm_theta_t *src)
 {
-    return gsl_vector_memcpy(dest, src);   
+    return gsl_vector_memcpy(dest, src);
 }
 
 int ssm_par_copy(ssm_par_t *dest, ssm_par_t *src)
 {
-    return gsl_vector_memcpy(dest, src);   
+    return gsl_vector_memcpy(dest, src);
 }
 
 
@@ -256,26 +256,26 @@ void ssm_sample_traj(ssm_X_t **D_X, ssm_X_t ***D_J_X, ssm_calc_t *calc, ssm_data
 
     //printing all ancesters up to previous observation time
     for(nn = (data->ind_nonan[data->n_obs_nonan-1]-1); nn > data->ind_nonan[data->n_obs_nonan-2]; nn--) {
-	ssm_X_copy(D_X[nn + 1], D_J_X[nn + 1][j_sel]);
+        ssm_X_copy(D_X[nn + 1], D_J_X[nn + 1][j_sel]);
     }
 
     for(n = (data->n_obs_nonan-2); n >= 1; n--) {
-	//indentifying index of the path that led to sampled particule
-	indn = data->ind_nonan[n];
-	j_sel = fitness->select[indn][j_sel];
-	ssm_X_copy(D_X[indn + 1], D_J_X[indn + 1][j_sel]);
-	
-	//printing all ancesters up to previous observation time
+        //indentifying index of the path that led to sampled particule
+        indn = data->ind_nonan[n];
+        j_sel = fitness->select[indn][j_sel];
+        ssm_X_copy(D_X[indn + 1], D_J_X[indn + 1][j_sel]);
+
+        //printing all ancesters up to previous observation time
         for(nn= (indn-1); nn > data->ind_nonan[n-1]; nn--) {
-	    ssm_X_copy(D_X[nn + 1], D_J_X[nn + 1][j_sel]);
+            ssm_X_copy(D_X[nn + 1], D_J_X[nn + 1][j_sel]);
         }
     }
 
     indn = data->ind_nonan[0];
     j_sel = fitness->select[indn][j_sel];
-    
-    for(nn=indn; nn>=0; nn--) {       
-	ssm_X_copy(D_X[nn + 1], D_J_X[ nn + 1 ][j_sel]);
+
+    for(nn=indn; nn>=0; nn--) {
+        ssm_X_copy(D_X[nn + 1], D_J_X[ nn + 1 ][j_sel]);
     }
 
     //TODO nn=-1 (for initial conditions)

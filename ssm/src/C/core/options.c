@@ -69,7 +69,7 @@ void ssm_load_options(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
         {"r", 'r', "no_filter",      "do not filter", no_argument,  SSM_SMC },
         {"c", 'c', "trace",          "print the traces", no_argument,  SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF },
         {"x", 'x', "hat",            "print the state estimates", no_argument,  SSM_SMC | SSM_KALMAN | SSM_SIMUL },
-        {"e", 'e', "pred_res",       "print the prediction residuals", no_argument,  SSM_SMC | SSM_KALMAN },
+        {"e", 'e', "diag",           "print the diagnostics outputs (prediction residuals...)", no_argument,  SSM_SMC | SSM_KALMAN },
         {"p", 'p', "prior",          "add log(prior) to the estimated loglikelihood", no_argument,  SSM_SMC | SSM_KALMAN | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF },
         {"s", 's', "smooth",         "tune epsilon with the value of the acceptance rate obtained with exponential smoothing", no_argument,  SSM_KMCMC | SSM_PMCMC },
         {"a", 'a', "acc",            "print the acceptance rate", no_argument,  SSM_KMCMC | SSM_PMCMC },
@@ -137,180 +137,179 @@ void ssm_load_options(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
 
 
         case 'D': //dt
-	    opts->dt = atof(optarg);
+            opts->dt = atof(optarg);
             break;
 
         case 'I': //id
-	    opts->id = atoi(optarg);
+            opts->id = atoi(optarg);
             break;
 
         case 'P': //path
-	    strncpy(opts->path, optarg, SSM_STR_BUFFSIZE);
+            strncpy(opts->path, optarg, SSM_STR_BUFFSIZE);
             break;
 
         case 'N': //n_thread
-	    opts->n_thread = atoi(optarg);
+            opts->n_thread = atoi(optarg);
             break;
 
         case 'J': //n_parts
-	    opts->J = atoi(optarg);
+            opts->J = atoi(optarg);
             break;
 
         case 'O': //n_obs
-	    opts->n_obs = atoi(optarg);
+            opts->n_obs = atoi(optarg);
             break;
 
         case 'A': //cooling
-	    opts->a = atof(optarg);
+            opts->a = atof(optarg);
             break;
 
         case 'C': //switch
-	    opts->m_switch = atoi(optarg);
+            opts->m_switch = atoi(optarg);
             break;
 
         case 'W': //eps_switch
-	    opts->eps_switch = atoi(optarg);
+            opts->eps_switch = atoi(optarg);
             break;
 
         case 'T': //n_traj
-	    opts->n_traj = atoi(optarg);
+            opts->n_traj = atoi(optarg);
             break;
 
         case 'M': //iter
-	    opts->n_iter = atoi(optarg);
+            opts->n_iter = atoi(optarg);
             break;
 
         case 'B': //start
-	    strncpy(opts->start, optarg, SSM_STR_BUFFSIZE);
+            strncpy(opts->start, optarg, SSM_STR_BUFFSIZE);
             break;
 
         case 'E': //end
-	    strncpy(opts->end, optarg, SSM_STR_BUFFSIZE);
+            strncpy(opts->end, optarg, SSM_STR_BUFFSIZE);
             break;
 
         case 'Y': //eps_abs_integ
-	    opts->eps_abs = atof(optarg);
+            opts->eps_abs = atof(optarg);
             break;
 
         case 'Z': //eps_rel_integ
-	    opts->eps_rel = atof(optarg);
+            opts->eps_rel = atof(optarg);
             break;
 
         case 'G': //freeze_forcing
-	    strncpy(opts->freeze_forcing, optarg, SSM_STR_BUFFSIZE);
+            strncpy(opts->freeze_forcing, optarg, SSM_STR_BUFFSIZE);
             break;
 
         case 'K': //like_min
-	    opts->like_min = atof(optarg);
+            opts->like_min = atof(optarg);
             break;
 
         case 'U': //eps_max
-	    opts->eps_max = atof(optarg);
+            opts->eps_max = atof(optarg);
             break;
 
         case 'S': //alpha
-	    opts->alpha = atof(optarg);
+            opts->alpha = atof(optarg);
             break;
 
         case 'H': //heat
-	    opts->b = atof(optarg);
+            opts->b = atof(optarg);
             break;
 
         case 'L': //lag
-	    opts->L = atof(optarg);
+            opts->L = atof(optarg);
             break;
 
         case 'F': //freq
-	    strncpy(opts->freq, optarg, SSM_STR_BUFFSIZE);
+            strncpy(opts->freq, optarg, SSM_STR_BUFFSIZE);
             break;
 
         case 'V': //size
-	    opts->size_stop = atof(optarg);	   
+            opts->size_stop = atof(optarg);
             break;
 
         case 'X': //chunk
-	    opts->chunk = atoi(optarg);	   
+            opts->chunk = atoi(optarg);
             break;
 
         case 'Q': //interpolator
-	    strncpy(opts->interpolator, optarg, SSM_STR_BUFFSIZE);
+            strncpy(opts->interpolator, optarg, SSM_STR_BUFFSIZE);
             break;
 
         case 'R': //server
-	    strncpy(opts->server, optarg, SSM_STR_BUFFSIZE);
+            strncpy(opts->server, optarg, SSM_STR_BUFFSIZE);
             break;
 
         case 'q': //quiet
-	    opts->print |= SSM_QUIET;
+            opts->print |= SSM_QUIET;
             break;
 
         case 'd': //no_dem_sto
-	    opts->noises_off |= SSM_NO_DEM_STO;
+            opts->noises_off |= SSM_NO_DEM_STO;
             break;
 
         case 'w': //no_white_noise
-	    opts->noises_off |= SSM_NO_WHITE_NOISE;
+            opts->noises_off |= SSM_NO_WHITE_NOISE;
             break;
 
         case 'f': //no_diff
-	    opts->noises_off |= SSM_NO_DIFF;
+            opts->noises_off |= SSM_NO_DIFF;
             break;
 
         case 't': //traj
-	    opts->print |= SSM_PRINT_X;
+            opts->print |= SSM_PRINT_X;
             break;
 
         case 'r': //no_filter
-	    opts->flag_no_filter = 1;
+            opts->flag_no_filter = 1;
             break;
 
         case 'c': //trace
-	    opts->print |= SSM_PRINT_TRACE;
+            opts->print |= SSM_PRINT_TRACE;
             break;
 
         case 'x': //hat
-	    opts->print |= SSM_PRINT_HAT;
+            opts->print |= SSM_PRINT_HAT;
             break;
 
-        case 'e': //pred_res
-	    opts->print |= SSM_PRINT_PRED_RES;
+        case 'e': //diag
+            opts->print |= SSM_PRINT_DIAG;
             break;
 
         case 'p': //prior
-	    opts->flag_prior = 1;
+            opts->flag_prior = 1;
             break;
 
         case 's': //smooth
-	    opts->flag_smooth = 1;
+            opts->flag_smooth = 1;
             break;
 
         case 'a': //acc
-	    opts->print |= SSM_PRINT_ACC;
+            opts->print |= SSM_PRINT_ACC;
             break;
 
         case 'z': //zmq
-	    opts->flag_zmq = 1;
+            opts->flag_zmq = 1;
             break;
 
         case 'b': //ic_only
-	    opts->flag_ic_only = 1;
+            opts->flag_ic_only = 1;
             break;
 
         case 'l': //least_squares
-	    opts->flag_least_squares = 1;	    
+            opts->flag_least_squares = 1;
             break;
 
-	case 'g': //seed_time"
-	    opts->flag_seed_time = 1;	    
-	    break;
+        case 'g': //seed_time"
+            opts->flag_seed_time = 1;
+            break;
 
         case '?':
             exit(EXIT_FAILURE);
 
         default:
-	    abort();
+            abort();
         }
-
     }
 
     argc -= optind;

@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     ssm_fitness_t *fitness = ssm_fitness_new(data, opts);
     ssm_calc_t *calc = ssm_calc_new(jdata, nav, data, fitness, opts, 0);
     ssm_X_t *X = ssm_X_new(data->n_data +1, nav);
- 
+
     json_decref(jdata);
 
     ssm_input_t *input = ssm_input_new(jparameters, nav);
@@ -43,42 +43,42 @@ int main(int argc, char *argv[])
     ssm_par2X(X, par, calc, nav);
 
     fitness->cum_status[0] = SSM_SUCCESS;
-    
+
     ssm_f_pred_t f_pred = ssm_get_f_pred(nav);
 
     for(n=0; n<data->n_obs; n++) {
-	np1 = n+1;
-	t0 = (n) ? data->rows[n-1]->time: 0;
+        np1 = n+1;
+        t0 = (n) ? data->rows[n-1]->time: 0;
         t1 = data->rows[n]->time;
-		    
-	// Reset incidence
-	ssm_X_reset_inc(X, data->rows[n], nav);
-	
-	// Predict
-	fitness->cum_status[0] |= (*f_pred)(X, t0, t1, par, nav, calc);
 
-	// Update
-	fitness->cum_status[0] |= ssm_kalman_update(X, data->rows[n], t1, par, calc, nav, fitness);
+        // Reset incidence
+        ssm_X_reset_inc(X, data->rows[n], nav);
 
-	if(!flag_no_filter && data->rows[n]->ts_nonan_length) {
-	    if (nav->print & SSM_PRINT_HAT) {
-		ssm_hat_eval(hat, &X, &par, nav, calc[0], fitness, t1, 0);
-	    }
+        // Predict
+        fitness->cum_status[0] |= (*f_pred)(X, t0, t1, par, nav, calc);
 
-            if (nav->print & SSM_PRINT_PRED_RES) {
-		ssm_print_pred_res(stdout, &X, &par, nav, calc, data->rows[n], fitness);
+        // Update
+        fitness->cum_status[0] |= ssm_kalman_update(X, data->rows[n], t1, par, calc, nav, fitness);
+
+        if(!flag_no_filter && data->rows[n]->ts_nonan_length) {
+            if (nav->print & SSM_PRINT_HAT) {
+                ssm_hat_eval(hat, &X, &par, nav, calc[0], fitness, t1, 0);
             }
-	} else if (nav->print & SSM_PRINT_HAT) { //we do not filter or all data ara NaN (no info).
-	    ssm_hat_eval(hat, &X, &par, nav, calc, NULL, t1, 0);	    
-	}
 
-	if (nav->print & SSM_PRINT_HAT) {
-	    ssm_print_hat(stdout, hat, nav, data->rows[n]);
+            if (nav->print & SSM_PRINT_DIAG) {
+                ssm_print_pred_res(stdout, &X, &par, nav, calc, data->rows[n], fitness);
+            }
+        } else if (nav->print & SSM_PRINT_HAT) { //we do not filter or all data ara NaN (no info).
+            ssm_hat_eval(hat, &X, &par, nav, calc, NULL, t1, 0);
         }
 
-	if (nav->print & SSM_PRINT_X) {
-	    ssm_print_X(stdout, X, par, nav, calc, data->rows[n], 0);
-	}
+        if (nav->print & SSM_PRINT_HAT) {
+            ssm_print_hat(stdout, hat, nav, data->rows[n]);
+        }
+
+        if (nav->print & SSM_PRINT_X) {
+            ssm_print_X(stdout, X, par, nav, calc, data->rows[n], 0);
+        }
     }
 
     json_decref(parameters);
@@ -88,10 +88,10 @@ int main(int argc, char *argv[])
 
     ssm_data_free(data);
     ssm_nav_free(nav);
-    
+
     ssm_input_free(input);
     ssm_par_free(par);
-    
+
     ssm_fitness_free(fitness);
 
     return 0;
