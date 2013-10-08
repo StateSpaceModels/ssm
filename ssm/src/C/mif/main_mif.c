@@ -18,7 +18,148 @@
 
 #include "ssm.h"
 
+
 int main(int argc, char *argv[])
 {
-    exit(EXIT_FAILURE);
+    int j, n, np1, t0, t1;
+
+    ssm_options_t *opts = ssm_options_new();
+    ssm_load_options(opts, SSM_MIF, argc, argv);
+
+    json_t *jparameters = ssm_load_json_stream(stdin);
+    json_t *jdata = ssm_load_data(opts);
+
+    ssm_nav_t *nav = ssm_nav_new(jparameters, opts);
+    ssm_data_t *data = ssm_data_new(jdata, nav, opts);
+    ssm_fitness_t *fitness = ssm_fitness_new(data, opts);
+    ssm_calc_t **calc = ssm_N_calc_new(jdata, nav, data, fitness, opts);
+    ssm_X_t **J_X = ssm_J_X_new(fitness, nav, opts);
+    ssm_X_t **J_X_tmp = ssm_J_X_new(fitness, nav, opts);
+
+    json_decref(jdata);
+
+    ssm_input_t *input = ssm_input_new(jparameters, nav);
+    ssm_theta_t *mle = ssm_theta_new(input, nav);
+    ssm_var_t *var = ssm_var_new(jparameters, nav);
+    ssm_mif_scale_var(var, data, nav);
+
+
+    ssm_par_t **J_par = malloc(fitness->J * sizeof (ssm_par_t *));
+    if(J_par == NULL) {
+        ssm_print_err("Allocation impossible for ssm_par_t *");
+        exit(EXIT_FAILURE);
+    }
+    ssm_theta_t **J_theta = malloc(fitness->J * sizeof (ssm_theta_t *));
+    if(J_theta == NULL) {
+        ssm_print_err("Allocation impossible for ssm_theta_t *");
+        exit(EXIT_FAILURE);
+    }
+    ssm_theta_t **J_theta_tmp = malloc(fitness->J * sizeof (ssm_theta_t *));
+    if(J_theta_tmp == NULL) {
+        ssm_print_err("Allocation impossible for ssm_theta_t *");
+        exit(EXIT_FAILURE);
+    }
+
+    for(j=0; j<fitness->J; j++) {
+	J_input[j] = ssm_input_new(jparmaters, calc[0], nav);
+	J_par[j] = ssm_par_new(input[j], calc[0], nav);
+	J_theta[j] = ssm_theta_new(NULL, nav);
+	J_theta_tmp[j] = ssm_theta_new(NULL, nav);
+    }
+
+    double **D_theta_bart = ssm_d2_new(data->length+1, nav->theta_all->length); //mean of theta at each time step, +1 because we keep values for every data point + initial condition
+    double **D_theta_Vt = ssm_d2_new(data->length+1, nav->theta_all->length); //variance of theta at each time step
+
+    int n_iter = opts->n_iter;
+    double delta_t;
+
+    for(m=1; m<n_iter; m++){
+
+	p_like->log_like = 0.0;
+	p_like->n_all_fail = 0;
+	delta_t = 0;
+
+	for(i=0; i<nav->theta_all->length; i++){
+	    D_theta_bart[0][i] = gsl_vector_get(mle, i);
+	    D_theta_Vt[0][i] = ( pow(opts->b * ssm_mif_cooling(opts, m), 2) * gsl_matrix_get(var, i, i) );
+	}
+
+	for(j=0; j<fitness->J; j++) {
+	    do{
+		ssm_theta_ran(J_theta[j], mle, var, opts->b * ssm_mif_cooling(opts, m), calc[0], nav, 1);
+		ssm_theta2input(input, J_theta[j], nav);
+		ssm_input2par(J_par[j], input, calc[0], nav);
+	    } while(ssm_check_ic(J_par[j], calc[0]) != SSM_SUCCESS);
+
+	    fitness->cum_status[j] = SSM_SUCCESS;
+	    J_X[j]->dt = J_X[0]->dt0;
+	}
+
+        for(n=0; n<data->n_obs; n++) {
+	    np1 = n+1;
+	    t0 = (n) ? data->rows[n-1]->time: 0;
+	    t1 = data->rows[n]->time;
+	    delta_t += (t1-t0); //cumulate t1-t0 in between 2 data step where data->rows[n]->ts_nonan_length > 0
+
+	    for(j=0; j<fitness->J; j++) {
+		ssm_par2X(J_X[j], J_par[j], calc[0], nav);
+	    }
+
+	    for(j=0;j<fitness->J;j++) {
+		ssm_X_reset_inc(J_X[j], data->rows[n], nav);
+		fitness->cum_status[j] |= (*f_pred)(J_X[j], t0, t1, J_par[j], nav, calc[0]);
+
+		if(data->rows[n]->ts_nonan_length) {
+		    fitness->weights[j] = (fitness->cum_status[j] == SSM_SUCCESS) ?  exp(ssm_log_likelihood(data->rows[n], J_X[j], J_par[j], calc[0], nav, fitness)) : 0.0;
+		    fitness->cum_status[j] = SSM_SUCCESS;
+		}
+	    }
+
+
+	    if(data->rows[n]->ts_nonan_length) {
+		
+		int success = weight(p_like, n);
+
+		if(success){
+		    ssm_systematic_sampling(fitness, calc[0], n);
+		}
+
+		ssm_resample_X(fitness, &J_X, &J_X_tmp, n);
+	
+		delta_t = 0;
+	    }
+
+	}
+
+    }
+
+        
+    
+    json_decref(jparameters);
+
+    ssm_J_X_free(J_X, fitness);
+    ssm_J_X_free(J_X_tmp, fitness);
+    ssm_N_calc_free(calc, nav);
+    
+    ssm_data_free(data);
+    ssm_nav_free(nav);
+    ssm_fitness_free(fitness);
+
+    ssm_var_free(var);
+    ssm_input_free(input);
+    ssm_theta_free(mle);
+
+    for(j=0; j<fitness->J; j++) {
+        ssm_par_free(J_par[j]);
+        ssm_theta_free(J_theta[j]);
+	ssm_theta_free(J_theta_tmp[j]);
+    }
+    free(J_par);
+    free(J_theta);
+    free(J_theta_tmp);
+
+    ssm_d2_freet(D_theta_bart);
+    ssm_d2_free(D_theta_Vt);
+    
+    return 0;
 }
