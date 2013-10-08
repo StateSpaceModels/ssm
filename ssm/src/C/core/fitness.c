@@ -42,15 +42,14 @@ double ssm_sanitize_log_likelihood(double log_like, ssm_row_t *row, ssm_fitness_
 double ssm_log_likelihood(ssm_row_t *row, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness)
 {
     int i;
-    double like;
     double loglike = 0.0;
     double t = row->time;
 
     for(i=0; i< row->ts_nonan_length; i++){
-        loglike += log(log(row->observed[i]->f_likelihood(row->values[i], X, par, calc, t), fitness, nav));
+        loglike += log(row->observed[i]->f_likelihood(row->values[i], X, par, calc, t));
     }
 
-    return ssm_sanitize_likelihood(loglike, row, fitness, nav);
+    return ssm_sanitize_log_likelihood(loglike, row, fitness, nav);
 }
 
 

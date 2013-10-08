@@ -32,8 +32,8 @@ int main(int argc, char *argv[])
     ssm_data_t *data = ssm_data_new(jdata, nav, opts);
     ssm_fitness_t *fitness = ssm_fitness_new(data, opts);
     ssm_calc_t **calc = ssm_N_calc_new(jdata, nav, data, fitness, opts);
-    ssm_X_t **J_X = ssm_D_J_X_new(fitness, nav, opts);
-    ssm_X_t **J_X_tmp = ssm_D_J_X_new(fitness, nav, opts);
+    ssm_X_t **J_X = ssm_J_X_new(fitness, nav, opts);
+    ssm_X_t **J_X_tmp = ssm_J_X_new(fitness, nav, opts);
     ssm_hat_t *hat = ssm_hat_new(nav);
 
     json_decref(jdata);

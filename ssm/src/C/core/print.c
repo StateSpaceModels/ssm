@@ -131,12 +131,13 @@ void ssm_print_trace(FILE *stream, ssm_theta_t *theta, ssm_nav_t *nav, const dou
  * ssm_data_t.length_nonan times by opposed to ssm_data_t.length (ie
  * when there is information)
  */
-void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, ssm_fitness_t *fitness, const double t)
+void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, ssm_fitness_t *fitness)
 {
     int ts;
     double pred, var_obs, var_state, y, res;
     ssm_observed_t *observed;
     ssm_implementations_t implementation = nav->implementation;
+    double t = (double) row->time;
 
     char key[SSM_STR_BUFFSIZE];
 
@@ -158,7 +159,7 @@ void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *
 	if (implementation == SSM_EKF) {
 	    var_obs = observed->f_obs_var(X, par, calc, t);
 	    pred = observed->f_obs_mean(X, par, calc, t);
-	    var_state = observed->var_f_pred(X, par, nav, calc, t);
+	    var_state = observed->var_f_pred(X, par, calc, nav, t);
 	    res = (y - pred)/sqrt(var_state + var_obs);	
 	} else {	
 	    kn=0.0;

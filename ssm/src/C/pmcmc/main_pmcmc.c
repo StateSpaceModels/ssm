@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
 	    }
 	}
 
-	ssm_adapt_ar(adapt, is_accepted, m); //compute acceptance rate
+	ssm_adapt_ar(adapt, (success == SSM_SUCCESS) ? 1: 0, m); //compute acceptance rate
 	ssm_adapt_var(adapt, theta, m);  //compute empirical variance
 
 	if ( (nav->print & SSM_PRINT_X_SMOOTH) && ( (m % thin_traj) == 0) ) {

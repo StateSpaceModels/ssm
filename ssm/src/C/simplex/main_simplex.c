@@ -99,7 +99,7 @@ static double f_simplex(const gsl_vector *theta, void *params)
 	    if(!(nav->print & SSM_QUIET)){
 		ssm_print_warning("error log_prob_prior computation");
 	    }
-	    return GSL_POS_INF; //GSL simplex algo minimizes so we multiply by -1
+	    return GSL_POSINF; //GSL simplex algo minimizes so we multiply by -1
 	} else {
 	    fitness += log_prob_prior_value;
 	}

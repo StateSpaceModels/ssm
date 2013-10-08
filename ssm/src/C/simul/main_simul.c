@@ -30,21 +30,18 @@ int main(int argc, char *argv[])
     json_t *jdata = ssm_load_data(opts);
 
     json_t *jresource = json_object_get(jparameters, "jresource");
-    json_t *jprediction = NULL;
     json_t *jvalues = NULL;
-    json_t *jforced = NULL;
     for(i=0; i< json_array_size(jresource); i++){
         json_t *el = json_array_get(jresource, i);
         const char* name = json_string_value(json_object_get(el, "name"));
-        if (strcmp(name, "prediction") == 0) {
-            jprediction = json_object_get(el, "data");
+        if (strcmp(name, "values") == 0) {
+            jvalues = json_object_get(el, "data");
             break;
         }
     }
 
-    if(jprediction){
-	jforced = json_object_get(jprediction, "forced");
-	jvalues = json_object_get(jprediction, "values");
+    int is_array = json_is_array(jvalues);
+    if(is_array){
 	opts->J = json_array_size(jvalues);
     }
 
@@ -57,26 +54,20 @@ int main(int argc, char *argv[])
 
     json_decref(jdata);
 
-    ssm_input_t *input = ssm_input_new(jparameters, nav);
-
+    ssm_input_t *input = ssm_input_new((is_array) ? NULL: jparameters, nav);
     ssm_par_t **J_par = malloc(fitness->J * sizeof (ssm_par_t *));
     if(J_par == NULL) {
         ssm_print_err("Allocation impossible for ssm_par_t *");
         exit(EXIT_FAILURE);
     }
-    for(j=0; j<fitness->J; j++) {
-	J_par[j] = ssm_par_new(input, calc[0], nav);
-	//force parameters from values
-	json_t *jval = json_array_get(jvalues, j);
-	if(key in forced){
-	    gsl_vector_set(J_par[j], ,);
-	} else {
-	    it->p[i]->f_user2par(gsl_vector_get(input, it->p[i]->offset), input, calc)
-	}
 
+    for(j=0; j<fitness->J; j++) {
+	if(is_array){
+	    ssm_jforced(input, json_array_get(jvalues, j), nav);
+	}
+	J_par[j] = ssm_par_new(input, calc[0], nav);
 	ssm_par2X(J_X[j], J_par[j], calc[0], nav);
     }
-
     
     ssm_f_pred_t f_pred = ssm_get_f_pred(nav);
     
@@ -100,7 +91,7 @@ int main(int argc, char *argv[])
 
 	if (nav->print & SSM_PRINT_X) {
 	    for(j=0; j<fitness->J; j++) {
-		ssm_print_X(stdout, J_X[j], J_par, nav, calc[0], data->rows[n], j);
+		ssm_print_X(stdout, J_X[j], J_par[j], nav, calc[0], data->rows[n], j);
 	    }
 	}
     }
@@ -112,7 +103,7 @@ int main(int argc, char *argv[])
     }
     free(J_par);
 
-    ssm_J_X_free(X, fitness);
+    ssm_J_X_free(J_X, fitness);
     ssm_N_calc_free(calc, nav);
     ssm_data_free(data);
     ssm_nav_free(nav);

@@ -183,7 +183,7 @@ ssm_err_code_t ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X,
 
 
 
-ssm_err_code_t ssm_kalman_update(ssm_X_t *X, ssm_row_t *row, double t, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *like)
+ssm_err_code_t ssm_kalman_update(ssm_X_t *X, ssm_row_t *row, double t, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness)
 {
 
     int status;
@@ -221,7 +221,7 @@ ssm_err_code_t ssm_kalman_update(ssm_X_t *X, ssm_row_t *row, double t, ssm_par_t
     
     // loglik
 
-    like->log_like += ssm_sanitize_log_likelihood(log(ssm_dmvnorm(row->ts_nonan_length, &pred_error.vector, &zero.vector, &St.matrix, 1.0)));
+    fitness->log_like += ssm_sanitize_log_likelihood(log(ssm_dmvnorm(row->ts_nonan_length, &pred_error.vector, &zero.vector, &St.matrix, 1.0)), row, fitness, nav);
 
     return cum_status;
 }

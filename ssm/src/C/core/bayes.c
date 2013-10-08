@@ -141,7 +141,7 @@ ssm_err_code_t ssm_metropolis_hastings(double *alpha, ssm_theta_t *proposed, ssm
     if(success == SSM_SUCCESS) {
 
         // ( p{theta*}(y)  p{theta*} ) / ( p{theta(i-1)}(y) p{theta(i-1)} )  *  q{ theta(i-1) | theta* } / q{ theta* | theta(i-1) }
-        *alpha = exp( (fitness->log_like_new - fitness->log_like_prev + lproposal_prev - lproposal_new + lprior_new - lprior_prev) );
+        *alpha = exp( (fitness->log_like - fitness->log_like_prev + lproposal_prev - lproposal_new + lprior_new - lprior_prev) );
 
         ran = gsl_ran_flat(calc->randgsl, 0.0, 1.0);
 
@@ -150,7 +150,7 @@ ssm_err_code_t ssm_metropolis_hastings(double *alpha, ssm_theta_t *proposed, ssm
         }
     } else {
         *alpha = 0.0;
-        return sucess|SSM_ERR_MH; //rejected
+        return success|SSM_ERR_MH; //rejected
     }
 
     return SSM_ERR_MH;
@@ -235,12 +235,10 @@ int ssm_par_copy(ssm_par_t *dest, ssm_par_t *src)
  */
 void ssm_sample_traj(ssm_X_t **D_X, ssm_X_t ***D_J_X, ssm_calc_t *calc, ssm_data_t *data, ssm_fitness_t *fitness)
 {
-    int j_sel;
+    int j_sel; //the selected particle
     int n, nn, indn;
 
     double ran, cum_weights;
-
-    ssm_X_t *X_sel;
 
     ran=gsl_ran_flat(calc->randgsl, 0.0, 1.0);
 
@@ -254,36 +252,30 @@ void ssm_sample_traj(ssm_X_t **D_X, ssm_X_t ***D_J_X, ssm_calc_t *calc, ssm_data
     //print traj of ancestors of particle j_sel;
 
     //!!! we assume that the last data point contain information'
-    X_sel = D_J_X[data->n_obs][j_sel]; // N_DATA-1 <=> data->indn_data_nonan[N_DATA_NONAN-1]
-    ssm_X_copy(D_X[data->n_obs], Xsel);
+    ssm_X_copy(D_X[data->n_obs], D_J_X[data->n_obs][j_sel]);
 
     //printing all ancesters up to previous observation time
     for(nn = (data->ind_nonan[data->n_obs_nonan-1]-1); nn > data->ind_nonan[data->n_obs_nonan-2]; nn--) {
-        X_sel = D_J_X[nn + 1][j_sel];
-	ssm_X_copy(D_X[nn + 1], Xsel);
+	ssm_X_copy(D_X[nn + 1], D_J_X[nn + 1][j_sel]);
     }
 
     for(n = (data->n_obs_nonan-2); n >= 1; n--) {
 	//indentifying index of the path that led to sampled particule
 	indn = data->ind_nonan[n];
 	j_sel = fitness->select[indn][j_sel];
-        X_sel = D_J_X[indn + 1][j_sel];      
-	ssm_X_copy(D_X[indn + 1], Xsel);
+	ssm_X_copy(D_X[indn + 1], D_J_X[indn + 1][j_sel]);
 	
 	//printing all ancesters up to previous observation time
         for(nn= (indn-1); nn > data->ind_nonan[n-1]; nn--) {
-            X_sel = D_J_X[nn + 1][j_sel];
-	    ssm_X_copy(D_X[nn + 1], Xsel);
+	    ssm_X_copy(D_X[nn + 1], D_J_X[nn + 1][j_sel]);
         }
     }
 
     indn = data->ind_nonan[0];
     j_sel = fitness->select[indn][j_sel];
-    X_sel = D_J_X[indn+1][j_sel];
     
     for(nn=indn; nn>=0; nn--) {       
-	X_sel = D_J_X[ nn + 1 ][j_sel];
-	ssm_X_copy(D_X[nn + 1], Xsel);
+	ssm_X_copy(D_X[nn + 1], D_J_X[ nn + 1 ][j_sel]);
     }
 
     //TODO nn=-1 (for initial conditions)

@@ -18,6 +18,10 @@
 
 #include "ssm.h"
 
+
+/**
+ * if jparameters is NULL, do not plug values from datapackage
+ */
 ssm_input_t *ssm_input_new(json_t *jparameters, ssm_nav_t *nav)
 {
     ssm_input_t *input = gsl_vector_calloc(nav->par_all->length);
@@ -28,6 +32,10 @@ ssm_input_t *ssm_input_new(json_t *jparameters, ssm_nav_t *nav)
     gsl_vector_set(input, {{ loop.index0 }}, {{ p.prior.value }});
     {%endif%}
     {% endfor %}
+
+    if(!jparameters){
+	return input;
+    }
 
     int i, index;
     ssm_it_parameters_t *it = nav->theta_all;
