@@ -33,7 +33,7 @@ ssm_par_t *ssm_par_new(ssm_input_t *input, ssm_calc_t *calc, ssm_nav_t *nav)
     ssm_par_t *par = gsl_vector_calloc(it->length);
     int i;
     for(i=0; i< it->length; i++){
-	gsl_vector_set(par, it->p[i]->offset, it->p[i]->f_user2par(gsl_vector_get(input, it->p[i]->offset), input, calc));
+        gsl_vector_set(par, it->p[i]->offset, it->p[i]->f_user2par(gsl_vector_get(input, it->p[i]->offset), input, calc));
     }
 
     return par;
@@ -53,13 +53,13 @@ ssm_theta_t *ssm_theta_new(ssm_input_t* input, ssm_nav_t *nav)
     ssm_theta_t *theta = gsl_vector_calloc(nav->theta_all->length);
 
     if(input) {
-	int i;
-	ssm_parameter_t *p;
-	
-	for(i=0; i< nav->theta_all->length; i++){
-	    p = nav->theta_all->p[i];
-	    gsl_vector_set(theta, i, p->f(gsl_vector_get(input, p->offset)));	
-	}
+        int i;
+        ssm_parameter_t *p;
+
+        for(i=0; i< nav->theta_all->length; i++){
+            p = nav->theta_all->p[i];
+            gsl_vector_set(theta, i, p->f(gsl_vector_get(input, p->offset)));
+        }
     }
 
     return theta;
@@ -241,12 +241,12 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
                             if( ssm_in_par(nav->par_noise, nav->par_all->p[i]->name) ) {
                                 if(!(nav->noises_off & SSM_NO_WHITE_NOISE)){
                                     nav->theta_all->p[nav->theta_all->length] = nav->par_all->p[i];
-				    nav->theta_all->p[nav->theta_all->length]->offset_theta = nav->theta_all->length;
+                                    nav->theta_all->p[nav->theta_all->length]->offset_theta = nav->theta_all->length;
                                     nav->theta_all->length += 1;
                                 }
                             } else {
                                 nav->theta_all->p[nav->theta_all->length] = nav->par_all->p[i];
-				nav->theta_all->p[nav->theta_all->length]->offset_theta = nav->theta_all->length;
+                                nav->theta_all->p[nav->theta_all->length]->offset_theta = nav->theta_all->length;
                                 nav->theta_all->length += 1;
                             }
 
@@ -446,9 +446,9 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
         if(rows[i]->ts_nonan_length){
             data->ind_nonan[data->length_nonan] = i;
             data->length_nonan += 1;
-	    if(i< data->n_obs){
-		data->n_obs_nonan += 1;
-	    }
+            if(i< data->n_obs){
+                data->n_obs_nonan += 1;
+            }
         }
     }
 
@@ -590,7 +590,7 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fi
             int n_s = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
             int n_o = nav->observed_length;
             calc->_pred_error = gsl_vector_calloc(n_o);
-	    calc->_zero = gsl_vector_calloc(n_o);
+            calc->_zero = gsl_vector_calloc(n_o);
             calc->_St = gsl_matrix_calloc(n_o, n_o);
             calc->_Stm1 = gsl_matrix_calloc(n_o, n_o);
             calc->_Rt = gsl_matrix_calloc(n_o, n_o);
@@ -907,6 +907,8 @@ ssm_fitness_t *ssm_fitness_new(ssm_data_t *data, ssm_options_t *opts)
     fitness->n_all_fail = 0;
 
     fitness->log_like_prev = 0.0;
+    fitness->log_prior = 0.0;
+    fitness->log_prior_prev = 0.0;
 
     return fitness;
 }
@@ -927,7 +929,7 @@ int _ssm_dim_X(ssm_nav_t *nav)
 {
     int dim = nav->states_sv_inc->length + nav->states_diff->length;
     if(nav->implementation == SSM_EKF){
-	dim += pow(dim, 2);
+        dim += pow(dim, 2);
     }
     return dim;
 }
@@ -1127,24 +1129,24 @@ ssm_adapt_t *ssm_adapt_new(ssm_nav_t *nav, ssm_options_t * opts)
     a->eps_switch = opts->eps_switch;
     a->eps_a = opts->a;
 
-    int min_switch = 5.0*pow(nav->theta_all->length, 2);   
+    int min_switch = 5.0*pow(nav->theta_all->length, 2);
     if (opts->m_switch < 0) {
         a->m_switch = min_switch;
     } else {
         a->m_switch = opts->m_switch;
-	if ( (a->m_switch < min_switch) && !(nav->print & SSM_QUIET)) {
-	    char str[SSM_STR_BUFFSIZE];
-	    snprintf(str, SSM_STR_BUFFSIZE, "warning: covariance switching iteration (%i) is smaller than proposed one (%i)", a->m_switch, min_switch);
-	    ssm_print_warning(str);
-	}    
-    } 
+        if ( (a->m_switch < min_switch) && !(nav->print & SSM_QUIET)) {
+            char str[SSM_STR_BUFFSIZE];
+            snprintf(str, SSM_STR_BUFFSIZE, "warning: covariance switching iteration (%i) is smaller than proposed one (%i)", a->m_switch, min_switch);
+            ssm_print_warning(str);
+        }
+    }
 
     a->flag_smooth = opts->flag_smooth;
     a->alpha = opts->alpha;
 
     a->mean_sampling = ssm_d1_new(nav->theta_all->length);
     a->var_sampling = gsl_matrix_calloc(nav->theta_all->length, nav->theta_all->length);
-    
+
     return a;
 }
 

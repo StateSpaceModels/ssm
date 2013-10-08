@@ -65,25 +65,27 @@ int main(int argc, char *argv[])
     }
 
     //TODO: RUN SMC success |= run_smc(...)
+    success |= ssm_log_prob_prior(&fitness->log_prior, proposed, nav, fitness);
 
     if(success != SSM_SUCCESS){
         ssm_print_err("epic fail, initialization step failed");
-	exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     }
 
     //the first run is accepted
     fitness->log_like_prev = fitness->log_like;
+    fitness->log_prior_prev = fitness->log_prior;
 
     if ( ( nav->print & SSM_PRINT_X_SMOOTH ) && data->n_obs ) {
-	ssm_sample_traj(D_X, D_J_X, calc[0], data, fitness);
-	for(n=0; n<data->n_obs; n++){
-	    ssm_X_copy(D_X_prev[n+1], D_X[n+1]);
-	    ssm_print_X(stdout, D_X_prev[n+1], par, nav, calc[0], data->rows[n], m);
-	}
+        ssm_sample_traj(D_X, D_J_X, calc[0], data, fitness);
+        for(n=0; n<data->n_obs; n++){
+            ssm_X_copy(D_X_prev[n+1], D_X[n+1]);
+            ssm_print_X(stdout, D_X_prev[n+1], par, nav, calc[0], data->rows[n], m);
+        }
     }
 
     if(nav->print & SSM_PRINT_TRACE){
-	ssm_print_trace(stdout, theta, nav, fitness->log_like_prev, m);
+        ssm_print_trace(stdout, theta, nav, fitness->log_like_prev + fitness->log_prior_prev, m);
     }
 
     ////////////////
@@ -92,58 +94,58 @@ int main(int argc, char *argv[])
     double sd_fac;
     double ratio;
     for(m=1; m<n_iter; m++) {
+        success = SSM_SUCCESS;
 
-	success = SSM_SUCCESS;
+        var = ssm_adapt_eps_var_sd_fac(&sd_fac, adapt, var_input, nav, m);
 
-	var = ssm_adapt_eps_var_sd_fac(&sd_fac, adapt, var_input, nav, m);
+        ssm_theta_ran(proposed, theta, var, sd_fac, calc[0], nav, 1);
+        ssm_theta2input(input, proposed, nav);
+        ssm_input2par(par_proposed, input, calc[0], nav);
 
-	ssm_theta_ran(proposed, theta, var, sd_fac, calc[0], nav, 1);
-	ssm_theta2input(input, proposed, nav);
-	ssm_input2par(par_proposed, input, calc[0], nav);
+        success |= ssm_check_ic(par_proposed, calc[0]);
 
-	success |= ssm_check_ic(par_proposed, calc[0]);
+        if(success == SSM_SUCCESS){
+            ssm_par2X(D_J_X[0][0], par_proposed, calc[0], nav);
+            D_J_X[0][0]->dt = D_J_X[0][0]->dt0;
 
-	if(success == SSM_SUCCESS){
-	    ssm_par2X(D_J_X[0][0], par_proposed, calc[0], nav);
-	    D_J_X[0][0]->dt = D_J_X[0][0]->dt0;
+            for(j=1; j<fitness->J; j++){
+                ssm_X_copy(D_J_X[0][j], D_J_X[0][0]);
+            }
 
-	    for(j=1; j<fitness->J; j++){
-		ssm_X_copy(D_J_X[0][j], D_J_X[0][0]);
-	    }
+            //TODO: RUN SMC success |= run_smc(...)
+            success |=  ssm_metropolis_hastings(fitness, &ratio, proposed, theta, var, sd_fac, nav, calc[0], 1);
+        }
 
-	    //TODO: RUN SMC success |= run_smc(...)
-	    success |=  ssm_metropolis_hastings(&ratio, proposed, theta, var, sd_fac, fitness, nav, calc[0], 1);
-	}
+        if(success == SSM_SUCCESS){ //everything went well and the proposed theta was accepted
+            fitness->log_like_prev = fitness->log_like;
+            fitness->log_prior_prev = fitness->log_prior;
+            ssm_theta_copy(theta, proposed);
+            ssm_par_copy(par, par_proposed);
 
-	if(success == SSM_SUCCESS){ //everything went well and the proposed theta was accepted 
-	    fitness->log_like_prev = fitness->log_like;
-	    ssm_theta_copy(theta, proposed);
-	    ssm_par_copy(par, par_proposed);
+            if ( (nav->print & SSM_PRINT_X_SMOOTH) && data->n_obs ) {
+                ssm_sample_traj(D_X, D_J_X, calc[0], data, fitness);
+                for(n=0; n<data->n_obs; n++){
+                    ssm_X_copy(D_X_prev[n+1], D_X[n+1]);
+                }
+            }
+        }
 
-	    if ( (nav->print & SSM_PRINT_X_SMOOTH) && data->n_obs ) {
-		ssm_sample_traj(D_X, D_J_X, calc[0], data, fitness);
-		for(n=0; n<data->n_obs; n++){    
-		    ssm_X_copy(D_X_prev[n+1], D_X[n+1]);
-		}
-	    }
-	}
+        ssm_adapt_ar(adapt, (success == SSM_SUCCESS) ? 1: 0, m); //compute acceptance rate
+        ssm_adapt_var(adapt, theta, m);  //compute empirical variance
 
-	ssm_adapt_ar(adapt, (success == SSM_SUCCESS) ? 1: 0, m); //compute acceptance rate
-	ssm_adapt_var(adapt, theta, m);  //compute empirical variance
+        if ( (nav->print & SSM_PRINT_X_SMOOTH) && ( (m % thin_traj) == 0) ) {
+            for(n=0; n<data->n_obs; n++){
+                ssm_print_X(stdout, D_X_prev[n+1], par, nav, calc[0], data->rows[n], m);
+            }
+        }
 
-	if ( (nav->print & SSM_PRINT_X_SMOOTH) && ( (m % thin_traj) == 0) ) {
-	    for(n=0; n<data->n_obs; n++){
-		ssm_print_X(stdout, D_X_prev[n+1], par, nav, calc[0], data->rows[n], m);
-	    }
-	}
+        if (nav->print & SSM_PRINT_TRACE){
+            ssm_print_trace(stdout, theta, nav, fitness->log_like_prev + fitness->log_prior_prev, m);
+        }
 
-	if (nav->print & SSM_PRINT_TRACE){
-	    ssm_print_trace(stdout, theta, nav, fitness->log_like_prev, m);
-	}
-
-	if (nav->print & SSM_PRINT_ACC) {
-	    ssm_print_ar(stdout, adapt, m);
-	}
+        if (nav->print & SSM_PRINT_ACC) {
+            ssm_print_ar(stdout, adapt, m);
+        }
     }
 
 

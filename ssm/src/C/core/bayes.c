@@ -126,22 +126,23 @@ ssm_err_code_t ssm_log_prob_prior(double *log_prior, ssm_theta_t *theta, ssm_nav
 
 
 /**
- * return accepted (1) or rejected (0)
+ * return accepted (SSM_SUCCESS) or rejected (SSM_MH_REJECTED) or
+ * combination of prob errors and assign fitness->log_prior
  */
-ssm_err_code_t ssm_metropolis_hastings(double *alpha, ssm_theta_t *proposed, ssm_theta_t *theta, gsl_matrix *var, double sd_fac, ssm_fitness_t *fitness , ssm_nav_t *nav, ssm_calc_t *calc, int is_mvn)
+ssm_err_code_t ssm_metropolis_hastings(ssm_fitness_t *fitness, double *alpha, ssm_theta_t *proposed, ssm_theta_t *theta, gsl_matrix *var, double sd_fac , ssm_nav_t *nav, ssm_calc_t *calc, int is_mvn)
 {
     double ran;
     ssm_err_code_t success = SSM_SUCCESS;
-    double lproposal_new, lproposal_prev, lprior_new, lprior_prev;
-    success |= ssm_log_prob_proposal(&lproposal_new,  proposed, theta,     var, sd_fac, nav,  is_mvn); /* q{ theta* | theta(i-1) }*/
-    success |= ssm_log_prob_proposal(&lproposal_prev, theta,     proposed, var, sd_fac, nav, is_mvn);  /* q{ theta(i-1) | theta* }*/
-    success |= ssm_log_prob_prior   (&lprior_new,        proposed,                      nav, fitness); /* p{theta*} */
-    success |= ssm_log_prob_prior   (&lprior_prev,       theta,                         nav, fitness); /* p{theta(i-1)} */
+    double lproposal, lproposal_prev, lprior_prev;
+    success |= ssm_log_prob_proposal(&lproposal,          proposed, theta,    var, sd_fac, nav,  is_mvn); /* q{ theta* | theta(i-1) }*/
+    success |= ssm_log_prob_proposal(&lproposal_prev,     theta,    proposed, var, sd_fac, nav, is_mvn);  /* q{ theta(i-1) | theta* }*/
+    success |= ssm_log_prob_prior   (&fitness->log_prior, proposed,                        nav, fitness); /* p{theta*} */
+    success |= ssm_log_prob_prior   (&lprior_prev,        theta,                           nav, fitness); /* p{theta(i-1)} */
 
     if(success == SSM_SUCCESS) {
 
         // ( p{theta*}(y)  p{theta*} ) / ( p{theta(i-1)}(y) p{theta(i-1)} )  *  q{ theta(i-1) | theta* } / q{ theta* | theta(i-1) }
-        *alpha = exp( (fitness->log_like - fitness->log_like_prev + lproposal_prev - lproposal_new + lprior_new - lprior_prev) );
+        *alpha = exp( (fitness->log_like - fitness->log_like_prev + lproposal_prev - lproposal + fitness->log_prior - lprior_prev) );
 
         ran = gsl_ran_flat(calc->randgsl, 0.0, 1.0);
 
