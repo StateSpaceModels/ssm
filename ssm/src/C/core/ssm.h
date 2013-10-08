@@ -684,6 +684,7 @@ ssm_var_t *ssm_adapt_eps_var_sd_fac(double *sd_fac, ssm_adapt_t *a, ssm_var_t *v
 void ssm_adapt_ar(ssm_adapt_t *a, int is_accepted, int m);
 void ssm_theta_ran(ssm_theta_t *proposed, ssm_theta_t *theta, ssm_var_t *var, double sd_fac, ssm_calc_t *calc, ssm_nav_t *nav, int is_mvn);
 int ssm_theta_copy(ssm_theta_t *dest, ssm_theta_t *src);
+int ssm_par_copy(ssm_par_t *dest, ssm_par_t *src);
 void ssm_sample_traj(ssm_X_t **D_X, ssm_X_t ***D_J_X, ssm_calc_t *calc, ssm_data_t *data, ssm_fitness_t *fitness);
 
 /* simplex.c */

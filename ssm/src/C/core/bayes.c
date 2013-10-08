@@ -215,6 +215,11 @@ int ssm_theta_copy(ssm_theta_t *dest, ssm_theta_t *src)
     return gsl_vector_memcpy(dest, src);   
 }
 
+int ssm_par_copy(ssm_par_t *dest, ssm_par_t *src)
+{
+    return gsl_vector_memcpy(dest, src);   
+}
+
 
 
 

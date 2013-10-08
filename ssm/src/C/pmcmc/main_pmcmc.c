@@ -39,6 +39,7 @@ int main(int argc, char *argv[])
 
     ssm_input_t *input = ssm_input_new(jparameters, nav);
     ssm_par_t *par = ssm_par_new(input, calc[0], nav);
+    ssm_par_t *par_proposed = ssm_par_new(input, calc[0], nav);
 
     ssm_theta_t *theta = ssm_theta_new(input, nav);
     ssm_theta_t *proposed = ssm_theta_new(input, nav);
@@ -98,12 +99,12 @@ int main(int argc, char *argv[])
 
 	ssm_theta_ran(proposed, theta, var, sd_fac, calc[0], nav, 1);
 	ssm_theta2input(input, proposed, nav);
-	ssm_input2par(par, input, calc[0], nav);
+	ssm_input2par(par_proposed, input, calc[0], nav);
 
-	success |= ssm_check_ic(par, calc[0]);
+	success |= ssm_check_ic(par_proposed, calc[0]);
 
 	if(success == SSM_SUCCESS){
-	    ssm_par2X(D_J_X[0][0], par, calc[0], nav);
+	    ssm_par2X(D_J_X[0][0], par_proposed, calc[0], nav);
 	    D_J_X[0][0]->dt = D_J_X[0][0]->dt0;
 
 	    for(j=1; j<fitness->J; j++){
@@ -117,6 +118,7 @@ int main(int argc, char *argv[])
 	if(success == SSM_SUCCESS){ //everything went well and the proposed theta was accepted 
 	    fitness->log_like_prev = fitness->log_like;
 	    ssm_theta_copy(theta, proposed);
+	    ssm_par_copy(par, par_proposed);
 
 	    if ( (nav->print & SSM_PRINT_X_SMOOTH) && data->n_obs ) {
 		ssm_sample_traj(D_X, D_J_X, calc[0], data, fitness);
@@ -124,10 +126,6 @@ int main(int argc, char *argv[])
 		    ssm_X_copy(D_X_prev[n+1], D_X[n+1]);
 		}
 	    }
-	} else { //failure or rejection
-	    //reset par (currently corresponding to proposed) from the previous theta (theta as opposed to proposed) so that the prints (X, sample_traj) got the right values
-	    ssm_theta2input(input, theta, nav);
-	    ssm_input2par(par, input, calc[0], nav);
 	}
 
 	ssm_adapt_ar(adapt, is_accepted, m); //compute acceptance rate
@@ -146,7 +144,6 @@ int main(int argc, char *argv[])
 	if (nav->print & SSM_PRINT_ACC) {
 	    ssm_print_ar(stdout, adapt, m);
 	}
-
     }
 
 
@@ -165,6 +162,7 @@ int main(int argc, char *argv[])
     ssm_fitness_free(fitness);
 
     ssm_input_free(input);
+    ssm_par_free(par_proposed);
     ssm_par_free(par);
 
     ssm_theta_free(theta);
