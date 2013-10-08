@@ -578,6 +578,8 @@ ssm_X_t *ssm_X_new(ssm_nav_t *nav, ssm_options_t *opts);
 void ssm_X_free(ssm_X_t *X);
 ssm_X_t **ssm_J_X_new(ssm_fitness_t *fitness, ssm_nav_t *nav, ssm_options_t *opts);
 void ssm_J_X_free(ssm_X_t **X, ssm_fitness_t *fitness);
+ssm_X_t **ssm_D_X_new(ssm_data_t *data, ssm_nav_t *nav, ssm_options_t *opts);
+void ssm_D_X_free(ssm_X_t **X, ssm_data_t *data);
 ssm_X_t ***ssm_D_J_X_new(ssm_data_t *data, ssm_fitness_t *fitness, ssm_nav_t *nav, ssm_options_t *opts);
 void ssm_D_J_X_free(ssm_X_t ***X, ssm_data_t *data, ssm_fitness_t *fitness);
 ssm_hat_t *ssm_hat_new(ssm_nav_t *nav);
@@ -683,6 +685,7 @@ ssm_var_t *ssm_adapt_eps_var_sd_fac(double *sd_fac, ssm_adapt_t *a, ssm_var_t *v
 void ssm_adapt_ar(ssm_adapt_t *a, int is_accepted, int m);
 void ssm_theta_ran(ssm_theta_t *proposed, ssm_theta_t *theta, ssm_var_t *var, double sd_fac, ssm_calc_t *calc, ssm_nav_t *nav, int is_mvn);
 int ssm_theta_copy(ssm_theta_t *dest, ssm_theta_t *src);
+void ssm_sample_traj(ssm_X_t **D_X, ssm_X_t ***D_J_X, ssm_calc_t *calc, ssm_data_t *data, ssm_fitness_t *fitness);
 
 /* simplex.c */
 void ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_simplex)(const gsl_vector *x, void *params), ssm_nav_t *nav, double size_stop, int n_iter);

@@ -988,6 +988,37 @@ void ssm_J_X_free(ssm_X_t **X, ssm_fitness_t *fitness)
     free(X);
 }
 
+
+ssm_X_t **ssm_D_X_new(ssm_data_t *data, ssm_nav_t *nav, ssm_options_t *opts)
+{
+    int i;
+    ssm_X_t **X = malloc((data->length+1) * sizeof (ssm_X_t *));
+    if (X==NULL) {
+        ssm_print_err("Allocation impossible for ssm_X_t *");
+        exit(EXIT_FAILURE);
+    }
+
+    for(i=0; i<data->length+1; i++){
+        X[i] = ssm_X_new(nav, opts);
+    }
+
+    return X;
+}
+
+void ssm_D_X_free(ssm_X_t **X, ssm_data_t *data)
+{
+    int i;
+
+    for(i=0; i<data->length+1; i++){
+        ssm_X_free(X[i]);
+    }
+
+    free(X);
+}
+
+
+
+
 ssm_X_t ***ssm_D_J_X_new(ssm_data_t *data, ssm_fitness_t *fitness, ssm_nav_t *nav, ssm_options_t *opts)
 {
     int i;

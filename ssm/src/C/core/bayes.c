@@ -214,3 +214,73 @@ int ssm_theta_copy(ssm_theta_t *dest, ssm_theta_t *src)
 {
     return gsl_vector_memcpy(dest, src);   
 }
+
+
+
+
+/**
+ * The key is to understand that: X_resampled[j] = X[select[j]] so select
+ * give the index of the resample ancestor...
+ * The ancestor of particle j is select[j]
+ *
+ * With n index: X[n+1][j] = X[n][select[n][j]]
+ *
+ * Other caveat: D_J_p_X are in [N_DATA+1] ([0] contains the initial conditions)
+ * select is in [N_DATA], times is in [N_DATA]
+ */
+void ssm_sample_traj(ssm_X_t **D_X, ssm_X_t ***D_J_X, ssm_calc_t *calc, ssm_data_t *data, ssm_fitness_t *fitness)
+{
+    int j_sel;
+    int n, nn, indn;
+
+    double ran, cum_weights;
+
+    ssm_X_t *X_sel;
+
+    ran=gsl_ran_flat(calc->randgsl, 0.0, 1.0);
+
+    j_sel=0;
+    cum_weights=fitness->weights[0];
+
+    while (cum_weights < ran) {
+        cum_weights += fitness->weights[++j_sel];
+    }
+
+    //print traj of ancestors of particle j_sel;
+
+    //!!! we assume that the last data point contain information'
+    X_sel = D_J_X[data->n_obs][j_sel]; // N_DATA-1 <=> data->indn_data_nonan[N_DATA_NONAN-1]
+    ssm_X_copy(D_X[data->n_obs], Xsel);
+
+    //printing all ancesters up to previous observation time
+    for(nn = (data->ind_nonan[data->n_obs_nonan-1]-1); nn > data->ind_nonan[data->n_obs_nonan-2]; nn--) {
+        X_sel = D_J_X[nn + 1][j_sel];
+	ssm_X_copy(D_X[nn + 1], Xsel);
+    }
+
+    for(n = (data->n_obs_nonan-2); n >= 1; n--) {
+	//indentifying index of the path that led to sampled particule
+	indn = data->ind_nonan[n];
+	j_sel = fitness->select[indn][j_sel];
+        X_sel = D_J_X[indn + 1][j_sel];      
+	ssm_X_copy(D_X[indn + 1], Xsel);
+	
+	//printing all ancesters up to previous observation time
+        for(nn= (indn-1); nn > data->ind_nonan[n-1]; nn--) {
+            X_sel = D_J_X[nn + 1][j_sel];
+	    ssm_X_copy(D_X[nn + 1], Xsel);
+        }
+    }
+
+    indn = data->ind_nonan[0];
+    j_sel = fitness->select[indn][j_sel];
+    X_sel = D_J_X[indn+1][j_sel];
+    
+    for(nn=indn; nn>=0; nn--) {       
+	X_sel = D_J_X[ nn + 1 ][j_sel];
+	ssm_X_copy(D_X[nn + 1], Xsel);
+    }
+
+    //TODO nn=-1 (for initial conditions)
+
+}

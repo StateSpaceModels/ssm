@@ -32,6 +32,8 @@ int main(int argc, char *argv[])
     ssm_calc_t **calc = ssm_N_calc_new(jdata, nav, data, fitness, opts);
     ssm_X_t ***D_J_X = ssm_D_J_X_new(data, fitness, nav, opts);
     ssm_X_t ***D_J_X_tmp = ssm_D_J_X_new(data, fitness, nav, opts);
+    ssm_X_t **D_X = ssm_D_X_new(data, nav, opts); //to store sampled trajectories
+    ssm_X_t **D_X_prev = ssm_D_X_new(data, nav, opts);
 
     json_decref(jdata);
 
@@ -52,7 +54,7 @@ int main(int argc, char *argv[])
     /////////////////////////
     // initialization step //
     /////////////////////////
-    int j;
+    int j, n;
     int m = 0;
 
     ssm_par2X(D_J_X[0][0], par, calc[0], nav);
@@ -67,8 +69,18 @@ int main(int argc, char *argv[])
     if ( ( nav->print & SSM_PRINT_X_SMOOTH ) && data->n_obs ) {
 	ssm_sample_traj_print(stdout, D_J_X, par, nav, calc[0], data, fitness, m);
     }
+
+    if (nav->print & SSM_PRINT_X_SMOOTH) {
+	for(n=0; n<data->n_obs; n++){
+	    ssm_print_X(stdout, D_X[n+1], par, nav, calc[0], data->rows[n], m);
+	}
+    }
+
     //the initial iteration is "accepted"
     fitness->log_like_prev = fitness->log_like_new;
+    for(n=0; n<data->n_obs; n++){    
+	ssm_X_copy(D_X_prev[n+1], D_J_X[n+1]);
+    }
 
     if(nav->print & SSM_PRINT_TRACE){
 	ssm_print_trace(stdout, theta, nav, fitness->log_like, m);
@@ -106,19 +118,24 @@ int main(int argc, char *argv[])
         if (is_accepted) {
 	    fitness->log_like_prev = fitness->log_like_new;
 	    ssm_theta_copy(theta, proposed);
+	    ssm_sample_traj(D_X, D_J_X, calc[0], data, fitness);
 	} else {
 	    fitness->log_like = fitness->log_like_prev;
 	    //reset par so that the prints (X, sample_traj) got the right values
 	    ssm_theta2input(input, theta, nav);
-	    ssm_input2par(par, input, calc[0], nav);	    
+	    ssm_input2par(par, input, calc[0], nav);
+
+	    ssm_swap_X(&D_X, &D_X_prev);
 	}
  
 	ssm_adapt_ar(adapt, is_accepted, m); //compute acceptance rate
 
 	ssm_adapt_var(adapt, theta, m);  //compute empirical variance
 
-	if ( (nav->print & SSM_PRINT_X_SMOOTH) && ( (m % thin_traj) == 0)  && data->n_obs ) {
-	    ssm_sample_traj_print(stdout, D_J_X, par, nav, calc[0], data, fitness, m);
+	if ( (nav->print & SSM_PRINT_X_SMOOTH) && ( (m % thin_traj) == 0) ) {
+	    for(n=0; n<data->n_obs; n++){
+		ssm_print_X(stdout, D_X[n+1], par, nav, calc[0], data->rows[n], m);
+	    }
 	}
 
 	if (nav->print & SSM_PRINT_TRACE){
@@ -136,6 +153,9 @@ int main(int argc, char *argv[])
 
     ssm_D_J_X_free(D_J_X, data, fitness);
     ssm_D_J_X_free(D_J_X_tmp, data, fitness);
+    ssm_D_X_free(D_X, data);
+    ssm_D_X_free(D_X_prev, data);
+
     ssm_N_calc_free(calc, nav);
 
     ssm_data_free(data);
