@@ -63,7 +63,7 @@ ssm_err_code_t ssm_log_prob_proposal(double *log_like, ssm_theta_t *proposed, ss
 
 	//check for numerical issues
 	if( (isnan(p_tmp)==1) || (isinf(p_tmp)==1) || (p_tmp<0.0) ) {
-	    return SSM_ERR_LIKE;
+	    return SSM_ERR_PROPOSAL;
 	}
 
 	if (!is_mvn) {
@@ -77,7 +77,7 @@ ssm_err_code_t ssm_log_prob_proposal(double *log_like, ssm_theta_t *proposed, ss
 
     //check AGAIN for numerical issues (taking log could have created issues)
     if((isinf(lp)==1) || (isnan(lp)==1)) {
-	return SSM_ERR_LIKE;
+	return SSM_ERR_PROPOSAL;
     }
     
     *log_like = lp;
@@ -121,24 +121,24 @@ ssm_err_code_t log_prob_prior(double *log_like, ssm_theta_t *theta, ssm_nav_t *n
 
     *log_like = lp;
 
-    return (is_err) ? SSM_ERR_LIKE: SSM_SUCCESS;
+    return (is_err) ? SSM_ERR_PRIOR: SSM_SUCCESS;
 }
 
 
 /**
  * return accepted (1) or rejected (0)
  */
-int ssm_metropolis_hastings(double *alpha, ssm_theta_t *proposed, ssm_theta_t *theta, gsl_matrix *var, double sd_fac, ssm_fitness_t *fitness , ssm_nav_t *nav, ssm_calc_t *calc, int is_mvn)
+ssm_err_code_t ssm_metropolis_hastings(double *alpha, ssm_theta_t *proposed, ssm_theta_t *theta, gsl_matrix *var, double sd_fac, ssm_fitness_t *fitness , ssm_nav_t *nav, ssm_calc_t *calc, int is_mvn)
 {
     double ran;
-
+    ssm_err_code_t success = SSM_SUCCESS;
     double lproposal_new, lproposal_prev, lprior_new, lprior_prev;
-    ssm_err_code_t rc_proposal_new =  ssm_log_prob_proposal(&lproposal_new,  proposed, theta,     var, sd_fac, nav,  is_mvn); /* q{ theta* | theta(i-1) }*/
-    ssm_err_code_t rc_proposal_prev = ssm_log_prob_proposal(&lproposal_prev, theta,     proposed, var, sd_fac, nav, is_mvn);  /* q{ theta(i-1) | theta* }*/
-    ssm_err_code_t rc_prior_new  =    ssm_log_prob_prior(&lprior_new,        proposed,                        nav, fitness); /* p{theta*} */
-    ssm_err_code_t rc_prior_prev =    ssm_log_prob_prior(&lprior_prev,       theta,                            nav, fitness); /* p{theta(i-1)} */
+    success |= ssm_log_prob_proposal(&lproposal_new,  proposed, theta,     var, sd_fac, nav,  is_mvn); /* q{ theta* | theta(i-1) }*/
+    success |= ssm_log_prob_proposal(&lproposal_prev, theta,     proposed, var, sd_fac, nav, is_mvn);  /* q{ theta(i-1) | theta* }*/
+    success |= ssm_log_prob_prior   (&lprior_new,        proposed,                      nav, fitness); /* p{theta*} */
+    success |= ssm_log_prob_prior   (&lprior_prev,       theta,                         nav, fitness); /* p{theta(i-1)} */
 
-    if( (rc_proposal_new == SSM_SUCCESS) && (rc_proposal_prev == SSM_SUCCESS) && (rc_prior_new == SSM_SUCCESS) && (rc_prior_prev == SSM_SUCCESS) ) {
+    if(success == SSM_SUCCESS) {
 
         // ( p{theta*}(y)  p{theta*} ) / ( p{theta(i-1)}(y) p{theta(i-1)} )  *  q{ theta(i-1) | theta* } / q{ theta* | theta(i-1) }
         *alpha = exp( (fitness->log_like_new - fitness->log_like_prev + lproposal_prev - lproposal_new + lprior_new - lprior_prev) );
@@ -146,14 +146,14 @@ int ssm_metropolis_hastings(double *alpha, ssm_theta_t *proposed, ssm_theta_t *t
         ran = gsl_ran_flat(calc->randgsl, 0.0, 1.0);
 
         if(ran < *alpha) {
-            return 1; //accepted
+            return success; //accepted
         }
     } else {
         *alpha = 0.0;
-        return 0; //rejected
+        return sucess|SSM_ERR_MH; //rejected
     }
 
-    return 0;
+    return SSM_ERR_MH;
 }
 
 /**

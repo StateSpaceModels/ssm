@@ -62,7 +62,7 @@ typedef enum {SSM_NO_DEM_STO = 1 << 0, SSM_NO_WHITE_NOISE = 1 << 1, SSM_NO_DIFF 
 
 typedef enum {SSM_PRINT_TRACE = 1 << 0, SSM_PRINT_X = 1 << 1, SSM_PRINT_HAT = 1 << 2, SSM_PRINT_PRED_RES = 1 << 3, SSM_PRINT_X_SMOOTH = 1 << 4, SSM_PRINT_ACC = 1 << 5, SSM_PIPE = 1 << 6, SSM_QUIET = 1 << 7, SSM_PRINT_COV = 1 << 8 } ssm_print_t;
 
-typedef enum {SSM_SUCCESS = 1 << 0 , SSM_ERR_LIKE= 1 << 1, SSM_ERR_REM = 1 << 2, SSM_ERR_ODE = 1 << 3, SSM_ERR_KAL = 1 << 4, SSM_ERR_IC = 1 << 5} ssm_err_code_t;
+typedef enum {SSM_SUCCESS = 1 << 0 , SSM_ERR_LIKE= 1 << 1, SSM_ERR_REM = 1 << 2, SSM_ERR_ODE = 1 << 3, SSM_ERR_KAL = 1 << 4, SSM_ERR_IC = 1 << 5, SSM_ERR_MH = 1 << 6, SSM_ERR_PROPOSAL = 1 << 7, SSM_ERR_PRIOR = 1 << 8} ssm_err_code_t;
 
 #define SSM_BUFFER_SIZE (2 * 1024)  /**< 1000 KB buffer size */
 #define SSM_STR_BUFFSIZE 255 /**< buffer for log and error strings */
@@ -359,7 +359,6 @@ typedef struct
 
     /* for bayesian methods */
     double log_like_prev;
-    double log_like_new;
 
 } ssm_fitness_t;
 
@@ -680,7 +679,7 @@ void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *n
 /* bayes.c */
 ssm_err_code_t ssm_log_prob_proposal(double *log_like, ssm_theta_t *proposed, ssm_theta_t *theta, ssm_var_t *var, double sd_fac, ssm_nav_t *nav, int is_mvn);
 ssm_err_code_t ssm_log_prob_prior(double *log_like, ssm_theta_t *theta, ssm_nav_t *nav, ssm_fitness_t *fitness);
-int ssm_metropolis_hastings(double *alpha, ssm_theta_t *proposed, ssm_theta_t *theta, gsl_matrix *var, double sd_fac, ssm_fitness_t *fitness , ssm_nav_t *nav, ssm_calc_t *calc, int is_mvn);
+ssm_err_code_t ssm_metropolis_hastings(double *alpha, ssm_theta_t *proposed, ssm_theta_t *theta, gsl_matrix *var, double sd_fac, ssm_fitness_t *fitness , ssm_nav_t *nav, ssm_calc_t *calc, int is_mvn);
 ssm_var_t *ssm_adapt_eps_var_sd_fac(double *sd_fac, ssm_adapt_t *a, ssm_var_t *var, ssm_nav_t *nav, int m);
 void ssm_adapt_ar(ssm_adapt_t *a, int is_accepted, int m);
 void ssm_theta_ran(ssm_theta_t *proposed, ssm_theta_t *theta, ssm_var_t *var, double sd_fac, ssm_calc_t *calc, ssm_nav_t *nav, int is_mvn);

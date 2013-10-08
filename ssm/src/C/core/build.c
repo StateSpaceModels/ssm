@@ -910,7 +910,6 @@ ssm_fitness_t *ssm_fitness_new(ssm_data_t *data, ssm_options_t *opts)
     fitness->n_all_fail = 0;
 
     fitness->log_like_prev = 0.0;
-    fitness->log_like_new = 0.0;
 
     return fitness;
 }
