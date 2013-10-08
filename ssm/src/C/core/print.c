@@ -123,7 +123,7 @@ void ssm_print_trace(FILE *stream, ssm_theta_t *theta, ssm_nav_t *nav, const dou
 
 /**
  * computes standardized prediction residuals
- * res = (data-one_set_ahead_pred)/sqrt(var_one_step_ahead +var_obs)
+ * res = (data-one_step_ahead_pred)/sqrt(var_one_step_ahead +var_obs)
  *
  * AND effective sample size.
  *
@@ -153,35 +153,35 @@ void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *
 
     for(ts=0; ts<row->ts_nonan_length; ts++) {
 
-	observed = row->observed[ts];
-	y = row->values[ts];
-        
-	if (implementation == SSM_EKF) {
-	    var_obs = observed->f_obs_var(X, par, calc, t);
-	    pred = observed->f_obs_mean(X, par, calc, t);
-	    var_state = observed->var_f_pred(X, par, calc, nav, t);
-	    res = (y - pred)/sqrt(var_state + var_obs);	
-	} else {	
-	    kn=0.0;
-	    pred=0.0;
-	    var_obs=0.0;
-	    M2=0.0;
-        
-	    for(j=0; j <fitness->J ; j++) {
-		kn += 1.0;
-		x = observed->f_obs_mean(J_X[j], par, calc, t);
-		
-		delta = x - pred;
-		pred += delta/kn;
-		M2 += delta*(x - pred);
-		var_obs += observed->f_obs_var(J_X[j], par, calc, t);
-	    }
+        observed = row->observed[ts];
+        y = row->values[ts];
 
-	    var_state = M2/(kn - 1.0);
-	    var_obs /= ((double) fitness->J);
-	    
-	    res = (y - pred)/sqrt(var_state + var_obs);
-	}
+        if (implementation == SSM_EKF) {
+            var_obs = observed->f_obs_var(X, par, calc, t);
+            pred = observed->f_obs_mean(X, par, calc, t);
+            var_state = observed->var_f_pred(X, par, calc, nav, t);
+            res = (y - pred)/sqrt(var_state + var_obs);
+        } else {
+            kn=0.0;
+            pred=0.0;
+            var_obs=0.0;
+            M2=0.0;
+
+            for(j=0; j <fitness->J ; j++) {
+                kn += 1.0;
+                x = observed->f_obs_mean(J_X[j], par, calc, t);
+
+                delta = x - pred;
+                pred += delta/kn;
+                M2 += delta*(x - pred);
+                var_obs += observed->f_obs_var(J_X[j], par, calc, t);
+            }
+
+            var_state = M2/(kn - 1.0);
+            var_obs /= ((double) fitness->J);
+
+            res = (y - pred)/sqrt(var_state + var_obs);
+        }
 
         snprintf(key, SSM_STR_BUFFSIZE, "pred_%s", observed->name);
         json_object_set_new(jout, key, json_real(pred));
@@ -208,50 +208,50 @@ void ssm_print_hat(FILE *stream, ssm_hat_t *hat, ssm_nav_t *nav, ssm_row_t *row)
     json_object_set_new(jout, "date", json_string(row->date));
 
     for(i=0; i< nav->states_sv_inc->length; i++) {
-	state = nav->states_sv_inc->p[i];
-	json_object_set_new(jout, state->name, json_real(hat->states[state->offset]));	
+        state = nav->states_sv_inc->p[i];
+        json_object_set_new(jout, state->name, json_real(hat->states[state->offset]));
 
-	snprintf(key, SSM_STR_BUFFSIZE, "lower_%s", state->name);
-	json_object_set_new(jout, key, json_real(hat->states_95[state->offset][0]));
+        snprintf(key, SSM_STR_BUFFSIZE, "lower_%s", state->name);
+        json_object_set_new(jout, key, json_real(hat->states_95[state->offset][0]));
 
-	snprintf(key, SSM_STR_BUFFSIZE, "upper_%s", state->name);
-	json_object_set_new(jout, key, json_real(hat->states_95[state->offset][1]));
+        snprintf(key, SSM_STR_BUFFSIZE, "upper_%s", state->name);
+        json_object_set_new(jout, key, json_real(hat->states_95[state->offset][1]));
     }
 
     for(i=0; i< nav->states_remainders->length; i++) {
-	state = nav->states_remainders->p[i];
-	json_object_set_new(jout, state->name, json_real(hat->remainders[state->offset]));	
+        state = nav->states_remainders->p[i];
+        json_object_set_new(jout, state->name, json_real(hat->remainders[state->offset]));
 
-	snprintf(key, SSM_STR_BUFFSIZE, "lower_%s", state->name);
-	json_object_set_new(jout, key, json_real(hat->remainders_95[state->offset][0]));
+        snprintf(key, SSM_STR_BUFFSIZE, "lower_%s", state->name);
+        json_object_set_new(jout, key, json_real(hat->remainders_95[state->offset][0]));
 
-	snprintf(key, SSM_STR_BUFFSIZE, "upper_%s", state->name);
-	json_object_set_new(jout, key, json_real(hat->remainders_95[state->offset][1]));
+        snprintf(key, SSM_STR_BUFFSIZE, "upper_%s", state->name);
+        json_object_set_new(jout, key, json_real(hat->remainders_95[state->offset][1]));
     }
 
     for(i=0; i< nav->states_diff->length; i++) {
-	state = nav->states_diff->p[i];
-	json_object_set_new(jout, state->name, json_real(hat->states[state->offset]));	
+        state = nav->states_diff->p[i];
+        json_object_set_new(jout, state->name, json_real(hat->states[state->offset]));
 
-	snprintf(key, SSM_STR_BUFFSIZE, "lower_%s", state->name);
-	json_object_set_new(jout, key, json_real(hat->states_95[state->offset][0]));
+        snprintf(key, SSM_STR_BUFFSIZE, "lower_%s", state->name);
+        json_object_set_new(jout, key, json_real(hat->states_95[state->offset][0]));
 
-	snprintf(key, SSM_STR_BUFFSIZE, "upper_%s", state->name);
-	json_object_set_new(jout, key, json_real(hat->states_95[state->offset][1]));
+        snprintf(key, SSM_STR_BUFFSIZE, "upper_%s", state->name);
+        json_object_set_new(jout, key, json_real(hat->states_95[state->offset][1]));
     }
 
     for(i=0; i< nav->observed_length; i++) {
-	observed = nav->observed[i];
+        observed = nav->observed[i];
 
-	json_object_set_new(jout, observed->name, json_real(hat->observed[observed->offset]));	
+        json_object_set_new(jout, observed->name, json_real(hat->observed[observed->offset]));
 
-	snprintf(key, SSM_STR_BUFFSIZE, "lower_%s", observed->name);
-	json_object_set_new(jout, key, json_real(hat->observed_95[observed->offset][0]));
+        snprintf(key, SSM_STR_BUFFSIZE, "lower_%s", observed->name);
+        json_object_set_new(jout, key, json_real(hat->observed_95[observed->offset][0]));
 
-	snprintf(key, SSM_STR_BUFFSIZE, "upper_%s", observed->name);
-	json_object_set_new(jout, key, json_real(hat->observed_95[observed->offset][1]));
+        snprintf(key, SSM_STR_BUFFSIZE, "upper_%s", observed->name);
+        json_object_set_new(jout, key, json_real(hat->observed_95[observed->offset][1]));
     }
-    
+
     ssm_json_dumpf(stream, "hat", jout);
 }
 
@@ -293,31 +293,31 @@ void ssm_sample_traj_print(FILE *stream, ssm_X_t ***D_J_X, ssm_par_t *par, ssm_n
     //printing all ancesters up to previous observation time
     for(nn = (data->ind_nonan[data->n_obs_nonan-1]-1); nn > data->ind_nonan[data->n_obs_nonan-2]; nn--) {
         X_sel = D_J_X[ nn + 1 ][j_sel];
-	ssm_print_X(stream, X_sel, par, nav, calc, data->rows[nn], index);
+        ssm_print_X(stream, X_sel, par, nav, calc, data->rows[nn], index);
     }
 
     for(n = (data->n_obs_nonan-2); n >= 1; n--) {
-	//indentifying index of the path that led to sampled particule
-	indn = data->ind_nonan[n];
-	j_sel = fitness->select[indn][j_sel];
+        //indentifying index of the path that led to sampled particule
+        indn = data->ind_nonan[n];
+        j_sel = fitness->select[indn][j_sel];
         X_sel = D_J_X[ indn + 1 ][j_sel];
-      
-	ssm_print_X(stream, X_sel, par, nav, calc, data->rows[indn], index);
-	
-	//printing all ancesters up to previous observation time
+
+        ssm_print_X(stream, X_sel, par, nav, calc, data->rows[indn], index);
+
+        //printing all ancesters up to previous observation time
         for(nn= (indn-1); nn > data->ind_nonan[n-1]; nn--) {
             X_sel = D_J_X[ nn + 1 ][j_sel];
-	    ssm_print_X(stream, X_sel, par, nav, calc, data->rows[nn], index);
+            ssm_print_X(stream, X_sel, par, nav, calc, data->rows[nn], index);
         }
     }
 
     indn = data->ind_nonan[0];
     j_sel = fitness->select[indn][j_sel];
     X_sel = D_J_X[indn+1][j_sel];
-    
-    for(nn=indn; nn>=0; nn--) {       
-	X_sel = D_J_X[ nn + 1 ][j_sel];
-	ssm_print_X(stream, X_sel, par, nav, calc, data->rows[nn], index);
+
+    for(nn=indn; nn>=0; nn--) {
+        X_sel = D_J_X[ nn + 1 ][j_sel];
+        ssm_print_X(stream, X_sel, par, nav, calc, data->rows[nn], index);
     }
 
     //TODO nn=-1 (for initial conditions)
@@ -337,4 +337,3 @@ void ssm_print_ar(FILE *stream, ssm_adapt_t *adapt, const int index)
 
     ssm_json_dumpf(stream, "ar", jout);
 }
-

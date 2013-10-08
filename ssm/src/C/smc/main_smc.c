@@ -80,11 +80,12 @@ int main(int argc, char *argv[])
                 ssm_hat_eval(hat, J_X, &par, nav, calc[0], fitness, t1, 0);
             }
 
-            ssm_resample_X(fitness, &J_X, &J_X_tmp, n);
-
             if (nav->print & SSM_PRINT_DIAG) {
                 ssm_print_pred_res(stdout, J_X, par, nav, calc[0], data->rows[n], fitness);
             }
+
+            ssm_resample_X(fitness, &J_X, &J_X_tmp, n);
+
         } else if (nav->print & SSM_PRINT_HAT) { //we do not filter or all data ara NaN (no info).
             ssm_hat_eval(hat, J_X, &par, nav, calc[0], NULL, t1, 0);
         }

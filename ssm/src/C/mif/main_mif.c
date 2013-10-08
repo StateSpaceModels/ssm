@@ -178,6 +178,5 @@ int main(int argc, char *argv[])
     free(J_theta);
     free(J_theta_tmp);
 
-
     return 0;
 }

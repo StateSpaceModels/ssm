@@ -141,15 +141,15 @@ typedef struct ssm_calc_t /*[N_THREADS] : for parallel computing we need N_THREA
     gsl_matrix *_St;            /**< [nav->observed_length][nav->observed_length] */
     gsl_matrix *_Stm1;          /**< [nav->observed_length][nav->observed_length] */
     gsl_matrix *_Rt;            /**< [nav->observed_length][nav->observed_length] */
-    gsl_matrix *_Ht;            /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->observed_length] */
-    gsl_matrix *_Kt;            /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->observed_length] */
-    gsl_matrix *_Tmp_N_SV_N_TS; /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->observed_length] */
-    gsl_matrix *_Tmp_N_TS_N_SV; /**< [nav->observed_length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
-    gsl_matrix *_Q;             /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
-    gsl_matrix *_FtCt;          /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
-    gsl_matrix *_Ft;            /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
-    gsl_vector *_eval;      /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
-    gsl_matrix *_evec;      /**< [nav->states_sv->length + nav->states_inc->length + nav->states_diff->length][nav->states_sv->length + nav->states_inc->length + nav->states_diff->length] */
+    gsl_matrix *_Ht;            /**< [nav->states_sv_inc->length + nav->states_diff->length][nav->observed_length] */
+    gsl_matrix *_Kt;            /**< [nav->states_sv_inc->length + nav->states_diff->length][nav->observed_length] */
+    gsl_matrix *_Tmp_N_SV_N_TS; /**< [nav->states_sv_inc->length + nav->states_diff->length][nav->observed_length] */
+    gsl_matrix *_Tmp_N_TS_N_SV; /**< [nav->observed_length][nav->states_sv_inc->length + nav->states_diff->length] */
+    gsl_matrix *_Q;             /**< [nav->states_sv_inc->length + nav->states_diff->length][nav->states_sv_inc->length + nav->states_diff->length] */
+    gsl_matrix *_FtCt;          /**< [nav->states_sv_inc->length + nav->states_diff->length][nav->states_sv_inc->length + nav->states_diff->length] */
+    gsl_matrix *_Ft;            /**< [nav->states_sv_inc->length + nav->states_diff->length][nav->states_sv_inc->length + nav->states_diff->length] */
+    gsl_vector *_eval;      /**< [nav->states_sv_inc->length + nav->states_diff->length] */
+    gsl_matrix *_evec;      /**< [nav->states_sv_inc->length + nav->states_diff->length][nav->states_sv_inc->length + nav->states_diff->length] */
     gsl_eigen_symmv_workspace *_w_eigen_vv;  /**< workspace to compute eigen values and eigen vector for symmetric matrix */
 
     //multi-threaded sorting
@@ -696,9 +696,9 @@ void ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_si
 /******************************/
 
 /* kalman/ekf.c */
-ssm_err_code_t ssm_check_and_correct_Ct(ssm_X_t *X, ssm_calc_t *calc);
+ssm_err_code_t _ssm_check_and_correct_Ct(ssm_X_t *X, ssm_calc_t *calc, ssm_nav_t *nav);
 ssm_err_code_t ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav);
-ssm_err_code_t ssm_kalman_update(ssm_X_t *X, ssm_row_t *row, double t, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *like);
+ssm_err_code_t ssm_kalman_update(ssm_fitness_t *fitness, ssm_X_t *X, ssm_row_t *row, double t, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav);
 double ssm_diff_derivative(double jac_tpl, const double X[], ssm_state_t *state);
 
 

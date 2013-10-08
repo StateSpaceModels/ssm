@@ -20,7 +20,7 @@
 
 int main(int argc, char *argv[])
 {
-    int j, n, np1, t0,t1;
+    int n, t0, t1;
 
     ssm_options_t *opts = ssm_options_new();
     ssm_load_options(opts, SSM_KALMAN, argc, argv);
@@ -32,47 +32,42 @@ int main(int argc, char *argv[])
     ssm_data_t *data = ssm_data_new(jdata, nav, opts);
     ssm_fitness_t *fitness = ssm_fitness_new(data, opts);
     ssm_calc_t *calc = ssm_calc_new(jdata, nav, data, fitness, opts, 0);
-    ssm_X_t *X = ssm_X_new(data->n_data +1, nav);
+    ssm_X_t *X = ssm_X_new(nav, opts);
+    ssm_hat_t *hat = ssm_hat_new(nav);
 
     json_decref(jdata);
 
     ssm_input_t *input = ssm_input_new(jparameters, nav);
     ssm_par_t *par = ssm_par_new(input, calc, nav);
+    ssm_theta_t *theta = ssm_theta_new(input, nav);
 
-    ssm_input2par(par, input, calc, nav);
-    ssm_par2X(X, par, calc, nav);
-
-    fitness->cum_status[0] = SSM_SUCCESS;
+    int flag_prior = opts->flag_prior;
+    int flag_no_filter = opts->flag_no_filter;
 
     ssm_f_pred_t f_pred = ssm_get_f_pred(nav);
 
+    fitness->cum_status[0] = SSM_SUCCESS;
+
+    ssm_par2X(X, par, calc, nav);
+
     for(n=0; n<data->n_obs; n++) {
-        np1 = n+1;
         t0 = (n) ? data->rows[n-1]->time: 0;
         t1 = data->rows[n]->time;
 
-        // Reset incidence
         ssm_X_reset_inc(X, data->rows[n], nav);
-
-        // Predict
         fitness->cum_status[0] |= (*f_pred)(X, t0, t1, par, nav, calc);
 
-        // Update
-        fitness->cum_status[0] |= ssm_kalman_update(X, data->rows[n], t1, par, calc, nav, fitness);
+        if (nav->print & SSM_PRINT_DIAG) {
+            ssm_print_pred_res(stdout, &X, par, nav, calc, data->rows[n], fitness);
+        }
 
-        if(!flag_no_filter && data->rows[n]->ts_nonan_length) {
-            if (nav->print & SSM_PRINT_HAT) {
-                ssm_hat_eval(hat, &X, &par, nav, calc[0], fitness, t1, 0);
-            }
-
-            if (nav->print & SSM_PRINT_DIAG) {
-                ssm_print_pred_res(stdout, &X, &par, nav, calc, data->rows[n], fitness);
-            }
-        } else if (nav->print & SSM_PRINT_HAT) { //we do not filter or all data ara NaN (no info).
-            ssm_hat_eval(hat, &X, &par, nav, calc, NULL, t1, 0);
+        if(!flag_no_filter && data->rows[n]->ts_nonan_length && (fitness->cum_status[0] == SSM_SUCCESS)) {
+            fitness->cum_status[0] |= ssm_kalman_update(fitness, X, data->rows[n], t1, par, calc, nav);
+            //TODO: handle error (exit(EXIT_FAILURE) ??)
         }
 
         if (nav->print & SSM_PRINT_HAT) {
+            ssm_hat_eval(hat, &X, &par, nav, calc, fitness, t1, 0);
             ssm_print_hat(stdout, hat, nav, data->rows[n]);
         }
 
@@ -81,16 +76,31 @@ int main(int argc, char *argv[])
         }
     }
 
-    json_decref(parameters);
+    if (flag_prior) {
+        double log_prob_prior_value;
+        ssm_err_code_t rc = ssm_log_prob_prior(&log_prob_prior_value, theta, nav, fitness);
+        if(rc != SSM_SUCCESS && !(nav->print & SSM_QUIET)){
+            ssm_print_warning("error log_prob_prior computation");
+        }
+        fitness->log_like += log_prob_prior_value;
+    }
+
+    if (nav->print & SSM_PRINT_TRACE) {
+        ssm_print_trace(stdout, theta, nav, fitness->log_like, 0);
+    }
+
+    json_decref(jparameters);
 
     ssm_X_free(X);
-    ssm_calc_free(calc);
+    ssm_calc_free(calc, nav);
+    ssm_hat_free(hat);
 
     ssm_data_free(data);
     ssm_nav_free(nav);
 
     ssm_input_free(input);
     ssm_par_free(par);
+    ssm_theta_free(theta);
 
     ssm_fitness_free(fitness);
 
