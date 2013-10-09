@@ -206,6 +206,7 @@ ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters)
     states[{{ order_states[p] }}]->f_der_inv = &ssm_f_id;
 
     states[{{ order_states[p] }}]->f_remainder = NULL;
+    states[{{ order_states[p] }}]->f_remainder_var = NULL;
 
     states[{{ order_states[p] }}]->ic = {% if p in par_sv %}parameters[{{ order_states[p] }}]{% else %}NULL{% endif %};
     {% endfor %}
@@ -228,6 +229,7 @@ ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters)
     {% endif %}
 
     states[{{ order_states['diff__' + p.id] }}]->f_remainder = NULL;
+    states[{{ order_states['diff__' + p.id] }}]->f_remainder_var = NULL;
 
     states[{{ order_states['diff__' + p.id] }}]->ic = {% if 'offset_ic' in p %}parameters[{{ p.offset_ic }}]{% else %}NULL{% endif %};
     {% endfor %}
@@ -244,6 +246,7 @@ ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters)
     states[{{ order_states[p] }}]->f_der_inv = &ssm_f_id;
 
     states[{{ order_states[p] }}]->f_remainder = &f_remainder_tpl_{{ p }};
+    states[{{ order_states[p] }}]->f_remainder_var = &f_remainder_var_tpl_{{ p }};
 
     states[{{ order_states[p] }}]->ic = NULL;
     {% endfor %}
