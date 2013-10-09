@@ -1,7 +1,10 @@
 S|S|M
 =====
 
-Inference for *S*tate *S*pace *M*odels
+_Pipable_ plug-and-play inference methods for time series analysis with *S*tate *S*pace *M*odels.
+
+    cat theta.json | ./simplex -M 10000 | ./ksimplex -M 10000 > mle.json
+    cat mle.json | ./kmcmc -M 100000 | ./pmcmc -J 1000 -M 500000
 
 Overview
 ========
