@@ -35,7 +35,7 @@ class Cmodel:
 
         ###########################################################################
 
-        self.remainder = [x['remainder']['id'] for x in self.get_resource('populations') if 'remainder' in x]
+        self.remainder = sorted([x['remainder']['id'] for x in self.get_resource('populations') if 'remainder' in x])
         self.ur = ['U'] + self.remainder
 
         parameters = self.get_resource('parameters')
@@ -94,7 +94,7 @@ class Cmodel:
                         float(e)
                     except ValueError:
                         par_proc.add(e)
-            
+
         self.par_proc = sorted(list(par_proc))
 
         #par_diff (state variable for diffusions)
@@ -124,7 +124,7 @@ class Cmodel:
         self.par_other = sorted([x['id'] for x in parameters if x['id'] not in par_ssm])
 
         ##all parameters
-        self.all_par = par_ssm + self.par_other + ['t']        
+        self.all_par = par_ssm + self.par_other + ['t']
 
         ##orders in nav->states and nav->parameters
         ## !!par_sv must be first in both order_states and order_parameters, remainder must be last in order_states
