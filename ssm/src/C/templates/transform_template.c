@@ -19,7 +19,7 @@ static double f_der_tpl_skl_{{ p.id }}(double x)
     return {{ p.f_der }};
 }
 
-static double f_inv_der_tpl_skl_{{ p.id }}(double x)
+static double f_der_inv_tpl_skl_{{ p.id }}(double x)
 {
     return {{ p.f_der_inv }};
 }
@@ -59,12 +59,12 @@ static double f_der_tpl_{{ p.id }}(double x)
     return ssm_f_der_logit_ab(x, {{ p.prior.lower }}, {{ p.prior.upper }});
 }
 
-static double f_inv_der_tpl_{{ p.id }}(double x)
+static double f_der_inv_tpl_{{ p.id }}(double x)
 {
     return ssm_f_der_inv_logit_ab(x, {{ p.prior.lower }}, {{ p.prior.upper }});
 }
 
-static double f_inv_der2_tpl_{{ p.id }}(double x)
+static double f_der2_inv_tpl_{{ p.id }}(double x)
 {
     return ssm_f_der_inv_logit_ab(x, {{ p.prior.lower }}, {{ p.prior.upper }});
 }
@@ -100,7 +100,7 @@ static double f_remainder_var_tpl_{{ rem }}(ssm_X_t *p_X, ssm_calc_t *calc, ssm_
 {
     double *X = p_X->proj;
     int m = nav->states_sv_inc->length + nav->states_diff->length;
-    gsl_matrix_const_view Ct = gsl_matrix_const_view_array(&X[m], m, m);	
+    gsl_matrix_const_view Ct = gsl_matrix_const_view_array(&X[m], m, m);
     return {{ var }};
 }
 {% endfor %}
@@ -134,27 +134,27 @@ ssm_parameter_t **ssm_parameters_new(int *parameters_length)
     {% if 'prior' in p and 'lower' in p.prior and 'upper' in p.prior and (p.prior.lower !=0 or p.prior.upper !=1) %}
     parameters[{{ order_parameters[p.id] }}]->f = &f_tpl_{{ p.id }};
     parameters[{{ order_parameters[p.id] }}]->f_inv = &f_inv_tpl_{{ p.id }};
-    parameters[{{ order_parameters[p.id] }}]->f_derivative = &f_der_tpl_{{ p.id }};
-    parameters[{{ order_parameters[p.id] }}]->f_inv_derivative = &f_inv_der_tpl_{{ p.id }};
-    parameters[{{ order_parameters[p.id] }}]->f_inv_derivative2 = &f_inv_der2_tpl_{{ p.id }};
+    parameters[{{ order_parameters[p.id] }}]->f_der = &f_der_tpl_{{ p.id }};
+    parameters[{{ order_parameters[p.id] }}]->f_der_inv = &f_der_inv_tpl_{{ p.id }};
+    parameters[{{ order_parameters[p.id] }}]->f_der2_inv = &f_der2_inv_tpl_{{ p.id }};
     {% elif 'prior' in p and 'lower' in p.prior and p.prior.lower ==0 and 'upper' not in p.prior %}
     parameters[{{ order_parameters[p.id] }}]->f = &ssm_f_log;
     parameters[{{ order_parameters[p.id] }}]->f_inv = &ssm_f_inv_log;
-    parameters[{{ order_parameters[p.id] }}]->f_derivative = &ssm_f_der_log;
-    parameters[{{ order_parameters[p.id] }}]->f_inv_derivative = &ssm_f_inv_der_log;
-    parameters[{{ order_parameters[p.id] }}]->f_inv_derivative2 = &ssm_f_inv_der2_log;
+    parameters[{{ order_parameters[p.id] }}]->f_der = &ssm_f_der_log;
+    parameters[{{ order_parameters[p.id] }}]->f_der_inv = &ssm_f_der_inv_log;
+    parameters[{{ order_parameters[p.id] }}]->f_der2_inv = &ssm_f_der2_inv_log;
     {% elif 'prior' in p and 'lower' in p.prior and 'upper' in p.prior and p.prior.lower == 0 and p.prior.upper == 1 %}
     parameters[{{ order_parameters[p.id] }}]->f = &ssm_f_logit;
     parameters[{{ order_parameters[p.id] }}]->f_inv = &ssm_f_inv_logit;
-    parameters[{{ order_parameters[p.id] }}]->f_derivative = &ssm_f_der_logit;
-    parameters[{{ order_parameters[p.id] }}]->f_inv_derivative = &ssm_f_inv_der_logit;
-    parameters[{{ order_parameters[p.id] }}]->f_inv_derivative2 = &ssm_f_inv_der2_logit;
+    parameters[{{ order_parameters[p.id] }}]->f_der = &ssm_f_der_logit;
+    parameters[{{ order_parameters[p.id] }}]->f_der_inv = &ssm_f_der_inv_logit;
+    parameters[{{ order_parameters[p.id] }}]->f_der2_inv = &ssm_f_der2_inv_logit;
     {% else %}
     parameters[{{ order_parameters[p.id] }}]->f = &ssm_f_id;
     parameters[{{ order_parameters[p.id] }}]->f_inv = &ssm_f_id;
-    parameters[{{ order_parameters[p.id] }}]->f_derivative = &ssm_f_der_id;
-    parameters[{{ order_parameters[p.id] }}]->f_inv_derivative = &ssm_f_der_id;
-    parameters[{{ order_parameters[p.id] }}]->f_inv_derivative2 = &ssm_f_der_id;
+    parameters[{{ order_parameters[p.id] }}]->f_der = &ssm_f_der_id;
+    parameters[{{ order_parameters[p.id] }}]->f_der_inv = &ssm_f_der_id;
+    parameters[{{ order_parameters[p.id] }}]->f_der2_inv = &ssm_f_der_id;
     {% endif %}
 
     {% if 'prior' in p and 'distribution' in p.prior and p.prior.distribution != 'fixed' %}
@@ -163,9 +163,9 @@ ssm_parameter_t **ssm_parameters_new(int *parameters_length)
     {% else %}
     parameters[{{ order_parameters[p.id] }}]->f_prior = NULL;
     {% endif %}
-    
+
     parameters[{{ order_parameters[p.id] }}]->f_user2par = &{% if 'transformation' in p %}f_user2par_tpl_{{ p.id }}{% else %}ssm_f_user_par_id{% endif %};
-    parameters[{{ order_parameters[p.id] }}]->f_2prior = &{% if 'f_2prior' in p %}f_2prior_tpl_{{ p.id }}{% else %}ssm_f_2prior_id{% endif %};    
+    parameters[{{ order_parameters[p.id] }}]->f_2prior = &{% if 'f_2prior' in p %}f_2prior_tpl_{{ p.id }}{% else %}ssm_f_2prior_id{% endif %};
     {% endfor %}
 
     return parameters;
@@ -202,10 +202,11 @@ ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters)
 
     states[{{ order_states[p] }}]->f = &ssm_f_id;
     states[{{ order_states[p] }}]->f_inv = &ssm_f_id;
-    states[{{ order_states[p] }}]->f_derivative = &ssm_f_id;
-    states[{{ order_states[p] }}]->f_inv_derivative = &ssm_f_id;
+    states[{{ order_states[p] }}]->f_der = &ssm_f_id;
+    states[{{ order_states[p] }}]->f_der_inv = &ssm_f_id;
 
     states[{{ order_states[p] }}]->f_remainder = NULL;
+    states[{{ order_states[p] }}]->f_remainder_var = NULL;
 
     states[{{ order_states[p] }}]->ic = {% if p in par_sv %}parameters[{{ order_states[p] }}]{% else %}NULL{% endif %};
     {% endfor %}
@@ -218,16 +219,17 @@ ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters)
     {% if 'transformation' in p %}
     states[{{ order_states['diff__' + p.id] }}]->f = &f_tpl_skl_{{ p.id }};
     states[{{ order_states['diff__' + p.id] }}]->f_inv = &f_inv_tpl_skl_{{ p.id }};
-    states[{{ order_states['diff__' + p.id] }}]->f_derivative = &f_der_tpl_skl_{{ p.id }};
-    states[{{ order_states['diff__' + p.id] }}]->f_inv_derivative = &f_inv_der_tpl_skl_{{ p.id }};
+    states[{{ order_states['diff__' + p.id] }}]->f_der = &f_der_tpl_skl_{{ p.id }};
+    states[{{ order_states['diff__' + p.id] }}]->f_der_inv = &f_der_inv_tpl_skl_{{ p.id }};
     {% else %}
     states[{{ order_states['diff__' + p.id] }}]->f = &ssm_f_id;
     states[{{ order_states['diff__' + p.id] }}]->f_inv = &ssm_f_id;
-    states[{{ order_states['diff__' + p.id] }}]->f_derivative = &ssm_f_id;
-    states[{{ order_states['diff__' + p.id] }}]->f_inv_derivative = &ssm_f_id;
+    states[{{ order_states['diff__' + p.id] }}]->f_der = &ssm_f_id;
+    states[{{ order_states['diff__' + p.id] }}]->f_der_inv = &ssm_f_id;
     {% endif %}
 
     states[{{ order_states['diff__' + p.id] }}]->f_remainder = NULL;
+    states[{{ order_states['diff__' + p.id] }}]->f_remainder_var = NULL;
 
     states[{{ order_states['diff__' + p.id] }}]->ic = {% if 'offset_ic' in p %}parameters[{{ p.offset_ic }}]{% else %}NULL{% endif %};
     {% endfor %}
@@ -240,10 +242,11 @@ ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters)
 
     states[{{ order_states[p] }}]->f = &ssm_f_id;
     states[{{ order_states[p] }}]->f_inv = &ssm_f_id;
-    states[{{ order_states[p] }}]->f_derivative = &ssm_f_id;
-    states[{{ order_states[p] }}]->f_inv_derivative = &ssm_f_id;
+    states[{{ order_states[p] }}]->f_der = &ssm_f_id;
+    states[{{ order_states[p] }}]->f_der_inv = &ssm_f_id;
 
     states[{{ order_states[p] }}]->f_remainder = &f_remainder_tpl_{{ p }};
+    states[{{ order_states[p] }}]->f_remainder_var = &f_remainder_var_tpl_{{ p }};
 
     states[{{ order_states[p] }}]->ic = NULL;
     {% endfor %}

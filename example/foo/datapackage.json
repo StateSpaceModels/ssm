@@ -1,10 +1,10 @@
 {
-  "name": "parameters-sballest-noise",
+  "name": "analysis-seb-foo",
   "description": "starting values",
   "keywords": ["trial"],
   "version": "0.0.0",
   "dependencies": {
-    "model-sballest-sir": "*"
+    "model-seb-sir": "*"
   },
   "licenses": [
     {
