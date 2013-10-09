@@ -90,7 +90,7 @@ void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *n
 	ssm_X_t *X = *J_X;
 	ssm_par_t *par = *J_par;
 	gsl_matrix_const_view Ct   = gsl_matrix_const_view_array(&X->proj[m], m, m);
-	double rem, obs, var, grad;
+	double rem, obs, var, grad, grad2;
 
 	//sv and incidences
 	for(i=0; i< nav->states_sv_inc->length; i++) {
@@ -109,13 +109,16 @@ void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *n
 	    hat->states_95[offset][1] = rem + 1.96*var;
 	}
 
-	//diffusions (we rely on a first-order Taylor approximation here)
+	//diffusions (we rely on a second-order Taylor approximation here)
+	// Var(f(X))=[f'(EX)]^2Var(X)+\frac{[f''(EX)]^2}{4}Var^2(X)
 	for(i=0; i<nav->states_diff->length; i++){
 	    state = nav->states_diff->p[i];
 	    offset = state->offset;
 	    grad = state->f_inv_derivative(X->proj[offset]);
-	    hat->states_95[offset][0] = state->f_inv(X->proj[offset]) - 1.96*pow(grad,2)*gsl_matrix_get(&Ct.matrix,offset,offset);
-	    hat->states_95[offset][1] = state->f_inv(X->proj[offset]) + 1.96*pow(grad,2)*gsl_matrix_get(&Ct.matrix,offset,offset);
+	    grad2 = state->f_inv_derivative2(X->proj[offset]);
+	    var = pow(grad,2.0) * gsl_matrix_get(&Ct.matrix,offset,offset) + pow(grad2,2.0)/4.0*pow(gsl_matrix_get(&Ct.matrix,offset,offset),2.0);
+	    hat->states_95[offset][0] = state->f_inv(X->proj[offset]) - 1.96*var;
+	    hat->states_95[offset][1] = state->f_inv(X->proj[offset]) + 1.96*var;
 	}
 
 	//observed

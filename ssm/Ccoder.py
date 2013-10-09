@@ -194,6 +194,7 @@ class Ccoder(Cmodel):
                 p['f_inv'] = self.make_C_term(p['transformation']+ '- x', True, inverse=p['id'], human=True, set_t0=True)
                 p['f_der'] = self.make_C_term(p['transformation'], True, derivate=p['id'], human=True, xify=p['id'], set_t0=True)
                 p['f_der_inv'] = self.make_C_term(p['f_inv'], True, derivate='x', human=True, set_t0=True)
+                p['f_der2_inv'] = self.make_C_term(p['f_der_inv'], True, derivate='x', human=True, set_t0=True)
 
             if p['id'] in self.order_parameters:
                 p['offset_ic'] = self.order_parameters[p['id']]

@@ -63,6 +63,11 @@ static double f_inv_der_tpl_{{ p.id }}(double x)
 {
     return ssm_f_der_inv_logit_ab(x, {{ p.prior.lower }}, {{ p.prior.upper }});
 }
+
+static double f_inv_der2_tpl_{{ p.id }}(double x)
+{
+    return ssm_f_der_inv_logit_ab(x, {{ p.prior.lower }}, {{ p.prior.upper }});
+}
 {% endif %}
 
 
@@ -131,21 +136,25 @@ ssm_parameter_t **ssm_parameters_new(int *parameters_length)
     parameters[{{ order_parameters[p.id] }}]->f_inv = &f_inv_tpl_{{ p.id }};
     parameters[{{ order_parameters[p.id] }}]->f_derivative = &f_der_tpl_{{ p.id }};
     parameters[{{ order_parameters[p.id] }}]->f_inv_derivative = &f_inv_der_tpl_{{ p.id }};
+    parameters[{{ order_parameters[p.id] }}]->f_inv_derivative2 = &f_inv_der2_tpl_{{ p.id }};
     {% elif 'prior' in p and 'lower' in p.prior and p.prior.lower ==0 and 'upper' not in p.prior %}
     parameters[{{ order_parameters[p.id] }}]->f = &ssm_f_log;
     parameters[{{ order_parameters[p.id] }}]->f_inv = &ssm_f_inv_log;
     parameters[{{ order_parameters[p.id] }}]->f_derivative = &ssm_f_der_log;
     parameters[{{ order_parameters[p.id] }}]->f_inv_derivative = &ssm_f_inv_der_log;
+    parameters[{{ order_parameters[p.id] }}]->f_inv_derivative2 = &ssm_f_inv_der2_log;
     {% elif 'prior' in p and 'lower' in p.prior and 'upper' in p.prior and p.prior.lower == 0 and p.prior.upper == 1 %}
     parameters[{{ order_parameters[p.id] }}]->f = &ssm_f_logit;
     parameters[{{ order_parameters[p.id] }}]->f_inv = &ssm_f_inv_logit;
     parameters[{{ order_parameters[p.id] }}]->f_derivative = &ssm_f_der_logit;
     parameters[{{ order_parameters[p.id] }}]->f_inv_derivative = &ssm_f_inv_der_logit;
+    parameters[{{ order_parameters[p.id] }}]->f_inv_derivative2 = &ssm_f_inv_der2_logit;
     {% else %}
     parameters[{{ order_parameters[p.id] }}]->f = &ssm_f_id;
     parameters[{{ order_parameters[p.id] }}]->f_inv = &ssm_f_id;
-    parameters[{{ order_parameters[p.id] }}]->f_derivative = &ssm_f_id;
-    parameters[{{ order_parameters[p.id] }}]->f_inv_derivative = &ssm_f_id;
+    parameters[{{ order_parameters[p.id] }}]->f_derivative = &ssm_f_der_id;
+    parameters[{{ order_parameters[p.id] }}]->f_inv_derivative = &ssm_f_der_id;
+    parameters[{{ order_parameters[p.id] }}]->f_inv_derivative2 = &ssm_f_der_id;
     {% endif %}
 
     {% if 'prior' in p and 'distribution' in p.prior and p.prior.distribution != 'fixed' %}
