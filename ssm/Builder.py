@@ -91,7 +91,7 @@ class Builder(Data, Ccoder):
         observed['orders'] = orders
         observed['h_grads'] = self.h_grads()
         self.render('observed', observed)
-        
+
         self.render('iterator', {'iterators':self.iterators()})
 
         psr = {
@@ -126,7 +126,7 @@ class Builder(Data, Ccoder):
 
 if __name__=="__main__":
 
-    b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'example', 'model', 'datapackage.json'))
+    b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'example', 'foo', 'datapackages', 'model-seb-sir', 'datapackage.json'))
 
     b.prepare()
     b.code()

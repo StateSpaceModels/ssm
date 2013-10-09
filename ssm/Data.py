@@ -174,5 +174,5 @@ class Data(Cmodel):
 
 if __name__=="__main__":
 
-    d = Data(os.path.join('..' ,'example', 'model', 'datapackage.json'))
+    d = Data(os.path.join('..' ,'example', 'foo', 'datapackages', 'model-seb-sir', 'datapackage.json'))
     print d.prepare_covariates()
