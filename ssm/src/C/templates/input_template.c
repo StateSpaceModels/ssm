@@ -29,7 +29,7 @@ ssm_input_t *ssm_input_new(json_t *jparameters, ssm_nav_t *nav)
     {% for p in pars %}
     {% if 'prior' in p and 'distribution' in p.prior and p.prior.distribution == 'fixed' %}
     //{{ p.id }}
-    gsl_vector_set(input, {{ loop.index0 }}, {{ p.prior.value }});
+    gsl_vector_set(input, {{ order_parameters[p.id] }}, {{ p.prior.value }});
     {%endif%}
     {% endfor %}
 
