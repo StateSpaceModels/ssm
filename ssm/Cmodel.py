@@ -39,6 +39,9 @@ class Cmodel:
         self.ur = ['U'] + self.remainder
 
         parameters = self.get_resource('parameters')
+        sde = self.get_resource('sde')
+        reactions = self.get_resource('reactions')
+        observations = self.get_resource('observations')
 
         #par_forced (covariates)
         par_forced = [x['id'] for x in parameters if 'prior' in x and 'path' in x['prior']]
@@ -49,7 +52,7 @@ class Cmodel:
         par_sv = set()
         par_inc = set()
 
-        for r in self.get_resource('reactions'):
+        for r in reactions:
             if r['from'] not in self.ur:
                 par_sv.add(r['from'])
             if r['to'] not in self.ur:
@@ -66,7 +69,7 @@ class Cmodel:
         par_proc = set()
         par_noise = set()
         self.white_noise = []
-        for r in self.get_resource('reactions'):
+        for r in reactions:
             el =  self.change_user_input(r['rate'])
             for e in el:
                 if e not in self.op and e not in self.special_functions and e not in self.par_sv and e not in self.par_forced:
@@ -83,8 +86,6 @@ class Cmodel:
         self.par_noise = sorted(list(par_noise))
 
         ##add parameter within sde.dispersion to par_proc
-        sde = self.get_resource('sde')
-
         disp = [x for subl in sde['dispersion'] for x in subl if x != 0] if 'dispersion' in sde else []
         for x in disp:
             el =  self.change_user_input(x)
@@ -99,15 +100,16 @@ class Cmodel:
 
         #par_diff (state variable for diffusions)
         par_diff = []
-        for x in sde.get('drift', []):
-            par_diff.append(x['id'])
+        if sde:
+            for x in sde.get('drift', []):
+                par_diff.append(x['id'])
 
         self.par_diff = ['diff__' + x for x in sorted(par_diff)]
 
         #par_obs
         par_obs = set();
         priors = [x['id'] for x in parameters]
-        for o in self.get_resource('observations'):
+        for o in observations:
             for p in [o['pdf']['mean'], o['pdf']['sd']]:
                 el =  self.change_user_input(p)
                 for e in el:
@@ -139,10 +141,10 @@ class Cmodel:
 
 
         # proc_model
-        self.proc_model = copy.deepcopy(self.get_resource('reactions'))
+        self.proc_model = copy.deepcopy(reactions)
 
         # obs_model
-        self.obs_model = copy.deepcopy(self.get_resource('observations'))
+        self.obs_model = copy.deepcopy(observations)
 
         #fix rates:
         #replace ^ by ** for sympy
