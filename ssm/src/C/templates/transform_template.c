@@ -73,8 +73,9 @@ static double f_user2par_tpl_{{ p.id }}(double x, ssm_input_t *par, ssm_calc_t *
 }
 {% endif %}
 {% if 'f_2prior' in p %}
-static double f_2prior_tpl_{{ p.id }}(double x, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t)
+static double f_2prior_tpl_{{ p.id }}(double x, ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
 {
+    double *X = p_X->proj;
     return {{ p.f_2prior }};
 }
 {% endif %}
@@ -92,6 +93,7 @@ static double f_remainder_tpl_{{ rem }}(ssm_X_t *p_X, ssm_calc_t *calc, double t
 {% for rem, var in f_remainders_var.items() %}
 static double f_remainder_var_tpl_{{ rem }}(ssm_X_t *p_X, ssm_calc_t *calc, ssm_nav_t *nav, double t)
 {
+    double *X = p_X->proj;
     int m = nav->states_sv_inc->length + nav->states_diff->length;
     gsl_matrix_const_view Ct = gsl_matrix_const_view_array(&X[m], m, m);	
     return {{ var }};
@@ -153,8 +155,8 @@ ssm_parameter_t **ssm_parameters_new(int *parameters_length)
     parameters[{{ order_parameters[p.id] }}]->prior = NULL;
     {% endif %}
     
-    parameters[{{ order_parameters[p.id] }}]->f_user2par = &{% if 'transformation' in p %}f_par2user_tpl_{{ p.id }}{% else %}ssm_f_user_par_id{% endif %};
-    parameters[{{ order_parameters[p.id] }}]->f_2prior = &{% if 'f_2prior' in p %}ssm_f_2prior_tpl_{{ p.id }}{% else %}ssm_f_2prior_id{% endif %};    
+    parameters[{{ order_parameters[p.id] }}]->f_user2par = &{% if 'transformation' in p %}f_user2par_tpl_{{ p.id }}{% else %}ssm_f_user_par_id{% endif %};
+    parameters[{{ order_parameters[p.id] }}]->f_2prior = &{% if 'f_2prior' in p %}f_2prior_tpl_{{ p.id }}{% else %}ssm_f_2prior_id{% endif %};    
     {% endfor %}
 
     return parameters;

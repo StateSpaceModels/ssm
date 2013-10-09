@@ -159,7 +159,7 @@ void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *
         if (implementation == SSM_EKF) {
             var_obs = observed->f_obs_var(X, par, calc, t);
             pred = observed->f_obs_mean(X, par, calc, t);
-            var_state = observed->var_f_pred(X, par, calc, nav, t);
+            var_state = observed->f_var_pred(X, par, calc, nav, t);
             res = (y - pred)/sqrt(var_state + var_obs);
         } else {
             kn=0.0;

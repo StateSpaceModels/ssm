@@ -53,7 +53,7 @@ static double f_obs_ran_tpl_{{ x.id }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t 
  */
 {% for h, x in h_grads.items() %}
 {% for t, y in x.items() %}
-static double var_f_pred_tpl_{{ y.id }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *nav, ssm_calc_t *calc, double t)
+static double f_var_pred_tpl_{{ y.id }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, double t)
 {
     double res = 0;
     int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
@@ -62,7 +62,7 @@ static double var_f_pred_tpl_{{ y.id }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t
     {% for grad_i in y.grads %}
     {% set outer_loop = loop %}
     {% for grad_ii in y.grads %}
-    res += {{ grad_i.Cterm }}*{{ grad_ii.Cterm }}*gsl_matrix_get(Ct,{{ grad_i.ind }},{{ grad_ii.ind }});
+    res += {{ grad_i.Cterm }}*{{ grad_ii.Cterm }}*gsl_matrix_get(&Ct.matrix, {{ grad_i.ind }}, {{ grad_ii.ind }});
     {% endfor %}
     {% endfor %}
     
@@ -98,7 +98,7 @@ ssm_observed_t **ssm_observed_new(int *observed_length)
     observed[{{ loop.index0 }}]->f_obs_mean = &f_obs_mean_tpl_{{ x.id }};
     observed[{{ loop.index0 }}]->f_obs_var = &f_obs_var_tpl_{{ x.id }};
     observed[{{ loop.index0 }}]->f_obs_ran = &f_obs_ran_tpl_{{ x.id }};
-    observed[{{ loop.index0 }}]->var_f_pred = &var_f_pred_tpl_{{ x.id }};
+    observed[{{ loop.index0 }}]->f_var_pred = &f_var_pred_tpl_{{ x.id }};
     {% endfor %}
 
     return observed;
