@@ -57,7 +57,7 @@ class Ccoder(Cmodel):
             else:
                 return 'X[ORDER_{0}]'.format(term)
 
-        elif term in self.par_fixed:
+        elif term in self.par_forced:
             return 'gsl_spline_eval(calc->spline[ORDER_{0}],{1},calc->acc[ORDER_{0}])'.format(term, '0.0' if set_t0 else 't')
 
         elif term in self.par_proc or term in self.par_noise or term in self.par_obs or term in self.par_other:
@@ -198,7 +198,7 @@ class Ccoder(Cmodel):
 
             if p['id'] in self.order_parameters:
                 p['offset_ic'] = self.order_parameters[p['id']]
-                
+
 
         #sort parameters
         #start by making dict:
@@ -267,7 +267,7 @@ class Ccoder(Cmodel):
                 'remainders': [self.order_states[x] for x in self.remainder],
                 'inc': [self.order_states[x] for x in self.par_inc],
                 'sv_inc': [self.order_states[x] for x in (self.par_sv + self.par_inc)],
-                'diff': [self.order_states[x] for x in self.par_diff]                
+                'diff': [self.order_states[x] for x in self.par_diff]
             },
             'parameter': {
                 'all': [self.order_parameters[x] for x in (self.par_sv + self.par_noise + self.par_proc + self.par_obs + self.par_other)],
@@ -291,7 +291,7 @@ class Ccoder(Cmodel):
             'var': [{'name': x, 'order': self.order_parameters[x]} for x in (self.par_sv + self.par_noise + self.par_proc + self.par_obs + self.par_other)],
             'diff': [{'name': x, 'order': o} for o,x in enumerate(self.par_diff) ],
             'inc': [{'name': x, 'order': self.order_states[x]} for x in self.par_inc],
-            'covariates': [{'name': x, 'order': o} for o,x in enumerate(self.par_fixed)] ,
+            'covariates': [{'name': x, 'order': o} for o,x in enumerate(self.par_forced)] ,
             'univ_rem': [{'name': x, 'order': len(self.par_sv)+o} for o,x in enumerate(univ_rem) ]
         }
 
