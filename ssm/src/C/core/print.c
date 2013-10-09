@@ -112,6 +112,35 @@ void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_v
 }
 
 
+void ssm_pipe_hat(FILE *stream, json_t *jparameters, ssm_input_t *input, ssm_hat_t *hat, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, double t)
+{
+    int i, index;
+    double x;
+
+    json_t *jresource = json_object_get(jparameters, "resource");
+
+    for(index=0; index< json_array_size(jresource); index++){
+        json_t *el = json_array_get(jresource, index);
+
+        const char* name = json_string_value(json_object_get(el, "name"));
+        if (strcmp(name, "values") == 0) {
+            json_t *values = json_object_get(el, "data");
+
+	    for(i=0; i<nav->theta_all->length; i++){
+		x = nav->theta_all->p[i]->f_2prior(gsl_vector_get(input, nav->theta_all->p[i]->offset), hat, par, calc, t);
+		json_object_set_new(values, nav->theta_all->p[i]->name, json_real(x));
+	    }
+
+	    break;
+        }
+    }
+   
+    json_dumpf(jparameters, stdout, JSON_INDENT(2)); printf("\n");
+    fflush(stdout);
+}
+
+
+
 void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, const int index)
 {
     //TODO handle t0 (ie before first data point)

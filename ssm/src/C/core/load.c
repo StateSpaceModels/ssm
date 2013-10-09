@@ -147,8 +147,6 @@ unsigned int *ssm_load_ju1_new(json_t *container, char *name)
 
         if(json_is_number(array_i)){
             tab[i] = (unsigned int) json_integer_value(array_i);
-        } else if(json_is_null(array_i)) {
-            tab[i] = NAN;
         } else {
             sprintf(str, "error: %s[%d] is not a number\n", name, i);
             ssm_print_err(str);

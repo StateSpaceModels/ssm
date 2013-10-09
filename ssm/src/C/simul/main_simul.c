@@ -40,8 +40,8 @@ int main(int argc, char *argv[])
         }
     }
 
-    int is_array = json_is_array(jvalues);
-    if(is_array){
+    int is_predict_from_traces = json_is_array(jvalues);
+    if(is_predict_from_traces){
 	opts->J = json_array_size(jvalues);
     }
 
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 
     json_decref(jdata);
 
-    ssm_input_t *input = ssm_input_new((is_array) ? NULL: jparameters, nav);
+    ssm_input_t *input = ssm_input_new((is_predict_from_traces) ? NULL: jparameters, nav);
     ssm_par_t **J_par = malloc(fitness->J * sizeof (ssm_par_t *));
     if(J_par == NULL) {
         ssm_print_err("Allocation impossible for ssm_par_t *");
@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     }
 
     for(j=0; j<fitness->J; j++) {
-	if(is_array){
+	if(is_predict_from_traces){
 	    ssm_jforced(input, json_array_get(jvalues, j), nav);
 	}
 	J_par[j] = ssm_par_new(input, calc[0], nav);
@@ -95,7 +95,14 @@ int main(int argc, char *argv[])
 	    }
 	}
     }
-    
+
+    if(!is_predict_from_traces){
+	if (!(nav->print & SSM_PRINT_HAT)) { //hat was not computed
+	    ssm_hat_eval(hat, J_X, J_par, nav, calc[0], NULL, t1, 0);	
+	}
+	ssm_pipe_hat(stdout, jparameters, input, hat, J_par[0], calc[0], nav, t1);
+    }
+
     json_decref(jparameters);
 
     for(j=0; j<fitness->J; j++) {
