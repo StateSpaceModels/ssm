@@ -85,6 +85,13 @@ double ssm_f_inv_logit_ab(double x, double a, double b)
     }
 }
 
+/**
+ * derivative of ssm_f_id
+ */
+double ssm_f_der_id(double x)
+{
+    return 0;
+}
 
 
 /**
@@ -101,6 +108,15 @@ double ssm_f_der_log(double x)
  * derivative of ssm_f_inv_log
  */
 double ssm_f_der_inv_log(double x)
+{
+    return exp(x);
+}
+
+
+/**
+ * 2nd derivative of ssm_f_inv_log
+ */
+double ssm_f_inv_der2_log(double x)
 {
     return exp(x);
 }
@@ -126,6 +142,20 @@ double ssm_f_der_inv_logit(double x)
     }
 }
 
+
+/**
+ * 2nd derivative of ssm_f_inv_logit
+ */
+double ssm_f_inv_der2_logit(double x)
+{
+    if (x > 0) {
+        return exp(-x)*(exp(-x)-1)/pow(1.0 + exp(-x), 3.0);
+    } else {
+        return exp(x)*(1-exp(x))/pow(1.0 + exp(x), 3.0);
+    }
+}
+
+
 /**
  * derivative of ssm_f_logit_ab
  */
@@ -150,6 +180,23 @@ double ssm_f_der_inv_logit_ab(double x, double a, double b)
             return (b-a)*exp(-x)/pow(exp(-x) + 1.0, 2.0);
         } else {
             return (b-a)*exp(x)/pow(exp(x) + 1.0, 2.0);
+        }
+    }
+}
+
+
+/**
+ * 2nd derivative of ssm_f_inv_logit_ab
+ */
+double ssm_f_inv_der2_logit_ab(double x, double a, double b)
+{
+    if (a == b) {
+        return x ;
+    } else {
+        if (x > 0) {
+            return (b-a)*exp(-x)*(exp(-x)-1)/pow(1.0 + exp(-x), 3.0);
+        } else {
+	    return (b-a)*exp(x)*(1-exp(x))/pow(1.0 + exp(x), 3.0);
         }
     }
 }

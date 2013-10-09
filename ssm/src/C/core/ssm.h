@@ -229,6 +229,7 @@ typedef struct
 
     double (*f_derivative) (double x_theta); /**< derivative of f */
     double (*f_inv_derivative) (double x_theta); /**< derivative of f_inv */
+    double (*f_inv_derivative2) (double x_theta); /**< 2nd derivative of f_inv */
 
     double (*f_prior) (double x_input); /**< prior */
 
@@ -267,6 +268,7 @@ typedef struct
 
     double (*f_derivative) (double x_X);     /**< derivative of f */
     double (*f_inv_derivative) (double x_X); /**< derivative of f_inv */
+    double (*f_inv_derivative2) (double x_X); /**< 2nd derivative of f_inv */
 
     double (*f_remainder) (ssm_X_t *X, ssm_calc_t *calc, double t); /**< compute the remainder value */
     double (*f_remainder_var) (ssm_X_t *X, ssm_calc_t *calc, ssm_nav_t *nav, double t); /**< compute the remainder value */
@@ -642,6 +644,7 @@ void ssm_swap_X(ssm_X_t ***X, ssm_X_t ***tmp_X);
 
 /* transform.c */
 double ssm_f_id(double x);
+double ssm_f_der_id(double x);
 double ssm_f_log(double x);
 double ssm_f_inv_log(double x);
 double ssm_f_logit(double x);
