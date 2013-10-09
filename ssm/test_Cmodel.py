@@ -26,8 +26,8 @@ class TestCmodel(unittest.TestCase):
     def test_par_obs(self):
         self.assertEqual(self.m.par_obs, ['phi', 'rep_all_CDC_inc', 'rep_all_google_inc', 'rep_nyc_CDC_inc', 'rep_paris_CDC_prev'])
 
-    def test_par_fixed(self):
-        self.assertEqual(self.m.par_fixed, ['N_nyc', 'N_paris', 'mu_b_nyc', 'mu_b_paris', 'mu_d_nyc', 'mu_d_paris', 'prop_all_CDC_inc', 'prop_all_google_inc', 'prop_nyc_CDC_inc', 'prop_paris_CDC_prev'])
+    def test_par_forced(self):
+        self.assertEqual(self.m.par_forced, ['N_nyc', 'N_paris', 'mu_b_nyc', 'mu_b_paris', 'mu_d_nyc', 'mu_d_paris', 'prop_all_CDC_inc', 'prop_all_google_inc', 'prop_nyc_CDC_inc', 'prop_paris_CDC_prev'])
 
     def test_par_diff(self):
         self.assertEqual(self.m.par_diff, ['diff__r0_nyc', 'diff__r0_paris'])

@@ -153,7 +153,7 @@ class Data(Cmodel):
 
         data_C = []
 
-        for p in self.par_fixed:
+        for p in self.par_forced:
             if 'transformation' in parameters[p]:
                 f = eval('lambda {0}: {1}'.format(parameters[p]['prior']['id'], parameters[p]['transformation']))
             else:
@@ -168,7 +168,7 @@ class Data(Cmodel):
                     y.append(f(d[name]))
 
             data_C.append({'id': p, 'x': x, 'y': y})
-        
+
         return data_C
 
 

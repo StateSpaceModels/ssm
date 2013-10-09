@@ -40,9 +40,9 @@ class Cmodel:
 
         parameters = self.get_resource('parameters')
 
-        #par_fixed
-        par_fixed = [x['id'] for x in parameters if 'prior' in x and 'path' in x['prior']]
-        self.par_fixed = sorted(par_fixed)
+        #par_forced (covariates)
+        par_forced = [x['id'] for x in parameters if 'prior' in x and 'path' in x['prior']]
+        self.par_forced = sorted(par_forced)
 
 
         #par_sv and par_inc (incidence)
@@ -69,7 +69,7 @@ class Cmodel:
         for r in self.get_resource('reactions'):
             el =  self.change_user_input(r['rate'])
             for e in el:
-                if e not in self.op and e not in self.special_functions and e not in self.par_sv and e not in self.par_fixed:
+                if e not in self.op and e not in self.special_functions and e not in self.par_sv and e not in self.par_forced:
                     try:
                         float(e)
                     except ValueError:
@@ -89,7 +89,7 @@ class Cmodel:
         for x in disp:
             el =  self.change_user_input(x)
             for e in el:
-                if e not in self.op and e not in self.special_functions and e not in self.par_sv and e not in self.par_fixed:
+                if e not in self.op and e not in self.special_functions and e not in self.par_sv and e not in self.par_forced:
                     try:
                         float(e)
                     except ValueError:
@@ -111,7 +111,7 @@ class Cmodel:
             for p in [o['pdf']['mean'], o['pdf']['sd']]:
                 el =  self.change_user_input(p)
                 for e in el:
-                    if e not in self.op and e not in self.special_functions and e not in self.par_sv and e not in self.par_noise and e not in self.par_proc and e not in self.par_fixed and e not in self.par_inc:
+                    if e not in self.op and e not in self.special_functions and e not in self.par_sv and e not in self.par_noise and e not in self.par_proc and e not in self.par_forced and e not in self.par_inc:
                         try:
                             float(e)
                         except ValueError:
@@ -120,7 +120,7 @@ class Cmodel:
         self.par_obs = sorted(list(par_obs))
 
         ##par_other
-        par_ssm = self.par_sv + self.par_inc + self.remainder + self.par_diff + self.par_noise + self.par_proc +  self.par_obs + self.par_fixed
+        par_ssm = self.par_sv + self.par_inc + self.remainder + self.par_diff + self.par_noise + self.par_proc +  self.par_obs + self.par_forced
         self.par_other = sorted([x['id'] for x in parameters if x['id'] not in par_ssm])
 
         ##all parameters
