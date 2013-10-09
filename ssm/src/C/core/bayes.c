@@ -59,7 +59,7 @@ ssm_err_code_t ssm_log_prob_proposal(double *log_proposal, ssm_theta_t *proposed
           diagonal terms so everything generalizes nicely
         */
 
-        p_tmp /= p->f_inv_derivative(gsl_vector_get(proposed, p->offset_theta));
+        p_tmp /= p->f_der_inv(gsl_vector_get(proposed, p->offset_theta));
 
         //check for numerical issues
         if( (isnan(p_tmp)==1) || (isinf(p_tmp)==1) || (p_tmp<0.0) ) {

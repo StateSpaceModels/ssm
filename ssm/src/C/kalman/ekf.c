@@ -240,13 +240,13 @@ ssm_err_code_t ssm_kalman_update(ssm_fitness_t *fitness, ssm_X_t *X, ssm_row_t *
  *  d eq / d log(v) = ( d eq / dv ) / ( d log(v) / dv)
  *
  *  so in term of C:
- *  d eq / d log(v) = jac_tpl / f_derivative(v, ..)
+ *  d eq / d log(v) = jac_tpl / f_der(v, ..)
  *  jac_der is the C term of v, provided by the template
  */
-double ssm_diff_derivative(double jac_tpl, const double X[], ssm_state_t *state)
+double ssm_diff_der(double jac_tpl, const double X[], ssm_state_t *state)
 {
     if(jac_tpl){
-        return jac_tpl / state->f_derivative(X[state->offset]);
+        return jac_tpl / state->f_der(X[state->offset]);
     }
 
     return 0.0;

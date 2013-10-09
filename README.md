@@ -62,6 +62,15 @@ in the package directory (that you will find after unpacking the tarball in ```d
     python setup.py install
 
 
+Tests
+=====
+
+In ssm/:
+
+    python -m unittest discover
+
+
+
 License
 =======
 
