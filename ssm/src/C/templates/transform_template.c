@@ -105,14 +105,14 @@ ssm_parameter_t **ssm_parameters_new(int *parameters_length)
     *parameters_length = {{ pars|length }};
 
     ssm_parameter_t **parameters;
-    parameters = malloc({{ pars|length }} * sizeof (ssm_parameter_t *));
+    parameters = malloc(*parameters_length * sizeof (ssm_parameter_t *));
     if (parameters == NULL) {
         ssm_print_err("Allocation impossible for ssm_parameter_t **");
         exit(EXIT_FAILURE);
     }
 
     int i;
-    for(i=0; i< {{ pars|length }}; i++){
+    for(i=0; i< *parameters_length; i++){
         parameters[i] = malloc(sizeof (ssm_parameter_t));
         if (parameters[i] == NULL) {
             ssm_print_err("Allocation impossible for ssm_parameter_t *");
