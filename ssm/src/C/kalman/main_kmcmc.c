@@ -24,6 +24,9 @@ static ssm_err_code_t run_kalman_and_store_traj(ssm_X_t **D_X, ssm_par_t *par, s
     double t0, t1;
     ssm_err_code_t rc;
 
+    fitness->log_like = 0.0;
+    fitness->log_prior = 0.0;
+
     for(n=0; n<data->n_obs; n++) {
         t0 = (n) ? data->rows[n-1]->time: 0;
         t1 = data->rows[n]->time;
@@ -117,8 +120,6 @@ int main(int argc, char *argv[])
     double ratio;
     for(m=1; m<n_iter; m++) {
         success = SSM_SUCCESS;
-        fitness->log_like = 0.0;
-        fitness->log_prior = 0.0;
 
         var = ssm_adapt_eps_var_sd_fac(&sd_fac, adapt, var_input, nav, m);
 

@@ -161,7 +161,7 @@ ssm_err_code_t ssm_f_prediction_ode(ssm_X_t *p_X, double t0, double t1, ssm_par_
             if (!(nav->print & SSM_QUIET)) {
                 ssm_print_warning("gsl_odeiv2 error");
             }
-            return SSM_ERR_ODE;
+            return SSM_ERR_PRED;
         }
     }
 

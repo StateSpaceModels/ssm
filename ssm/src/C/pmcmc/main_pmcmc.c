@@ -18,6 +18,49 @@
 
 #include "ssm.h"
 
+static ssm_err_code_t run_smc(ssm_err_code_t (*f_pred) (ssm_X_t *, double, double, ssm_par_t *, ssm_nav_t *, ssm_calc_t *), ssm_X_t ***D_J_X, ssm_X_t ***D_J_X_tmp, ssm_par_t *par, ssm_calc_t **calc, ssm_data_t *data, ssm_fitness_t *fitness, ssm_nav_t *nav)
+{
+    int j, n, np1;
+    double t0, t1;
+
+    fitness->log_like = 0.0;
+    fitness->log_prior = 0.0;
+    fitness->n_all_fail = 0;
+
+    for(j=0; j<fitness->J; j++){
+	fitness->cum_status[j] = SSM_SUCCESS;
+    }
+
+    for(n=0; n<data->n_obs; n++) {
+        np1 = n+1;
+        t0 = (n) ? data->rows[n-1]->time: 0;
+        t1 = data->rows[n]->time;
+
+	for(j=0; j<fitness->J; j++){
+	    ssm_X_copy(D_J_X[np1][j], D_J_X[n][j]);
+	}
+
+        for(j=0;j<fitness->J;j++) {
+            ssm_X_reset_inc(D_J_X[np1][j], data->rows[n], nav);
+            fitness->cum_status[j] |= (*f_pred)(D_J_X[np1][j], t0, t1, par, nav, calc[0]);
+
+            if(data->rows[n]->ts_nonan_length) {
+                fitness->weights[j] = (fitness->cum_status[j] == SSM_SUCCESS) ?  exp(ssm_log_likelihood(data->rows[n], D_J_X[np1][j], par, calc[0], nav, fitness)) : 0.0;
+                fitness->cum_status[j] = SSM_SUCCESS;
+            }
+        }
+
+        if(data->rows[n]->ts_nonan_length) {
+            if(ssm_weight(fitness, data->rows[n], nav, n)) {
+                ssm_systematic_sampling(fitness, calc[0], n);
+            }
+            ssm_resample_X(fitness, D_J_X, D_J_X_tmp, n);
+        }
+    }
+
+    return (fitness->n_all_fail == data->n_obs) ? SSM_ERR_PRED: SSM_SUCCESS;
+}
+
 int main(int argc, char *argv[])
 {
     ssm_options_t *opts = ssm_options_new();
@@ -51,20 +94,20 @@ int main(int argc, char *argv[])
     int n_traj = GSL_MIN(n_iter, opts->n_traj);
     int thin_traj = (int) ( (double) n_iter / (double) n_traj); //the thinning interval
 
+    ssm_f_pred_t f_pred = ssm_get_f_pred(nav);
 
     /////////////////////////
     // initialization step //
     /////////////////////////
     int j, n;
     int m = 0;
-    ssm_err_code_t success = SSM_SUCCESS;
 
     ssm_par2X(D_J_X[0][0], par, calc[0], nav);
     for(j=1; j<fitness->J; j++){
         ssm_X_copy(D_J_X[0][j], D_J_X[0][0]);
     }
 
-    //TODO: success |= run_smc(...)
+    ssm_err_code_t success = run_smc(f_pred, D_J_X, D_J_X_tmp, par_proposed, calc, data, fitness, nav);
     success |= ssm_log_prob_prior(&fitness->log_prior, proposed, nav, fitness);
 
     if(success != SSM_SUCCESS){
@@ -94,29 +137,23 @@ int main(int argc, char *argv[])
     double sd_fac;
     double ratio;
     for(m=1; m<n_iter; m++) {
-        success = SSM_SUCCESS;
-        fitness->log_like = 0.0;
-        fitness->log_prior = 0.0;
-        fitness->n_all_fail = 0;
-
         var = ssm_adapt_eps_var_sd_fac(&sd_fac, adapt, var_input, nav, m);
 
         ssm_theta_ran(proposed, theta, var, sd_fac, calc[0], nav, 1);
         ssm_theta2input(input, proposed, nav);
         ssm_input2par(par_proposed, input, calc[0], nav);
 
-        success |= ssm_check_ic(par_proposed, calc[0]);
+        success = ssm_check_ic(par_proposed, calc[0]);
 
         if(success == SSM_SUCCESS){
             ssm_par2X(D_J_X[0][0], par_proposed, calc[0], nav);
             D_J_X[0][0]->dt = D_J_X[0][0]->dt0;
-
             for(j=1; j<fitness->J; j++){
                 ssm_X_copy(D_J_X[0][j], D_J_X[0][0]);
             }
 
-            //TODO: success |= run_smc(...)
-            success |=  ssm_metropolis_hastings(fitness, &ratio, proposed, theta, var, sd_fac, nav, calc[0], 1);
+	    success |= run_smc(f_pred, D_J_X, D_J_X_tmp, par_proposed, calc, data, fitness, nav);
+            success |= ssm_metropolis_hastings(fitness, &ratio, proposed, theta, var, sd_fac, nav, calc[0], 1);
         }
 
         if(success == SSM_SUCCESS){ //everything went well and the proposed theta was accepted
