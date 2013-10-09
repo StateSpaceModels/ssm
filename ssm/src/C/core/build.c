@@ -607,6 +607,9 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fi
             calc->_Q = gsl_matrix_calloc(n_s, n_s);
             calc->_FtCt = gsl_matrix_calloc(n_s, n_s);
             calc->_Ft = gsl_matrix_calloc(n_s, n_s);
+	    calc->_eval = gsl_vector_calloc(n_s);
+	    calc->_evec = gsl_matrix_calloc(n_s, n_s);
+	    calc->_w_eigen_vv = gsl_eigen_symmv_alloc(n_s);
         }
 
     } else if (nav->implementation == SSM_SDE){
@@ -747,6 +750,9 @@ void ssm_calc_free(ssm_calc_t *calc, ssm_nav_t *nav)
             gsl_matrix_free(calc->_Q);
             gsl_matrix_free(calc->_FtCt);
             gsl_matrix_free(calc->_Ft);
+	    gsl_vector_free(calc->_eval);
+	    gsl_matrix_free(calc->_evec);
+	    gsl_eigen_symmv_free(calc->_w_eigen_vv);
         }
 
     } else if (nav->implementation == SSM_SDE){
