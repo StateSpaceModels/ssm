@@ -177,7 +177,7 @@ class Ccoder(Cmodel):
                 ##     p['f_par2user'] = self.make_C_term(p['transformation']+ '-' + p['id'], True, inverse=p['prior']['id'], force_par=True, xify=p['id'], set_t0=True)
 
             if 'to_prior' in p:
-                p['f_2prior'] = self.make_C_term(p['to_prior'], True, xify=p['id'])
+                p['f_2prior'] = self.make_C_term(p['to_prior'], True)
 
 
         drifts = self.get_resource('sde')

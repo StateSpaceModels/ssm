@@ -152,6 +152,8 @@ int main(int argc, char *argv[])
 
     }
 
+    ssm_pipe_theta(stdout, jparameters, mle, NULL, nav);
+
     json_decref(jparameters);
 
     ssm_J_X_free(J_X, fitness);

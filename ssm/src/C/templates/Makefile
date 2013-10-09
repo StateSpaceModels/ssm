@@ -1,4 +1,4 @@
-CC=clang -ferror-limit=2
+CC=gcc #clang -ferror-limit=2
 CFLAGS=-std=gnu99 -O3 -DGSL_RANGE_CHECK_OFF
 LDFLAGS=-lssm -lssmtpl -lssm -lm -lgsl -lgslcblas -ljansson -lzmq
 LIB=libssmtpl.a

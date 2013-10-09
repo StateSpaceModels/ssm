@@ -60,7 +60,7 @@ typedef enum {SSM_SMC = 1 << 0, SSM_MIF = 1 << 1, SSM_PMCMC = 1 << 2, SSM_KMCMC 
 typedef enum {SSM_ODE, SSM_SDE, SSM_PSR, SSM_EKF} ssm_implementations_t;
 typedef enum {SSM_NO_DEM_STO = 1 << 0, SSM_NO_WHITE_NOISE = 1 << 1, SSM_NO_DIFF = 1 << 2 } ssm_noises_off_t; //several noises can be turned off
 
-typedef enum {SSM_PRINT_TRACE = 1 << 0, SSM_PRINT_X = 1 << 1, SSM_PRINT_HAT = 1 << 2, SSM_PRINT_DIAG = 1 << 3, SSM_PRINT_X_SMOOTH = 1 << 4, SSM_PRINT_ACC = 1 << 5, SSM_PIPE = 1 << 6, SSM_QUIET = 1 << 7 } ssm_print_t;
+typedef enum {SSM_PRINT_TRACE = 1 << 0, SSM_PRINT_X = 1 << 1, SSM_PRINT_HAT = 1 << 2, SSM_PRINT_DIAG = 1 << 3, SSM_PRINT_ACC = 1 << 5, SSM_PIPE = 1 << 5, SSM_QUIET = 1 << 6 } ssm_print_t;
 
 typedef enum {SSM_SUCCESS = 1 << 0 , SSM_ERR_LIKE= 1 << 1, SSM_ERR_REM = 1 << 2, SSM_ERR_PRED = 1 << 3, SSM_ERR_KAL = 1 << 4, SSM_ERR_IC = 1 << 5, SSM_MH_REJECT = 1 << 6, SSM_ERR_PROPOSAL = 1 << 7, SSM_ERR_PRIOR = 1 << 8} ssm_err_code_t;
 
@@ -224,17 +224,17 @@ typedef struct
     int offset; /**< order of the parameter in ssm_par_t and ssm_input_t */
     int offset_theta; /**< order of the parameter in ssm_theta_t (-1 if the parameter is not in ssm_theta_t)*/
 
-    double (*f) (double); /**< transformation (log, logit...) */
-    double (*f_inv) (double); /**< inverse of f (f*f_inv=identity) */
+    double (*f) (double x_input); /**< transformation (log, logit...) */
+    double (*f_inv) (double x_theta); /**< inverse of f (f*f_inv=identity) */
 
-    double (*f_derivative) (double); /**< derivative of f */
-    double (*f_inv_derivative) (double); /**< derivative of f_inv */
+    double (*f_derivative) (double x_theta); /**< derivative of f */
+    double (*f_inv_derivative) (double x_theta); /**< derivative of f_inv */
 
-    double (*prior) (double x); /**< prior */
+    double (*f_prior) (double x_input); /**< prior */
 
-    double (*f_user2par) (double, ssm_input_t *, ssm_calc_t *); /**< from original user scale to par */
+    double (*f_user2par) (double x_input, ssm_input_t *, ssm_calc_t *); /**< from original user scale to par */
 
-    double (*f_2prior) (double x, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t); /**< transform x comming from an X output to an input in user unit (prior) */
+    double (*f_2prior) (double x_input, ssm_hat_t *hat, ssm_par_t *par, ssm_calc_t *calc, double t); /**< transform x_input (theta or f_inv(theta)) into an input in user unit (prior). This is usefull when the transformation depends on states (X) and we want to pipe the end of a simulation. In this case, x_input will be ignored and reconstructed from hat and par using the to_prior function provided by the user */
 
 } ssm_parameter_t;
 
@@ -262,11 +262,11 @@ typedef struct
 
     ssm_parameter_t *ic;  /**< pointer to the initial condition (or NULL) */
 
-    double (*f) (double);     /**< transformation (log, logit...) */
-    double (*f_inv) (double); /**< inverse of f (f*f_inv=identity) */
+    double (*f) (double x_X);     /**< transformation (log, logit...) */
+    double (*f_inv) (double x_X); /**< inverse of f (f*f_inv=identity) */
 
-    double (*f_derivative) (double);     /**< derivative of f */
-    double (*f_inv_derivative) (double); /**< derivative of f_inv */
+    double (*f_derivative) (double x_X);     /**< derivative of f */
+    double (*f_inv_derivative) (double x_X); /**< derivative of f_inv */
 
     double (*f_remainder) (ssm_X_t *X, ssm_calc_t *calc, double t); /**< compute the remainder value */
     double (*f_remainder_var) (ssm_X_t *X, ssm_calc_t *calc, ssm_nav_t *nav, double t); /**< compute the remainder value */
@@ -655,7 +655,7 @@ double ssm_f_der_inv_logit(double x);
 double ssm_f_der_logit_ab(double x, double a, double b);
 double ssm_f_der_inv_logit_ab(double x, double a, double b);
 double ssm_f_user_par_id(double x, ssm_input_t *par, ssm_calc_t *calc);
-double ssm_f_2prior_id(double x, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t);
+double ssm_f_2prior_id(double x, ssm_hat_t *hat, ssm_par_t *par, ssm_calc_t *calc, double t);
 
 /* util.c */
 int ssm_in_par(ssm_it_parameters_t *it, const char *name);
@@ -664,10 +664,11 @@ const gsl_interp_type *ssm_str_to_interp_type(const char *optarg);
 int ssm_sanitize_n_threads(int n_threads, ssm_fitness_t *fitness);
 
 /* print.c */
-void ssm_json_dumpf(FILE *stream, const char *flag, json_t *msg);
 void ssm_print_log(char *msg);
 void ssm_print_warning(char *msg);
 void ssm_print_err(char *msg);
+void ssm_json_dumpf(FILE *stream, const char *flag, json_t *msg);
+void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_var_t *var, ssm_nav_t *nav);
 void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, const int index);
 void ssm_print_trace(FILE *stream, ssm_theta_t *theta, ssm_nav_t *nav, const double fitness, const int index);
 void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, ssm_fitness_t *fitness);

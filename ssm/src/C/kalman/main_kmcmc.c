@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
     fitness->log_like_prev = fitness->log_like;
     fitness->log_prior_prev = fitness->log_prior;
 
-    if ( ( nav->print & SSM_PRINT_X_SMOOTH ) && data->n_obs ) {
+    if ( ( nav->print & SSM_PRINT_X ) && data->n_obs ) {
         for(n=0; n<data->n_obs; n++){
             ssm_X_copy(D_X_prev[n+1], D_X[n+1]);
             ssm_print_X(stdout, D_X_prev[n+1], par, nav, calc, data->rows[n], m);
@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
             ssm_theta_copy(theta, proposed);
             ssm_par_copy(par, par_proposed);
 
-            if ( (nav->print & SSM_PRINT_X_SMOOTH) && data->n_obs ) {
+            if ( (nav->print & SSM_PRINT_X) && data->n_obs ) {
                 for(n=0; n<data->n_obs; n++){
                     ssm_X_copy(D_X_prev[n+1], D_X[n+1]);
                 }
@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
         ssm_adapt_ar(adapt, (success == SSM_SUCCESS) ? 1: 0, m); //compute acceptance rate
         ssm_adapt_var(adapt, theta, m);  //compute empirical variance
 
-        if ( (nav->print & SSM_PRINT_X_SMOOTH) && ( (m % thin_traj) == 0) ) {
+        if ( (nav->print & SSM_PRINT_X) && ( (m % thin_traj) == 0) ) {
             for(n=0; n<data->n_obs; n++){
                 ssm_print_X(stdout, D_X_prev[n+1], par, nav, calc, data->rows[n], m);
             }
@@ -168,6 +168,8 @@ int main(int argc, char *argv[])
             ssm_print_ar(stdout, adapt, m);
         }
     }
+
+    ssm_pipe_theta(stdout, jparameters, theta, var, nav);
 
     json_decref(jparameters);
 

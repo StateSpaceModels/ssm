@@ -25,10 +25,11 @@ int main(int argc, char *argv[])
     ssm_options_t *opts = ssm_options_new();
     ssm_load_options(opts, SSM_SMC, argc, argv);
 
-    json_t *jparameters = ssm_load_json_stream(stdin);
+    json_t *jparameters = ssm_load_json_stream(stdin);    
     json_t *jdata = ssm_load_data(opts);
 
     ssm_nav_t *nav = ssm_nav_new(jparameters, opts);
+
     ssm_data_t *data = ssm_data_new(jdata, nav, opts);
     ssm_fitness_t *fitness = ssm_fitness_new(data, opts);
     ssm_calc_t **calc = ssm_N_calc_new(jdata, nav, data, fitness, opts);
@@ -114,21 +115,22 @@ int main(int argc, char *argv[])
         ssm_print_trace(stdout, theta, nav, fitness->log_like, 0);
     }
 
+    ssm_pipe_theta(stdout, jparameters, theta, NULL, nav);
+
     json_decref(jparameters);
 
     ssm_J_X_free(J_X, fitness);
     ssm_J_X_free(J_X_tmp, fitness);
     ssm_hat_free(hat);
     ssm_N_calc_free(calc, nav);
-
     ssm_data_free(data);
+    ssm_fitness_free(fitness);
+
     ssm_nav_free(nav);
     ssm_theta_free(theta);
-
     ssm_input_free(input);
     ssm_par_free(par);
 
-    ssm_fitness_free(fitness);
 
     return 0;
 }

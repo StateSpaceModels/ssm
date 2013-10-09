@@ -73,9 +73,9 @@ static double f_user2par_tpl_{{ p.id }}(double x, ssm_input_t *par, ssm_calc_t *
 }
 {% endif %}
 {% if 'f_2prior' in p %}
-static double f_2prior_tpl_{{ p.id }}(double x, ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
+static double f_2prior_tpl_{{ p.id }}(double x, ssm_hat_t *hat, ssm_par_t *par, ssm_calc_t *calc, double t)
 {
-    double *X = p_X->proj;
+    double *X = hat->states;
     return {{ p.f_2prior }};
 }
 {% endif %}
@@ -149,10 +149,10 @@ ssm_parameter_t **ssm_parameters_new(int *parameters_length)
     {% endif %}
 
     {% if 'prior' in p and 'distribution' in p.prior and p.prior.distribution != 'fixed' %}
-    parameters[{{ order_parameters[p.id] }}]->prior = &f_prior_tpl_{{ p.id }};
+    parameters[{{ order_parameters[p.id] }}]->f_prior = &f_prior_tpl_{{ p.id }};
     {# TODO: fixed case #}
     {% else %}
-    parameters[{{ order_parameters[p.id] }}]->prior = NULL;
+    parameters[{{ order_parameters[p.id] }}]->f_prior = NULL;
     {% endif %}
     
     parameters[{{ order_parameters[p.id] }}]->f_user2par = &{% if 'transformation' in p %}f_user2par_tpl_{{ p.id }}{% else %}ssm_f_user_par_id{% endif %};
@@ -171,14 +171,14 @@ ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters)
     *states_length = ({{ states|length }} + {{ sde|length }}  + {{ remainders|length }});
 
     ssm_state_t **states;
-    states = malloc(({{ states|length }} + {{ sde|length }} + {{ remainders|length }}) * sizeof (ssm_state_t *));
+    states = malloc(*states_length * sizeof (ssm_state_t *));
     if (states == NULL) {
         ssm_print_err("Allocation impossible for ssm_state_t **");
         exit(EXIT_FAILURE);
     }
 
     int i;
-    for(i=0; i< ({{ states|length }} + {{ sde|length }}); i++){
+    for(i=0; i< *states_length; i++){
         states[i] = malloc(sizeof (ssm_state_t));
         if (states[i] == NULL) {
             ssm_print_err("Allocation impossible for ssm_state_t *");

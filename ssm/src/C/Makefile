@@ -1,4 +1,4 @@
-CC=clang -ferror-limit=2
+CC=gcc #clang -ferror-limit=2
 CFLAGS= -std=gnu99 -Wall -O3 -DGSL_RANGE_CHECK_OFF -I kalman -I pmcmc -I simul -I mif -I simplex -I core
 LIB=libssm.a libssmsmc.a libssmsimplex.a libssmmif.a libssmpmcmc.a libssmkalman.a libssmksimplex.a libssmkmcmc.a libssmsimul.a #libssmworker.a
 ALL_SRC= $(wildcard */*.c)

@@ -53,6 +53,65 @@ void ssm_json_dumpf(FILE *stream, const char *id, json_t *data)
     json_decref(root);
 }
 
+void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_var_t *var, ssm_nav_t *nav)
+{
+    int i, j, index;
+    double x;
+
+    json_t *jresource = json_object_get(jparameters, "resource");
+    json_t *jcovariance;
+
+    for(index=0; index< json_array_size(jresource); index++){
+        json_t *el = json_array_get(jresource, index);
+
+        const char* name = json_string_value(json_object_get(el, "name"));
+        if (strcmp(name, "values") == 0) {
+            json_t *values = json_object_get(el, "data");
+
+	    for(i=0; i<nav->theta_all->length; i++){
+		x = gsl_vector_get(theta, nav->theta_all->p[i]->offset_theta);
+		json_object_set_new(values, nav->theta_all->p[i]->name, json_real(x));
+	    }
+
+        } else if ((strcmp(name, "covariance") == 0)) {
+	    jcovariance = el;	  
+	}
+    }
+
+    if(var){
+	json_t *jdata = json_object();
+
+	for(i=0; i<nav->theta_all->length; i++){
+	    json_t *jrow = json_object();
+	    for(j=0; j<nav->theta_all->length; j++){
+		x = gsl_matrix_get(var, nav->theta_all->p[i]->offset_theta, nav->theta_all->p[j]->offset_theta);
+		if(x){
+		    json_object_set_new(jrow, nav->theta_all->p[j]->name, json_real(x));
+		}
+	    }
+	    if(json_object_size(jrow)){
+		json_object_set_new(jdata, nav->theta_all->p[i]->name, jrow);
+	    } else {
+		json_decref(jrow);
+	    }
+	}	
+
+	if(json_object_size(jdata)){
+	    if(!jcovariance){
+		json_array_append_new(jresource, json_pack("{s,s,s,o}", "name", "covariance", "data", jdata));
+	    } else{
+		json_object_set_new(jcovariance, "data", jdata);
+	    }
+	} else {
+	    json_decref(jdata);	    
+	}
+    }
+   
+    json_dumpf(jparameters, stdout, JSON_INDENT(2)); printf("\n");
+    fflush(stdout);
+}
+
+
 void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, const int index)
 {
     //TODO handle t0 (ie before first data point)

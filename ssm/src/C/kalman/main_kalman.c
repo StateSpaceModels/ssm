@@ -89,6 +89,8 @@ int main(int argc, char *argv[])
         ssm_print_trace(stdout, theta, nav, fitness->log_like, 0);
     }
 
+    ssm_pipe_theta(stdout, jparameters, theta, NULL, nav);
+
     json_decref(jparameters);
 
     ssm_X_free(X);

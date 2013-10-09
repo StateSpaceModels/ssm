@@ -127,6 +127,8 @@ int main(int argc, char *argv[])
 
     ssm_simplex(theta, var, &params, &f_ksimplex, nav, size_stop, n_iter);
 
+    ssm_pipe_theta(stdout, jparameters, theta, NULL, nav);
+
     json_decref(jparameters);
 
     ssm_X_free(X);

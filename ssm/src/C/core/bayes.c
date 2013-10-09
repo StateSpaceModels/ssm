@@ -106,7 +106,7 @@ ssm_err_code_t ssm_log_prob_prior(double *log_prior, ssm_theta_t *theta, ssm_nav
         p = nav->theta_all->p[i];
 
         back_transformed = p->f_inv(gsl_vector_get(theta, p->offset_theta));
-        p_tmp = p->prior(back_transformed);
+        p_tmp = p->f_prior(back_transformed);
 
         //check for numerical issues
         if( (isnan(p_tmp)==1) || (isinf(p_tmp)==1) || (p_tmp<0.0) ) {

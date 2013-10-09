@@ -141,7 +141,10 @@ ssm_it_states_t *_ssm_it_states_new(int length)
 
 void _ssm_it_states_free(ssm_it_states_t *it)
 {
-    free(it->p);
+
+    if(it->length){
+	free(it->p);
+    }
     free(it);
 }
 
@@ -191,6 +194,7 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
     nav->states = ssm_states_new(&nav->states_length, nav->parameters);
     nav->observed = ssm_observed_new(&nav->observed_length);
 
+
     nav->states_sv = ssm_it_states_sv_new(nav->states);
     nav->states_remainders = ssm_it_states_remainders_new(nav->states);
     nav->states_inc = ssm_it_states_inc_new(nav->states);
@@ -211,6 +215,8 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
     nav->theta_all->length = 0;
     nav->theta_no_icsv_no_icdiff = 0;
     nav->theta_icsv_icdiff->length = 0;
+
+
 
     int index, i;
     json_t *resource = json_object_get(jparameters, "resource");

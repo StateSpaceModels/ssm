@@ -4,7 +4,7 @@
   "keywords": ["trial"],
   "version": "0.0.0",
   "dependencies": {
-    "model-sballest-sir": "*",
+    "model-sballest-sir": "*"
   },
   "licenses": [
     {
@@ -48,5 +48,4 @@
       }
     }
   ]
-
 }

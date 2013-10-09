@@ -86,7 +86,7 @@ void ssm_mif_patch_like_prior(double *like, ssm_fitness_t *fitness, ssm_theta_t 
             // likelihood is multiplied by prior(theta_j)^(1/n_obs) for parameters fitted with MIF (as opposed to fixed lag smoothing)
             for(i=0; i<mif->length; i++) {
                 p = mif->p[i];
-                log_like_prior_i = log(p->prior( p->f_inv(gsl_vector_get(J_theta[j], p->offset_theta)) ));
+                log_like_prior_i = log(p->f_prior( p->f_inv(gsl_vector_get(J_theta[j], p->offset_theta)) ));
                 log_like += inv_n_obs * log_like_prior_i;
             }
 
@@ -94,7 +94,7 @@ void ssm_mif_patch_like_prior(double *like, ssm_fitness_t *fitness, ssm_theta_t 
             if(n<lag){
                 for(i=0; i<fls->length; i++) {
                     p = fls->p[i];
-                    log_like_prior_i = log(p->prior( p->f_inv(gsl_vector_get(J_theta[j], p->offset_theta)) ));
+                    log_like_prior_i = log(p->f_prior( p->f_inv(gsl_vector_get(J_theta[j], p->offset_theta)) ));
                     log_like += inv_lag * log_like_prior_i;
                 }
             }
