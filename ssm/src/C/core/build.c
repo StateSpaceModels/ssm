@@ -240,7 +240,12 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
                                     nav->theta_all->p[nav->theta_all->length]->offset_theta = nav->theta_all->length;
                                     nav->theta_all->length += 1;
                                 }
-				//TODO par_disp and NO_DIFF
+			    } else if( ssm_in_par(nav->par_disp, nav->par_all->p[i]->name) ) {
+				if(!(nav->noises_off & SSM_NO_DIFF)){
+				    nav->theta_all->p[nav->theta_all->length] = nav->par_all->p[i];
+				    nav->theta_all->p[nav->theta_all->length]->offset_theta = nav->theta_all->length;
+				    nav->theta_all->length += 1;
+				}
                             } else {
                                 nav->theta_all->p[nav->theta_all->length] = nav->par_all->p[i];
                                 nav->theta_all->p[nav->theta_all->length]->offset_theta = nav->theta_all->length;
@@ -255,10 +260,13 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
 				nav->theta_no_icsv_no_icdiff->length += 1;
 			    } else if (in_icsv || in_icdiff){
                                 if(in_icdiff){
-                                    if(!(nav->noises_off & SSM_NO_DIFF)){
+                                    if(!(nav->noises_off & SSM_NO_DIFF)){ //diffusion is allowed
                                         nav->theta_icsv_icdiff->p[nav->theta_icsv_icdiff->length] = nav->par_all->p[i];
                                         nav->theta_icsv_icdiff->length += 1;
-                                    }
+                                    } else {
+					nav->theta_no_icsv_no_icdiff->p[nav->theta_no_icsv_no_icdiff->length] = nav->par_all->p[i];
+					nav->theta_no_icsv_no_icdiff->length += 1;
+				    }
                                 } else {
                                     nav->theta_icsv_icdiff->p[nav->theta_icsv_icdiff->length] = nav->par_all->p[i];
                                     nav->theta_icsv_icdiff->length += 1;
