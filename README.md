@@ -65,6 +65,14 @@ in the package directory (that you will find after unpacking the tarball in ```d
 Tests
 =====
 
+C code (whith [clar](https://github.com/vmg/clar)):
+In tests:
+
+    make test
+
+(see Makefile)
+
+Python code:
 In ssm/:
 
     python -m unittest discover

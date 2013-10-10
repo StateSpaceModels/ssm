@@ -7,13 +7,13 @@ CLAR_FIXTURE_PATH= $(TESTS_PATH)resources/
 MODEL_PATH= $(HOME)/ssm_test_model/
 
 
-CFLAGS=-g -I.. -I. -L$(MODEL_PATH)/C/templates -Wall -DCLAR_FIXTURE_PATH=\"$(CLAR_FIXTURE_PATH)\"
-LDFLAGS=-lssm -lssmtpl -lssm -lm -lgsl -lgslcblas -ljansson -lzmq
+CFLAGS=-g -I.. -I. -Wall -DCLAR_FIXTURE_PATH=\"$(CLAR_FIXTURE_PATH)\"
+LDFLAGS=-L$(MODEL_PATH)C/templates -lssm -lssmtpl -lssm -lm -lgsl -lgslcblas -ljansson -lzmq
 
 .PHONY: clean test
 
 # list the objects that go into our test
-objects = main.o parameters.o states.o
+objects = main.o parameters.o states.o observed.o iterators.o nav.o
 
 # build the test executable itself
 ssmtest: $(objects) clar.h clar.suite clar.c fixture_data

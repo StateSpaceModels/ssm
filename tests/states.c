@@ -1,7 +1,6 @@
 #include "clar.h"
 #include <ssm.h>
 
-static json_t *jparameters;
 static int parameters_length; 
 static int states_length; 
 static ssm_parameter_t **parameters;
@@ -9,15 +8,12 @@ static ssm_state_t **states;
 
 void test_states__initialize(void)
 {
-    jparameters = ssm_load_json_file(cl_fixture("datapackage.json"));    
     parameters = _ssm_parameters_new(&parameters_length);
     states = _ssm_states_new(&states_length, parameters);
 }
 
 void test_states__cleanup(void)
 {
-    json_decref(jparameters);
-
     int i;
     for(i=0; i<parameters_length; i++){
         _ssm_parameter_free(parameters[i]);

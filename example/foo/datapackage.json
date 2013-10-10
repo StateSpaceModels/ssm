@@ -15,7 +15,7 @@
 
   "version": "0.0.0",
 
-  "ressources": [
+  "resources": [
     {
       "name": "values",
       "data": {
@@ -26,7 +26,7 @@
         "r0_paris": 20.0,
         "v": 11.0,
         "rep_all_CDC_inc":0.6,
-        "rep_paris_CDC_inc": 0.6,
+        "rep_paris_CDC_prev": 0.6,
         "rep_nyc_CDC_inc": 0.6,
         "rep_all_google_inc": 0.6
       }
@@ -42,7 +42,7 @@
         "r0_paris": {"r0_paris": 0.02},
         "v": {"v": 0.02},
         "rep_all_CDC_inc": {"rep_all_CDC_inc": 0.02},
-        "rep_paris_CDC_inc": {"rep_paris_CDC_inc": 0.02},
+        "rep_paris_CDC_prev": {"rep_paris_CDC_prev": 0.02},
         "rep_nyc_CDC_inc": {"rep_nyc_CDC_inc": 0.02},
         "rep_all_google_inc": {"rep_all_google_inc": 0.02}
       }

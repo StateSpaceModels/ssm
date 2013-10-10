@@ -1,0 +1,43 @@
+#include "clar.h"
+#include <ssm.h>
+
+static json_t *jparameters;
+static ssm_nav_t *nav;
+static ssm_options_t *opts;
+
+void test_nav__initialize(void)
+{
+    jparameters = ssm_load_json_file(cl_fixture("datapackage.json"));    
+    opts = ssm_options_new();
+    nav = ssm_nav_new(jparameters, opts);
+}
+
+void test_nav__cleanup(void)
+{
+    json_decref(jparameters);
+    ssm_options_free(opts);
+    ssm_nav_free(nav);
+}
+
+
+void test_nav__nav_it_theta(void)
+{        
+    int i;
+
+    cl_check(nav->theta_all->length == 10);
+    cl_check(nav->theta_no_icsv_no_icdiff->length == 5);
+    cl_check(nav->theta_icsv_icdiff->length == 5);
+
+    char *expected_names[] = {"I_nyc", "I_paris", "S_nyc", "r0_nyc", "r0_paris"};
+    for(i=0; i<nav->theta_icsv_icdiff->length; i++){
+	cl_assert_equal_s(nav->theta_icsv_icdiff->p[i]->name, expected_names[i]);
+    }
+
+    char *expected_names_no[] = {"v", "rep_all_CDC_inc", "rep_all_google_inc", "rep_nyc_CDC_inc", "rep_paris_CDC_prev"};
+    for(i=0; i<nav->theta_no_icsv_no_icdiff->length; i++){
+	cl_assert_equal_s(nav->theta_no_icsv_no_icdiff->p[i]->name, expected_names_no[i]);
+    }
+
+}
+
+//TODO test with no_noise and no_diff and no_noise | no_diff
