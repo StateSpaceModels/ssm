@@ -40,8 +40,7 @@ class Data(Cmodel):
         Cmodel.__init__(self, model,  **kwargs)
         self.root = os.path.dirname(self.path)
 
-        obs = self.get_resource('observations')
-        self.starts = [datetime.datetime.strptime(x['start'], "%Y-%m-%d").date() for x in obs]
+        self.starts = [datetime.datetime.strptime(x['start'], "%Y-%m-%d").date() for x in self.obs_model]
         self.t0 =  min(self.starts)
 
 
@@ -101,15 +100,26 @@ class Data(Cmodel):
 
         ##TODO pad begining in case t0 are different (so that reset zero is respected!!)
 
-        obs = copy.deepcopy(self.get_resource('observations'))
+        obs = copy.deepcopy(self.obs_model)
 
         obs_id = [x['id'] for x in obs]
+
+        def get_inc_reset(pdf):
+            inc = set()
+            for x in pdf:
+                if x != "distribution":
+                    for e in self.change_user_input(pdf[x]):
+                        if e in self.par_inc:
+                            inc.add(e)
+
+            return inc
 
         dateset = set()
         data = {}
         for i, x in enumerate(obs):
             data[x['id']] = x
             data[x['id']]['order'] = i
+            data[x['id']]['ind_inc_reset'] = [self.order_states[s] for s in get_inc_reset(x['pdf'])]
             data[x['id']]['data']['dict'] = {d['date']:d[x['id']] for d in self.get_data(x['data']['path'])}
 
             if 'transformation' in data[x['id']]:
@@ -137,7 +147,7 @@ class Data(Cmodel):
 
             for x in obs_id:
                 if d in data[x]['data']['dict']:
-                    row['reset'].append(data[x]['order'])
+                    row['reset'].extend(data[x]['ind_inc_reset'])
                     if data[x]['data']['dict'][d] is not None:
                         row['observed'].append(data[x]['order'])
                         row['values'].append(data[x]['data']['f'](data[x]['data']['dict'][d]))
@@ -175,4 +185,5 @@ class Data(Cmodel):
 if __name__=="__main__":
 
     d = Data(os.path.join('..' ,'example', 'foo', 'datapackages', 'model-seb-sir', 'datapackage.json'))
-    print d.prepare_covariates()
+    #print d.prepare_covariates()
+    print d.prepare_data()[29]

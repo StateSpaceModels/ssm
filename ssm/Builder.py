@@ -119,7 +119,7 @@ class Builder(Data, Ccoder):
 
     def write_data(self):
 
-        x = {'starts': [x.isoformat() for x in self.starts], 'data': self.prepare_data(), 'covariates': self.prepare_covariates()}
+        x = {'start': self.t0.isoformat(), 'data': self.prepare_data(), 'covariates': self.prepare_covariates()}
         with open(os.path.join(self.path_rendered, ".data.json"), "w") as f:
             json.dump(x, f)
 
