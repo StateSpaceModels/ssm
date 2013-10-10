@@ -28,13 +28,9 @@ void ssm_input_free(ssm_input_t *input)
  */
 ssm_par_t *ssm_par_new(ssm_input_t *input, ssm_calc_t *calc, ssm_nav_t *nav)
 {
-
     ssm_it_parameters_t *it = nav->par_all;
     ssm_par_t *par = gsl_vector_calloc(it->length);
-    int i;
-    for(i=0; i< it->length; i++){
-        gsl_vector_set(par, it->p[i]->offset, it->p[i]->f_user2par(gsl_vector_get(input, it->p[i]->offset), input, calc));
-    }
+    ssm_input2par(par, input, calc, nav);
 
     return par;
 }
