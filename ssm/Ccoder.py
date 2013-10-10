@@ -136,8 +136,8 @@ class Ccoder(Cmodel):
                 safe += r
 
         if derivate:
-            sy = Symbol(str('ssm___' + derivate)) if derivate != 'x' else Symbol(derivate)
-            pterm = diff(sympify(safe), sy)
+	    sy = Symbol(str('ssm___' + derivate)) if derivate != 'x' else Symbol(derivate)
+	    pterm = diff(sympify(safe), sy)
         elif inverse:
             if inverse in myterm:
                 sy = Symbol(str('ssm___' + inverse))
@@ -976,6 +976,7 @@ class Ccoder(Cmodel):
                             Ls[N_PAR_SV + i][B_sto_ind] += 1
 
 
+
         ############################
         ## Create Qr_env = Lr Qn Lr'
         ############################
@@ -1035,6 +1036,7 @@ class Ccoder(Cmodel):
         for i in range(N_PAR_SV + N_PAR_INC):
             for j in range(N_ENV_STO):
                 Ls_env[i][j] = Ls[i][N_REAC + j]
+
 
         ############################
         ## Create Q_sde
