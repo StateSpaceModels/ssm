@@ -84,27 +84,8 @@ class Cmodel:
                     self.white_noise.append(r['white_noise'])
 
         self.par_noise = sorted(list(par_noise))
-
-        ##add parameter within sde.dispersion to par_proc
-        disp = [x for subl in sde['dispersion'] for x in subl if x != 0] if 'dispersion' in sde else []
-        for x in disp:
-            el =  self.change_user_input(x)
-            for e in el:
-                if e not in self.op and e not in self.special_functions and e not in self.par_sv and e not in self.par_forced:
-                    try:
-                        float(e)
-                    except ValueError:
-                        par_proc.add(e)
-
         self.par_proc = sorted(list(par_proc))
 
-        #par_diff (state variable for diffusions)
-        par_diff = []
-        if sde:
-            for x in sde.get('drift', []):
-                par_diff.append(x['id'])
-
-        self.par_diff = ['diff__' + x for x in sorted(par_diff)]
 
         #par_obs
         par_obs = set();
@@ -121,8 +102,30 @@ class Cmodel:
 
         self.par_obs = sorted(list(par_obs))
 
+        ##par_disp (parameter involve **only** in dispertion (nowhere else)
+        disp = [x for subl in sde['dispersion'] for x in subl if x != 0] if 'dispersion' in sde else []
+        par_disp = set()
+        for x in disp:
+            el =  self.change_user_input(x)
+            for e in el:
+                if e not in self.op and e not in self.special_functions and e not in self.par_sv and e not in self.par_proc and e not in self.par_obs and e not in self.par_noise and e not in self.par_forced:
+                    try:
+                        float(e)
+                    except ValueError:
+                        par_disp.add(e)
+
+        self.par_disp = sorted(list(par_disp))
+
+        #par_diff (state variable for diffusions)
+        par_diff = []
+        if sde:
+            for x in sde.get('drift', []):
+                par_diff.append(x['id'])
+
+        self.par_diff = ['diff__' + x for x in sorted(par_diff)]
+
         ##par_other
-        par_ssm = self.par_sv + self.par_inc + self.remainder + self.par_diff + self.par_noise + self.par_proc +  self.par_obs + self.par_forced
+        par_ssm = self.par_sv + self.par_inc + self.remainder + self.par_diff + self.par_noise + self.par_proc +  self.par_obs + self.par_forced + self.par_disp
         self.par_other = sorted([x['id'] for x in parameters if x['id'] not in par_ssm])
 
         ##all parameters
@@ -131,7 +134,7 @@ class Cmodel:
         ##orders in nav->states and nav->parameters
         ## !!par_sv must be first in both order_states and order_parameters, remainder must be last in order_states
         self.order_states = {x:i for i,x in enumerate(self.par_sv + self.par_inc + self.par_diff + self.remainder)}
-        self.order_parameters = {x:i for i,x in enumerate(self.par_sv + self.par_noise + self.par_proc + self.par_obs + self.par_other)}
+        self.order_parameters = {x:i for i,x in enumerate(self.par_sv + self.par_noise + self.par_proc + self.par_disp + self.par_obs + self.par_other)}
 
         #map prior id to id
         self.map_prior_id2id = {}

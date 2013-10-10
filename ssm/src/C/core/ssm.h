@@ -328,6 +328,7 @@ struct _nav
 
     ssm_it_parameters_t *par_all;       /**< to iterate on every parameters */
     ssm_it_parameters_t *par_noise;     /**< to iterate on white_noises sd *only* */
+    ssm_it_parameters_t *par_disp;      /**< to iterate on parameter only involve in dispersion *only* */
     ssm_it_parameters_t *par_icsv;      /**< to iterate on the initial condition of the state variables *only* */
     ssm_it_parameters_t *par_icdiff;    /**< to iterate on the initial condition of the diffusions *only* */
 
@@ -747,6 +748,7 @@ ssm_it_states_t *ssm_it_states_sv_inc_new(ssm_state_t **states);
 ssm_it_states_t *ssm_it_states_diff_new(ssm_state_t **states);
 ssm_it_parameters_t *ssm_it_parameters_all_new(ssm_parameter_t **parameters);
 ssm_it_parameters_t *ssm_it_parameters_noise_new(ssm_parameter_t **parameters);
+ssm_it_parameters_t *ssm_it_parameters_disp_new(ssm_parameter_t **parameters);
 ssm_it_parameters_t *ssm_it_parameters_vol_new(ssm_parameter_t **parameters);
 ssm_it_parameters_t *ssm_it_parameters_icsv_new(ssm_parameter_t **parameters);
 ssm_it_parameters_t *ssm_it_parameters_icdiff_new(ssm_parameter_t **parameters);

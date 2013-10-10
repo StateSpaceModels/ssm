@@ -193,6 +193,7 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
 
     nav->par_all = ssm_it_parameters_all_new(nav->parameters);
     nav->par_noise = ssm_it_parameters_noise_new(nav->parameters);
+    nav->par_disp = ssm_it_parameters_disp_new(nav->parameters);
     nav->par_icsv = ssm_it_parameters_icsv_new(nav->parameters);
     nav->par_icdiff = ssm_it_parameters_icdiff_new(nav->parameters);
 
@@ -310,6 +311,7 @@ void ssm_nav_free(ssm_nav_t *nav)
 
     _ssm_it_parameters_free(nav->par_all);
     _ssm_it_parameters_free(nav->par_noise);
+    _ssm_it_parameters_free(nav->par_disp);
     _ssm_it_parameters_free(nav->par_icsv);
     _ssm_it_parameters_free(nav->par_icdiff);
 

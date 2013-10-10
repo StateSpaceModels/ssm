@@ -21,7 +21,10 @@ class TestCmodel(unittest.TestCase):
         self.assertEqual(self.m.remainder, ['R_nyc', 'R_paris'])
 
     def test_par_proc(self):
-        self.assertEqual(self.m.par_proc, ['r0_nyc', 'r0_paris', 'v', 'vol'])
+        self.assertEqual(self.m.par_proc, ['r0_nyc', 'r0_paris', 'v'])
+
+    def test_par_disp(self):
+        self.assertEqual(self.m.par_disp, ['vol'])
 
     def test_par_obs(self):
         self.assertEqual(self.m.par_obs, ['phi', 'rep_all_CDC_inc', 'rep_all_google_inc', 'rep_nyc_CDC_inc', 'rep_paris_CDC_prev'])
