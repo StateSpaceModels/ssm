@@ -1,31 +1,38 @@
-CC=gcc
+CC=clang
 
-CURRENT_MAKEFILE  := $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
-TEST_DIRECTORY    := $(abspath $(CURRENT_MAKEFILE))
-CLAR_PATH         := $(dir $(TEST_DIRECTORY))
-CLAR_FIXTURE_PATH := $(TEST_DIRECTORY)/resources/
+CURRENT_MAKEFILE= $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
+TESTS_PATH= $(dir $(abspath $(CURRENT_MAKEFILE)))
+CLAR_FIXTURE_PATH= $(TESTS_PATH)resources/
 
-CFLAGS=-g -I.. -I. -Wall -DCLAR_FIXTURE_PATH=\"$(CLAR_FIXTURE_PATH)\"
+MODEL_PATH= $(HOME)/ssm_test_model/
+
+
+CFLAGS=-g -I.. -I. -L$(MODEL_PATH)/C/templates -Wall -DCLAR_FIXTURE_PATH=\"$(CLAR_FIXTURE_PATH)\"
+LDFLAGS=-lssm -lssmtpl -lssm -lm -lgsl -lgslcblas -ljansson -lzmq
 
 .PHONY: clean test
 
 # list the objects that go into our test
-objects = main.o adding.o
+objects = main.o parameters.o
 
 # build the test executable itself
-ssmtest: $(objects) clar.h clar.suite $(CLAR_PATH)clar.c
-	$(CC) $(CFLAGS) -o $@ "$(CLAR_PATH)clar.c" $(objects)
+ssmtest: $(objects) clar.h clar.suite clar.c fixture_data
+	$(CC) $(CFLAGS) -o $@ clar.c $(objects) $(LDFLAGS)
 
 # test object files depend on clar macros
-$(objects) : $(CLAR_PATH)clar.h
+$(objects) : clar.h
 
 # build the clar.suite file of test metadata
 clar.suite:
-	python "$(CLAR_PATH)generate.py" .
+	python generate.py .
+
+fixture_data:
+	cp $(MODEL_PATH).data.json $(CLAR_FIXTURE_PATH)data.json; \
+	cp ../example/foo/datapackage.json $(CLAR_FIXTURE_PATH)
 
 # remove all generated files
 clean:
-	$(RM) -rf *.o clar.suite .clarcache ssmtest ssmtest.dSYM
+	$(RM) -rf *.o clar.suite .clarcache ssmtest ssmtest.dSYM $(CLAR_FIXTURE_PATH)*.json
 
 test: ssmtest
 	./ssmtest

@@ -190,9 +190,9 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
     nav->noises_off = opts->noises_off;
     nav->print = opts->print;
 
-    nav->parameters = ssm_parameters_new(&nav->parameters_length);
-    nav->states = ssm_states_new(&nav->states_length, nav->parameters);
-    nav->observed = ssm_observed_new(&nav->observed_length);
+    nav->parameters = _ssm_parameters_new(&nav->parameters_length);
+    nav->states = _ssm_states_new(&nav->states_length, nav->parameters);
+    nav->observed = _ssm_observed_new(&nav->observed_length);
 
 
     nav->states_sv = ssm_it_states_sv_new(nav->states);
