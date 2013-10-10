@@ -36,13 +36,13 @@
       "name": "covariance",
       "data": {
         "S_nyc": {"S_nyc": 0.02},
-        "I_nyc": {"I_nyc": 0.02},
-        "I_paris": {"I_paris": 0.02},
-        "r0_nyc": {"r0_nyc": 0.02},
+        "I_nyc": {"I_nyc": 0.01},
+        "I_paris": {"I_paris": 0.03},
+        "r0_nyc": {"r0_nyc": 0.04},
         "r0_paris": {"r0_paris": 0.02},
         "v": {"v": 0.02},
         "rep_all_CDC_inc": {"rep_all_CDC_inc": 0.02},
-        "rep_paris_CDC_prev": {"rep_paris_CDC_prev": 0.02},
+        "rep_paris_CDC_prev": {"rep_paris_CDC_prev": 0.03},
         "rep_nyc_CDC_inc": {"rep_nyc_CDC_inc": 0.02},
         "rep_all_google_inc": {"rep_all_google_inc": 0.02}
       }
