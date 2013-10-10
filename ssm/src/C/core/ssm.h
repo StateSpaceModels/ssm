@@ -393,7 +393,7 @@ typedef struct
 {
     int length;              /**< number of data points */
     int ts_length;           /**< the number of time series */
-    char** dates_t0;         /**< [this.ts_length] the dates at t0 (before the first data point)*/
+    char* date_t0;           /**< the smallest date (ISO 8601) before the first data point*/
     int n_obs;               /**< the number of data point to taken into account for inference */
     int n_obs_nonan;         /**< the number of data point to taken into account for inference discarding lines where all ts are NaN  */
 

@@ -126,8 +126,8 @@ ssm_it_states_t *_ssm_it_states_new(int length)
     it->length = length;
     it->p = malloc(length * sizeof (ssm_state_t *));
     if (length && (it->p == NULL)) {
-	ssm_print_err("Allocation impossible for ssm_it_states_t *");
-	exit(EXIT_FAILURE);
+        ssm_print_err("Allocation impossible for ssm_it_states_t *");
+        exit(EXIT_FAILURE);
     }
     return it;
 }
@@ -150,8 +150,8 @@ ssm_it_parameters_t *_ssm_it_parameters_new(int length)
     it->length = length;
     it->p = malloc(length * sizeof (ssm_parameter_t *));
     if (length && (it->p == NULL)) {
-	ssm_print_err("Allocation impossible for ssm_it_parameters_t *");
-	exit(EXIT_FAILURE);
+        ssm_print_err("Allocation impossible for ssm_it_parameters_t *");
+        exit(EXIT_FAILURE);
     }
 
     return it;
@@ -227,42 +227,42 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
                             ssm_print_err(str);
                             exit(EXIT_FAILURE);
                         }
-		       
+
                         if(json_number_value(jcov_ii) > 0.0){
 
-			    if( ssm_in_par(nav->par_noise, nav->par_all->p[i]->name) ) {
+                            if( ssm_in_par(nav->par_noise, nav->par_all->p[i]->name) ) {
                                 if(!(nav->noises_off & SSM_NO_WHITE_NOISE)){
                                     nav->theta_all->p[nav->theta_all->length] = nav->par_all->p[i];
                                     nav->theta_all->p[nav->theta_all->length]->offset_theta = nav->theta_all->length;
                                     nav->theta_all->length += 1;
                                 }
-			    } else if( ssm_in_par(nav->par_disp, nav->par_all->p[i]->name) ) {
-				if(!(nav->noises_off & SSM_NO_DIFF)){
-				    nav->theta_all->p[nav->theta_all->length] = nav->par_all->p[i];
-				    nav->theta_all->p[nav->theta_all->length]->offset_theta = nav->theta_all->length;
-				    nav->theta_all->length += 1;
-				}
+                            } else if( ssm_in_par(nav->par_disp, nav->par_all->p[i]->name) ) {
+                                if(!(nav->noises_off & SSM_NO_DIFF)){
+                                    nav->theta_all->p[nav->theta_all->length] = nav->par_all->p[i];
+                                    nav->theta_all->p[nav->theta_all->length]->offset_theta = nav->theta_all->length;
+                                    nav->theta_all->length += 1;
+                                }
                             } else {
                                 nav->theta_all->p[nav->theta_all->length] = nav->par_all->p[i];
                                 nav->theta_all->p[nav->theta_all->length]->offset_theta = nav->theta_all->length;
                                 nav->theta_all->length += 1;
                             }
 
-			    int in_icsv = ssm_in_par(nav->par_icsv, nav->par_all->p[i]->name);
+                            int in_icsv = ssm_in_par(nav->par_icsv, nav->par_all->p[i]->name);
                             int in_icdiff =ssm_in_par(nav->par_icdiff, nav->par_all->p[i]->name);
 
-			    if(!in_icsv && !in_icdiff){
-				nav->theta_no_icsv_no_icdiff->p[nav->theta_no_icsv_no_icdiff->length] = nav->par_all->p[i];
-				nav->theta_no_icsv_no_icdiff->length += 1;
-			    } else if (in_icsv || in_icdiff){
+                            if(!in_icsv && !in_icdiff){
+                                nav->theta_no_icsv_no_icdiff->p[nav->theta_no_icsv_no_icdiff->length] = nav->par_all->p[i];
+                                nav->theta_no_icsv_no_icdiff->length += 1;
+                            } else if (in_icsv || in_icdiff){
                                 if(in_icdiff){
                                     if(!(nav->noises_off & SSM_NO_DIFF)){ //diffusion is allowed
                                         nav->theta_icsv_icdiff->p[nav->theta_icsv_icdiff->length] = nav->par_all->p[i];
                                         nav->theta_icsv_icdiff->length += 1;
                                     } else {
-					nav->theta_no_icsv_no_icdiff->p[nav->theta_no_icsv_no_icdiff->length] = nav->par_all->p[i];
-					nav->theta_no_icsv_no_icdiff->length += 1;
-				    }
+                                        nav->theta_no_icsv_no_icdiff->p[nav->theta_no_icsv_no_icdiff->length] = nav->par_all->p[i];
+                                        nav->theta_no_icsv_no_icdiff->length += 1;
+                                    }
                                 } else {
                                     nav->theta_icsv_icdiff->p[nav->theta_icsv_icdiff->length] = nav->par_all->p[i];
                                     nav->theta_icsv_icdiff->length += 1;
@@ -354,7 +354,14 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
         exit(EXIT_FAILURE);
     }
 
-    data->dates_t0 = ssm_load_jc1_new(jdata, "starts");
+    json_t *jstart = json_object_get(jdata, "start");
+    if(json_is_string(jstart)) {
+        data->date_t0 = strdup(json_string_value(jstart));
+    } else {
+        ssm_print_err("data start is not a string");
+        exit(EXIT_FAILURE);
+    }
+
 
     json_t *jdata_data = json_object_get(jdata, "data");
 
@@ -379,7 +386,7 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
     data->ind_nonan = ssm_u1_new(data->length);
 
     for (i=0; i< data->length; i++){
-        rows[i] = malloc(sizeof (data->length * sizeof (ssm_row_t)));
+        rows[i] = malloc(sizeof (ssm_row_t));
         if (rows[i] == NULL) {
             ssm_print_err("Allocation impossible for ssm_data_row_t *");
             exit(EXIT_FAILURE);
@@ -407,22 +414,24 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
 
         json_t *jobserved = json_object_get(jrow, "observed");
         rows[i]->ts_nonan_length = json_array_size(jobserved);
-        rows[i]->observed = malloc(rows[i]->ts_nonan_length * sizeof (ssm_observed_t *));
-        if (rows[i]->observed == NULL) {
-            ssm_print_err("Allocation impossible for ssm_data_row_t.observed");
-            exit(EXIT_FAILURE);
-        }
 
-        for(j=0; j<rows[i]->ts_nonan_length; j++){
-
-            json_t *jobserved_j = json_array_get(jobserved, j);
-            if(json_is_number(jobserved_j)) {
-                int id = json_integer_value(jobserved_j);
-                rows[i]->observed[j] = nav->observed[id];
-            } else {
-                sprintf(str, "error: data[%d].observed[%d] is not an integer\n", i, j);
-                ssm_print_err(str);
+        if(rows[i]->ts_nonan_length){
+            rows[i]->observed = malloc(rows[i]->ts_nonan_length * sizeof (ssm_observed_t *));
+            if (rows[i]->observed == NULL) {
+                ssm_print_err("Allocation impossible for ssm_data_row_t.observed");
                 exit(EXIT_FAILURE);
+            }
+
+            for(j=0; j<rows[i]->ts_nonan_length; j++){
+                json_t *jobserved_j = json_array_get(jobserved, j);
+                if(json_is_number(jobserved_j)) {
+                    int id = json_integer_value(jobserved_j);
+                    rows[i]->observed[j] = nav->observed[id];
+                } else {
+                    sprintf(str, "error: data[%d].observed[%d] is not an integer\n", i, j);
+                    ssm_print_err(str);
+                    exit(EXIT_FAILURE);
+                }
             }
         }
 
@@ -430,14 +439,16 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
 
         json_t *jreset = json_object_get(jrow, "reset");
         rows[i]->states_reset_length = json_array_size(jreset);
-        rows[i]->states_reset = malloc(rows[i]->states_reset_length * sizeof (ssm_state_t *));
-        if (rows[i]->states_reset == NULL) {
-            ssm_print_err("Allocation impossible for ssm_data_row_t.states_reset");
-            exit(EXIT_FAILURE);
+
+        if(rows[i]->states_reset_length){
+            rows[i]->states_reset = malloc(rows[i]->states_reset_length * sizeof (ssm_state_t *));
+            if (rows[i]->states_reset == NULL) {
+                ssm_print_err("Allocation impossible for ssm_data_row_t.states_reset");
+                exit(EXIT_FAILURE);
+            }
         }
 
         for(j=0; j<rows[i]->states_reset_length; j++){
-
             json_t *jreset_j = json_array_get(jreset, j);
             if(json_is_number(jreset_j)) {
                 int id = json_integer_value(jreset_j);
@@ -460,7 +471,6 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
 
     data->rows = rows;
 
-
     return data;
 }
 
@@ -468,10 +478,13 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
 void _ssm_row_free(ssm_row_t *row)
 {
     free(row->date);
-    free(row->observed);
+    if(row->ts_nonan_length){
+        free(row->observed);
+    }
     free(row->values);
-    free(row->states_reset);
-
+    if(row->states_reset_length){
+        free(row->states_reset);
+    }
     free(row);
 }
 
@@ -480,7 +493,7 @@ void ssm_data_free(ssm_data_t *data)
 {
     int i;
 
-    ssm_c2_free(data->dates_t0, data->ts_length);
+    free(data->date_t0);
     free(data->ind_nonan);
 
     for(i=0; i< data->length; i++){
@@ -543,10 +556,10 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fi
     } else{
         seed=2;
     }
-    seed += opts->id; /*we ensure uniqueness of seed in case of parrallel runs*/
+    calc->seed =  seed + opts->id; /*we ensure uniqueness of seed in case of parrallel runs*/
 
     calc->randgsl = gsl_rng_alloc(Type);
-    gsl_rng_set(calc->randgsl, seed + thread_id);
+    gsl_rng_set(calc->randgsl, calc->seed + thread_id);
 
     /*******************/
     /* implementations */
@@ -593,7 +606,7 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fi
                 exit(EXIT_FAILURE);
             }
 
-            int n_s = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
+            int n_s = nav->states_sv_inc->length + nav->states_diff->length;
             int n_o = nav->observed_length;
             calc->_pred_error = gsl_vector_calloc(n_o);
             calc->_zero = gsl_vector_calloc(n_o);
@@ -607,9 +620,9 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fi
             calc->_Q = gsl_matrix_calloc(n_s, n_s);
             calc->_FtCt = gsl_matrix_calloc(n_s, n_s);
             calc->_Ft = gsl_matrix_calloc(n_s, n_s);
-	    calc->_eval = gsl_vector_calloc(n_s);
-	    calc->_evec = gsl_matrix_calloc(n_s, n_s);
-	    calc->_w_eigen_vv = gsl_eigen_symmv_alloc(n_s);
+            calc->_eval = gsl_vector_calloc(n_s);
+            calc->_evec = gsl_matrix_calloc(n_s, n_s);
+            calc->_w_eigen_vv = gsl_eigen_symmv_alloc(n_s);
         }
 
     } else if (nav->implementation == SSM_SDE){
@@ -627,101 +640,109 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fi
     calc->index_sorted = ssm_st1_new(fitness->J);
 
     /**************/
+    /* references */
+    /**************/
+    calc->_par = NULL;
+    calc->_nav = nav;
+
+    /**************/
     /* covariates */
     /**************/
 
     json_t *jcovariates = json_object_get(jdata, "covariates");
     calc->covariates_length = json_array_size(jcovariates);
 
-    calc->acc = malloc(calc->covariates_length * sizeof(gsl_interp_accel *));
-    if (calc->acc == NULL) {
-        char str[SSM_STR_BUFFSIZE];
-        snprintf(str, SSM_STR_BUFFSIZE, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-        ssm_print_err(str);
-        exit(EXIT_FAILURE);
-    }
+    if(calc->covariates_length){
 
-    calc->spline = malloc(calc->covariates_length * sizeof(gsl_spline *));
-    if (calc->spline == NULL) {
-        char str[SSM_STR_BUFFSIZE];
-        snprintf(str, SSM_STR_BUFFSIZE, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
-        ssm_print_err(str);
-        exit(EXIT_FAILURE);
-    }
-
-    const gsl_interp_type *my_gsl_interp_type = ssm_str_to_interp_type(opts->interpolator);
-
-    int k, z;
-
-    //TODO init from opts !!!!
-    double freeze_forcing = -1.0; // the time (in days) to freeze (i.e only take metadata from this time) (ignored if freeze_forcing < 0.0)
-    double t_max = -1.0; //t_max the highest possible time in days when interpolated metadata will be requested (-1 to default to last point of metadata). t_
-
-    for (k=0; k< calc->covariates_length; k++) {
-        json_t *jcovariate = json_array_get(jcovariates, k);
-
-        double *x = ssm_load_jd1_new(jcovariate, "x");
-        double *y = ssm_load_jd1_new(jcovariate, "y");
-        int size = json_array_size(json_object_get(jcovariate, "x"));
-
-        if((freeze_forcing < 0.0) && (t_max > x[size-1])){ //no freeze but t_max > x[size-1] repeat last value
-            int prev_size = size ;
-            size += ((int) t_max - x[prev_size-1]) ;
-
-            double *tmp_x = realloc(x, size * sizeof (double) );
-            if ( tmp_x == NULL ) {
-                ssm_print_err("Reallocation impossible"); free(x); exit(EXIT_FAILURE);
-            } else {
-                x = tmp_x;
-            }
-
-            double *tmp_y = realloc(y, size * sizeof (double) );
-            if ( tmp_y == NULL ) {
-                ssm_print_err("Reallocation impossible"); free(y); exit(EXIT_FAILURE);
-            } else {
-                y = tmp_y;
-            }
-
-            //repeat last value
-            double xlast = x[prev_size-1];
-            for(z = prev_size;  z < size ; z++ ){
-                x[z] = xlast + z;
-                y[z] = y[prev_size - 1];
-            }
+        calc->acc = malloc(calc->covariates_length * sizeof(gsl_interp_accel *));
+        if (calc->acc == NULL) {
+            char str[SSM_STR_BUFFSIZE];
+            snprintf(str, SSM_STR_BUFFSIZE, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
+            ssm_print_err(str);
+            exit(EXIT_FAILURE);
         }
 
-        if( (freeze_forcing>=0.0) || (size == 1) ){ //only 1 value: make it 2
-            double x_all[2];
-            x_all[0] = x[0];
-            x_all[1] = GSL_MAX(GSL_MAX(t_max, ((data->n_obs>=1) ? (double) data->rows[data->n_obs-1]->time: 0.0)), x[size-1]);
-
-            double y_all[2];
-            y_all[0] = (size == 1) ? y[0]: gsl_spline_eval(calc->spline[k], GSL_MIN(freeze_forcing, x[size-1]), calc->acc[k]); //interpolate y for time freeze_forcing requested (if possible)
-            y_all[1] = y_all[0];
-
-            calc->acc[k] = gsl_interp_accel_alloc ();
-            calc->spline[k]  = gsl_spline_alloc (gsl_interp_linear, 2);
-            gsl_spline_init (calc->spline[k], x_all, y_all, 2);
-
-        } else if (size >= gsl_interp_type_min_size(my_gsl_interp_type)) {
-
-            calc->acc[k] = gsl_interp_accel_alloc ();
-            calc->spline[k]  = gsl_spline_alloc(my_gsl_interp_type, size);
-            gsl_spline_init (calc->spline[k], x, y, size);
-
-        } else {
-
-            ssm_print_warning("insufficient data points for required metadata interpolator, switching to linear");
-            calc->acc[k] = gsl_interp_accel_alloc ();
-            calc->spline[k] = gsl_spline_alloc (gsl_interp_linear, size);
-            gsl_spline_init(calc->spline[k], x, y, size);
-
+        calc->spline = malloc(calc->covariates_length * sizeof(gsl_spline *));
+        if (calc->spline == NULL) {
+            char str[SSM_STR_BUFFSIZE];
+            snprintf(str, SSM_STR_BUFFSIZE, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
+            ssm_print_err(str);
+            exit(EXIT_FAILURE);
         }
 
-        free(x);
-        free(y);
-    }
+        const gsl_interp_type *my_gsl_interp_type = ssm_str_to_interp_type(opts->interpolator);
 
+        int k, z;
+
+        //TODO init from opts !!!!
+        double freeze_forcing = -1.0; // the time (in days) to freeze (i.e only take metadata from this time) (ignored if freeze_forcing < 0.0)
+        double t_max = -1.0; //t_max the highest possible time in days when interpolated metadata will be requested (-1 to default to last point of metadata).
+
+        for (k=0; k< calc->covariates_length; k++) {
+            json_t *jcovariate = json_array_get(jcovariates, k);
+
+            double *x = ssm_load_jd1_new(jcovariate, "x");
+            double *y = ssm_load_jd1_new(jcovariate, "y");
+            int size = json_array_size(json_object_get(jcovariate, "x"));
+
+            if((freeze_forcing < 0.0) && (t_max > x[size-1])){ //no freeze but t_max > x[size-1] repeat last value
+                int prev_size = size ;
+                size += ((int) t_max - x[prev_size-1]) ;
+
+                double *tmp_x = realloc(x, size * sizeof (double) );
+                if ( tmp_x == NULL ) {
+                    ssm_print_err("Reallocation impossible"); free(x); exit(EXIT_FAILURE);
+                } else {
+                    x = tmp_x;
+                }
+
+                double *tmp_y = realloc(y, size * sizeof (double) );
+                if ( tmp_y == NULL ) {
+                    ssm_print_err("Reallocation impossible"); free(y); exit(EXIT_FAILURE);
+                } else {
+                    y = tmp_y;
+                }
+
+                //repeat last value
+                double xlast = x[prev_size-1];
+                for(z = prev_size;  z < size ; z++ ){
+                    x[z] = xlast + z;
+                    y[z] = y[prev_size - 1];
+                }
+            }
+
+            if( (freeze_forcing>=0.0) || (size == 1) ){ //only 1 value: make it 2
+                double x_all[2];
+                x_all[0] = x[0];
+                x_all[1] = GSL_MAX( GSL_MAX( t_max, ((data->n_obs>=1) ? (double) data->rows[data->n_obs-1]->time: 0.0) ),  x[size-1]);
+
+                double y_all[2];
+                y_all[0] = (size == 1) ? y[0]: gsl_spline_eval(calc->spline[k], GSL_MIN(freeze_forcing, x[size-1]), calc->acc[k]); //interpolate y for time freeze_forcing requested (if possible)
+                y_all[1] = y_all[0];
+
+                calc->acc[k] = gsl_interp_accel_alloc ();
+                calc->spline[k]  = gsl_spline_alloc (gsl_interp_linear, 2);
+                gsl_spline_init (calc->spline[k], x_all, y_all, 2);
+
+            } else if (size >= gsl_interp_type_min_size(my_gsl_interp_type)) {
+
+                calc->acc[k] = gsl_interp_accel_alloc ();
+                calc->spline[k]  = gsl_spline_alloc(my_gsl_interp_type, size);
+                gsl_spline_init (calc->spline[k], x, y, size);
+
+            } else {
+
+                ssm_print_warning("insufficient data points for required metadata interpolator, switching to linear");
+                calc->acc[k] = gsl_interp_accel_alloc ();
+                calc->spline[k] = gsl_spline_alloc (gsl_interp_linear, size);
+                gsl_spline_init(calc->spline[k], x, y, size);
+
+            }
+
+            free(x);
+            free(y);
+        }
+    }
     return calc;
 }
 
@@ -750,9 +771,9 @@ void ssm_calc_free(ssm_calc_t *calc, ssm_nav_t *nav)
             gsl_matrix_free(calc->_Q);
             gsl_matrix_free(calc->_FtCt);
             gsl_matrix_free(calc->_Ft);
-	    gsl_vector_free(calc->_eval);
-	    gsl_matrix_free(calc->_evec);
-	    gsl_eigen_symmv_free(calc->_w_eigen_vv);
+            gsl_vector_free(calc->_eval);
+            gsl_matrix_free(calc->_evec);
+            gsl_eigen_symmv_free(calc->_w_eigen_vv);
         }
 
     } else if (nav->implementation == SSM_SDE){
@@ -764,18 +785,20 @@ void ssm_calc_free(ssm_calc_t *calc, ssm_nav_t *nav)
     free(calc->to_be_sorted);
     free(calc->index_sorted);
 
-    int k;
-    for(k=0; k< calc->covariates_length; k++) {
-        if(calc->spline[k]){
-            gsl_spline_free(calc->spline[k]);
+    if(calc->covariates_length){
+        int k;
+        for(k=0; k< calc->covariates_length; k++) {
+            if(calc->spline[k]){
+                gsl_spline_free(calc->spline[k]);
+            }
+            if(calc->acc[k]){
+                gsl_interp_accel_free(calc->acc[k]);
+            }
         }
-        if(calc->acc[k]){
-            gsl_interp_accel_free(calc->acc[k]);
-        }
-    }
 
-    free(calc->spline);
-    free(calc->acc);
+        free(calc->spline);
+        free(calc->acc);
+    }
 
     free(calc);
 }
@@ -892,6 +915,8 @@ void ssm_options_free(ssm_options_t *opts)
 
 ssm_fitness_t *ssm_fitness_new(ssm_data_t *data, ssm_options_t *opts)
 {
+    int i;
+
     ssm_fitness_t *fitness = malloc(sizeof(ssm_fitness_t));
     if (fitness==NULL) {
         ssm_print_err("Allocation impossible for ssm_fitness_t *");
@@ -914,6 +939,9 @@ ssm_fitness_t *ssm_fitness_new(ssm_data_t *data, ssm_options_t *opts)
     if(fitness->cum_status == NULL) {
         ssm_print_err("Allocation impossible for fitness->cum_status");
         exit(EXIT_FAILURE);
+    }
+    for(i=0; i<fitness->J; i++){
+        fitness->cum_status[i] = SSM_SUCCESS;
     }
 
     fitness->n_all_fail = 0;
