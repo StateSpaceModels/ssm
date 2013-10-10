@@ -13,7 +13,7 @@ LDFLAGS=-L$(MODEL_PATH)C/templates -lssm -lssmtpl -lssm -lm -lgsl -lgslcblas -lj
 .PHONY: clean test
 
 # list the objects that go into our test
-objects = main.o parameters.o states.o observed.o iterators.o nav.o input.o data.o
+objects = main.o parameters.o states.o observed.o iterators.o nav.o input.o data.o fitness.o
 
 # build the test executable itself
 ssmtest: $(objects) clar.h clar.suite clar.c fixture_data

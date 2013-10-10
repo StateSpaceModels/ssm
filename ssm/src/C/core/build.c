@@ -905,6 +905,8 @@ void ssm_options_free(ssm_options_t *opts)
 
 ssm_fitness_t *ssm_fitness_new(ssm_data_t *data, ssm_options_t *opts)
 {
+    int i;
+
     ssm_fitness_t *fitness = malloc(sizeof(ssm_fitness_t));
     if (fitness==NULL) {
         ssm_print_err("Allocation impossible for ssm_fitness_t *");
@@ -927,6 +929,9 @@ ssm_fitness_t *ssm_fitness_new(ssm_data_t *data, ssm_options_t *opts)
     if(fitness->cum_status == NULL) {
         ssm_print_err("Allocation impossible for fitness->cum_status");
         exit(EXIT_FAILURE);
+    }
+    for(i=0; i<fitness->J; i++){
+        fitness->cum_status[i] = SSM_SUCCESS;
     }
 
     fitness->n_all_fail = 0;
