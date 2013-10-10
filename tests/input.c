@@ -50,7 +50,6 @@ void test_input__input_new(void)
     for(i=0; i<nav->par_all->length; i++){
 	cl_check(gsl_vector_get(input, nav->par_all->p[i]->offset) == expected[i]);
     }
-
 }
 
 
@@ -75,5 +74,4 @@ void test_input__var_new(void)
 	    cl_check(gsl_matrix_get(var, nav->theta_all->p[i]->offset_theta, nav->theta_all->p[j]->offset_theta) == expected[i][j]);
 	}
     }
-
 }
