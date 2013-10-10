@@ -71,7 +71,7 @@ static double f_var_pred_tpl_{{ y.id }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t
 {% endfor %}
 {% endfor %}
 
-ssm_observed_t **ssm_observed_new(int *observed_length)
+ssm_observed_t **_ssm_observed_new(int *observed_length)
 {
     *observed_length = {{ observed|length }};
 

@@ -60,7 +60,7 @@ class Ccoder(Cmodel):
         elif term in self.par_forced:
             return 'gsl_spline_eval(calc->spline[ORDER_{0}],{1},calc->acc[ORDER_{0}])'.format(term, '0.0' if set_t0 else 't')
 
-        elif term in self.par_proc or term in self.par_noise or term in self.par_obs or term in self.par_other:
+        elif term in self.par_proc or term in self.par_noise or term in self.par_disp or term in self.par_obs or term in self.par_other:
             if ('diff__' + term) in self.par_diff:
                 return 'diffed[ORDER_diff__{0}]'.format(term)
             else:
@@ -185,7 +185,7 @@ class Ccoder(Cmodel):
         #TODO support ode drifts += self.get_resource('ode')
 
         states = self.par_sv + self.par_inc
-        pars = self.par_sv + self.par_noise + self.par_proc + self.par_obs + self.par_other
+        pars = self.par_sv + self.par_noise + self.par_proc + self.par_disp + self.par_obs + self.par_other
 
         #make C code for f_, f_inv f_der, f_der_inv
         for p in drifts:
@@ -270,8 +270,9 @@ class Ccoder(Cmodel):
                 'diff': [self.order_states[x] for x in self.par_diff]
             },
             'parameter': {
-                'all': [self.order_parameters[x] for x in (self.par_sv + self.par_noise + self.par_proc + self.par_obs + self.par_other)],
+                'all': [self.order_parameters[x] for x in (self.par_sv + self.par_noise + self.par_proc + self.par_disp + self.par_obs + self.par_other)],
                 'noise': [self.order_parameters[x] for x in self.par_noise],
+                'disp': [self.order_parameters[x] for x in self.par_disp],
                 'icsv': [self.order_parameters[x] for x in self.par_sv],
                 'icdiff': [self.order_parameters[x.split('diff__')[1]] for x in self.par_diff]
             }
@@ -288,7 +289,7 @@ class Ccoder(Cmodel):
             univ_rem += self.remainder
 
         return {
-            'var': [{'name': x, 'order': self.order_parameters[x]} for x in (self.par_sv + self.par_noise + self.par_proc + self.par_obs + self.par_other)],
+            'var': [{'name': x, 'order': self.order_parameters[x]} for x in (self.par_sv + self.par_noise + self.par_proc + self.par_disp + self.par_obs + self.par_other)],
             'diff': [{'name': x, 'order': o} for o,x in enumerate(self.par_diff) ],
             'inc': [{'name': x, 'order': self.order_states[x]} for x in self.par_inc],
             'covariates': [{'name': x, 'order': o} for o,x in enumerate(self.par_forced)] ,
@@ -1157,3 +1158,4 @@ if __name__=="__main__":
     model = json.load(open(os.path.join('..' ,'example', 'foo', 'datapackages', 'model-seb-sir', 'datapackage.json')))
     m = Ccoder(model)
     print m.parameters()['f_remainders_var']
+    print m.order_states

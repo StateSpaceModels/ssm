@@ -58,7 +58,7 @@ void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_v
     int i, j, index;
     double x;
 
-    json_t *jresource = json_object_get(jparameters, "resource");
+    json_t *jresource = json_object_get(jparameters, "resources");
     json_t *jcovariance;
 
     for(index=0; index< json_array_size(jresource); index++){
@@ -117,7 +117,7 @@ void ssm_pipe_hat(FILE *stream, json_t *jparameters, ssm_input_t *input, ssm_hat
     int i, index;
     double x;
 
-    json_t *jresource = json_object_get(jparameters, "resource");
+    json_t *jresource = json_object_get(jparameters, "resources");
 
     for(index=0; index< json_array_size(jresource); index++){
         json_t *el = json_array_get(jresource, index);

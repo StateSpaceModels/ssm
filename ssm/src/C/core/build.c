@@ -77,10 +77,10 @@ ssm_var_t *ssm_var_new(json_t *jparameters, ssm_nav_t *nav)
 
     int i,j, index;
     ssm_it_parameters_t *it = nav->theta_all;
-    json_t *resource = json_object_get(jparameters, "resource");
+    json_t *jresource = json_object_get(jparameters, "resources");
 
-    for(index=0; index< json_array_size(resource); index++){
-        json_t *el = json_array_get(resource, index);
+    for(index=0; index< json_array_size(jresource); index++){
+        json_t *el = json_array_get(jresource, index);
 
         const char* name = json_string_value(json_object_get(el, "name"));
         if (strcmp(name, "covariance") == 0) {
@@ -127,24 +127,18 @@ ssm_it_states_t *_ssm_it_states_new(int length)
         exit(EXIT_FAILURE);
     }
 
-
     it->length = length;
-    if(length){
-        it->p = malloc(length * sizeof (ssm_state_t *));
-        if (it->p == NULL) {
-            ssm_print_err("Allocation impossible for ssm_it_states_t *");
-            exit(EXIT_FAILURE);
-        }
+    it->p = malloc(length * sizeof (ssm_state_t *));
+    if (length && (it->p == NULL)) {
+	ssm_print_err("Allocation impossible for ssm_it_states_t *");
+	exit(EXIT_FAILURE);
     }
     return it;
 }
 
 void _ssm_it_states_free(ssm_it_states_t *it)
 {
-
-    if(it->length){
-	free(it->p);
-    }
+    free(it->p);
     free(it);
 }
 
@@ -158,22 +152,19 @@ ssm_it_parameters_t *_ssm_it_parameters_new(int length)
     }
 
     it->length = length;
-    if(length){
-        it->p = malloc(length * sizeof (ssm_parameter_t *));
-        if (it->p == NULL) {
-            ssm_print_err("Allocation impossible for ssm_it_parameters_t *");
-            exit(EXIT_FAILURE);
-        }
+    it->p = malloc(length * sizeof (ssm_parameter_t *));
+    if (length && (it->p == NULL)) {
+	ssm_print_err("Allocation impossible for ssm_it_parameters_t *");
+	exit(EXIT_FAILURE);
     }
+
     return it;
 }
 
 
 void _ssm_it_parameters_free(ssm_it_parameters_t *it)
 {
-    if(it->length){
-        free(it->p);
-    }
+    free(it->p);
     free(it);
 }
 
@@ -190,10 +181,9 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
     nav->noises_off = opts->noises_off;
     nav->print = opts->print;
 
-    nav->parameters = ssm_parameters_new(&nav->parameters_length);
-    nav->states = ssm_states_new(&nav->states_length, nav->parameters);
-    nav->observed = ssm_observed_new(&nav->observed_length);
-
+    nav->parameters = _ssm_parameters_new(&nav->parameters_length);
+    nav->states = _ssm_states_new(&nav->states_length, nav->parameters);
+    nav->observed = _ssm_observed_new(&nav->observed_length);
 
     nav->states_sv = ssm_it_states_sv_new(nav->states);
     nav->states_remainders = ssm_it_states_remainders_new(nav->states);
@@ -203,6 +193,7 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
 
     nav->par_all = ssm_it_parameters_all_new(nav->parameters);
     nav->par_noise = ssm_it_parameters_noise_new(nav->parameters);
+    nav->par_disp = ssm_it_parameters_disp_new(nav->parameters);
     nav->par_icsv = ssm_it_parameters_icsv_new(nav->parameters);
     nav->par_icdiff = ssm_it_parameters_icdiff_new(nav->parameters);
 
@@ -213,18 +204,17 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
 
     //json_t jparameters with diagonal covariance term to 0.0 won't be infered: re-compute length and content
     nav->theta_all->length = 0;
-    nav->theta_no_icsv_no_icdiff = 0;
+    nav->theta_no_icsv_no_icdiff->length = 0;
     nav->theta_icsv_icdiff->length = 0;
 
 
-
     int index, i;
-    json_t *resource = json_object_get(jparameters, "resource");
+    json_t *jresource = json_object_get(jparameters, "resources");
 
-    for(index=0; index< json_array_size(resource); index++){
-        json_t *el = json_array_get(resource, index);
+    for(index=0; index< json_array_size(jresource); index++){
+        json_t *el = json_array_get(jresource, index);
 
-        const char* name = json_string_value(json_object_get(el, "name"));
+        const char *name = json_string_value(json_object_get(el, "name"));
         if (strcmp(name, "covariance") == 0) {
 
             json_t *values = json_object_get(el, "data");
@@ -241,38 +231,51 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
                             ssm_print_err(str);
                             exit(EXIT_FAILURE);
                         }
-
+		       
                         if(json_number_value(jcov_ii) > 0.0){
 
-                            if( ssm_in_par(nav->par_noise, nav->par_all->p[i]->name) ) {
+			    if( ssm_in_par(nav->par_noise, nav->par_all->p[i]->name) ) {
                                 if(!(nav->noises_off & SSM_NO_WHITE_NOISE)){
                                     nav->theta_all->p[nav->theta_all->length] = nav->par_all->p[i];
                                     nav->theta_all->p[nav->theta_all->length]->offset_theta = nav->theta_all->length;
                                     nav->theta_all->length += 1;
                                 }
+			    } else if( ssm_in_par(nav->par_disp, nav->par_all->p[i]->name) ) {
+				if(!(nav->noises_off & SSM_NO_DIFF)){
+				    nav->theta_all->p[nav->theta_all->length] = nav->par_all->p[i];
+				    nav->theta_all->p[nav->theta_all->length]->offset_theta = nav->theta_all->length;
+				    nav->theta_all->length += 1;
+				}
                             } else {
                                 nav->theta_all->p[nav->theta_all->length] = nav->par_all->p[i];
                                 nav->theta_all->p[nav->theta_all->length]->offset_theta = nav->theta_all->length;
                                 nav->theta_all->length += 1;
                             }
 
-                            int in_icsv = ssm_in_par(nav->par_icsv, nav->par_all->p[i]->name);
-                            int in_icdiff = ssm_in_par(nav->par_icdiff, nav->par_all->p[i]->name);
-                            if(!in_icsv && !in_icdiff){
-                                nav->theta_no_icsv_no_icdiff->p[nav->theta_no_icsv_no_icdiff->length] = nav->par_all->p[i];
-                                nav->theta_no_icsv_no_icdiff->length += 1;
-                            } else if (in_icsv || in_icdiff){
+			    int in_icsv = ssm_in_par(nav->par_icsv, nav->par_all->p[i]->name);
+                            int in_icdiff =ssm_in_par(nav->par_icdiff, nav->par_all->p[i]->name);
+
+			    if(!in_icsv && !in_icdiff){
+				nav->theta_no_icsv_no_icdiff->p[nav->theta_no_icsv_no_icdiff->length] = nav->par_all->p[i];
+				nav->theta_no_icsv_no_icdiff->length += 1;
+			    } else if (in_icsv || in_icdiff){
                                 if(in_icdiff){
-                                    if(!(nav->noises_off & SSM_NO_DIFF)){
+                                    if(!(nav->noises_off & SSM_NO_DIFF)){ //diffusion is allowed
                                         nav->theta_icsv_icdiff->p[nav->theta_icsv_icdiff->length] = nav->par_all->p[i];
                                         nav->theta_icsv_icdiff->length += 1;
-                                    }
+                                    } else {
+					nav->theta_no_icsv_no_icdiff->p[nav->theta_no_icsv_no_icdiff->length] = nav->par_all->p[i];
+					nav->theta_no_icsv_no_icdiff->length += 1;
+				    }
                                 } else {
                                     nav->theta_icsv_icdiff->p[nav->theta_icsv_icdiff->length] = nav->par_all->p[i];
                                     nav->theta_icsv_icdiff->length += 1;
                                 }
                             }
+
                         }
+
+
                     }
                 }
             }
@@ -316,6 +319,7 @@ void ssm_nav_free(ssm_nav_t *nav)
 
     _ssm_it_parameters_free(nav->par_all);
     _ssm_it_parameters_free(nav->par_noise);
+    _ssm_it_parameters_free(nav->par_disp);
     _ssm_it_parameters_free(nav->par_icsv);
     _ssm_it_parameters_free(nav->par_icdiff);
 

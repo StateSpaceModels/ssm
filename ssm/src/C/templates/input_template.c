@@ -40,7 +40,7 @@ ssm_input_t *ssm_input_new(json_t *jparameters, ssm_nav_t *nav)
     int i, index;
     ssm_it_parameters_t *it = nav->theta_all;
 
-    json_t *resource = json_object_get(jparameters, "resource");
+    json_t *resource = json_object_get(jparameters, "resources");
 
     for(index=0; index< json_array_size(resource); index++){
         json_t *el = json_array_get(resource, index);

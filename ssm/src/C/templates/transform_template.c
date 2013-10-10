@@ -105,7 +105,7 @@ static double f_remainder_var_tpl_{{ rem }}(ssm_X_t *p_X, ssm_calc_t *calc, ssm_
 }
 {% endfor %}
 
-ssm_parameter_t **ssm_parameters_new(int *parameters_length)
+ssm_parameter_t **_ssm_parameters_new(int *parameters_length)
 {
     *parameters_length = {{ pars|length }};
 
@@ -175,7 +175,7 @@ ssm_parameter_t **ssm_parameters_new(int *parameters_length)
 /**
  * Adapt. Here we do it only for diffusions
  */
-ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters)
+ssm_state_t **_ssm_states_new(int *states_length, ssm_parameter_t **parameters)
 {
     *states_length = ({{ states|length }} + {{ sde|length }}  + {{ remainders|length }});
 

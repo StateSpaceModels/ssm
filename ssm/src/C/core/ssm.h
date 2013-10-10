@@ -328,6 +328,7 @@ struct _nav
 
     ssm_it_parameters_t *par_all;       /**< to iterate on every parameters */
     ssm_it_parameters_t *par_noise;     /**< to iterate on white_noises sd *only* */
+    ssm_it_parameters_t *par_disp;      /**< to iterate on parameter only involve in dispersion *only* */
     ssm_it_parameters_t *par_icsv;      /**< to iterate on the initial condition of the state variables *only* */
     ssm_it_parameters_t *par_icdiff;    /**< to iterate on the initial condition of the diffusions *only* */
 
@@ -733,8 +734,8 @@ void ssm_mif_print_mean_var_theoretical_ess(FILE *stream, double *theta_bart, do
 ssm_input_t *ssm_input_new(json_t *jparameters, ssm_nav_t *nav);
 
 /* transform_template.c */
-ssm_parameter_t **ssm_parameters_new(int *parameters_length);
-ssm_state_t **ssm_states_new(int *states_length, ssm_parameter_t **parameters);
+ssm_parameter_t **_ssm_parameters_new(int *parameters_length);
+ssm_state_t **_ssm_states_new(int *states_length, ssm_parameter_t **parameters);
 
 /* check_IC_template */
 ssm_err_code_t ssm_check_ic(ssm_par_t *par, ssm_calc_t *calc);
@@ -747,12 +748,13 @@ ssm_it_states_t *ssm_it_states_sv_inc_new(ssm_state_t **states);
 ssm_it_states_t *ssm_it_states_diff_new(ssm_state_t **states);
 ssm_it_parameters_t *ssm_it_parameters_all_new(ssm_parameter_t **parameters);
 ssm_it_parameters_t *ssm_it_parameters_noise_new(ssm_parameter_t **parameters);
+ssm_it_parameters_t *ssm_it_parameters_disp_new(ssm_parameter_t **parameters);
 ssm_it_parameters_t *ssm_it_parameters_vol_new(ssm_parameter_t **parameters);
 ssm_it_parameters_t *ssm_it_parameters_icsv_new(ssm_parameter_t **parameters);
 ssm_it_parameters_t *ssm_it_parameters_icdiff_new(ssm_parameter_t **parameters);
 
 /* observed_template.c */
-ssm_observed_t **ssm_observed_new(int *observed_length);
+ssm_observed_t **_ssm_observed_new(int *observed_length);
 
 /* diff_template.c */
 void ssm_compute_diff(ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
