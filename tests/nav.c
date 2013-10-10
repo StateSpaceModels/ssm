@@ -40,4 +40,28 @@ void test_nav__nav_it_theta(void)
 
 }
 
-//TODO test with no_noise and no_diff and no_noise | no_diff
+
+void test_nav__nav_it_theta_no_diff(void)
+{        
+    int i;
+
+    ssm_options_t *opts_nd = ssm_options_new();
+    opts_nd->noises_off = SSM_NO_DIFF;
+    ssm_nav_t *nav_nd = ssm_nav_new(jparameters, opts_nd);
+
+    cl_check(nav_nd->theta_no_icsv_no_icdiff->length == 7);
+    cl_check(nav_nd->theta_icsv_icdiff->length == 3);
+
+    char *expected_names[] = {"I_nyc", "I_paris", "S_nyc"};
+    for(i=0; i<nav_nd->theta_icsv_icdiff->length; i++){
+	cl_assert_equal_s(nav_nd->theta_icsv_icdiff->p[i]->name, expected_names[i]);
+    }
+
+    char *expected_names_no[] = {"r0_nyc", "r0_paris", "v", "rep_all_CDC_inc", "rep_all_google_inc", "rep_nyc_CDC_inc", "rep_paris_CDC_prev"};
+    for(i=0; i<nav_nd->theta_no_icsv_no_icdiff->length; i++){       
+	cl_assert_equal_s(nav_nd->theta_no_icsv_no_icdiff->p[i]->name, expected_names_no[i]);
+    }
+
+    ssm_options_free(opts_nd);
+    ssm_nav_free(nav_nd);
+}
