@@ -6,6 +6,7 @@ static ssm_nav_t *nav;
 static ssm_options_t *opts;
 static ssm_input_t *input;
 static ssm_var_t *var;
+static ssm_X_t *X;
 
 void test_inputs__initialize(void)
 {
@@ -15,6 +16,8 @@ void test_inputs__initialize(void)
 
     input = ssm_input_new(jparameters, nav);
     var = ssm_var_new(jparameters, nav);
+    X = ssm_X_new(nav, opts);
+
 }
 
 void test_inputs__cleanup(void)
@@ -25,6 +28,7 @@ void test_inputs__cleanup(void)
 
     ssm_input_free(input);
     ssm_var_free(var);
+    ssm_X_free(X);
 }
 
 void test_inputs__input_new(void)
@@ -76,4 +80,16 @@ void test_inputs__var_new(void)
         }
     }
 
+}
+
+void test_inputs__X_new(void)
+{
+    int i;
+    cl_check(X->length == 4+2+2);
+    cl_check(X->dt0 == 0.25);
+    cl_check(X->dt == X->dt0);
+
+    for(i=0; i<X->length; i++){
+        cl_check(X->proj[i] == 0.0);
+    }
 }
