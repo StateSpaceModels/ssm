@@ -13,7 +13,7 @@ LDFLAGS=-lssm -lssmtpl -lssm -lm -lgsl -lgslcblas -ljansson -lzmq
 .PHONY: clean test
 
 # list the objects that go into our test
-objects = main.o parameters.o
+objects = main.o parameters.o states.o
 
 # build the test executable itself
 ssmtest: $(objects) clar.h clar.suite clar.c fixture_data

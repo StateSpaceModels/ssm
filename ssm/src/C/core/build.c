@@ -194,7 +194,6 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
     nav->states = _ssm_states_new(&nav->states_length, nav->parameters);
     nav->observed = _ssm_observed_new(&nav->observed_length);
 
-
     nav->states_sv = ssm_it_states_sv_new(nav->states);
     nav->states_remainders = ssm_it_states_remainders_new(nav->states);
     nav->states_inc = ssm_it_states_inc_new(nav->states);
