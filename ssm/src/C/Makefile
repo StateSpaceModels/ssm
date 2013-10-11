@@ -1,5 +1,5 @@
 CC=gcc #clang -ferror-limit=2
-CFLAGS= -std=gnu99 -Wall -O3 -DGSL_RANGE_CHECK_OFF -I kalman -I pmcmc -I simul -I mif -I simplex -I core
+CFLAGS= -std=gnu99 -Wall -g -DGSL_RANGE_CHECK_OFF -I kalman -I pmcmc -I simul -I mif -I simplex -I core
 LIB=libssm.a libssmsmc.a libssmsimplex.a libssmmif.a libssmpmcmc.a libssmkalman.a libssmksimplex.a libssmkmcmc.a libssmsimul.a #libssmworker.a
 ALL_SRC= $(wildcard */*.c)
 ALL_SRC_NO_TEMPLATE=$(filter-out templates/input_template.c templates/transform_template.c templates/check_IC_template.c templates/iterator_template.c templates/observed_template.c templates/diff_template.c templates/ode_sde_template.c templates/psr_template.c templates/jac_template.c templates/Ht_template.c templates/Q_template.c templates/step_ekf_template.c, $(ALL_SRC))
