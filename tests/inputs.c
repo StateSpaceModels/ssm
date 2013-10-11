@@ -71,7 +71,6 @@ void test_inputs__input_new(void)
     for(i=0; i<nav->par_all->length; i++){
         cl_check(gsl_vector_get(input, nav->par_all->p[i]->offset) == expected[i]);
     }
-
 }
 
 void test_inputs__par_new(void)
@@ -142,7 +141,6 @@ void test_inputs__var_new(void)
             cl_check(gsl_matrix_get(var, nav->theta_all->p[i]->offset_theta, nav->theta_all->p[j]->offset_theta) == expected[i][j]);
         }
     }
-
 }
 
 void test_inputs__X_new(void)
@@ -157,3 +155,44 @@ void test_inputs__X_new(void)
     }
 }
 
+
+void test_inputs__par2X(void)
+{
+    int i;
+    ssm_par2X(X, par, calc, nav);
+
+    double expected_sv_inc[] = {    
+        pow(10,-5)*1000000, //I_nyc
+        1e-05*1000000,      //I_paris
+        0.07*1000000,       //S_nyc
+        0.07*1000000,       //S_paris
+	0.0,                //Inc_in_nyc
+	0.0                 //Inc_out
+    };
+
+    double expected_diff[] = {    
+        log(20.0),          //r0_nyc
+        log(20.0)           //r0_paris
+    };
+
+    for(i=0; i<nav->states_sv_inc->length; i++){
+	cl_check(X->proj[nav->states_sv_inc->p[i]->offset] == expected_sv_inc[i]);
+    }
+
+    for(i=0; i<nav->states_diff->length; i++){
+	cl_check(X->proj[nav->states_diff->p[i]->offset] == expected_diff[i]);
+    }    
+}
+
+void test_inputs__theta2input(void)
+{
+    int i;
+    ssm_input_t *input_test = ssm_input_new(jparameters, nav);    
+    ssm_theta2input(input_test, theta, nav);
+
+    for(i=0; i<input_test->size; i++){
+	cl_check(fabs(gsl_vector_get(input_test, i) - gsl_vector_get(input, i))<1e-12);       
+    }
+    
+    ssm_input_free(input_test);
+}

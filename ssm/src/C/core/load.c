@@ -118,7 +118,7 @@ void ssm_par2X(ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav)
     }
 
     for(i=0; i<diff->length; i++){
-        X->proj[ diff->p[i]->offset ] = sv->p[i]->f(gsl_vector_get(par, diff->p[i]->ic->offset));
+        X->proj[ diff->p[i]->offset ] = diff->p[i]->f(gsl_vector_get(par, diff->p[i]->ic->offset));
     }
 
 }
