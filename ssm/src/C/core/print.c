@@ -69,7 +69,7 @@ void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_v
             json_t *values = json_object_get(el, "data");
 
 	    for(i=0; i<nav->theta_all->length; i++){
-		x = gsl_vector_get(theta, nav->theta_all->p[i]->offset_theta);
+		x = nav->theta_all->p[i]->f_inv(gsl_vector_get(theta, nav->theta_all->p[i]->offset_theta));
 		json_object_set_new(values, nav->theta_all->p[i]->name, json_real(x));
 	    }
 

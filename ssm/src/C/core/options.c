@@ -67,7 +67,7 @@ void ssm_load_options(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
         {"f", 'f', "no_diff",        "turn off diffusions (if any)", no_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
         {"t", 't', "traj",           "print the trajectories", no_argument,  SSM_SMC | SSM_KALMAN | SSM_MIF | SSM_SIMUL },
         {"r", 'r', "no_filter",      "do not filter", no_argument,  SSM_SMC },
-        {"c", 'c', "trace",          "print the traces", no_argument,  SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF },
+        {"c", 'c', "trace",          "print the traces", no_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF },
         {"x", 'x', "hat",            "print the state estimates", no_argument,  SSM_SMC | SSM_KALMAN | SSM_SIMUL },
         {"e", 'e', "diag",           "print the diagnostics outputs (prediction residuals...)", no_argument,  SSM_SMC | SSM_KALMAN },
         {"p", 'p', "prior",          "add log(prior) to the estimated loglikelihood", no_argument,  SSM_SMC | SSM_KALMAN | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF },
@@ -315,7 +315,42 @@ void ssm_load_options(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
     argc -= optind;
     argv += optind;
 
-    if(argc > 0) {
-        printf("argv: %s\n", argv[0]);
+    ssm_get_implementation(opts, algo, argc, argv);    
+}
+
+void ssm_get_implementation(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv[])
+{
+    //Kalman methods: no choice!
+    if ( algo & (SSM_KALMAN | SSM_KSIMPLEX | SSM_KMCMC) ){
+	if(argc == 0 || !strcmp(argv[0], "sde")){
+	    opts->implementation = SSM_EKF;
+	    return; 
+	} else {
+            ssm_print_err("invalid implementation");
+            exit(EXIT_FAILURE);	    
+	}
     }
+    
+    //non Kalman methods
+    if(argc == 0) {	
+	opts->implementation = SSM_ODE; 
+    } else {
+
+        if (!strcmp(argv[0], "ode")) {
+            opts->implementation = SSM_ODE;
+        } else if (!strcmp(argv[0], "sde")) {
+            opts->implementation = SSM_SDE;
+        } else if (!strcmp(argv[0], "psr")) {
+            opts->implementation = SSM_PSR;
+        } else {
+            ssm_print_err("invalid implementation");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    //force correct noises_off for implementation
+    if(opts->implementation == SSM_ODE){
+	opts->noises_off |=  SSM_NO_DEM_STO | SSM_NO_WHITE_NOISE | SSM_NO_DIFF;
+    }
+
 }
