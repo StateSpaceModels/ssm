@@ -184,6 +184,17 @@ void test_inputs__par2X(void)
     }    
 }
 
+void test_inputs__remainders(void)
+{
+    int i;
+    ssm_par2X(X, par, calc, nav);
+       
+    for(i=0; i<nav->states_remainders->length; i++){
+	cl_check(nav->states_remainders->p[i]->f_remainder(X, calc, 0.0) == 1000000 - 1e-05*1000000 - 0.07*1000000);
+    }
+}
+
+
 void test_inputs__theta2input(void)
 {
     int i;

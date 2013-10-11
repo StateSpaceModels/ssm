@@ -162,12 +162,12 @@ void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm
     }
 
     for(i=0; i<nav->states_remainders->length; i++){
-        state = nav->states_sv->p[i];
+        state = nav->states_remainders->p[i];
         json_object_set_new(jout, state->name, json_real(state->f_remainder(p_X, calc, t)));
     }
 
     for(i=0; i<nav->states_diff->length; i++){
-        state = nav->states_sv->p[i];
+        state = nav->states_diff->p[i];
         json_object_set_new(jout, state->name, json_real(state->f_inv(X[state->offset])));
     }
 
