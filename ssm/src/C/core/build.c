@@ -45,7 +45,6 @@ void ssm_par_free(ssm_par_t *par)
  */
 ssm_theta_t *ssm_theta_new(ssm_input_t* input, ssm_nav_t *nav)
 {
-
     ssm_theta_t *theta = gsl_vector_calloc(nav->theta_all->length);
 
     if(input) {

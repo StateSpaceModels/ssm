@@ -115,17 +115,17 @@
           {
             "name": "date",
             "type": "date",
-            "unit": "weeks"
+            "unit": "week"
           },
           {
             "name": "paris",
             "type": "number",
-            "unit": "weeks"
+            "unit": "week"
           },
           {
             "name": "nyc",
             "type": "number",
-            "unit": "weeks"
+            "unit": "week"
           }
         ]
       }
@@ -144,12 +144,12 @@
           {
             "name": "paris",
             "type": "number",
-            "unit": "weeks"
+            "unit": "week"
           },
           {
             "name": "nyc",
             "type": "number",
-            "unit": "weeks"
+            "unit": "week"
           }
         ]
       }

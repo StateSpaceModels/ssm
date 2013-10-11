@@ -28,9 +28,14 @@ void test_nav__nav_it_theta(void)
     cl_check(nav->theta_no_icsv_no_icdiff->length == 5);
     cl_check(nav->theta_icsv_icdiff->length == 5);
 
-    char *expected_names[] = {"I_nyc", "I_paris", "S_nyc", "r0_nyc", "r0_paris"};
+    char *expected_names[] = {"I_nyc", "I_paris", "S_paris", "r0_nyc", "r0_paris", "v", "rep_all_CDC_inc", "rep_all_google_inc", "rep_nyc_CDC_inc", "rep_paris_CDC_prev"};
+    for(i=0; i<nav->theta_all->length; i++){
+	cl_assert_equal_s(nav->theta_all->p[i]->name, expected_names[i]);
+    }
+
+    char *expected_names_ic[] = {"I_nyc", "I_paris", "S_paris", "r0_nyc", "r0_paris"};
     for(i=0; i<nav->theta_icsv_icdiff->length; i++){
-	cl_assert_equal_s(nav->theta_icsv_icdiff->p[i]->name, expected_names[i]);
+	cl_assert_equal_s(nav->theta_icsv_icdiff->p[i]->name, expected_names_ic[i]);
     }
 
     char *expected_names_no[] = {"v", "rep_all_CDC_inc", "rep_all_google_inc", "rep_nyc_CDC_inc", "rep_paris_CDC_prev"};
@@ -41,7 +46,7 @@ void test_nav__nav_it_theta(void)
 }
 
 
-void test_nav__nav_it_theta_no_diff(void)
+void test_nav__nav_it_theta_opts_no_diff(void)
 {        
     int i;
 
@@ -52,7 +57,7 @@ void test_nav__nav_it_theta_no_diff(void)
     cl_check(nav_nd->theta_no_icsv_no_icdiff->length == 7);
     cl_check(nav_nd->theta_icsv_icdiff->length == 3);
 
-    char *expected_names[] = {"I_nyc", "I_paris", "S_nyc"};
+    char *expected_names[] = {"I_nyc", "I_paris", "S_paris"};
     for(i=0; i<nav_nd->theta_icsv_icdiff->length; i++){
 	cl_assert_equal_s(nav_nd->theta_icsv_icdiff->p[i]->name, expected_names[i]);
     }

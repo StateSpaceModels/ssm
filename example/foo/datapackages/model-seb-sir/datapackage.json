@@ -128,8 +128,8 @@
             "id": "pr_S_paris",
             "description": "Proportion of susceptible",
             "distribution": "uniform",
-            "lower":0.07,
-            "upper":0.07
+            "lower":0.04,
+            "upper":0.09
           }
         },
 
@@ -193,9 +193,8 @@
           "id": "vol",
           "description": "volatility of the diffusion",
           "prior": {
-            "distribution": "uniform",
-            "lower": 0.0,
-            "upper": 0.2
+            "distribution": "fixed",
+            "value": 0.1
           }
         },
 
@@ -209,7 +208,8 @@
             "distribution": "normal",
             "mean": 7.0,
             "sd": 2.0,
-            "unit": "days"
+            "lower": 0.0,
+            "unit": "day"
           }
         },
 

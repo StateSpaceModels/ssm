@@ -90,16 +90,11 @@ void ssm_jforced(ssm_input_t *input, json_t *jforced, ssm_nav_t *nav)
 }
 
 
-
-/**
- * we only update theta component of par as par as been initialized
- * from input (by construction)
- */
 void ssm_input2par(ssm_par_t *par, ssm_input_t *input, ssm_calc_t *calc, ssm_nav_t *nav)
 {
     int i;
-    ssm_it_parameters_t *it = nav->theta_all;
-
+    ssm_it_parameters_t *it = nav->par_all; //iterate on all the parameters to take into account following relationships
+   
     for(i=0; i< it->length; i++){
         gsl_vector_set(par, it->p[i]->offset, it->p[i]->f_user2par(gsl_vector_get(input, it->p[i]->offset), input, calc));
     }
