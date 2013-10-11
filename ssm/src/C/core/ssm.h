@@ -607,8 +607,8 @@ double *ssm_load_jd1_new(json_t *container, char *name);
 char **ssm_load_jc1_new(json_t *container, const char *name);
 
 /* options.c */
-void ssm_load_options(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv[]);
-void ssm_get_implementation(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv[]);
+void ssm_options_load(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv[]);
+void ssm_options_set_implementation(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv[]);
 
 /* fitness.c */
 double ssm_sanitize_log_likelihood(double log_like, ssm_row_t *row, ssm_fitness_t *fitness, ssm_nav_t *nav);

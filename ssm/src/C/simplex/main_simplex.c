@@ -112,7 +112,7 @@ static double f_simplex(const gsl_vector *theta, void *params)
 int main(int argc, char *argv[])
 {
     ssm_options_t *opts = ssm_options_new();
-    ssm_load_options(opts, SSM_SIMPLEX, argc, argv);
+    ssm_options_load(opts, SSM_SIMPLEX, argc, argv);
 
     json_t *jparameters = ssm_load_json_stream(stdin);
     json_t *jdata = ssm_load_data(opts);

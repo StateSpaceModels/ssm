@@ -29,7 +29,7 @@ struct opts_part{
 };
 
 
-void ssm_load_options(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv[])
+void ssm_options_load(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv[])
 {
     struct opts_part all_opts[] = {
         {"D", 'D', "dt",             "integration time step", required_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
@@ -315,10 +315,10 @@ void ssm_load_options(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
     argc -= optind;
     argv += optind;
 
-    ssm_get_implementation(opts, algo, argc, argv);    
+    ssm_options_set_implementation(opts, algo, argc, argv);    
 }
 
-void ssm_get_implementation(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv[])
+void ssm_options_set_implementation(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv[])
 {
     //constraints methods
     if ( algo & (SSM_KALMAN | SSM_KSIMPLEX | SSM_KMCMC) ){
