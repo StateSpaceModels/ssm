@@ -320,32 +320,43 @@ void ssm_load_options(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
 
 void ssm_get_implementation(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv[])
 {
-    //Kalman methods: no choice!
+    //constraints methods
     if ( algo & (SSM_KALMAN | SSM_KSIMPLEX | SSM_KMCMC) ){
+
 	if(argc == 0 || !strcmp(argv[0], "sde")){
 	    opts->implementation = SSM_EKF;
-	    return; 
 	} else {
             ssm_print_err("invalid implementation");
             exit(EXIT_FAILURE);	    
 	}
-    }
-    
-    //non Kalman methods
-    if(argc == 0) {	
-	opts->implementation = SSM_ODE; 
-    } else {
 
-        if (!strcmp(argv[0], "ode")) {
-            opts->implementation = SSM_ODE;
-        } else if (!strcmp(argv[0], "sde")) {
-            opts->implementation = SSM_SDE;
-        } else if (!strcmp(argv[0], "psr")) {
-            opts->implementation = SSM_PSR;
-        } else {
+    } else if (algo & SSM_SIMPLEX) { 
+
+	if(argc == 0 || !strcmp(argv[0], "ode")){
+	    opts->implementation = SSM_ODE;
+	} else {
             ssm_print_err("invalid implementation");
-            exit(EXIT_FAILURE);
-        }
+            exit(EXIT_FAILURE);	    
+	}
+
+    } else {
+     
+	//non constraints methods
+	if(argc == 0) {	
+	    opts->implementation = SSM_ODE; 
+	} else {
+
+	    if (!strcmp(argv[0], "ode")) {
+		opts->implementation = SSM_ODE;
+	    } else if (!strcmp(argv[0], "sde")) {
+		opts->implementation = SSM_SDE;
+	    } else if (!strcmp(argv[0], "psr")) {
+		opts->implementation = SSM_PSR;
+	    } else {
+		ssm_print_err("invalid implementation");
+		exit(EXIT_FAILURE);
+	    }
+	}
     }
 
     //force correct noises_off for implementation
