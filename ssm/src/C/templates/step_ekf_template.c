@@ -41,7 +41,6 @@ int ssm_step_ekf(double t, const double X[], double f[], void *params)
         ssm_state_t *p = states_diff->p[i];
         {% if noises_off != 'ode'%}
         if(is_diff){
-	    printf("X %f\n",X[p->offset]);
             diffed[i] = p->f_inv(X[p->offset]);
         } else {
             diffed[i] = gsl_vector_get(par, p->ic->offset);

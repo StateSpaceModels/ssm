@@ -121,7 +121,7 @@ ssm_err_code_t ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X,
     gsl_matrix_view Ht = gsl_matrix_submatrix(calc->_Ht,0,0,m,row->ts_nonan_length);
     gsl_matrix_view Kt = gsl_matrix_submatrix(calc->_Kt,0,0,m,row->ts_nonan_length);
     gsl_matrix_view Ct =  gsl_matrix_view_array(&X->proj[m], m, m);
-    gsl_permutation *p  = gsl_permutation_alloc(m);
+    gsl_permutation *p  = gsl_permutation_alloc(row->ts_nonan_length);
 
     // fill Ht and Rt
     ssm_eval_Ht(X, row, t, par, nav, calc);
