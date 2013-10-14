@@ -7,52 +7,51 @@ import os
 class TestCcoder(unittest.TestCase):
 
     def setUp(self):
-
-        model = json.load(open(os.path.join('..', 'example','noise', 'model', 'datapackage.json')))
+        model = json.load(open(os.path.join('..' ,'example', 'noise', 'datapackages', 'model-jdureau-noise', 'datapackage.json')))
         self.m_noise = Ccoder(model)
 
-        model = json.load(open(os.path.join('..', 'example','diff', 'model', 'datapackage.json')))
+        model = json.load(open(os.path.join('..' ,'example', 'diff', 'datapackages', 'model-jdureau-diff', 'datapackage.json')))
         self.m_diff = Ccoder(model)
 
-        model = json.load(open(os.path.join('..', 'example','noise', 'model', 'datapackage.json')))
+        model = json.load(open(os.path.join('..' ,'example', 'noise', 'datapackages', 'model-jdureau-noise', 'datapackage.json')))
         del model["resources"][1]["data"][2]["white_noise"] 
         del model["resources"][1]["data"][3]["white_noise"]
         model["resources"][1]["data"][0]["white_noise"] = {"id":"noise_SI", "sd": "sto"}
         model["resources"][1]["data"][1]["white_noise"] = {"id":"noise_SI2", "sd": "sto"}
         self.m_noise2 = Ccoder(model)
 
-        model = json.load(open(os.path.join('..', 'example','noise', 'model', 'datapackage.json')))
+        model = json.load(open(os.path.join('..' ,'example', 'noise', 'datapackages', 'model-jdureau-noise', 'datapackage.json')))
         del model["resources"][1]["data"][2]["white_noise"] 
         del model["resources"][1]["data"][3]["white_noise"]
         model["resources"][1]["data"][4]["white_noise"] = {"id":"noise_SI", "sd": "sto"}
         model["resources"][1]["data"][5]["white_noise"] = {"id":"noise_SI2", "sd": "sto"}
         self.m_noise3 = Ccoder(model)
 
-        model = json.load(open(os.path.join('..', 'example','noise', 'model', 'datapackage.json')))
+        model = json.load(open(os.path.join('..' ,'example', 'noise', 'datapackages', 'model-jdureau-noise', 'datapackage.json')))
         del model["resources"][1]["data"][2]["white_noise"] 
         del model["resources"][1]["data"][3]["white_noise"]
         model["resources"][1]["data"][8]["white_noise"] = {"id":"noise_SI", "sd": "sto"}
         model["resources"][1]["data"][9]["white_noise"] = {"id":"noise_SI2", "sd": "sto"}
         self.m_noise4 = Ccoder(model)
 
-        model = json.load(open(os.path.join('..', 'example','noise', 'model', 'datapackage.json')))
+        model = json.load(open(os.path.join('..' ,'example', 'noise', 'datapackages', 'model-jdureau-noise', 'datapackage.json')))
         del model["resources"][1]["data"][2]["white_noise"] 
         del model["resources"][1]["data"][3]["white_noise"]
         model["resources"][1]["data"][10]["white_noise"] = {"id":"noise_SI", "sd": "sto"}
         model["resources"][1]["data"][11]["white_noise"] = {"id":"noise_SI2", "sd": "sto"}
         self.m_noise5 = Ccoder(model)
 
-        model = json.load(open(os.path.join('..', 'example','noise', 'model', 'datapackage.json')))
+        model = json.load(open(os.path.join('..' ,'example', 'noise', 'datapackages', 'model-jdureau-noise', 'datapackage.json')))
         model["resources"][1]["data"][4]["white_noise"] = {"id":"noise_SI", "sd": "sto"}
         model["resources"][1]["data"][5]["white_noise"] = {"id":"noise_SI2", "sd": "sto"}
         self.m_noise6 = Ccoder(model)
 
-        model = json.load(open(os.path.join('..', 'example','noise', 'model', 'datapackage.json')))
+        model = json.load(open(os.path.join('..' ,'example', 'noise', 'datapackages', 'model-jdureau-noise', 'datapackage.json')))
         model["resources"][1]["data"][4]["white_noise"] = {"id":"noise_SI23", "sd": "sto"}
         model["resources"][1]["data"][5]["white_noise"] = {"id":"noise_SI24", "sd": "sto"}
         self.m_noise7 = Ccoder(model)
 
-        model = json.load(open(os.path.join('..', 'example','diff', 'model', 'datapackage.json')))
+        model = json.load(open(os.path.join('..' ,'example', 'diff', 'datapackages', 'model-jdureau-diff', 'datapackage.json')))
         model["resources"][1]["data"].append({"from": "R_paris",   "to": "I_paris",   "rate": "correct_rate(v)",            "description":"testing"})
         model["resources"][1]["data"].append({"from": "R_nyc",   "to": "I_nyc",   "rate": "correct_rate(v)",                "description":"testing"})
         self.m_diff2 = Ccoder(model)
@@ -356,36 +355,35 @@ class TestCcoder(unittest.TestCase):
         self.assertEqual(calc_Q["no_dem_sto"]["Q_cm"][5][5],'((1)*(('+term1_n+'*((sto)**2))*'+term1_n+'))*(1)')
 
     def test_jac(self):
-        step_ode_sde = self.m_diff.step_ode_sde()
+        step_ode_sde = self.m_noise.step_ode_sde()
         jac = self.m_diff.jac(step_ode_sde['sf'])
 
         # testing jac
         # I ode - ((v)*I) - ((mu_d)*I) + ((r0/N*v*I)*S)
-        print self.m_diff.make_C_term('- (((v))) - ((mu_d_nyc)) + ((r0_nyc/N_nyc*v)*S_nyc)', False, human=False)
-        self.assertEqual(jac["caches"][jac["jac"][0][0]],self.m_diff.make_C_term('- ((v)) - ((mu_d_nyc)) + ((r0_nyc/N_nyc*v)*S_nyc)', False, human=False))
-        self.assertEqual(jac["caches"][jac["jac"][1][1]],self.m_diff.make_C_term('- ((v)) - ((mu_d)) + ((r0/N*v)*S)', False, human=False))
-        self.assertEqual(jac["caches"][jac["jac_diff"][1][0]["value"]],self.m_diff.make_C_term('((1/N*v*I)*S)', False, human=False))
+        self.assertEqual(jac["caches"][jac["jac"][0][0]],"-gsl_spline_eval(calc->spline[ORDER_mu_d_nyc],t,calc->acc[ORDER_mu_d_nyc])-(gsl_vector_get(par, ORDER_v))+X[ORDER_S_nyc]*diffed[ORDER_diff__r0_nyc]*gsl_vector_get(par, ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])")
+        self.assertEqual(jac["caches"][jac["jac"][1][1]],"-gsl_spline_eval(calc->spline[ORDER_mu_d_paris],t,calc->acc[ORDER_mu_d_paris])-(gsl_vector_get(par, ORDER_v))+X[ORDER_S_paris]*diffed[ORDER_diff__r0_paris]*gsl_vector_get(par, ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_paris],t,calc->acc[ORDER_N_paris])")
+        self.assertEqual(jac["caches"][jac["jac_diff"][1][0]["value"]],"0")
+        self.assertEqual(jac["caches"][jac["jac_diff"][0][1]["value"]],"0")
         
         # S ode - ((r0/N*v*I)*S) - ((mu_d)*S) + (mu_b*N)
-        self.assertEqual(jac["caches"][jac["jac"][0][0]],self.m_diff.make_C_term('- ((mu_d_nyc)) - ((r0_nyc/N_nyc*v*I_nyc))', False, human=False))
-        self.assertEqual(jac["caches"][jac["jac"][0][0]],self.m_diff.make_C_term('- ((mu_d_nyc)) - ((r0_nyc/N_nyc*v*I_nyc))', False, human=False))
-        self.assertEqual(jac["caches"][jac["jac"][0][1]],self.m_diff.make_C_term('- ((r0/N*v)*S)', False, human=False))
-        self.assertEqual(jac["caches"][jac["jac_diff"][0][0]["value"]],self.m_diff.make_C_term('- ((1/N*v*I)*S)', False, human=False)) # the derivative is computed with regards to r0 and not transf(r0), as the latter is taken care of on runtime because it depends on the transformation.
+        self.assertEqual(jac["caches"][jac["jac"][2][2]],"-X[ORDER_I_nyc]*diffed[ORDER_diff__r0_nyc]*gsl_vector_get(par, ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])-gsl_spline_eval(calc->spline[ORDER_mu_d_nyc],t,calc->acc[ORDER_mu_d_nyc])")
+        self.assertEqual(jac["caches"][jac["jac"][3][3]],"-X[ORDER_I_paris]*diffed[ORDER_diff__r0_paris]*gsl_vector_get(par, ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_paris],t,calc->acc[ORDER_N_paris])-gsl_spline_eval(calc->spline[ORDER_mu_d_paris],t,calc->acc[ORDER_mu_d_paris])")
+        self.assertEqual(jac["caches"][jac["jac"][2][0]],"-X[ORDER_S_nyc]*diffed[ORDER_diff__r0_nyc]*gsl_vector_get(par, ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])")
+        self.assertEqual(jac["caches"][jac["jac"][3][1]],"-X[ORDER_S_paris]*diffed[ORDER_diff__r0_paris]*gsl_vector_get(par, ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_paris],t,calc->acc[ORDER_N_paris])")
         
         
         # testing jac_obs
-        # inc_out ((v)*I) + ((mu_d)*I)
-        self.assertEqual(jac["caches"][jac["jac_obs"][0][0]],self.m_diff.make_C_term('0', False, human=False))
-        self.assertEqual(jac["caches"][jac["jac_obs"][0][1]],self.m_diff.make_C_term('((v)) + ((mu_d))', False, human=False))
-        self.assertEqual(jac["caches"][jac["jac_obs_diff"][0][0]["value"]],self.m_diff.make_C_term('0', False, human=False))
-        # inc_in ((r0/N*v*I)*S)
-        self.assertEqual(jac["caches"][jac["jac_obs"][1][0]],self.m_diff.make_C_term('((r0/N*v*I))', False, human=False))
-        self.assertEqual(jac["caches"][jac["jac_obs"][1][1]],self.m_diff.make_C_term('((r0/N*v)*S)', False, human=False))
-        self.assertEqual(jac["caches"][jac["jac_obs_diff"][1][0]["value"]],self.m_diff.make_C_term('((1/N*v*I)*S)', False, human=False))
-        # prev - ((v)*I) - ((mu_d)*I) + ((r0/N*v*I)*S)
-        self.assertEqual(jac["caches"][jac["jac_obs"][2][0]],self.m_diff.make_C_term('((r0/N*v*I))', False, human=False))
-        self.assertEqual(jac["caches"][jac["jac_obs"][2][1]],self.m_diff.make_C_term('- ((v)) - ((mu_d)) + ((r0/N*v)*S)', False, human=False))
-        self.assertEqual(jac["caches"][jac["jac_obs_diff"][2][0]["value"]],self.m_diff.make_C_term('((1/N*v*I)*S)', False, human=False))
+        # all_inc
+        self.assertEqual(jac["caches"][jac["jac_obs"][0][0]],"X[ORDER_S_nyc]*diffed[ORDER_diff__r0_nyc]*gsl_vector_get(par, ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])")
+        self.assertEqual(jac["caches"][jac["jac_obs"][0][1]],"X[ORDER_S_paris]*diffed[ORDER_diff__r0_paris]*gsl_vector_get(par, ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_paris],t,calc->acc[ORDER_N_paris])")
+        self.assertEqual(jac["caches"][jac["jac_obs_diff"][0][0]["value"]],"X[ORDER_I_nyc]*X[ORDER_S_nyc]*gsl_vector_get(par, ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])")
+        self.assertEqual(jac["caches"][jac["jac_obs_diff"][0][1]["value"]],"X[ORDER_I_paris]*X[ORDER_S_paris]*gsl_vector_get(par, ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_paris],t,calc->acc[ORDER_N_paris])")
+        # nyc_inc
+        self.assertEqual(jac["caches"][jac["jac_obs"][1][0]],"X[ORDER_S_nyc]*diffed[ORDER_diff__r0_nyc]*gsl_vector_get(par, ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])")
+        self.assertEqual(jac["caches"][jac["jac_obs"][1][1]],"0")
+        self.assertEqual(jac["caches"][jac["jac_obs_diff"][1][0]["value"]],"X[ORDER_I_nyc]*X[ORDER_S_nyc]*gsl_vector_get(par, ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])")
+        self.assertEqual(jac["caches"][jac["jac_obs_diff"][1][1]["value"]],"0")
+        
 
 if __name__ == '__main__':
     unittest.main()

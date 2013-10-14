@@ -710,7 +710,7 @@ class Ccoder(Cmodel):
         ##observed equations
         obsList = []
 
-
+        
         for i in range(len(self.par_inc_def)):
             eq = ''
             for j in range(len(self.par_inc_def[i])):
@@ -774,7 +774,7 @@ class Ccoder(Cmodel):
 
             #see doc of kalman.c diff_derivative()
             for sy in self.par_diff:
-                Cterm = self.make_C_term(obsList[o], True, derivate=sy)
+                Cterm = self.make_C_term(obsList[o], True, derivate=sy.split('diff__')[1])
                 jac_obs_diff[o].append({'value': Cterm,
                                         'der': self.make_C_term(sy, True),
                                         'name': sy,
