@@ -53,6 +53,7 @@ void ssm_step_sde_{{ noises_off }}(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_n
         }
         {% else %}
         diffed[i] = gsl_vector_get(par, p->ic->offset);
+	f[p->offset]=0;
         {% endif %}
     }
     {% endif %}
