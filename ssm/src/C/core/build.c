@@ -92,7 +92,7 @@ ssm_var_t *ssm_var_new(json_t *jparameters, ssm_nav_t *nav)
                                 gsl_matrix_set(m, i, j, json_number_value(jcov_ij));
                             } else {
                                 char str[SSM_STR_BUFFSIZE];
-                                sprintf(str, "error: parameters.covariance.%s.%s is not a number\n", it->p[i]->name, it->p[j]->name);
+                                snprintf(str, SSM_STR_BUFFSIZE, "error: parameters.covariance.%s.%s is not a number\n", it->p[i]->name, it->p[j]->name);
                                 ssm_print_err(str);
                                 exit(EXIT_FAILURE);
                             }
@@ -223,7 +223,7 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
                     json_t *jcov_ii = json_object_get(jcov_i, nav->par_all->p[i]->name);
                     if(jcov_ii){
                         if(!json_is_number(jcov_ii)) {
-                            sprintf(str, "error: parameters.covariance.%s.%s is not a number\n", nav->par_all->p[i]->name, nav->par_all->p[i]->name);
+                            snprintf(str, SSM_STR_BUFFSIZE, "error: parameters.covariance.%s.%s is not a number\n", nav->par_all->p[i]->name, nav->par_all->p[i]->name);
                             ssm_print_err(str);
                             exit(EXIT_FAILURE);
                         }
@@ -460,7 +460,7 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
         if(json_is_string(jdate)) {
             rows[i]->date = strdup(json_string_value(jdate));
         } else {
-            sprintf(str, "error: data[%d].date is not a string\n", i);
+            snprintf(str, SSM_STR_BUFFSIZE, "error: data[%d].date is not a string\n", i);
             ssm_print_err(str);
             exit(EXIT_FAILURE);
         }
@@ -469,7 +469,7 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
         if(json_is_number(jtime)) {
             rows[i]->time = (unsigned int) json_integer_value(jtime);
         } else {
-            sprintf(str, "error: data[%d].time is not an integer\n", i);
+            snprintf(str, SSM_STR_BUFFSIZE, "error: data[%d].time is not an integer\n", i);
             ssm_print_err(str);
             exit(EXIT_FAILURE);
         }
@@ -490,7 +490,7 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
                     int id = json_integer_value(jobserved_j);
                     rows[i]->observed[j] = nav->observed[id];
                 } else {
-                    sprintf(str, "error: data[%d].observed[%d] is not an integer\n", i, j);
+                    snprintf(str, SSM_STR_BUFFSIZE, "error: data[%d].observed[%d] is not an integer\n", i, j);
                     ssm_print_err(str);
                     exit(EXIT_FAILURE);
                 }
@@ -516,7 +516,7 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
                 int id = json_integer_value(jreset_j);
                 rows[i]->states_reset[j] = nav->states[id];
             } else {
-                sprintf(str, "error: data[%d].reset[%d] is not an integer\n", i, j);
+                snprintf(str, SSM_STR_BUFFSIZE, "error: data[%d].reset[%d] is not an integer\n", i, j);
                 ssm_print_err(str);
                 exit(EXIT_FAILURE);
             }

@@ -510,6 +510,21 @@ typedef struct
 
 
 
+typedef struct
+{
+    int id;
+    void *context; /**< zmq context */
+    int J_chunk;
+    ssm_data_t *data;
+    ssm_par_t *par;
+    ssm_X_t **J_X;
+    ssm_calc_t *calc;
+    ssm_nav_t *nav;
+    ssm_fitness_t *fitness;
+    ssm_f_pred_t f_pred;
+} ssm_thread_smc_t;
+
+
 
 
 /****************************/
@@ -716,6 +731,9 @@ void ssm_sample_traj(ssm_X_t **D_X, ssm_X_t ***D_J_X, ssm_calc_t *calc, ssm_data
 
 /* simplex.c */
 void ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_simplex)(const gsl_vector *x, void *params), ssm_nav_t *nav, double size_stop, int n_iter);
+
+/* worker_inproc.c */
+void *ssm_worker_inproc_smc(void *params);
 
 /******************************/
 /* kalman function signatures */

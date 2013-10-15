@@ -20,12 +20,13 @@
 
 int main(int argc, char *argv[])
 {
-    int j, n, np1, t0, t1;
+    int i, j, n, t0, t1, id;
+    char str[SSM_STR_BUFFSIZE];
 
     ssm_options_t *opts = ssm_options_new();
     ssm_options_load(opts, SSM_SMC, argc, argv);
 
-    json_t *jparameters = ssm_load_json_stream(stdin);    
+    json_t *jparameters = ssm_load_json_stream(stdin);
     json_t *jdata = ssm_load_data(opts);
 
     ssm_nav_t *nav = ssm_nav_new(jparameters, opts);
@@ -57,19 +58,78 @@ int main(int argc, char *argv[])
 
     ssm_f_pred_t f_pred = ssm_get_f_pred(nav);
 
+    void *context = NULL, *sender = NULL, *receiver = NULL, *controller = NULL;
+    pthread_t *workers = NULL;
+    ssm_thread_smc_t *params = NULL;
+
+    if(calc[0]->threads_length >1){
+        context = zmq_ctx_new();
+
+        sender = zmq_socket (context, ZMQ_PUSH);
+        snprintf(str, SSM_STR_BUFFSIZE, "inproc://ssm_server_sender_%d", opts->id);
+        zmq_bind (sender, str);
+
+        receiver = zmq_socket (context, ZMQ_PULL);
+        snprintf(str, SSM_STR_BUFFSIZE, "inproc://ssm_server_receiver_%d", opts->id);
+        zmq_bind (receiver, str);
+
+        controller = zmq_socket (context, ZMQ_PUB);
+        snprintf(str, SSM_STR_BUFFSIZE, "inproc://ssm_server_controller_%d", opts->id);
+        zmq_bind (controller, str);
+
+        workers = malloc(calc[0]->threads_length * sizeof (pthread_t));
+        params =  malloc(calc[0]->threads_length * sizeof (ssm_thread_smc_t));
+        int J_chunk = fitness->J / calc[0]->threads_length;
+        for(i=0; i<calc[0]->threads_length; i++){
+            params[i].id = opts->id;
+            params[i].context = context;
+            params[i].J_chunk = J_chunk;
+            params[i].data = data;
+            params[i].par = par;
+            params[i].J_X = J_X;
+            params[i].calc = calc[i];
+            params[i].nav = nav;
+            params[i].fitness = fitness;
+            params[i].f_pred = f_pred;
+
+            pthread_create(&workers[i], NULL, ssm_worker_inproc_smc, (void*) &params[i]);
+        }
+
+        //wait that all worker are connected
+        for (i = 0; i < calc[0]->threads_length; i++) {
+            zmq_recv(receiver, &id, sizeof (int), 0);
+        }
+    }
+
     for(n=0; n<data->n_obs; n++) {
-        np1 = n+1;
         t0 = (n) ? data->rows[n-1]->time: 0;
         t1 = data->rows[n]->time;
 
-        for(j=0;j<fitness->J;j++) {
-            ssm_X_reset_inc(J_X[j], data->rows[n], nav);
-            fitness->cum_status[j] |= (*f_pred)(J_X[j], t0, t1, par, nav, calc[0]);
+        if(calc[0]->threads_length > 1){
 
-            if(data->rows[n]->ts_nonan_length) {
-		fitness->weights[j] = (fitness->cum_status[j] == SSM_SUCCESS) ?  exp(ssm_log_likelihood(data->rows[n], J_X[j], par, calc[0], nav, fitness)) : 0.0;
-                fitness->cum_status[j] = SSM_SUCCESS;
+            //send work
+            for (i=0; i<calc[0]->threads_length; i++) {
+                zmq_send(sender, &i, sizeof (int), ZMQ_SNDMORE);
+                zmq_send(sender, &n, sizeof (int), 0);
             }
+
+            //get results from the workers
+            for (i=0; i<calc[0]->threads_length; i++) {
+                zmq_recv(receiver, &id, sizeof (int), 0);
+            }
+
+        } else {
+
+            for(j=0;j<fitness->J;j++) {
+                ssm_X_reset_inc(J_X[j], data->rows[n], nav);
+                fitness->cum_status[j] |= (*f_pred)(J_X[j], t0, t1, par, nav, calc[0]);
+
+                if(data->rows[n]->ts_nonan_length) {
+                    fitness->weights[j] = (fitness->cum_status[j] == SSM_SUCCESS) ?  exp(ssm_log_likelihood(data->rows[n], J_X[j], par, calc[0], nav, fitness)) : 0.0;
+                    fitness->cum_status[j] = SSM_SUCCESS;
+                }
+            }
+
         }
 
         if(!flag_no_filter && data->rows[n]->ts_nonan_length) {
@@ -119,6 +179,21 @@ int main(int argc, char *argv[])
 
     json_decref(jparameters);
 
+    if(calc[0]->threads_length >1){
+        zmq_send (controller, "KILL", 5, 0);
+        zmq_close (sender);
+        zmq_close (receiver);
+        zmq_close (controller);
+
+        for(i = 0; i < calc[0]->threads_length; i++){
+            pthread_join(workers[i], NULL);
+        }
+
+        free(workers);
+        free(params);
+        zmq_ctx_destroy (context);
+    }
+
     ssm_J_X_free(J_X, fitness);
     ssm_J_X_free(J_X_tmp, fitness);
     ssm_hat_free(hat);
@@ -132,6 +207,7 @@ int main(int argc, char *argv[])
     ssm_par_free(par);
 
 
+
+
     return 0;
 }
-
