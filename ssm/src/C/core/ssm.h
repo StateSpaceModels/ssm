@@ -469,7 +469,7 @@ typedef struct
     int chunk;               /**< number of particles to send to each machine */
     int flag_least_squares;  /**< optimize the sum of square instead of the likelihood */
     double size_stop;        /**< simplex size used as a stopping criteria */
-    char *freq;              /**< print the outputs (and reset incidences to 0 if any) every day (D), week (W), bi-week (B), month (M  or year (Y) */
+    int freq;                /**< print the outputs (and reset incidences to 0 if any) every specified days */
     char *start;             /**< ISO 8601 date when the simulation starts*/
     char *end;               /**< ISO 8601 date when the simulation ends*/
     char *server;            /**< domain name or IP address of the particule server (e.g 127.0.0.1) */

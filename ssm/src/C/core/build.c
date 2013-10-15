@@ -736,10 +736,35 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fi
 
         int k, z;
 
-        //TODO init from opts !!!!
-        double freeze_forcing = -1.0; // the time (in days) to freeze (i.e only take metadata from this time) (ignored if freeze_forcing < 0.0)
-        double t_max = -1.0; //t_max the highest possible time in days when interpolated metadata will be requested (-1 to default to last point of metadata).
+        double freeze_forcing; // the time (in days) to freeze (i.e only take metadata from this time) (ignored if freeze_forcing < 0.0)
+        double t_max; //t_max the highest possible time in days when interpolated metadata will be requested (negative values default to last point of metadata).
 
+	//assess freeze_forcing and t_max...
+	struct tm tm_start;
+	memset(&tm_start, 0, sizeof(struct tm));
+	strptime(data->date_t0, "%Y-%m-%d", &tm_start);
+	time_t t_start = mktime(&tm_start);
+
+	if(strcmp("", opts->end)!=0){
+	    struct tm tm_freeze;
+	    memset(&tm_freeze, 0, sizeof(struct tm));
+	    strptime(data->date_t0, "%Y-%m-%d", &tm_freeze);
+	    time_t t_freeze = mktime(&tm_freeze);
+	    freeze_forcing = difftime(t_freeze, t_start)/(24.0*60.0*60.0);
+	} else {
+	    freeze_forcing = -1.0;
+	}
+
+	if(strcmp("", opts->end)!=0){
+	    struct tm tm_end;
+	    memset(&tm_end, 0, sizeof(struct tm));
+	    strptime(opts->end, "%Y-%m-%d", &tm_end);
+	    time_t t_end = mktime(&tm_end);
+	    t_max = difftime(t_end, t_start)/(24.0*60.0*60.0);
+	} else {
+	    t_max = -1.0;
+	}
+	      
         for (k=0; k< calc->covariates_length; k++) {
             json_t *jcovariate = json_array_get(jcovariates, k);
 
@@ -911,7 +936,6 @@ ssm_options_t *ssm_options_new(void)
     opts->freeze_forcing = ssm_c1_new(SSM_STR_BUFFSIZE);
     opts->path = ssm_c1_new(SSM_STR_BUFFSIZE);
     opts->interpolator = ssm_c1_new(SSM_STR_BUFFSIZE);
-    opts->freq = ssm_c1_new(SSM_STR_BUFFSIZE);
     opts->start = ssm_c1_new(SSM_STR_BUFFSIZE);
     opts->end = ssm_c1_new(SSM_STR_BUFFSIZE);
     opts->server = ssm_c1_new(SSM_STR_BUFFSIZE);
@@ -950,7 +974,7 @@ ssm_options_t *ssm_options_new(void)
     opts->chunk = 0;
     opts->flag_least_squares = 0;
     opts->size_stop = 1e-6;
-    strncpy(opts->freq, "D", SSM_STR_BUFFSIZE);
+    opts->freq = 1;
     strncpy(opts->start, "", SSM_STR_BUFFSIZE);
     strncpy(opts->end, "", SSM_STR_BUFFSIZE);
     strncpy(opts->server, "127.0.0.1", SSM_STR_BUFFSIZE);
@@ -965,7 +989,6 @@ void ssm_options_free(ssm_options_t *opts)
     free(opts->freeze_forcing);
     free(opts->path);
     free(opts->interpolator);
-    free(opts->freq);
     free(opts->start);
     free(opts->end);
     free(opts->server);

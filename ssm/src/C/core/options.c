@@ -55,7 +55,7 @@ void ssm_options_load(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
         {"S", 'S', "alpha",          "smoothing factor of exponential smoothing used to compute smoothed acceptance rate (low values increase degree of smoothing)", required_argument,  SSM_KMCMC | SSM_PMCMC },
         {"H", 'H', "heat",           "re-heating accross MIF iterations (scales standard deviation of proposals)", required_argument,  SSM_MIF },
         {"L", 'L', "lag",            "lag for fixed-lag smoothing (proportion of the data)", required_argument,  SSM_MIF },
-        {"F", 'F', "freq",           "print the outputs (and reset incidences to 0 if any) every day (D), week (W), bi-week (B), month (M) or year (Y)", required_argument,  SSM_SIMUL },
+        {"F", 'F', "freq",           "print the outputs (and reset incidences to 0 if any) every specified days", required_argument,  SSM_SIMUL },
         {"V", 'V', "size",           "simplex size used as stopping criteria", required_argument,  SSM_KSIMPLEX | SSM_SIMPLEX },
         {"X", 'X', "chunk",          "number of particles sent to each machine", required_argument,  SSM_PMCMC },
         {"Q", 'Q', "interpolator",   "gsl interpolator for covariates", required_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
@@ -224,7 +224,7 @@ void ssm_options_load(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
             break;
 
         case 'F': //freq
-            strncpy(opts->freq, optarg, SSM_STR_BUFFSIZE);
+            opts->freq = atoi(optarg);
             break;
 
         case 'V': //size
