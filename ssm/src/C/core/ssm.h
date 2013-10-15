@@ -514,15 +514,18 @@ typedef struct
 {
     int id;
     void *context; /**< zmq context */
+    int compute_fitness;
+    int is_J_par;
+    int is_D_J_X;
     int J_chunk;
     ssm_data_t *data;
-    ssm_par_t *par;
-    ssm_X_t **J_X;
+    ssm_par_t **J_par;
+    ssm_X_t ***D_J_X;
     ssm_calc_t *calc;
     ssm_nav_t *nav;
     ssm_fitness_t *fitness;
     ssm_f_pred_t f_pred;
-} ssm_thread_smc_t;
+} ssm_params_worker_inproc_t;
 
 
 
@@ -733,7 +736,7 @@ void ssm_sample_traj(ssm_X_t **D_X, ssm_X_t ***D_J_X, ssm_calc_t *calc, ssm_data
 void ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_simplex)(const gsl_vector *x, void *params), ssm_nav_t *nav, double size_stop, int n_iter);
 
 /* worker_inproc.c */
-void *ssm_worker_inproc_smc(void *params);
+void *ssm_worker_inproc(void *params);
 
 /******************************/
 /* kalman function signatures */

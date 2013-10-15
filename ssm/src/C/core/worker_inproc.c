@@ -19,17 +19,20 @@
 #include "ssm.h"
 
 
-void *ssm_worker_inproc_smc(void *params)
+void *ssm_worker_inproc(void *params)
 {
     char str[SSM_STR_BUFFSIZE];
-    ssm_thread_smc_t *p = (ssm_thread_smc_t *) params;
+    ssm_params_worker_inproc_t *p = (ssm_params_worker_inproc_t *) params;
 
     int id = p->id;
     void *context = p->context;
-    int J_chunk = p->J_chunk;
+    int compute_fitness = p->compute_fitness;
+    int is_J_par = p->is_J_par;
+    int is_D_J_X = p->is_D_J_X;
+    int J_chunk = p->J_chunk;   
     ssm_data_t *data = p->data;
-    ssm_par_t *par = p->par;
-    ssm_X_t **J_X = p->J_X;
+    ssm_par_t **J_par = p->J_par;
+    ssm_X_t ***D_J_X = p->D_J_X;
     ssm_calc_t *calc = p->calc;
     ssm_nav_t *nav = p->nav;
     ssm_fitness_t *fitness = p->fitness;
@@ -61,6 +64,11 @@ void *ssm_worker_inproc_smc(void *params)
 
     int j, n, t0, t1;
     int the_id;
+
+    int _zero = 0;
+    int *j_par = (is_J_par) ? &j: &_zero;
+    int *n_X = (is_D_J_X) ? &n: &_zero;
+
     while (1) {
         zmq_poll (items, 2, -1);
         if (items [0].revents & ZMQ_POLLIN) {
@@ -75,11 +83,11 @@ void *ssm_worker_inproc_smc(void *params)
             int J_end = (the_id+1 == calc->threads_length) ? fitness->J : (the_id+1)*J_chunk;
 
             for(j=J_start; j<J_end; j++ ){
-                ssm_X_reset_inc(J_X[j], data->rows[n], nav);
-                fitness->cum_status[j] |= (*f_pred)(J_X[j], t0, t1, par, nav, calc);
+                ssm_X_reset_inc(D_J_X[*n_X][j], data->rows[n], nav);
+                fitness->cum_status[j] |= (*f_pred)(D_J_X[*n_X][j], t0, t1, J_par[*j_par], nav, calc);
 
-                if(data->rows[n]->ts_nonan_length) {
-                    fitness->weights[j] = (fitness->cum_status[j] == SSM_SUCCESS) ?  exp(ssm_log_likelihood(data->rows[n], J_X[j], par, calc, nav, fitness)) : 0.0;
+                if(compute_fitness && data->rows[n]->ts_nonan_length) {
+                    fitness->weights[j] = (fitness->cum_status[j] == SSM_SUCCESS) ?  exp(ssm_log_likelihood(data->rows[n], D_J_X[*n_X][j], J_par[*j_par], calc, nav, fitness)) : 0.0;
                     fitness->cum_status[j] = SSM_SUCCESS;
                 }
             }

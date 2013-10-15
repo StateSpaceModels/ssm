@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
 
     void *context = NULL, *sender = NULL, *receiver = NULL, *controller = NULL;
     pthread_t *workers = NULL;
-    ssm_thread_smc_t *params = NULL;
+    ssm_params_worker_inproc_t *params = NULL;
 
     if(calc[0]->threads_length >1){
         context = zmq_ctx_new();
@@ -78,21 +78,24 @@ int main(int argc, char *argv[])
         zmq_bind (controller, str);
 
         workers = malloc(calc[0]->threads_length * sizeof (pthread_t));
-        params =  malloc(calc[0]->threads_length * sizeof (ssm_thread_smc_t));
+        params =  malloc(calc[0]->threads_length * sizeof (ssm_params_worker_inproc_t));
         int J_chunk = fitness->J / calc[0]->threads_length;
         for(i=0; i<calc[0]->threads_length; i++){
             params[i].id = opts->id;
             params[i].context = context;
+	    params[i].compute_fitness = 1;
+	    params[i].is_J_par = 0;
+	    params[i].is_D_J_X = 0;	   
             params[i].J_chunk = J_chunk;
             params[i].data = data;
-            params[i].par = par;
-            params[i].J_X = J_X;
+            params[i].J_par = &par;
+            params[i].D_J_X = &J_X;
             params[i].calc = calc[i];
             params[i].nav = nav;
             params[i].fitness = fitness;
             params[i].f_pred = f_pred;
 
-            pthread_create(&workers[i], NULL, ssm_worker_inproc_smc, (void*) &params[i]);
+            pthread_create(&workers[i], NULL, ssm_worker_inproc, (void*) &params[i]);
         }
 
         //wait that all worker are connected
@@ -134,7 +137,7 @@ int main(int argc, char *argv[])
 
         if(!flag_no_filter && data->rows[n]->ts_nonan_length) {
             if(ssm_weight(fitness, data->rows[n], nav, n)) {
-                ssm_systematic_sampling(fitness, calc[0], n);
+		ssm_systematic_sampling(fitness, calc[0], n);
             }
 
             if (nav->print & SSM_PRINT_HAT) {
@@ -145,7 +148,7 @@ int main(int argc, char *argv[])
                 ssm_print_pred_res(nav->diag, J_X, par, nav, calc[0], data, data->rows[n], fitness);
             }
 
-            ssm_resample_X(fitness, &J_X, &J_X_tmp, n);
+	    ssm_resample_X(fitness, &J_X, &J_X_tmp, n);
 
         } else if (nav->print & SSM_PRINT_HAT) { //we do not filter or all data ara NaN (no info).
             ssm_hat_eval(hat, J_X, &par, nav, calc[0], NULL, t1, 0);
