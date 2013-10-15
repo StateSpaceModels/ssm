@@ -537,6 +537,7 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
 }
 
 
+
 void _ssm_row_free(ssm_row_t *row)
 {
     free(row->date);
@@ -565,6 +566,78 @@ void ssm_data_free(ssm_data_t *data)
 
     free(data);
 }
+
+
+
+/**
+ * extend data (in case of simulation)
+ */
+void ssm_data_extend(ssm_data_t *data, ssm_options_t *opts)
+{
+    int n;
+
+    struct tm tm_start;
+    memset(&tm_start, 0, sizeof(struct tm));
+    if(data->length){
+	strptime(data->rows[data->length-1]->date, "%Y-%m-%d", &tm_start);
+    } else {
+	strptime(data->date_t0, "%Y-%m-%d", &tm_start);
+    }
+    time_t t_start = mktime(&tm_start);
+
+    struct tm tm_end;
+    memset(&tm_end, 0, sizeof(struct tm));
+    strptime(opts->end, "%Y-%m-%d", &tm_end);
+    time_t t_end = mktime(&tm_end);    
+    
+    double delta = difftime(t_end, t_start)/(24.0*60.0*60.0);
+    if(delta < 0.0){
+	ssm_print_err("end date is before t0");
+	exit(EXIT_FAILURE);
+    }
+    
+    int n_extra = (int) ceil(delta / (double) opts->freq);
+    if(n_extra){
+	int offset = data->length;
+	data->length = offset + n_extra;
+	data->n_obs += n_extra;
+
+	ssm_row_t **rows = realloc(data->rows, data->length * sizeof (ssm_row_t *));
+	if (rows!=NULL) {
+	    data->rows = rows;
+	}
+	else {
+	    ssm_print_err("could not re-allocate memory for ssm_data_t rows");
+	    exit(EXIT_FAILURE);
+	}
+
+	time_t t = t_start;
+	char iso_8601[] = "YYYY-MM-DD"; 
+	double one_day_in_sec = 24.0*60.0*60.0;
+	int inc = opts->freq * 24*60*60;
+	for(n=0; n<n_extra; n++){
+	    ssm_row_t *row = malloc(sizeof (ssm_row_t));
+	    if (row == NULL) {
+		ssm_print_err("Allocation impossible for ssm_data_row_t *");
+		exit(EXIT_FAILURE);
+	    }
+	    
+	    t += inc; 
+	    struct tm *tm;
+	    tm = gmtime(&t);
+
+	    strftime(iso_8601, sizeof(iso_8601), "%Y-%m-%d", tm);
+	    row->date = strdup(iso_8601);
+	    row->time = (unsigned int) difftime(t, t_start)/one_day_in_sec;
+	    row->ts_nonan_length = 0;
+	    row->states_reset_length = 0;
+
+	    data->rows[offset+n] = row;
+	}
+    }
+
+}
+
 
 
 ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options_t *opts, int thread_id)
@@ -748,7 +821,7 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fi
 	if(strcmp("", opts->end)!=0){
 	    struct tm tm_freeze;
 	    memset(&tm_freeze, 0, sizeof(struct tm));
-	    strptime(data->date_t0, "%Y-%m-%d", &tm_freeze);
+	    strptime(opts->freeze_forcing, "%Y-%m-%d", &tm_freeze);
 	    time_t t_freeze = mktime(&tm_freeze);
 	    freeze_forcing = difftime(t_freeze, t_start)/(24.0*60.0*60.0);
 	} else {
