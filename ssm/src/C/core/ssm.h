@@ -64,6 +64,8 @@ typedef enum {SSM_PRINT_TRACE = 1 << 0, SSM_PRINT_X = 1 << 1, SSM_PRINT_HAT = 1 
 
 typedef enum {SSM_SUCCESS = 1 << 0 , SSM_ERR_LIKE= 1 << 1, SSM_ERR_REM = 1 << 2, SSM_ERR_PRED = 1 << 3, SSM_ERR_KAL = 1 << 4, SSM_ERR_IC = 1 << 5, SSM_MH_REJECT = 1 << 6, SSM_ERR_PROPOSAL = 1 << 7, SSM_ERR_PRIOR = 1 << 8} ssm_err_code_t;
 
+typedef enum {SSM_WORKER_J_PAR = 1 << 0, SSM_WORKER_D_X = 1 << 1, SSM_WORKER_FITNESS = 1 << 2 } ssm_worker_opt_t;
+
 #define SSM_BUFFER_SIZE (2 * 1024)  /**< 1000 KB buffer size */
 #define SSM_STR_BUFFSIZE 255 /**< buffer for log and error strings */
 
@@ -514,9 +516,7 @@ typedef struct
 {
     int id;
     void *context; /**< zmq context */
-    int compute_fitness;
-    int is_J_par;
-    int is_D_J_X;
+    ssm_worker_opt_t wopts;
     int J_chunk;
     ssm_data_t *data;
     ssm_par_t **J_par;
@@ -528,6 +528,16 @@ typedef struct
 } ssm_params_worker_inproc_t;
 
 
+typedef struct 
+{
+    void *context;
+    void *sender;
+    void *receiver;
+    void *controller;
+    ssm_params_worker_inproc_t *params;
+
+    pthread_t *workers;
+} ssm_workers_t;
 
 
 /****************************/
@@ -737,6 +747,8 @@ void ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_si
 
 /* worker_inproc.c */
 void *ssm_worker_inproc(void *params);
+ssm_workers_t *ssm_workers_inproc_start(ssm_X_t ***D_J_X, ssm_par_t **J_par, ssm_data_t *data, ssm_calc_t **calc, ssm_fitness_t *fitness, ssm_f_pred_t f_pred, ssm_nav_t *nav, ssm_options_t *opts, ssm_worker_opt_t wopts);
+void ssm_workers_inproc_stop(ssm_workers_t *workers, ssm_calc_t **calc);
 
 /******************************/
 /* kalman function signatures */

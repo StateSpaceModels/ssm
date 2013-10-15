@@ -21,7 +21,6 @@
 int main(int argc, char *argv[])
 {
     int i, j, n, t0, t1, id;
-    char str[SSM_STR_BUFFSIZE];
 
     ssm_options_t *opts = ssm_options_new();
     ssm_options_load(opts, SSM_SMC, argc, argv);
@@ -58,51 +57,7 @@ int main(int argc, char *argv[])
 
     ssm_f_pred_t f_pred = ssm_get_f_pred(nav);
 
-    void *context = NULL, *sender = NULL, *receiver = NULL, *controller = NULL;
-    pthread_t *workers = NULL;
-    ssm_params_worker_inproc_t *params = NULL;
-
-    if(calc[0]->threads_length >1){
-        context = zmq_ctx_new();
-
-        sender = zmq_socket (context, ZMQ_PUSH);
-        snprintf(str, SSM_STR_BUFFSIZE, "inproc://ssm_server_sender_%d", opts->id);
-        zmq_bind (sender, str);
-
-        receiver = zmq_socket (context, ZMQ_PULL);
-        snprintf(str, SSM_STR_BUFFSIZE, "inproc://ssm_server_receiver_%d", opts->id);
-        zmq_bind (receiver, str);
-
-        controller = zmq_socket (context, ZMQ_PUB);
-        snprintf(str, SSM_STR_BUFFSIZE, "inproc://ssm_server_controller_%d", opts->id);
-        zmq_bind (controller, str);
-
-        workers = malloc(calc[0]->threads_length * sizeof (pthread_t));
-        params =  malloc(calc[0]->threads_length * sizeof (ssm_params_worker_inproc_t));
-        int J_chunk = fitness->J / calc[0]->threads_length;
-        for(i=0; i<calc[0]->threads_length; i++){
-            params[i].id = opts->id;
-            params[i].context = context;
-	    params[i].compute_fitness = 1;
-	    params[i].is_J_par = 0;
-	    params[i].is_D_J_X = 0;	   
-            params[i].J_chunk = J_chunk;
-            params[i].data = data;
-            params[i].J_par = &par;
-            params[i].D_J_X = &J_X;
-            params[i].calc = calc[i];
-            params[i].nav = nav;
-            params[i].fitness = fitness;
-            params[i].f_pred = f_pred;
-
-            pthread_create(&workers[i], NULL, ssm_worker_inproc, (void*) &params[i]);
-        }
-
-        //wait that all worker are connected
-        for (i = 0; i < calc[0]->threads_length; i++) {
-            zmq_recv(receiver, &id, sizeof (int), 0);
-        }
-    }
+    ssm_workers_t *workers = ssm_workers_inproc_start(&J_X, &par, data, calc, fitness, f_pred, nav, opts, SSM_WORKER_FITNESS);
 
     for(n=0; n<data->n_obs; n++) {
         t0 = (n) ? data->rows[n-1]->time: 0;
@@ -112,13 +67,13 @@ int main(int argc, char *argv[])
 
             //send work
             for (i=0; i<calc[0]->threads_length; i++) {
-                zmq_send(sender, &i, sizeof (int), ZMQ_SNDMORE);
-                zmq_send(sender, &n, sizeof (int), 0);
+                zmq_send(workers->sender, &i, sizeof (int), ZMQ_SNDMORE);
+                zmq_send(workers->sender, &n, sizeof (int), 0);
             }
 
             //get results from the workers
             for (i=0; i<calc[0]->threads_length; i++) {
-                zmq_recv(receiver, &id, sizeof (int), 0);
+                zmq_recv(workers->receiver, &id, sizeof (int), 0);
             }
 
         } else {
@@ -182,20 +137,7 @@ int main(int argc, char *argv[])
 
     json_decref(jparameters);
 
-    if(calc[0]->threads_length >1){
-        zmq_send (controller, "KILL", 5, 0);
-        zmq_close (sender);
-        zmq_close (receiver);
-        zmq_close (controller);
-
-        for(i = 0; i < calc[0]->threads_length; i++){
-            pthread_join(workers[i], NULL);
-        }
-
-        free(workers);
-        free(params);
-        zmq_ctx_destroy (context);
-    }
+    ssm_workers_inproc_stop(workers, calc);
 
     ssm_J_X_free(J_X, fitness);
     ssm_J_X_free(J_X_tmp, fitness);
