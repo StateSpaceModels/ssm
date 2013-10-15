@@ -87,3 +87,17 @@ void test_data__rows(void)
     cl_assert_equal_s(row->states_reset[1]->name, "Inc_out");
     cl_assert_equal_s(row->states_reset[2]->name, "Inc_in_nyc");
 }
+
+
+void test_data__extend(void)
+{
+    strncpy(opts->end, "2014-07-25", SSM_STR_BUFFSIZE);
+    int prev_length = data->length;
+    ssm_data_extend(data, opts);
+
+    cl_assert_equal_s(data->rows[prev_length]->date, "2013-07-26");
+    cl_check(data->rows[prev_length]->time == 365);
+
+    cl_assert_equal_s(data->rows[data->length-1]->date, "2014-07-25");
+    cl_check(data->rows[data->length-1]->time == 729);
+}

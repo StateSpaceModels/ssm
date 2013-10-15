@@ -283,56 +283,56 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
     //files (CSV open and print headers)
     if(opts->print & SSM_PRINT_TRACE){
 #if SSM_JSON
-	nav->trace = stdout;
+        nav->trace = stdout;
 #else
-	snprintf(str, SSM_STR_BUFFSIZE, "%s/trace_%d.csv", opts->path,  opts->id);
-	nav->trace = fopen(str, "w");
-	ssm_print_header_trace(nav->trace, nav);
+        snprintf(str, SSM_STR_BUFFSIZE, "%s/trace_%d.csv", opts->path,  opts->id);
+        nav->trace = fopen(str, "w");
+        ssm_print_header_trace(nav->trace, nav);
 #endif
     } else {
-	nav->trace = NULL;
+        nav->trace = NULL;
     }
 
     if(opts->print & SSM_PRINT_X){
 #if SSM_JSON
-	nav->X = stdout;
+        nav->X = stdout;
 #else
 snprintf(str, SSM_STR_BUFFSIZE, "%s/X_%d.csv", opts->path,  opts->id);
  nav->X = fopen(str, "w");
  ssm_print_header_X(nav->X, nav);
 #endif
     } else {
-	nav->X = NULL;
+        nav->X = NULL;
     }
 
     if(opts->print & SSM_PRINT_HAT){
 #if SSM_JSON
-	nav->hat = stdout;
+        nav->hat = stdout;
 #else
-	snprintf(str, SSM_STR_BUFFSIZE, "%s/hat_%d.csv", opts->path,  opts->id);
-	nav->hat = fopen(str, "w");
-	ssm_print_header_hat(nav->hat, nav);
+        snprintf(str, SSM_STR_BUFFSIZE, "%s/hat_%d.csv", opts->path,  opts->id);
+        nav->hat = fopen(str, "w");
+        ssm_print_header_hat(nav->hat, nav);
 #endif
     } else {
-	nav->hat = NULL;
+        nav->hat = NULL;
     }
 
     if(opts->print & SSM_PRINT_DIAG){
 #if SSM_JSON
-	nav->diag = stdout;
+        nav->diag = stdout;
 #else
-	snprintf(str, SSM_STR_BUFFSIZE, "%s/diag_%d.csv", opts->path,  opts->id);
-	nav->diag = fopen(str, "w");
-	if(opts->algo & (SSM_SMC | SSM_KALMAN)){
-	    ssm_print_header_pred_res(nav->diag, nav);	    
-	} else if (opts->algo & (SSM_PMCMC | SSM_KMCMC)){
-	    ssm_print_header_ar(nav->diag);
-	} else if (opts->algo & SSM_MIF){
-	    ssm_mif_print_header_mean_var_theoretical_ess(nav->diag, nav);
-	}
-#endif	
+        snprintf(str, SSM_STR_BUFFSIZE, "%s/diag_%d.csv", opts->path,  opts->id);
+        nav->diag = fopen(str, "w");
+        if(opts->algo & (SSM_SMC | SSM_KALMAN)){
+            ssm_print_header_pred_res(nav->diag, nav);
+        } else if (opts->algo & (SSM_PMCMC | SSM_KMCMC)){
+            ssm_print_header_ar(nav->diag);
+        } else if (opts->algo & SSM_MIF){
+            ssm_mif_print_header_mean_var_theoretical_ess(nav->diag, nav);
+        }
+#endif
     } else {
-	nav->diag = NULL;
+        nav->diag = NULL;
     }
 
     return nav;
@@ -533,6 +533,9 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
 
     data->rows = rows;
 
+
+    ssm_data_extend(data, opts);
+
     return data;
 }
 
@@ -576,65 +579,71 @@ void ssm_data_extend(ssm_data_t *data, ssm_options_t *opts)
 {
     int n;
 
+    if(strcmp("", opts->end)==0){
+        return;
+    }
+
+    unsigned int time_start;
     struct tm tm_start;
     memset(&tm_start, 0, sizeof(struct tm));
     if(data->length){
-	strptime(data->rows[data->length-1]->date, "%Y-%m-%d", &tm_start);
+        strptime(data->rows[data->length-1]->date, "%Y-%m-%d", &tm_start);
+        time_start = data->rows[data->length-1]->time;
     } else {
-	strptime(data->date_t0, "%Y-%m-%d", &tm_start);
+        strptime(data->date_t0, "%Y-%m-%d", &tm_start);
+        time_start = 0;
     }
     time_t t_start = mktime(&tm_start);
 
     struct tm tm_end;
     memset(&tm_end, 0, sizeof(struct tm));
     strptime(opts->end, "%Y-%m-%d", &tm_end);
-    time_t t_end = mktime(&tm_end);    
-    
+    time_t t_end = mktime(&tm_end);
+
     double delta = difftime(t_end, t_start)/(24.0*60.0*60.0);
     if(delta < 0.0){
-	ssm_print_err("end date is before t0");
-	exit(EXIT_FAILURE);
+        ssm_print_err("end date is before t0");
+        exit(EXIT_FAILURE);
     }
-    
+
     int n_extra = (int) ceil(delta / (double) opts->freq);
     if(n_extra){
-	int offset = data->length;
-	data->length +=  n_extra;
-	data->n_obs += n_extra;
+        int offset = data->length;
+        data->length +=  n_extra;
+        data->n_obs += n_extra;
 
-	ssm_row_t **rows = realloc(data->rows, data->length * sizeof (ssm_row_t *));
-	if (rows!=NULL) {
-	    data->rows = rows;
-	} else {
-	    ssm_print_err("could not re-allocate memory for ssm_data_t rows");
-	    exit(EXIT_FAILURE);
-	}
+        ssm_row_t **rows = realloc(data->rows, data->length * sizeof (ssm_row_t *));
+        if (rows!=NULL) {
+            data->rows = rows;
+        } else {
+            ssm_print_err("could not re-allocate memory for ssm_data_t rows");
+            exit(EXIT_FAILURE);
+        }
 
-	time_t t = t_start;
-	char iso_8601[] = "YYYY-MM-DD"; 
-	double one_day_in_sec = 24.0*60.0*60.0;
-	int inc = opts->freq * 24*60*60;
-	for(n=0; n<n_extra; n++){
-	    ssm_row_t *row = malloc(sizeof (ssm_row_t));
-	    if (row == NULL) {
-		ssm_print_err("Allocation impossible for ssm_data_row_t *");
-		exit(EXIT_FAILURE);
-	    }
-	    
-	    t += inc; 
-	    struct tm *tm;
-	    tm = gmtime(&t);
+        time_t t = t_start;
+        char iso_8601[] = "YYYY-MM-DD";
+        double one_day_in_sec = 24.0*60.0*60.0;
+        int inc = opts->freq * 24*60*60;
+        for(n=0; n<n_extra; n++){
+            ssm_row_t *row = malloc(sizeof (ssm_row_t));
+            if (row == NULL) {
+                ssm_print_err("Allocation impossible for ssm_data_row_t *");
+                exit(EXIT_FAILURE);
+            }
 
-	    strftime(iso_8601, sizeof(iso_8601), "%Y-%m-%d", tm);
-	    row->date = strdup(iso_8601);
-	    row->time = (unsigned int) difftime(t, t_start)/one_day_in_sec;
-	    row->ts_nonan_length = 0;
-	    row->states_reset_length = 0;
+            t += inc;
+            struct tm *tm;
+            tm = gmtime(&t);
 
-	    data->rows[offset+n] = row;
-	}
+            strftime(iso_8601, sizeof(iso_8601), "%Y-%m-%d", tm);
+            row->date = strdup(iso_8601);
+            row->time = time_start + (unsigned int) difftime(t, t_start)/one_day_in_sec;
+            row->ts_nonan_length = 0;
+            row->states_reset_length = 0;
+            row->values = NULL;
+            data->rows[offset+n] = row;
+        }
     }
-
 }
 
 
@@ -811,32 +820,32 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fi
         double freeze_forcing; // the time (in days) to freeze (i.e only take metadata from this time) (ignored if freeze_forcing < 0.0)
         double t_max; //t_max the highest possible time in days when interpolated metadata will be requested (negative values default to last point of metadata).
 
-	//assess freeze_forcing and t_max...
-	struct tm tm_start;
-	memset(&tm_start, 0, sizeof(struct tm));
-	strptime(data->date_t0, "%Y-%m-%d", &tm_start);
-	time_t t_start = mktime(&tm_start);
+        //assess freeze_forcing and t_max...
+        struct tm tm_start;
+        memset(&tm_start, 0, sizeof(struct tm));
+        strptime(data->date_t0, "%Y-%m-%d", &tm_start);
+        time_t t_start = mktime(&tm_start);
 
-	if(strcmp("", opts->end)!=0){
-	    struct tm tm_freeze;
-	    memset(&tm_freeze, 0, sizeof(struct tm));
-	    strptime(opts->freeze_forcing, "%Y-%m-%d", &tm_freeze);
-	    time_t t_freeze = mktime(&tm_freeze);
-	    freeze_forcing = difftime(t_freeze, t_start)/(24.0*60.0*60.0);
-	} else {
-	    freeze_forcing = -1.0;
-	}
+        if(strcmp("", opts->end)!=0){
+            struct tm tm_freeze;
+            memset(&tm_freeze, 0, sizeof(struct tm));
+            strptime(opts->freeze_forcing, "%Y-%m-%d", &tm_freeze);
+            time_t t_freeze = mktime(&tm_freeze);
+            freeze_forcing = difftime(t_freeze, t_start)/(24.0*60.0*60.0);
+        } else {
+            freeze_forcing = -1.0;
+        }
 
-	if(strcmp("", opts->end)!=0){
-	    struct tm tm_end;
-	    memset(&tm_end, 0, sizeof(struct tm));
-	    strptime(opts->end, "%Y-%m-%d", &tm_end);
-	    time_t t_end = mktime(&tm_end);
-	    t_max = difftime(t_end, t_start)/(24.0*60.0*60.0);
-	} else {
-	    t_max = -1.0;
-	}
-	      
+        if(strcmp("", opts->end)!=0){
+            struct tm tm_end;
+            memset(&tm_end, 0, sizeof(struct tm));
+            strptime(opts->end, "%Y-%m-%d", &tm_end);
+            time_t t_end = mktime(&tm_end);
+            t_max = difftime(t_end, t_start)/(24.0*60.0*60.0);
+        } else {
+            t_max = -1.0;
+        }
+
         for (k=0; k< calc->covariates_length; k++) {
             json_t *jcovariate = json_array_get(jcovariates, k);
 
@@ -1051,7 +1060,7 @@ ssm_options_t *ssm_options_new(void)
     strncpy(opts->end, "", SSM_STR_BUFFSIZE);
     strncpy(opts->server, "127.0.0.1", SSM_STR_BUFFSIZE);
     opts->flag_no_filter = 0;
-  
+
     return opts;
 }
 
