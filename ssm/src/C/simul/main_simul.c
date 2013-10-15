@@ -21,7 +21,7 @@
 
 int main(int argc, char *argv[])
 {
-    int i, j, n, t0, t1;
+    int i, j, n, t0, t1, id;
 
     ssm_options_t *opts = ssm_options_new();
     ssm_options_load(opts, SSM_SIMUL, argc, argv);
@@ -70,6 +70,8 @@ int main(int argc, char *argv[])
     }
     
     ssm_f_pred_t f_pred = ssm_get_f_pred(nav);
+
+    ssm_workers_t *workers = ssm_workers_inproc_start(&J_X, J_par, data, calc, fitness, f_pred, nav, opts, SSM_WORKER_J_PAR);
     
     for(j=0; j<fitness->J; j++) {
         fitness->cum_status[j] = SSM_SUCCESS;
@@ -79,9 +81,26 @@ int main(int argc, char *argv[])
 	t0 = (n) ? data->rows[n-1]->time: 0;
 	t1 = data->rows[n]->time;
 
-        for(j=0;j<fitness->J;j++) {
-	    ssm_X_reset_inc(J_X[j], data->rows[n], nav);
-	    fitness->cum_status[j] |= f_pred(J_X[j], t0, t1, J_par[j], nav, calc[0]);
+        if(calc[0]->threads_length > 1){
+
+            //send work
+            for (i=0; i<calc[0]->threads_length; i++) {
+                zmq_send(workers->sender, &i, sizeof (int), ZMQ_SNDMORE);
+                zmq_send(workers->sender, &n, sizeof (int), 0);
+            }
+
+            //get results from the workers
+            for (i=0; i<calc[0]->threads_length; i++) {
+                zmq_recv(workers->receiver, &id, sizeof (int), 0);
+            }
+
+        } else {
+
+	    for(j=0;j<fitness->J;j++) {
+		ssm_X_reset_inc(J_X[j], data->rows[n], nav);
+		fitness->cum_status[j] |= f_pred(J_X[j], t0, t1, J_par[j], nav, calc[0]);
+	    }
+
 	}
 
 	if (nav->print & SSM_PRINT_HAT) {
@@ -104,6 +123,8 @@ int main(int argc, char *argv[])
     }
 
     json_decref(jparameters);
+
+    ssm_workers_inproc_stop(workers, calc);
 
     for(j=0; j<fitness->J; j++) {
         ssm_par_free(J_par[j]);
