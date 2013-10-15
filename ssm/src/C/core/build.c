@@ -599,14 +599,13 @@ void ssm_data_extend(ssm_data_t *data, ssm_options_t *opts)
     int n_extra = (int) ceil(delta / (double) opts->freq);
     if(n_extra){
 	int offset = data->length;
-	data->length = offset + n_extra;
+	data->length +=  n_extra;
 	data->n_obs += n_extra;
 
 	ssm_row_t **rows = realloc(data->rows, data->length * sizeof (ssm_row_t *));
 	if (rows!=NULL) {
 	    data->rows = rows;
-	}
-	else {
+	} else {
 	    ssm_print_err("could not re-allocate memory for ssm_data_t rows");
 	    exit(EXIT_FAILURE);
 	}
