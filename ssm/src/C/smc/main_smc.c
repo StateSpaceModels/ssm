@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
             }
 
             if (nav->print & SSM_PRINT_DIAG) {
-                ssm_print_pred_res(stdout, J_X, par, nav, calc[0], data->rows[n], fitness);
+                ssm_print_pred_res(nav->diag, J_X, par, nav, calc[0], data, data->rows[n], fitness);
             }
 
             ssm_resample_X(fitness, &J_X, &J_X_tmp, n);
@@ -92,12 +92,12 @@ int main(int argc, char *argv[])
         }
 
         if (nav->print & SSM_PRINT_HAT) {
-            ssm_print_hat(stdout, hat, nav, data->rows[n]);
+            ssm_print_hat(nav->hat, hat, nav, data->rows[n]);
         }
 
         if (nav->print & SSM_PRINT_X) {
             for(j=0; j<fitness->J; j++) {
-                ssm_print_X(stdout, J_X[j], par, nav, calc[0], data->rows[n], j);
+                ssm_print_X(nav->X, J_X[j], par, nav, calc[0], data->rows[n], j);
             }
         }
     }
@@ -105,14 +105,14 @@ int main(int argc, char *argv[])
     if (flag_prior) {
         double log_prob_prior_value;
         ssm_err_code_t rc = ssm_log_prob_prior(&log_prob_prior_value, theta, nav, fitness);
-        if(rc != SSM_SUCCESS && !(nav->print & SSM_QUIET)){
+        if(rc != SSM_SUCCESS && (nav->print & SSM_PRINT_WARNING)){
             ssm_print_warning("error log_prob_prior computation");
         }
         fitness->log_like += log_prob_prior_value;
     }
 
     if (nav->print & SSM_PRINT_TRACE) {
-        ssm_print_trace(stdout, theta, nav, fitness->log_like, 0);
+        ssm_print_trace(nav->trace, theta, nav, fitness->log_like, 0);
     }
 
     ssm_pipe_theta(stdout, jparameters, theta, NULL, nav);

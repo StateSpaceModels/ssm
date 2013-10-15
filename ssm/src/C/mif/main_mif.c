@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
 
                 ssm_mif_mean_var_theta_theoretical(D_theta_bart[np1], D_theta_Vt[np1], J_theta, var, fitness, nav, delta*pow(cooling, 2));
                 if (nav->print & SSM_PRINT_DIAG) {
-                    ssm_mif_print_mean_var_theoretical_ess(stdout, D_theta_bart[np1], D_theta_Vt[np1], fitness, nav , data->rows[n], m);
+                    ssm_mif_print_mean_var_theoretical_ess(nav->diag, D_theta_bart[np1], D_theta_Vt[np1], fitness, nav , data->rows[n], m);
                 }
 
                 if(some_particle_succeeded) {
@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
         (m<=opts->m_switch) ? ssm_mif_update_average(mle, D_theta_bart, data, nav): ssm_mif_update_ionides(mle, var, D_theta_bart, D_theta_Vt, data, nav, opts, cooling);
 
         if(nav->print & SSM_PRINT_TRACE){
-            ssm_print_trace(stdout, mle, nav, fitness->log_like, m);
+            ssm_print_trace(nav->trace, mle, nav, fitness->log_like, m);
         }
 
     }

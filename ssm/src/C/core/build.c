@@ -166,6 +166,8 @@ void _ssm_it_parameters_free(ssm_it_parameters_t *it)
 
 ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
 {
+    char str[SSM_STR_BUFFSIZE];
+
     ssm_nav_t *nav = malloc(sizeof (ssm_nav_t));
     if (nav == NULL) {
         ssm_print_err("Allocation impossible for ssm_nav_t *");
@@ -221,7 +223,6 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
                     json_t *jcov_ii = json_object_get(jcov_i, nav->par_all->p[i]->name);
                     if(jcov_ii){
                         if(!json_is_number(jcov_ii)) {
-                            char str[SSM_STR_BUFFSIZE];
                             sprintf(str, "error: parameters.covariance.%s.%s is not a number\n", nav->par_all->p[i]->name, nav->par_all->p[i]->name);
                             ssm_print_err(str);
                             exit(EXIT_FAILURE);
@@ -277,6 +278,61 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
 
             break;
         }
+    }
+
+    //files (CSV open and print headers)
+    if(opts->print & SSM_PRINT_TRACE){
+#if SSM_JSON
+	nav->trace = stdout;
+#else
+	snprintf(str, SSM_STR_BUFFSIZE, "%s/trace_%d.csv", opts->path,  opts->id);
+	nav->trace = fopen(str, "w");
+	ssm_print_header_trace(nav->trace, nav);
+#endif
+    } else {
+	nav->trace = NULL;
+    }
+
+    if(opts->print & SSM_PRINT_X){
+#if SSM_JSON
+	nav->X = stdout;
+#else
+snprintf(str, SSM_STR_BUFFSIZE, "%s/X_%d.csv", opts->path,  opts->id);
+ nav->X = fopen(str, "w");
+ ssm_print_header_X(nav->X, nav);
+#endif
+    } else {
+	nav->X = NULL;
+    }
+
+    if(opts->print & SSM_PRINT_HAT){
+#if SSM_JSON
+	nav->hat = stdout;
+#else
+	snprintf(str, SSM_STR_BUFFSIZE, "%s/hat_%d.csv", opts->path,  opts->id);
+	nav->hat = fopen(str, "w");
+	ssm_print_header_hat(nav->hat, nav);
+#endif
+    } else {
+	nav->hat = NULL;
+    }
+
+    if(opts->print & SSM_PRINT_DIAG){
+#if SSM_JSON
+	nav->diag = stdout;
+#else
+	snprintf(str, SSM_STR_BUFFSIZE, "%s/diag_%d.csv", opts->path,  opts->id);
+	nav->diag = fopen(str, "w");
+	if(opts->algo & (SSM_SMC | SSM_KALMAN)){
+	    ssm_print_header_pred_res(nav->diag, nav);	    
+	} else if (opts->algo & (SSM_PMCMC | SSM_KMCMC)){
+	    ssm_print_header_ar(nav->diag);
+	} else if (opts->algo & SSM_MIF){
+	    ssm_mif_print_header_mean_var_theoretical_ess(nav->diag, nav);
+	}
+#endif	
+    } else {
+	nav->diag = NULL;
     }
 
     return nav;
@@ -336,6 +392,13 @@ void ssm_nav_free(ssm_nav_t *nav)
         _ssm_observed_free(nav->observed[i]);
     }
     free(nav->observed);
+
+#if !SSM_JSON
+    if(nav->X)     fclose(nav->X);
+    if(nav->hat)   fclose(nav->hat);
+    if(nav->diag)  fclose(nav->diag);
+    if(nav->trace) fclose(nav->trace);
+#endif
 
     free(nav);
 }
@@ -860,7 +923,6 @@ ssm_options_t *ssm_options_new(void)
 
     opts->id = 0;
     opts->flag_seed_time = 0;
-    opts->flag_pipe = 0;
     opts->flag_prior = 0;
     opts->dt = 0.25;
     opts->eps_abs = 1e-6;
@@ -893,7 +955,7 @@ ssm_options_t *ssm_options_new(void)
     strncpy(opts->end, "", SSM_STR_BUFFSIZE);
     strncpy(opts->server, "127.0.0.1", SSM_STR_BUFFSIZE);
     opts->flag_no_filter = 0;
-
+  
     return opts;
 }
 
@@ -1173,7 +1235,7 @@ ssm_adapt_t *ssm_adapt_new(ssm_nav_t *nav, ssm_options_t * opts)
         a->m_switch = min_switch;
     } else {
         a->m_switch = opts->m_switch;
-        if ( (a->m_switch < min_switch) && !(nav->print & SSM_QUIET)) {
+        if ( (a->m_switch < min_switch) && (nav->print & SSM_PRINT_WARNING)) {
             char str[SSM_STR_BUFFSIZE];
             snprintf(str, SSM_STR_BUFFSIZE, "warning: covariance switching iteration (%i) is smaller than proposed one (%i)", a->m_switch, min_switch);
             ssm_print_warning(str);

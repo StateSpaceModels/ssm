@@ -95,7 +95,7 @@ ssm_err_code_t ssm_check_no_neg_remainder(ssm_X_t *p_X, ssm_nav_t *nav, ssm_calc
 
     for(i=0; i<rem->length; i++){
         if (rem->p[i]->f_remainder(p_X, calc, t) < 0.0){
-            if (!(nav->print & SSM_QUIET)) {
+            if (nav->print & SSM_PRINT_WARNING) {
                 ssm_print_warning("remainder negative");
             }
             return SSM_ERR_REM;
@@ -158,7 +158,7 @@ ssm_err_code_t ssm_f_prediction_ode(ssm_X_t *p_X, double t0, double t1, ssm_par_
     while (t < t1) {
         int status = gsl_odeiv2_evolve_apply (calc->evolve, calc->control, calc->step, &(calc->sys), &t, t1, &h, y);
         if (status != GSL_SUCCESS) {
-            if (!(nav->print & SSM_QUIET)) {
+            if (nav->print & SSM_PRINT_WARNING) {
                 ssm_print_warning("gsl_odeiv2 error");
             }
             return SSM_ERR_PRED;

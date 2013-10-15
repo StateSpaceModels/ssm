@@ -62,7 +62,7 @@ void ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_si
 
 	fitness = - gsl_multimin_fminimizer_minimum(simp);
 
-	if (!(nav->print & SSM_QUIET)) {
+	if (nav->print & SSM_PRINT_LOG) {
 	    if (status == GSL_SUCCESS) {
 		ssm_print_log ("converged to maximum !");
 	    }
@@ -71,7 +71,7 @@ void ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_si
 	}
 
 	if(nav->print & SSM_PRINT_TRACE){
-	    ssm_print_trace(stdout, gsl_multimin_fminimizer_x(simp), nav, fitness, iter-1);
+	    ssm_print_trace(nav->trace, gsl_multimin_fminimizer_x(simp), nav, fitness, iter-1);
 	}
 
     } while (status == GSL_CONTINUE && iter < n_iter);

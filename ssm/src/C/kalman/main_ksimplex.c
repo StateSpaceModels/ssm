@@ -49,7 +49,7 @@ static double f_ksimplex(const gsl_vector *theta, void *params)
     int flag_prior = p->flag_prior;
 
     if(ssm_check_ic(par, calc) != SSM_SUCCESS){
-        if (!(nav->print & SSM_QUIET)) {
+        if (nav->print & SSM_PRINT_WARNING) {
             ssm_print_warning("constraints on initial conditions have not been respected: assigning worst possible fitness");
         }
         return GSL_POSINF; //GSL simplex algo minimizes so we return POSINF
@@ -74,7 +74,7 @@ static double f_ksimplex(const gsl_vector *theta, void *params)
         if(data->rows[n]->ts_nonan_length) {
             fitness->cum_status[0] |= ssm_kalman_update(fitness, X, data->rows[n], t1, par, calc, nav);
             if(fitness->cum_status[0] != SSM_SUCCESS){
-                if (!(nav->print & SSM_QUIET)) {
+                if (nav->print & SSM_PRINT_WARNING) {
                     ssm_print_warning("warning: something went wrong");
                 }
                 return GSL_POSINF; //GSL simplex algo minimizes so we return POSINF
@@ -86,7 +86,7 @@ static double f_ksimplex(const gsl_vector *theta, void *params)
         double log_prob_prior_value;
         ssm_err_code_t rc = ssm_log_prob_prior(&log_prob_prior_value, (gsl_vector *) theta, nav, fitness);
         if(rc != SSM_SUCCESS){
-            if(!(nav->print & SSM_QUIET)){
+            if(nav->print & SSM_PRINT_WARNING){
                 ssm_print_warning("error log_prob_prior computation");
             }
             return GSL_POSINF; //GSL simplex algo minimizes so we multiply by -1

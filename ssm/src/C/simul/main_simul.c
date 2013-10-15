@@ -86,12 +86,12 @@ int main(int argc, char *argv[])
 
 	if (nav->print & SSM_PRINT_HAT) {
 	    ssm_hat_eval(hat, J_X, J_par, nav, calc[0], NULL, t1, 0);
-	    ssm_print_hat(stdout, hat, nav, data->rows[n]);
+	    ssm_print_hat(nav->hat, hat, nav, data->rows[n]);
         }
 
 	if (nav->print & SSM_PRINT_X) {
 	    for(j=0; j<fitness->J; j++) {
-		ssm_print_X(stdout, J_X[j], J_par[j], nav, calc[0], data->rows[n], j);
+		ssm_print_X(nav->X, J_X[j], J_par[j], nav, calc[0], data->rows[n], j);
 	    }
 	}
     }

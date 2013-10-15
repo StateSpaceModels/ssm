@@ -105,12 +105,12 @@ int main(int argc, char *argv[])
     if ( ( nav->print & SSM_PRINT_X ) && data->n_obs ) {
         for(n=0; n<data->n_obs; n++){
             ssm_X_copy(D_X_prev[n+1], D_X[n+1]);
-            ssm_print_X(stdout, D_X_prev[n+1], par, nav, calc, data->rows[n], m);
+            ssm_print_X(nav->X, D_X_prev[n+1], par, nav, calc, data->rows[n], m);
         }
     }
 
     if(nav->print & SSM_PRINT_TRACE){
-        ssm_print_trace(stdout, theta, nav, fitness->log_like_prev + fitness->log_prior_prev, m);
+        ssm_print_trace(nav->trace, theta, nav, fitness->log_like_prev + fitness->log_prior_prev, m);
     }
 
     ////////////////
@@ -156,16 +156,16 @@ int main(int argc, char *argv[])
 
         if ( (nav->print & SSM_PRINT_X) && ( (m % thin_traj) == 0) ) {
             for(n=0; n<data->n_obs; n++){
-                ssm_print_X(stdout, D_X_prev[n+1], par, nav, calc, data->rows[n], m);
+                ssm_print_X(nav->X, D_X_prev[n+1], par, nav, calc, data->rows[n], m);
             }
         }
 
         if (nav->print & SSM_PRINT_TRACE){
-            ssm_print_trace(stdout, theta, nav, fitness->log_like_prev + fitness->log_prior_prev, m);
+            ssm_print_trace(nav->trace, theta, nav, fitness->log_like_prev + fitness->log_prior_prev, m);
         }
 
-        if (nav->print & SSM_PRINT_ACC) {
-            ssm_print_ar(stdout, adapt, m);
+        if (nav->print & SSM_PRINT_DIAG) {
+            ssm_print_ar(nav->diag, adapt, m);
         }
     }
 

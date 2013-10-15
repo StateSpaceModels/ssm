@@ -27,7 +27,7 @@
 double ssm_sanitize_log_likelihood(double log_like, ssm_row_t *row, ssm_fitness_t *fitness, ssm_nav_t *nav)
 {
     if ((isinf(log_like)==1) || (isnan(log_like)==1) ) { //error
-        if (!(nav->print & SSM_QUIET)) {
+        if (nav->print & SSM_PRINT_WARNING) {
             char str[SSM_STR_BUFFSIZE];
             sprintf(str, "error likelihood computation, log_like = %g", log_like);
             ssm_print_warning(str);

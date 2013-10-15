@@ -50,7 +50,7 @@ int ssm_weight(ssm_fitness_t *fitness, ssm_row_t *row, ssm_nav_t *nav, int n)
     if(nfailure_n == fitness->J) {
         success = 0;
         fitness->n_all_fail += 1;
-        if (!(nav->print & SSM_QUIET)) {
+        if (nav->print & SSM_PRINT_WARNING) {
             sprintf(str,"nfailure = %d, at n=%d we keep all particles and assign equal weights", nfailure_n, n);
             ssm_print_warning(str);
         }

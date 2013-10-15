@@ -56,7 +56,7 @@ static double f_simplex(const gsl_vector *theta, void *params)
 
     if(ssm_check_ic(par, calc) != SSM_SUCCESS){
 
-        if (!(nav->print & SSM_QUIET)) {
+        if (nav->print & SSM_PRINT_WARNING) {
             ssm_print_warning("constraints on initial conditions have not been respected: assigning worst possible fitness");
         }
         return GSL_POSINF; //GSL simplex algo minimizes so we return POSINF even for likelihood
@@ -77,8 +77,8 @@ static double f_simplex(const gsl_vector *theta, void *params)
         status |= ssm_f_prediction_ode(X, t0, t1, par, nav, calc);
 
         if( status != SSM_SUCCESS ){
-            if (!(nav->print & SSM_QUIET)) {
-                ssm_print_warning("warning: something went wrong");
+            if (nav->print & SSM_PRINT_WARNING) {
+                ssm_print_warning("something went wrong");
             }
             return GSL_POSINF; //GSL simplex algo minimizes so we return POSINF even for likelihood
         }
@@ -96,7 +96,7 @@ static double f_simplex(const gsl_vector *theta, void *params)
         double log_prob_prior_value;
         ssm_err_code_t rc = ssm_log_prob_prior(&log_prob_prior_value, (gsl_vector *) theta, nav, fit);
         if(rc != SSM_SUCCESS){
-            if(!(nav->print & SSM_QUIET)){
+            if(nav->print & SSM_PRINT_WARNING){
                 ssm_print_warning("error log_prob_prior computation");
             }
             return GSL_POSINF; //GSL simplex algo minimizes so we multiply by -1
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 
     if (n_iter == 0 && (nav->print & SSM_PRINT_TRACE)) {
         //simply return the sum of square or the log likelihood (can be used to do slices especially with least square where smc can't be used'...)
-        ssm_print_trace(stdout, theta, nav, f_simplex(theta, &params), 0);
+        ssm_print_trace(nav->trace, theta, nav, f_simplex(theta, &params), 0);
     } else {
         ssm_simplex(theta, var, &params, &f_simplex, nav, size_stop, n_iter);
     }

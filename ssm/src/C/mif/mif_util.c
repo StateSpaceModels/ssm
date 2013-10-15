@@ -152,7 +152,7 @@ void ssm_mif_mean_var_theta_theoretical(double *theta_bart, double *theta_Vt, ss
         if( (theta_Vt[offset]<0.0) || (isinf(theta_Vt[offset])==1) || (isnan(theta_Vt[offset])==1)) {
             theta_Vt[offset]=0.0;
 
-            if (!(nav->print & SSM_QUIET)) {
+            if (nav->print & SSM_PRINT_WARNING) {
                 ssm_print_warning("error in prediction variance computation");
             }
         }
@@ -273,25 +273,51 @@ void ssm_mif_update_ionides(ssm_theta_t *mle, ssm_var_t *var, double **D_theta_b
 }
 
 
+
+
+void ssm_mif_print_header_mean_var_theoretical_ess(FILE *stream, ssm_nav_t *nav)
+{
+    int i;
+    fprintf(stream, "date\n");
+    for(i=0; i < nav->theta_all->length; i++) {
+	fprintf(stream, "%s,var_%s,", nav->theta_all->p[i]->name, nav->theta_all->p[i]->name);
+    }
+    fprintf(stream, "ess,index\n");
+}
+
+
+
 void ssm_mif_print_mean_var_theoretical_ess(FILE *stream, double *theta_bart, double *theta_Vt, ssm_fitness_t *fitness, ssm_nav_t *nav , ssm_row_t *row, int m)
 {
-
     int i, offset;
-    char key[SSM_STR_BUFFSIZE];
 
+#if SSM_JSON
+    char key[SSM_STR_BUFFSIZE];
     json_t *jout = json_object();
-    json_object_set_new(jout, "index", json_integer(m));
     json_object_set_new(jout, "date", json_string(row->date));
+#else
+    fprintf(stream, "%s,", row->date);
+#endif
 
     for(i=0; i<nav->theta_all->length; i++){
         offset = nav->theta_all->p[i]->offset_theta;
 
+#if SSM_JSON
         json_object_set_new(jout, nav->theta_all->p[i]->name, json_real(theta_bart[offset]));
         snprintf(key, SSM_STR_BUFFSIZE, "var_%s", nav->theta_all->p[i]->name);
         json_object_set_new(jout, key, json_real(theta_Vt[offset]));
-
-        json_object_set_new(jout, "ess", isnan(fitness->ess_n) ? json_null() : json_real(fitness->ess_n));
+#else
+	fprintf(stream, "%g,%g,", theta_bart[offset], theta_Vt[offset]);
+#endif
     }
 
+#if SSM_JSON
+    json_object_set_new(jout, "ess", isnan(fitness->ess_n) ? json_null() : json_real(fitness->ess_n));
+    json_object_set_new(jout, "index", json_integer(m));
+
     ssm_json_dumpf(stream, "mif", jout);
+#else
+    fprintf(stream, "%g,%d\n", fitness->ess_n, m);
+#endif
+
 }

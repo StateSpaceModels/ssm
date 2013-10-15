@@ -31,10 +31,12 @@ struct opts_part{
 
 void ssm_options_load(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv[])
 {
+    opts->algo = algo;
+
     struct opts_part all_opts[] = {
         {"D", 'D', "dt",             "integration time step", required_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
         {"I", 'I', "id",             "general id (unique integer identifier that will be appended to the output)", required_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
-        {"P", 'P', "path",           "root path to access data (no trailing slash)", required_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
+        {"P", 'P', "path",           "root path for output files (if any) (no trailing slash)", required_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
         {"N", 'N', "n_thread",       "number of threads to be used", required_argument,  SSM_SMC | SSM_PMCMC | SSM_MIF | SSM_SIMUL },
         {"J", 'J', "n_parts",        "number of particles", required_argument,  SSM_SMC | SSM_PMCMC | SSM_MIF | SSM_SIMUL },
         {"O", 'O', "n_obs",          "number of observations to be fitted (for tempering)", required_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF },
@@ -61,7 +63,8 @@ void ssm_options_load(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
 
 
         {"h", 'h', "help",           "print the usage on stdout", no_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
-        {"q", 'q', "quiet",          "no verbosity", no_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
+        {"v", 'v', "verbose",        "print logs (verbose)", no_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
+        {"n", 'n', "warning",        "print warnings", no_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
         {"d", 'd', "no_dem_sto",     "turn off demographic stochasticity  (if any)", no_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
         {"w", 'w', "no_white_noise", "turn off white noises (if any)", no_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
         {"f", 'f', "no_diff",        "turn off diffusions (if any)", no_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
@@ -240,8 +243,12 @@ void ssm_options_load(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
             strncpy(opts->server, optarg, SSM_STR_BUFFSIZE);
             break;
 
-        case 'q': //quiet
-            opts->print |= SSM_QUIET;
+        case 'n': //warning
+            opts->print |= SSM_PRINT_WARNING;
+            break;
+
+        case 'v': //verbosity
+            opts->print |= SSM_PRINT_LOG;
             break;
 
         case 'd': //no_dem_sto
@@ -285,7 +292,7 @@ void ssm_options_load(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
             break;
 
         case 'a': //acc
-            opts->print |= SSM_PRINT_ACC;
+            opts->print |= SSM_PRINT_DIAG;
             break;
 
         case 'z': //zmq
@@ -363,5 +370,4 @@ void ssm_options_set_implementation(ssm_options_t *opts, ssm_algo_t algo, int ar
     if(opts->implementation == SSM_ODE){
 	opts->noises_off |=  SSM_NO_DEM_STO | SSM_NO_WHITE_NOISE | SSM_NO_DIFF;
     }
-
 }

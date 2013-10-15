@@ -60,7 +60,7 @@ typedef enum {SSM_SMC = 1 << 0, SSM_MIF = 1 << 1, SSM_PMCMC = 1 << 2, SSM_KMCMC 
 typedef enum {SSM_ODE, SSM_SDE, SSM_PSR, SSM_EKF} ssm_implementations_t;
 typedef enum {SSM_NO_DEM_STO = 1 << 0, SSM_NO_WHITE_NOISE = 1 << 1, SSM_NO_DIFF = 1 << 2 } ssm_noises_off_t; //several noises can be turned off
 
-typedef enum {SSM_PRINT_TRACE = 1 << 0, SSM_PRINT_X = 1 << 1, SSM_PRINT_HAT = 1 << 2, SSM_PRINT_DIAG = 1 << 3, SSM_PRINT_ACC = 1 << 5, SSM_PIPE = 1 << 5, SSM_QUIET = 1 << 6 } ssm_print_t;
+typedef enum {SSM_PRINT_TRACE = 1 << 0, SSM_PRINT_X = 1 << 1, SSM_PRINT_HAT = 1 << 2, SSM_PRINT_DIAG = 1 << 3, SSM_PRINT_LOG = 1 << 4, SSM_PRINT_WARNING = 1 << 5 } ssm_print_t;
 
 typedef enum {SSM_SUCCESS = 1 << 0 , SSM_ERR_LIKE= 1 << 1, SSM_ERR_REM = 1 << 2, SSM_ERR_PRED = 1 << 3, SSM_ERR_KAL = 1 << 4, SSM_ERR_IC = 1 << 5, SSM_MH_REJECT = 1 << 6, SSM_ERR_PROPOSAL = 1 << 7, SSM_ERR_PRIOR = 1 << 8} ssm_err_code_t;
 
@@ -310,6 +310,12 @@ struct _nav
     ssm_noises_off_t noises_off;
     ssm_print_t print;
 
+
+    FILE *X;
+    FILE *hat;
+    FILE *diag;
+    FILE *trace;
+
     int parameters_length;         /**< total number of parameters (including non infered) but excluding covariate (present in ssm_calc_t) */
     ssm_parameter_t **parameters; /**< [this.parameters_length] <*/
 
@@ -429,13 +435,14 @@ typedef struct
  */
 typedef struct
 {
+    ssm_algo_t algo;
+
     ssm_implementations_t implementation;
     ssm_noises_off_t noises_off;
     ssm_print_t print;
 
     int id;                  /**< unique integer identifier that will be used as seed and be appended to the output files */
     int flag_seed_time;      /**< seed with the local time ((unsigned) time(NULL)) */
-    int flag_pipe;           /**< pipe mode */
     int flag_prior;          /**< add log(prior) to the estimated log likelihood */
     double dt;               /**< integration time step in days */
     double eps_abs;          /**< absolute error for adaptive step-size control */
@@ -678,11 +685,16 @@ void ssm_print_err(char *msg);
 void ssm_json_dumpf(FILE *stream, const char *flag, json_t *msg);
 void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_var_t *var, ssm_nav_t *nav);
 void ssm_pipe_hat(FILE *stream, json_t *jparameters, ssm_input_t *input, ssm_hat_t *hat, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, double t);
+void ssm_print_header_X(FILE *stream, ssm_nav_t *nav);
 void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, const int index);
+void ssm_print_header_trace(FILE *stream, ssm_nav_t *nav);
 void ssm_print_trace(FILE *stream, ssm_theta_t *theta, ssm_nav_t *nav, const double fitness, const int index);
-void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, ssm_fitness_t *fitness);
+void ssm_print_header_pred_res(FILE *stream, ssm_nav_t *nav);
+void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_data_t *data, ssm_row_t *row, ssm_fitness_t *fitness);
+void ssm_print_header_hat(FILE *stream, ssm_nav_t *nav);
 void ssm_print_hat(FILE *stream, ssm_hat_t *hat, ssm_nav_t *nav, ssm_row_t *row);
 void ssm_sample_traj_print(FILE *stream, ssm_X_t ***D_J_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_data_t *data, ssm_fitness_t *fitness, const int index);
+void ssm_print_header_ar(FILE *stream);
 void ssm_print_ar(FILE *stream, ssm_adapt_t *adapt, const int index);
 
 /* hat.c */
@@ -728,6 +740,7 @@ void ssm_mif_resample_and_mutate_theta(ssm_fitness_t *fitness, ssm_theta_t **J_t
 void ssm_mif_fixed_lag_smoothing(ssm_theta_t *mle, ssm_theta_t **J_theta, ssm_fitness_t *fitness, ssm_nav_t *nav);
 void ssm_mif_update_average(ssm_theta_t *mle, double **D_theta_bart, ssm_data_t *data, ssm_nav_t *nav);
 void ssm_mif_update_ionides(ssm_theta_t *mle, ssm_var_t *var, double **D_theta_bart, double **D_theta_Vt, ssm_data_t *data, ssm_nav_t *nav, ssm_options_t *opts, double cooling);
+void ssm_mif_print_header_mean_var_theoretical_ess(FILE *stream, ssm_nav_t *nav);
 void ssm_mif_print_mean_var_theoretical_ess(FILE *stream, double *theta_bart, double *theta_Vt, ssm_fitness_t *fitness, ssm_nav_t *nav , ssm_row_t *row, int m);
 
 /*********************************/

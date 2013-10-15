@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
         fitness->cum_status[0] |= (*f_pred)(X, t0, t1, par, nav, calc);
 
         if (nav->print & SSM_PRINT_DIAG) {
-            ssm_print_pred_res(stdout, &X, par, nav, calc, data->rows[n], fitness);
+            ssm_print_pred_res(nav->diag, &X, par, nav, calc, data, data->rows[n], fitness);
         }
 	
         if(!flag_no_filter && data->rows[n]->ts_nonan_length && (fitness->cum_status[0] == SSM_SUCCESS)) {
@@ -68,25 +68,25 @@ int main(int argc, char *argv[])
 
         if (nav->print & SSM_PRINT_HAT) {
             ssm_hat_eval(hat, &X, &par, nav, calc, fitness, t1, 0);
-            ssm_print_hat(stdout, hat, nav, data->rows[n]);
+            ssm_print_hat(nav->hat, hat, nav, data->rows[n]);
         }
 
         if (nav->print & SSM_PRINT_X) {
-            ssm_print_X(stdout, X, par, nav, calc, data->rows[n], 0);
+            ssm_print_X(nav->X, X, par, nav, calc, data->rows[n], 0);
         }
     }
 
     if (flag_prior) {
         double log_prob_prior_value;
         ssm_err_code_t rc = ssm_log_prob_prior(&log_prob_prior_value, theta, nav, fitness);
-        if(rc != SSM_SUCCESS && !(nav->print & SSM_QUIET)){
+        if(rc != SSM_SUCCESS && (nav->print & SSM_PRINT_WARNING)){
             ssm_print_warning("error log_prob_prior computation");
         }
         fitness->log_like += log_prob_prior_value;
     }
 
     if (nav->print & SSM_PRINT_TRACE) {
-        ssm_print_trace(stdout, theta, nav, fitness->log_like, 0);
+        ssm_print_trace(nav->trace, theta, nav, fitness->log_like, 0);
     }
 
     ssm_pipe_theta(stdout, jparameters, theta, NULL, nav);
