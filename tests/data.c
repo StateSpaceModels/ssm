@@ -52,7 +52,7 @@ void test_data__rows(void)
     cl_assert_equal_s(row->date, "2012-08-02");
     cl_check(row->time == 7);
     cl_check(row->ts_nonan_length == 4);
-    cl_check(row->states_reset_length == 3);
+    cl_check(row->states_reset_length == 2);
 
     cl_assert_equal_s(row->observed[0]->name, "all_CDC_inc");
     cl_assert_equal_s(row->observed[1]->name, "paris_CDC_prev");
@@ -64,16 +64,14 @@ void test_data__rows(void)
     cl_check(row->values[2] == 10);
     cl_check(row->values[3] == 9);
 
-    cl_assert_equal_s(row->states_reset[0]->name, "Inc_out");
+    cl_assert_equal_s(row->states_reset[0]->name, "Inc_in_nyc");
     cl_assert_equal_s(row->states_reset[1]->name, "Inc_out");
-    cl_assert_equal_s(row->states_reset[2]->name, "Inc_in_nyc");
-
 
     row = data->rows[29];
     cl_assert_equal_s(row->date, "2013-02-21");
     cl_check(row->time == 210);
     cl_check(row->ts_nonan_length == 3);
-    cl_check(row->states_reset_length == 3);
+    cl_check(row->states_reset_length == 2);
 
     cl_assert_equal_s(row->observed[0]->name, "paris_CDC_prev");
     cl_assert_equal_s(row->observed[1]->name, "all_google_inc");
@@ -83,9 +81,9 @@ void test_data__rows(void)
     cl_check(row->values[1] == 797);
     cl_check(row->values[2] == 2);
 
-    cl_assert_equal_s(row->states_reset[0]->name, "Inc_out");
+    cl_assert_equal_s(row->states_reset[0]->name, "Inc_in_nyc");
     cl_assert_equal_s(row->states_reset[1]->name, "Inc_out");
-    cl_assert_equal_s(row->states_reset[2]->name, "Inc_in_nyc");
+
 }
 
 
@@ -93,7 +91,7 @@ void test_data__extend(void)
 {
     strncpy(opts->end, "2014-07-25", SSM_STR_BUFFSIZE);
     int prev_length = data->length;
-    ssm_data_extend(data, opts);
+    ssm_data_extend(data, jdata, nav, opts);
 
     cl_assert_equal_s(data->rows[prev_length]->date, "2013-07-26");
     cl_check(data->rows[prev_length]->time == 365);

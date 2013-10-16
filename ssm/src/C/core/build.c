@@ -534,7 +534,7 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
     data->rows = rows;
 
 
-    ssm_data_extend(data, opts);
+    ssm_data_extend(data, jdata, nav, opts);
 
     return data;
 }
@@ -575,9 +575,9 @@ void ssm_data_free(ssm_data_t *data)
 /**
  * extend data (in case of simulation)
  */
-void ssm_data_extend(ssm_data_t *data, ssm_options_t *opts)
+void ssm_data_extend(ssm_data_t *data, json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
 {
-    int n;
+    int i, n;
 
     if(strcmp("", opts->end)==0){
         return;
@@ -624,6 +624,9 @@ void ssm_data_extend(ssm_data_t *data, ssm_options_t *opts)
         char iso_8601[] = "YYYY-MM-DD";
         double one_day_in_sec = 24.0*60.0*60.0;
         int inc = opts->freq * 24*60*60;
+	json_t *jreset_all = json_object_get(jdata, "reset_all");
+	int states_reset_length = json_array_size(jreset_all);
+
         for(n=0; n<n_extra; n++){
             ssm_row_t *row = malloc(sizeof (ssm_row_t));
             if (row == NULL) {
@@ -639,7 +642,27 @@ void ssm_data_extend(ssm_data_t *data, ssm_options_t *opts)
             row->date = strdup(iso_8601);
             row->time = time_start + (unsigned int) difftime(t, t_start)/one_day_in_sec;
             row->ts_nonan_length = 0;
-            row->states_reset_length = 0;
+
+
+            row->states_reset_length = states_reset_length;
+            row->states_reset = malloc(states_reset_length * sizeof (ssm_state_t *));
+            if (row->states_reset == NULL) {
+                ssm_print_err("Allocation impossible for ssm_data_row_t.states_reset");
+                exit(EXIT_FAILURE);
+            }
+	    for(i=0; i<row->states_reset_length; i++){
+		json_t *jreset_all_i = json_array_get(jreset_all, i);
+		if(json_is_number(jreset_all_i)) {
+		    int id = json_integer_value(jreset_all_i);
+		    row->states_reset[i] = nav->states[id];
+		} else {
+		    char str[SSM_STR_BUFFSIZE];
+		    snprintf(str, SSM_STR_BUFFSIZE, "error: reset_all[%d] is not an integer\n", i);
+		    ssm_print_err(str);
+		    exit(EXIT_FAILURE);
+		}
+	    }
+	    
             row->values = NULL;
             data->rows[offset+n] = row;
         }

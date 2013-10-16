@@ -119,7 +119,11 @@ class Builder(Data, Ccoder):
 
     def write_data(self):
 
-        x = {'start': self.t0.isoformat(), 'data': self.prepare_data(), 'covariates': self.prepare_covariates()}
+        reset_all = []
+        for x in self.obs_model:
+            reset_all += [self.order_states[s] for s in self.get_inc_reset(x['pdf'])]
+
+        x = {'start': self.t0.isoformat(), 'data': self.prepare_data(), 'covariates': self.prepare_covariates(), 'reset_all': list(set(reset_all))}
         with open(os.path.join(self.path_rendered, ".data.json"), "w") as f:
             json.dump(x, f)
 
