@@ -18,7 +18,6 @@
 
 #include "ssm.h"
 
-
 void *ssm_worker_inproc(void *params)
 {
     char str[SSM_STR_BUFFSIZE];
@@ -113,7 +112,7 @@ void *ssm_worker_inproc(void *params)
 }
 
 
-ssm_workers_t *ssm_workers_inproc_start(ssm_X_t ***D_J_X, ssm_par_t **J_par, ssm_data_t *data, ssm_calc_t **calc, ssm_fitness_t *fitness, ssm_f_pred_t f_pred, ssm_nav_t *nav, ssm_options_t *opts, ssm_worker_opt_t wopts)
+ssm_workers_t *ssm_workers_start(ssm_X_t ***D_J_X, ssm_par_t **J_par, ssm_data_t *data, ssm_calc_t **calc, ssm_fitness_t *fitness, ssm_f_pred_t f_pred, ssm_nav_t *nav, ssm_options_t *opts, ssm_worker_opt_t wopts)
 {
     int i, id;
     char str[SSM_STR_BUFFSIZE];
@@ -124,84 +123,105 @@ ssm_workers_t *ssm_workers_inproc_start(ssm_X_t ***D_J_X, ssm_par_t **J_par, ssm
 	exit(EXIT_FAILURE);
     }
 
+    w->flag_tcp = opts->flag_tcp;
+    w->inproc_length = calc[0]->threads_length;
     w->wopts = wopts;
 
-    if(calc[0]->threads_length == 1){
+    if(opts->flag_tcp){
+	w->context = zmq_ctx_new();;
+
+        //  Socket to send messages on
+        w->sender = zmq_socket(w->context, ZMQ_PUSH);
+        zmq_bind(w->sender, "tcp://*:5557");
+
+        //  Socket to receive messages on
+        w->receiver = zmq_socket(w->context, ZMQ_PULL);
+        zmq_bind(w->receiver, "tcp://*:5558");
+
+        //  Socket for worker control
+        w->controller = zmq_socket(w->context, ZMQ_PUB);
+        zmq_bind(w->controller, "tcp://*:5559");
+
+	w->params = NULL;
+	w->workers = NULL;
+
+    } else if (w->inproc_length == 1){
 	w->context = NULL;
 	w->sender = NULL;
 	w->receiver = NULL;
 	w->controller = NULL;
 	w->params = NULL;
-	w->workers = NULL;
-	
-	return w;
+	w->workers = NULL;       
+
+    } else {
+	w->context = zmq_ctx_new();
+
+	w->sender = zmq_socket (w->context, ZMQ_PUSH);
+	snprintf(str, SSM_STR_BUFFSIZE, "inproc://ssm_server_sender_%d", opts->id);
+	zmq_bind (w->sender, str);
+
+	w->receiver = zmq_socket (w->context, ZMQ_PULL);
+	snprintf(str, SSM_STR_BUFFSIZE, "inproc://ssm_server_receiver_%d", opts->id);
+	zmq_bind (w->receiver, str);
+
+	w->controller = zmq_socket (w->context, ZMQ_PUB);
+	snprintf(str, SSM_STR_BUFFSIZE, "inproc://ssm_server_controller_%d", opts->id);
+	zmq_bind (w->controller, str);
+
+	w->workers = malloc(w->inproc_length * sizeof (pthread_t));
+	if(w->workers == NULL){
+	    ssm_print_err("allocation impossible for pthread_t");
+	    exit(EXIT_FAILURE);
+	}
+
+	w->params =  malloc(w->inproc_length * sizeof (ssm_params_worker_inproc_t));
+	if(w->params == NULL){
+	    ssm_print_err("allocation impossible for ssm_params_worker_inproc_t");
+	    exit(EXIT_FAILURE);
+	}
+
+	int J_chunk = fitness->J / w->inproc_length;
+	for(i=0; i<w->inproc_length; i++){
+	    w->params[i].id = opts->id;
+	    w->params[i].context = w->context;
+	    w->params[i].wopts = wopts;
+	    w->params[i].J_chunk = J_chunk;
+	    w->params[i].data = data;
+	    w->params[i].J_par = J_par;
+	    w->params[i].D_J_X = D_J_X;
+	    w->params[i].calc = calc[i];
+	    w->params[i].nav = nav;
+	    w->params[i].fitness = fitness;
+	    w->params[i].f_pred = f_pred;
+
+	    pthread_create(&(w->workers[i]), NULL, ssm_worker_inproc, (void*) &(w->params[i]));
+	}
+
+	//wait that all worker are connected
+	for (i = 0; i < w->inproc_length; i++) {
+	    zmq_recv(w->receiver, &id, sizeof (int), 0);
+	}    
     }
-
-    w->context = zmq_ctx_new();
-
-    w->sender = zmq_socket (w->context, ZMQ_PUSH);
-    snprintf(str, SSM_STR_BUFFSIZE, "inproc://ssm_server_sender_%d", opts->id);
-    zmq_bind (w->sender, str);
-
-    w->receiver = zmq_socket (w->context, ZMQ_PULL);
-    snprintf(str, SSM_STR_BUFFSIZE, "inproc://ssm_server_receiver_%d", opts->id);
-    zmq_bind (w->receiver, str);
-
-    w->controller = zmq_socket (w->context, ZMQ_PUB);
-    snprintf(str, SSM_STR_BUFFSIZE, "inproc://ssm_server_controller_%d", opts->id);
-    zmq_bind (w->controller, str);
-
-    w->workers = malloc(calc[0]->threads_length * sizeof (pthread_t));
-    if(w->workers == NULL){
-	ssm_print_err("allocation impossible for pthread_t");
-	exit(EXIT_FAILURE);
-    }
-
-    w->params =  malloc(calc[0]->threads_length * sizeof (ssm_params_worker_inproc_t));
-    if(w->params == NULL){
-	ssm_print_err("allocation impossible for ssm_params_worker_inproc_t");
-	exit(EXIT_FAILURE);
-    }
-
-    int J_chunk = fitness->J / calc[0]->threads_length;
-    for(i=0; i<calc[0]->threads_length; i++){
-	w->params[i].id = opts->id;
-	w->params[i].context = w->context;
-	w->params[i].wopts = wopts;
-	w->params[i].J_chunk = J_chunk;
-	w->params[i].data = data;
-	w->params[i].J_par = J_par;
-	w->params[i].D_J_X = D_J_X;
-	w->params[i].calc = calc[i];
-	w->params[i].nav = nav;
-	w->params[i].fitness = fitness;
-	w->params[i].f_pred = f_pred;
-
-	pthread_create(&(w->workers[i]), NULL, ssm_worker_inproc, (void*) &(w->params[i]));
-    }
-
-    //wait that all worker are connected
-    for (i = 0; i < calc[0]->threads_length; i++) {
-	zmq_recv(w->receiver, &id, sizeof (int), 0);
-    }    
 
     return w;
 }
 
 
-void ssm_workers_inproc_stop(ssm_workers_t *workers, ssm_calc_t **calc)
+void ssm_workers_stop(ssm_workers_t *workers)
 {
     int i;
 
-    if(calc[0]->threads_length >1){
+    if(workers->flag_tcp || workers->inproc_length >1){
         zmq_send (workers->controller, "KILL", 5, 0);
         zmq_close (workers->sender);
         zmq_close (workers->receiver);
         zmq_close (workers->controller);
 
-        for(i = 0; i < calc[0]->threads_length; i++){
-            pthread_join(workers->workers[i], NULL);
-        }
+	if(!workers->flag_tcp){
+	    for(i = 0; i < workers->inproc_length; i++){
+		pthread_join(workers->workers[i], NULL);
+	    }
+	}
 
         free(workers->workers);
         free(workers->params);

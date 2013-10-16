@@ -530,6 +530,8 @@ typedef struct
 
 typedef struct 
 {
+    int flag_tcp;
+    int inproc_length; /**< number of inproc worker */
     ssm_worker_opt_t wopts;
 
     void *context;
@@ -747,10 +749,10 @@ void ssm_sample_traj(ssm_X_t **D_X, ssm_X_t ***D_J_X, ssm_calc_t *calc, ssm_data
 /* simplex.c */
 void ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_simplex)(const gsl_vector *x, void *params), ssm_nav_t *nav, double size_stop, int n_iter);
 
-/* worker_inproc.c */
+/* workers.c */
 void *ssm_worker_inproc(void *params);
-ssm_workers_t *ssm_workers_inproc_start(ssm_X_t ***D_J_X, ssm_par_t **J_par, ssm_data_t *data, ssm_calc_t **calc, ssm_fitness_t *fitness, ssm_f_pred_t f_pred, ssm_nav_t *nav, ssm_options_t *opts, ssm_worker_opt_t wopts);
-void ssm_workers_inproc_stop(ssm_workers_t *workers, ssm_calc_t **calc);
+ssm_workers_t *ssm_workers_start(ssm_X_t ***D_J_X, ssm_par_t **J_par, ssm_data_t *data, ssm_calc_t **calc, ssm_fitness_t *fitness, ssm_f_pred_t f_pred, ssm_nav_t *nav, ssm_options_t *opts, ssm_worker_opt_t wopts);
+void ssm_workers_stop(ssm_workers_t *workers);
 
 /******************************/
 /* kalman function signatures */
