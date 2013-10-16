@@ -20,12 +20,12 @@
 
 int main(int argc, char *argv[])
 {
-    int j, n, np1, t0, t1;
+    int i, j, n, t0, t1, id, the_j;
 
     ssm_options_t *opts = ssm_options_new();
     ssm_options_load(opts, SSM_SMC, argc, argv);
 
-    json_t *jparameters = ssm_load_json_stream(stdin);    
+    json_t *jparameters = ssm_load_json_stream(stdin);
     json_t *jdata = ssm_load_data(opts);
 
     ssm_nav_t *nav = ssm_nav_new(jparameters, opts);
@@ -57,24 +57,63 @@ int main(int argc, char *argv[])
 
     ssm_f_pred_t f_pred = ssm_get_f_pred(nav);
 
+    ssm_workers_t *workers = ssm_workers_start(&J_X, &par, data, calc, fitness, f_pred, nav, opts, SSM_WORKER_FITNESS);
+
     for(n=0; n<data->n_obs; n++) {
-        np1 = n+1;
         t0 = (n) ? data->rows[n-1]->time: 0;
         t1 = data->rows[n]->time;
 
-        for(j=0;j<fitness->J;j++) {
-            ssm_X_reset_inc(J_X[j], data->rows[n], nav);
-            fitness->cum_status[j] |= (*f_pred)(J_X[j], t0, t1, par, nav, calc[0]);
+	if(workers->flag_tcp){
+	    //send work
+	    for (j=0;j<fitness->J;j++) {
+		zmq_send(workers->sender, &n, sizeof (int), ZMQ_SNDMORE);
+		ssm_zmq_send_par(workers->sender, par, ZMQ_SNDMORE);
 
-            if(data->rows[n]->ts_nonan_length) {
-		fitness->weights[j] = (fitness->cum_status[j] == SSM_SUCCESS) ?  exp(ssm_log_likelihood(data->rows[n], J_X[j], par, calc[0], nav, fitness)) : 0.0;
-                fitness->cum_status[j] = SSM_SUCCESS;
+		zmq_send(workers->sender, &j, sizeof (int), ZMQ_SNDMORE);                   	       	       
+		ssm_zmq_send_X(workers->sender, J_X[j], ZMQ_SNDMORE);
+		zmq_send(workers->sender, &(fitness->cum_status[j]), sizeof (ssm_err_code_t), 0);
+		//printf("part %d sent %d\n", j, 0);
+	    }
+
+	    //get results from the workers
+	    for (j=0; j<fitness->J; j++) {
+		zmq_recv(workers->receiver, &the_j, sizeof (int), 0);
+		ssm_zmq_recv_X(J_X[ the_j ], workers->receiver);
+		zmq_recv(workers->receiver, &(fitness->weights[the_j]), sizeof (double), 0);
+		zmq_recv(workers->receiver, &(fitness->cum_status[the_j]), sizeof (ssm_err_code_t), 0);
+		//printf("part  %d received\n", the_j);
+	    }
+
+	} else if(calc[0]->threads_length > 1){
+
+            //send work
+            for (i=0; i<calc[0]->threads_length; i++) {
+                zmq_send(workers->sender, &i, sizeof (int), ZMQ_SNDMORE);
+                zmq_send(workers->sender, &n, sizeof (int), 0);
             }
+
+            //get results from the workers
+            for (i=0; i<calc[0]->threads_length; i++) {
+                zmq_recv(workers->receiver, &id, sizeof (int), 0);
+            }
+
+        } else {
+
+            for(j=0;j<fitness->J;j++) {
+                ssm_X_reset_inc(J_X[j], data->rows[n], nav);
+                fitness->cum_status[j] |= (*f_pred)(J_X[j], t0, t1, par, nav, calc[0]);
+
+                if(data->rows[n]->ts_nonan_length) {
+                    fitness->weights[j] = (fitness->cum_status[j] == SSM_SUCCESS) ?  exp(ssm_log_likelihood(data->rows[n], J_X[j], par, calc[0], nav, fitness)) : 0.0;
+                    fitness->cum_status[j] = SSM_SUCCESS;
+                }
+            }
+
         }
 
         if(!flag_no_filter && data->rows[n]->ts_nonan_length) {
             if(ssm_weight(fitness, data->rows[n], nav, n)) {
-                ssm_systematic_sampling(fitness, calc[0], n);
+		ssm_systematic_sampling(fitness, calc[0], n);
             }
 
             if (nav->print & SSM_PRINT_HAT) {
@@ -85,7 +124,7 @@ int main(int argc, char *argv[])
                 ssm_print_pred_res(nav->diag, J_X, par, nav, calc[0], data, data->rows[n], fitness);
             }
 
-            ssm_resample_X(fitness, &J_X, &J_X_tmp, n);
+	    ssm_resample_X(fitness, &J_X, &J_X_tmp, n);
 
         } else if (nav->print & SSM_PRINT_HAT) { //we do not filter or all data ara NaN (no info).
             ssm_hat_eval(hat, J_X, &par, nav, calc[0], NULL, t1, 0);
@@ -119,6 +158,8 @@ int main(int argc, char *argv[])
 
     json_decref(jparameters);
 
+    ssm_workers_stop(workers);
+
     ssm_J_X_free(J_X, fitness);
     ssm_J_X_free(J_X_tmp, fitness);
     ssm_hat_free(hat);
@@ -132,6 +173,7 @@ int main(int argc, char *argv[])
     ssm_par_free(par);
 
 
+
+
     return 0;
 }
-

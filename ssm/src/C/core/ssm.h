@@ -64,6 +64,8 @@ typedef enum {SSM_PRINT_TRACE = 1 << 0, SSM_PRINT_X = 1 << 1, SSM_PRINT_HAT = 1 
 
 typedef enum {SSM_SUCCESS = 1 << 0 , SSM_ERR_LIKE= 1 << 1, SSM_ERR_REM = 1 << 2, SSM_ERR_PRED = 1 << 3, SSM_ERR_KAL = 1 << 4, SSM_ERR_IC = 1 << 5, SSM_MH_REJECT = 1 << 6, SSM_ERR_PROPOSAL = 1 << 7, SSM_ERR_PRIOR = 1 << 8} ssm_err_code_t;
 
+typedef enum {SSM_WORKER_J_PAR = 1 << 0, SSM_WORKER_D_X = 1 << 1, SSM_WORKER_FITNESS = 1 << 2 } ssm_worker_opt_t;
+
 #define SSM_BUFFER_SIZE (2 * 1024)  /**< 1000 KB buffer size */
 #define SSM_STR_BUFFSIZE 255 /**< buffer for log and error strings */
 
@@ -436,6 +438,7 @@ typedef struct
 typedef struct
 {
     ssm_algo_t algo;
+    ssm_algo_t worker_algo;
 
     ssm_implementations_t implementation;
     ssm_noises_off_t noises_off;
@@ -465,8 +468,7 @@ typedef struct
     double flag_smooth;      /**< tune epsilon with the value of the acceptance rate obtained with exponential smoothing */
     double alpha;            /**< smoothing factor of exponential smoothing used to compute the smoothed acceptance rate (low values increase degree of smoothing) */
     int n_traj;              /**< number of trajectories stored */
-    int flag_zmq;            /**< dispatch particles across machines using a zeromq pipeline */
-    int chunk;               /**< number of particles to send to each machine */
+    int flag_tcp;            /**< dispatch particles across machines */
     int flag_least_squares;  /**< optimize the sum of square instead of the likelihood */
     double size_stop;        /**< simplex size used as a stopping criteria */
     int freq;                /**< print the outputs (and reset incidences to 0 if any) every specified days */
@@ -510,6 +512,36 @@ typedef struct
 
 
 
+typedef struct
+{
+    int id;
+    void *context; /**< zmq context */
+    ssm_worker_opt_t wopts;
+    int J_chunk;
+    ssm_data_t *data;
+    ssm_par_t **J_par;
+    ssm_X_t ***D_J_X;
+    ssm_calc_t *calc;
+    ssm_nav_t *nav;
+    ssm_fitness_t *fitness;
+    ssm_f_pred_t f_pred;
+} ssm_params_worker_inproc_t;
+
+
+typedef struct 
+{
+    int flag_tcp;
+    int inproc_length; /**< number of inproc worker */
+    ssm_worker_opt_t wopts;
+
+    void *context;
+    void *sender;
+    void *receiver;
+    void *controller;
+    ssm_params_worker_inproc_t *params;
+
+    pthread_t *workers;
+} ssm_workers_t;
 
 
 /****************************/
@@ -577,7 +609,7 @@ void ssm_nav_free(ssm_nav_t *nav);
 ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts);
 void _ssm_row_free(ssm_row_t *row);
 void ssm_data_free(ssm_data_t *data);
-void ssm_data_extend(ssm_data_t *data, ssm_options_t *opts);
+void ssm_data_extend(ssm_data_t *data, json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts);
 ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options_t *opts, int thread_id);
 void ssm_calc_free(ssm_calc_t *calc, ssm_nav_t *nav);
 ssm_calc_t **ssm_N_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fitness_t *fitness, ssm_options_t *opts);
@@ -717,6 +749,11 @@ void ssm_sample_traj(ssm_X_t **D_X, ssm_X_t ***D_J_X, ssm_calc_t *calc, ssm_data
 /* simplex.c */
 void ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_simplex)(const gsl_vector *x, void *params), ssm_nav_t *nav, double size_stop, int n_iter);
 
+/* workers.c */
+void *ssm_worker_inproc(void *params);
+ssm_workers_t *ssm_workers_start(ssm_X_t ***D_J_X, ssm_par_t **J_par, ssm_data_t *data, ssm_calc_t **calc, ssm_fitness_t *fitness, ssm_f_pred_t f_pred, ssm_nav_t *nav, ssm_options_t *opts, ssm_worker_opt_t wopts);
+void ssm_workers_stop(ssm_workers_t *workers);
+
 /******************************/
 /* kalman function signatures */
 /******************************/
@@ -743,6 +780,16 @@ void ssm_mif_update_average(ssm_theta_t *mle, double **D_theta_bart, ssm_data_t 
 void ssm_mif_update_ionides(ssm_theta_t *mle, ssm_var_t *var, double **D_theta_bart, double **D_theta_Vt, ssm_data_t *data, ssm_nav_t *nav, ssm_options_t *opts, double cooling);
 void ssm_mif_print_header_mean_var_theoretical_ess(FILE *stream, ssm_nav_t *nav);
 void ssm_mif_print_mean_var_theoretical_ess(FILE *stream, double *theta_bart, double *theta_Vt, ssm_fitness_t *fitness, ssm_nav_t *nav , ssm_row_t *row, int m);
+
+/******************************/
+/* worker function signatures */
+/******************************/
+
+/* worker/worker_util.c */
+void ssm_zmq_send_par(void *socket, ssm_par_t *par, int zmq_options);
+void ssm_zmq_recv_par(ssm_par_t *par, void *socket);
+void ssm_zmq_send_X(void *socket, ssm_X_t *X, int zmq_options);
+void ssm_zmq_recv_X(ssm_X_t *X, void *socket);
 
 /*********************************/
 /* templated function signatures */

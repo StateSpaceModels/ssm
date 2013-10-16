@@ -96,6 +96,17 @@ class Data(Cmodel):
                     return [self.cast(x) for x in reader]
 
 
+    def get_inc_reset(self, pdf):
+        inc = set()
+        for x in pdf:
+            if x != "distribution":
+                for e in self.change_user_input(pdf[x]):
+                    if e in self.par_inc:
+                        inc.add(e)
+
+        return inc
+
+
     def prepare_data(self):
 
         ##TODO pad begining in case t0 are different (so that reset zero is respected!!)
@@ -104,22 +115,12 @@ class Data(Cmodel):
 
         obs_id = [x['id'] for x in obs]
 
-        def get_inc_reset(pdf):
-            inc = set()
-            for x in pdf:
-                if x != "distribution":
-                    for e in self.change_user_input(pdf[x]):
-                        if e in self.par_inc:
-                            inc.add(e)
-
-            return inc
-
         dateset = set()
         data = {}
         for i, x in enumerate(obs):
             data[x['id']] = x
             data[x['id']]['order'] = i
-            data[x['id']]['ind_inc_reset'] = [self.order_states[s] for s in get_inc_reset(x['pdf'])]
+            data[x['id']]['ind_inc_reset'] = [self.order_states[s] for s in self.get_inc_reset(x['pdf'])]
             data[x['id']]['data']['dict'] = {d['date']:d[x['id']] for d in self.get_data(x['data']['path'])}
 
             if 'transformation' in data[x['id']]:
@@ -152,6 +153,7 @@ class Data(Cmodel):
                         row['observed'].append(data[x]['order'])
                         row['values'].append(data[x]['data']['f'](data[x]['data']['dict'][d]))
 
+            row['reset'] = list(set(row['reset']))
             data_C.append(row)
 
         return data_C

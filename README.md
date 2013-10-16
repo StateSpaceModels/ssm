@@ -1,13 +1,10 @@
 S|S|M
 =====
 
-_Pipable_ plug-and-play inference methods for time series analysis with *S*tate *S*pace *M*odels.
+_Pipable_ plug-and-play inference methods for time series analysis with *S*tate *S*pace *M*odels coded with <3 by [epy.io](http://epy.io).
 
     cat theta.json | ./simplex -M 10000 | ./ksimplex -M 10000 > mle.json
     cat mle.json | ./kmcmc -M 100000 | ./pmcmc -J 1000 -M 500000
-
-Overview
-========
 
 All the methods are implemented in plain C.  The C code contain
 generic part (working with any models) and model specific part.  The
@@ -42,7 +39,7 @@ On Ubuntu:
     apt-get install -y libzmq-dev libjansson-dev python-sympy python-jinja2 libgsl0-dev
  
 
-##Building the C libraries
+##Building the standalone C libraries
 in ssm/src/C:
 
     make
@@ -60,6 +57,33 @@ At the root of the repo run:
 in the package directory (that you will find after unpacking the tarball in ```dist/```):
 
     python setup.py install
+
+Note: you might have to run ```python setup.py install```
+
+##Generating the model-specific code:
+
+In your script you can use:
+
+    import os
+    from ssm.Builder import Builder
+
+    path_model_coded_in_C = os.path.join(os.getenv("HOME"), 'ssm_test_model')
+    path_model_datapackage = os.path.join(os.getenv("HOME") , 'ssm', 'example', 'foo', 'datapackages', 'model-seb-sir', 'datapackage.json')
+
+    b = Builder(path_model_coded_in_C, path_model_datapackage)
+    b.prepare()
+    b.code()
+    b.write_data()
+
+
+##Building the inference methods
+
+in ```path_model_coded_in_C/C/templates/```:
+
+    make
+    make install
+    
+All the inference methods binaries are now available in ```path_model_coded_in_C/```
 
 
 Tests

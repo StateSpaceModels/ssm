@@ -20,7 +20,7 @@
 
 int main(int argc, char *argv[])
 {
-    int j, n, np1, t0, t1;
+    int j, n, np1, t0, t1, the_j;
 
     ssm_options_t *opts = ssm_options_new();
     ssm_options_load(opts, SSM_MIF, argc, argv);
@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
     double **D_theta_bart = ssm_d2_new(data->length+1, nav->theta_all->length); //mean of theta at each time step, +1 because we keep values for every data point + initial condition
     double **D_theta_Vt = ssm_d2_new(data->length+1, nav->theta_all->length); //variance of theta at each time step
 
-    int m, i;
+    int m, i, id;
     int n_iter = opts->n_iter;
     int flag_prior = opts->flag_prior;
     int L = (int) floor(opts->L*data->length);
@@ -76,6 +76,7 @@ int main(int argc, char *argv[])
 
     ssm_f_pred_t f_pred = ssm_get_f_pred(nav);
 
+    ssm_workers_t *workers = ssm_workers_start(&J_X, J_par, data, calc, fitness, f_pred, nav, opts, SSM_WORKER_J_PAR | SSM_WORKER_FITNESS);
 
     for(m=1; m<n_iter; m++){
 
@@ -107,15 +108,54 @@ int main(int argc, char *argv[])
             t1 = data->rows[n]->time;
             delta += (t1-t0); //cumulate t1-t0 in between 2 data step where data->rows[n]->ts_nonan_length > 0
 
-            for(j=0;j<fitness->J;j++) {
-                ssm_X_reset_inc(J_X[j], data->rows[n], nav);
-                fitness->cum_status[j] |= (*f_pred)(J_X[j], t0, t1, J_par[j], nav, calc[0]);
 
-                if(data->rows[n]->ts_nonan_length) {
-                    fitness->weights[j] = (fitness->cum_status[j] == SSM_SUCCESS) ?  exp(ssm_log_likelihood(data->rows[n], J_X[j], J_par[j], calc[0], nav, fitness)) : 0.0;
-                    fitness->cum_status[j] = SSM_SUCCESS;
-                }
-            }
+	    if(workers->flag_tcp){
+		//send work
+		for (j=0;j<fitness->J;j++) {
+		    zmq_send(workers->sender, &n, sizeof (int), ZMQ_SNDMORE);
+		    ssm_zmq_send_par(workers->sender, J_par[j], ZMQ_SNDMORE);
+
+		    zmq_send(workers->sender, &j, sizeof (int), ZMQ_SNDMORE);                   	       	       
+		    ssm_zmq_send_X(workers->sender, J_X[j], ZMQ_SNDMORE);
+		    zmq_send(workers->sender, &(fitness->cum_status[j]), sizeof (ssm_err_code_t), 0);
+		    //printf("part %d sent %d\n", j, 0);
+		}
+
+		//get results from the workers
+		for (j=0; j<fitness->J; j++) {
+		    zmq_recv(workers->receiver, &the_j, sizeof (int), 0);
+		    ssm_zmq_recv_X(J_X[ the_j ], workers->receiver);
+		    zmq_recv(workers->receiver, &(fitness->weights[the_j]), sizeof (double), 0);
+		    zmq_recv(workers->receiver, &(fitness->cum_status[the_j]), sizeof (ssm_err_code_t), 0);
+		    //printf("part  %d received\n", the_j);
+		}
+
+	    } else if(calc[0]->threads_length > 1){
+
+		//send work
+		for (i=0; i<calc[0]->threads_length; i++) {
+		    zmq_send(workers->sender, &i, sizeof (int), ZMQ_SNDMORE);
+		    zmq_send(workers->sender, &n, sizeof (int), 0);
+		}
+
+		//get results from the workers
+		for (i=0; i<calc[0]->threads_length; i++) {
+		    zmq_recv(workers->receiver, &id, sizeof (int), 0);
+		}
+
+	    } else {
+
+		for(j=0;j<fitness->J;j++) {
+		    ssm_X_reset_inc(J_X[j], data->rows[n], nav);
+		    fitness->cum_status[j] |= (*f_pred)(J_X[j], t0, t1, J_par[j], nav, calc[0]);
+
+		    if(data->rows[n]->ts_nonan_length) {
+			fitness->weights[j] = (fitness->cum_status[j] == SSM_SUCCESS) ?  exp(ssm_log_likelihood(data->rows[n], J_X[j], J_par[j], calc[0], nav, fitness)) : 0.0;
+			fitness->cum_status[j] = SSM_SUCCESS;
+		    }
+		}
+	    }
+
 
             if(data->rows[n]->ts_nonan_length) {
                 if (flag_prior) {
@@ -155,6 +195,8 @@ int main(int argc, char *argv[])
     ssm_pipe_theta(stdout, jparameters, mle, NULL, nav);
 
     json_decref(jparameters);
+
+    ssm_workers_stop(workers);
 
     ssm_J_X_free(J_X, fitness);
     ssm_J_X_free(J_X_tmp, fitness);

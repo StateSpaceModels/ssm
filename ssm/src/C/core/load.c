@@ -78,14 +78,14 @@ void ssm_jforced(ssm_input_t *input, json_t *jforced, ssm_nav_t *nav)
     json_t *jval;
 
     for(i=0; i< it->length; i++){
-	jval = json_array_get(jforced, i);
+        jval = json_array_get(jforced, i);
         if(json_is_number(jval)){
-	    gsl_vector_set(input, it->p[i]->offset, json_real_value(jval));
+            gsl_vector_set(input, it->p[i]->offset, json_real_value(jval));
         } else {
             snprintf(str, SSM_STR_BUFFSIZE, "error: forced: %s is not a number\n", it->p[i]->name);
             ssm_print_err(str);
             exit(EXIT_FAILURE);
-        }       
+        }
     }
 }
 
@@ -94,7 +94,7 @@ void ssm_input2par(ssm_par_t *par, ssm_input_t *input, ssm_calc_t *calc, ssm_nav
 {
     int i;
     ssm_it_parameters_t *it = nav->par_all; //iterate on all the parameters to take into account following relationships
-   
+
     for(i=0; i< it->length; i++){
         gsl_vector_set(par, it->p[i]->offset, it->p[i]->f_user2par(gsl_vector_get(input, it->p[i]->offset), input, calc));
     }
@@ -130,7 +130,7 @@ unsigned int *ssm_load_ju1_new(json_t *container, char *name)
     int i;
     json_t *array = json_object_get(container, name);
     unsigned int *tab = malloc(json_array_size(array) * sizeof (unsigned int));
-    if(tab==NULL) {
+    if(json_array_size(array) && tab==NULL) {
         sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
         ssm_print_err(str);
         exit(EXIT_FAILURE);
@@ -159,7 +159,7 @@ double *ssm_load_jd1_new(json_t *container, char *name)
     int i;
     json_t *array = json_object_get(container, name);
     double *tab = malloc(json_array_size(array) * sizeof (double));
-    if(tab==NULL){
+    if(json_array_size(array) && tab==NULL){
         sprintf(str, "Allocation impossible in file :%s line : %d",__FILE__,__LINE__);
         ssm_print_err(str);
         exit(EXIT_FAILURE);

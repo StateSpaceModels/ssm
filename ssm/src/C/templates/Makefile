@@ -5,7 +5,7 @@ LIB=libssmtpl.a
 SRC= $(wildcard *.c)
 OBJ= $(SRC:.c=.o)
 
-EXEC=simul simplex smc mif pmcmc kalman ksimplex kmcmc ##worker
+EXEC=simul simplex smc mif pmcmc kalman ksimplex kmcmc worker
 
 all: $(LIB)
 
@@ -42,8 +42,8 @@ ksimplex: libssmtpl.a
 kmcmc: libssmtpl.a
 	$(CC) $(CFLAGS) -L. -o $@ -lssmkmcmc $(LDFLAGS)
 
-##worker: libssmtpl.a
-##	$(CC) $(CFLAGS) -L. -o $@ -lssmworker $(LDFLAGS) 
+worker: libssmtpl.a
+	$(CC) $(CFLAGS) -L. -o $@ -lssmworker $(LDFLAGS) 
 
 .PHONY: clean
 
