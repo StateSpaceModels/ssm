@@ -83,6 +83,7 @@ int ssm_step_ekf(double t, const double X[], double f[], void *params)
 
     // evaluate Q and jacobian
     //TODO FIX: calc->eval_Q(X, t, par, nav, calc);
+    calc->eval_Q(X, t, par, nav, calc);
     ssm_eval_jac(X, t, par, nav, calc);
 
     // compute Ft*Ct+Ct*Ft'+Q

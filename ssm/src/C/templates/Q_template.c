@@ -99,9 +99,11 @@ void ssm_eval_Q_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm
     j = states_sv->p[{{ x.j.ind }}]->offset;
     {% endif %}
 
+    term = {{ x.term|safe }};
+
     gsl_matrix_set(Q, i, j, term);
 
-    {% if x.i.ind != x.j.ind %}
+    {% if x.i != x.j %}
     gsl_matrix_set(Q, j, i, term);
     {% endif %}
 

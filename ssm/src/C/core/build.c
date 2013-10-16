@@ -218,7 +218,7 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
 
             //for all the parameters: if covariance term and covariance term >0.0, fill theta_*
             for(i=0; i<nav->par_all->length; i++){
-                json_t *jcov_i = json_object_get(values, nav->par_all->p[i]->name);
+		json_t *jcov_i = json_object_get(values, nav->par_all->p[i]->name);
                 if(jcov_i){
                     json_t *jcov_ii = json_object_get(jcov_i, nav->par_all->p[i]->name);
                     if(jcov_ii){
@@ -279,6 +279,7 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
             break;
         }
     }
+    
 
     //files (CSV open and print headers)
     if(opts->print & SSM_PRINT_TRACE){

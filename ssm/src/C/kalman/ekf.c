@@ -52,13 +52,15 @@ ssm_err_code_t _ssm_check_and_correct_Ct(ssm_X_t *X, ssm_calc_t *calc, ssm_nav_t
         }
     }
 
+  
+
     ////////////////////////
     // STEP 2: POSITIVITY //
     ////////////////////////
     // Bringing negative eigen values of Ct back to zero
 
     // compute the eigen values and vectors of Ct
-    gsl_vector *eval = calc->_eval;         // to store the eigen values
+    gsl_vector *eval = calc->_eval;      // to store the eigen values
     gsl_matrix *evec = calc->_evec;      // to store the eigen vectors
     gsl_eigen_symmv_workspace *w = calc->_w_eigen_vv;
 
@@ -108,6 +110,7 @@ ssm_err_code_t ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X,
 {
 
     int i, j, status;
+    double tmp;
     ssm_err_code_t cum_status = SSM_SUCCESS;
     int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
 
@@ -128,7 +131,13 @@ ssm_err_code_t ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X,
     for(i=0; i< row->ts_nonan_length; i++){
         for(j=0; j< row->ts_nonan_length; j++){
             if (i==j){
-                gsl_matrix_set(&Rt.matrix,i,j,row->observed[i]->f_obs_var(X, par, calc, t));
+		tmp = row->observed[i]->f_obs_var(X, par, calc, t);
+		if (tmp<SSM_ZERO_LOG){
+		    gsl_matrix_set(&Rt.matrix,i,j,SSM_ZERO_LOG);
+		    ssm_print_warning("Observation variance too low: fixed to SSM_ZERO_LOG.");
+		} else {
+		    gsl_matrix_set(&Rt.matrix,i,j,tmp);
+		}
             } else {
                 gsl_matrix_set(&Rt.matrix,i,j,0);
             }
@@ -142,7 +151,6 @@ ssm_err_code_t ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X,
 
     // positivity and symetry could have been lost when propagating Ct
     cum_status |= _ssm_check_and_correct_Ct(X, calc, nav);
-
 
     // sc_st = Ht' * Ct * Ht + sc_rt
     /*
@@ -205,15 +213,17 @@ ssm_err_code_t ssm_kalman_update(ssm_fitness_t *fitness, ssm_X_t *X, ssm_row_t *
     // X_sv += Kt * pred_error
     status = gsl_blas_dgemv(CblasNoTrans,1.0,&Kt.matrix,&pred_error.vector,1.0,&X_sv.vector);
     cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
+    
 
     ///////////////////////
     // covariance update //
     ///////////////////////
+
     // Ct = Ct - Kt * Ht' * Ct
     status = gsl_blas_dgemm(CblasTrans, CblasNoTrans, 1.0, &Ht.matrix, &Ct.matrix, 0.0, &Tmp.matrix);
     cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
 
-    status = gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, -1.0, &Kt.matrix, &Tmp.matrix, 0.0, &Ct.matrix);
+    status = gsl_blas_dgemm(CblasNoTrans, CblasNoTrans, -1.0, &Kt.matrix, &Tmp.matrix, 1.0, &Ct.matrix);
     cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
 
     // positivity and symmetry could have been lost when updating Ct

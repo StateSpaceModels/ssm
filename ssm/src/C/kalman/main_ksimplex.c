@@ -84,7 +84,7 @@ static double f_ksimplex(const gsl_vector *theta, void *params)
 
     if (flag_prior) {
         double log_prob_prior_value;
-        ssm_err_code_t rc = ssm_log_prob_prior(&log_prob_prior_value, (gsl_vector *) theta, nav, fitness);
+        ssm_err_code_t rc = ssm_log_prob_prior(&log_prob_prior_value, (ssm_theta_t *) theta, nav, fitness);
         if(rc != SSM_SUCCESS){
             if(nav->print & SSM_PRINT_WARNING){
                 ssm_print_warning("error log_prob_prior computation");

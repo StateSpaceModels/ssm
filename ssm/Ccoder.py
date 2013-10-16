@@ -253,7 +253,7 @@ class Ccoder(Cmodel):
         obs = copy.deepcopy(self.obs_model)
 
         for x in obs:
-            x['pdf']['mean'] = self.make_C_term(x['pdf']['sd'], True)
+            x['pdf']['mean'] = self.make_C_term(x['pdf']['mean'], True)
             x['pdf']['sd'] = self.make_C_term(x['pdf']['sd'], True)
 
         return {'observed': obs}
@@ -1063,6 +1063,7 @@ class Ccoder(Cmodel):
         Qs_env = matrix_product(Ls_env, Qr_env)
         Qs_env = matrix_product(Qs_env, zip(*Ls_env))
 
+
         calc_Q = {'no_dem_sto': {'Q_proc':[],
                                  'Q_inc':[],
                                  'Q_cm': Qs_env,
@@ -1080,6 +1081,7 @@ class Ccoder(Cmodel):
                                            'Q_cm': [],
                                            'Q_sde': []}}
 
+ 
         if debug:
             for k in calc_Q:
 

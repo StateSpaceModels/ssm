@@ -28,12 +28,12 @@
             "type": "date"
           },
           {
-            "name": "all_CDC_inc",
+            "name": "all_CDC_inc_out",
             "type": "number",
             "description": "Incidence in both cities as reported by the CDC"
           },
           {
-            "name": "all_google_inc",
+            "name": "all_google_inc_out",
             "type": "number",
             "description": "Incidence in both cities as reported by the google"
           },

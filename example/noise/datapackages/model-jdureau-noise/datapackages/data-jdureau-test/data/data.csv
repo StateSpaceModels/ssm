@@ -1,4 +1,4 @@
-"date","all_CDC_inc","all_google_inc","nyc_CDC_inc","paris_CDC_prev"
+"date","all_CDC_inc_out","all_google_inc_out","nyc_CDC_inc","paris_CDC_prev"
 "2012-08-02",6,10,9,5
 "2012-08-09",12,16,19,11
 "2012-08-16",null,null,null,null

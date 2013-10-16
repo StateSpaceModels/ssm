@@ -102,7 +102,6 @@ ssm_err_code_t ssm_log_prob_prior(double *log_prior, ssm_theta_t *theta, ssm_nav
     double back_transformed; //prior are on the natural scale, so we transform the parameter
 
     for(i=0; i<nav->theta_all->length; i++) {
-
         p = nav->theta_all->p[i];
 
         back_transformed = p->f_inv(gsl_vector_get(theta, p->offset_theta));
@@ -116,8 +115,10 @@ ssm_err_code_t ssm_log_prob_prior(double *log_prior, ssm_theta_t *theta, ssm_nav
             p_tmp = (p_tmp <= fitness->like_min) ? fitness->like_min : p_tmp;
         }
 
+
         lp += log(p_tmp);
     }
+
 
     *log_prior = lp;
 
