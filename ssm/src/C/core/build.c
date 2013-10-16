@@ -279,7 +279,6 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
             break;
         }
     }
-    
 
     //files (CSV open and print headers)
     if(opts->print & SSM_PRINT_TRACE){
