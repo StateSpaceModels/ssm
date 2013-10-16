@@ -438,6 +438,7 @@ typedef struct
 typedef struct
 {
     ssm_algo_t algo;
+    ssm_algo_t worker_algo;
 
     ssm_implementations_t implementation;
     ssm_noises_off_t noises_off;
@@ -467,8 +468,7 @@ typedef struct
     double flag_smooth;      /**< tune epsilon with the value of the acceptance rate obtained with exponential smoothing */
     double alpha;            /**< smoothing factor of exponential smoothing used to compute the smoothed acceptance rate (low values increase degree of smoothing) */
     int n_traj;              /**< number of trajectories stored */
-    int flag_zmq;            /**< dispatch particles across machines using a zeromq pipeline */
-    int chunk;               /**< number of particles to send to each machine */
+    int flag_tcp;            /**< dispatch particles across machines */
     int flag_least_squares;  /**< optimize the sum of square instead of the likelihood */
     double size_stop;        /**< simplex size used as a stopping criteria */
     int freq;                /**< print the outputs (and reset incidences to 0 if any) every specified days */
@@ -530,6 +530,8 @@ typedef struct
 
 typedef struct 
 {
+    ssm_worker_opt_t wopts;
+
     void *context;
     void *sender;
     void *receiver;
@@ -776,6 +778,16 @@ void ssm_mif_update_average(ssm_theta_t *mle, double **D_theta_bart, ssm_data_t 
 void ssm_mif_update_ionides(ssm_theta_t *mle, ssm_var_t *var, double **D_theta_bart, double **D_theta_Vt, ssm_data_t *data, ssm_nav_t *nav, ssm_options_t *opts, double cooling);
 void ssm_mif_print_header_mean_var_theoretical_ess(FILE *stream, ssm_nav_t *nav);
 void ssm_mif_print_mean_var_theoretical_ess(FILE *stream, double *theta_bart, double *theta_Vt, ssm_fitness_t *fitness, ssm_nav_t *nav , ssm_row_t *row, int m);
+
+/******************************/
+/* worker function signatures */
+/******************************/
+
+/* worker/worker_util.c */
+void ssm_zmq_send_par(void *socket, ssm_par_t *par, int zmq_options);
+void ssm_zmq_recv_par(ssm_par_t *par, void *socket);
+void ssm_zmq_send_X(void *socket, ssm_X_t *X, int zmq_options);
+void ssm_zmq_recv_X(ssm_X_t *X, void *socket);
 
 /*********************************/
 /* templated function signatures */

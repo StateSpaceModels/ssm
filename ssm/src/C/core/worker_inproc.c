@@ -124,6 +124,8 @@ ssm_workers_t *ssm_workers_inproc_start(ssm_X_t ***D_J_X, ssm_par_t **J_par, ssm
 	exit(EXIT_FAILURE);
     }
 
+    w->wopts = wopts;
+
     if(calc[0]->threads_length == 1){
 	w->context = NULL;
 	w->sender = NULL;

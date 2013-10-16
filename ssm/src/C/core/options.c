@@ -32,7 +32,7 @@ struct opts_part{
 void ssm_options_load(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv[])
 {
     opts->algo = algo;
-
+    
     struct opts_part all_opts[] = {
         {"D", 'D', "dt",             "integration time step", required_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
         {"I", 'I', "id",             "general id (unique integer identifier that will be appended to the output)", required_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
@@ -57,7 +57,6 @@ void ssm_options_load(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
         {"L", 'L', "lag",            "lag for fixed-lag smoothing (proportion of the data)", required_argument,  SSM_MIF },
         {"F", 'F', "freq",           "print the outputs (and reset incidences to 0 if any) every specified days", required_argument,  SSM_SIMUL },
         {"V", 'V', "size",           "simplex size used as stopping criteria", required_argument,  SSM_KSIMPLEX | SSM_SIMPLEX },
-        {"X", 'X', "chunk",          "number of particles sent to each machine", required_argument,  SSM_PMCMC },
         {"Q", 'Q', "interpolator",   "gsl interpolator for covariates", required_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
         {"R", 'R', "server",         "domain name or IP address of the particule server (e.g 127.0.0.1)", required_argument,  SSM_WORKER },
 
@@ -76,7 +75,7 @@ void ssm_options_load(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
         {"p", 'p', "prior",          "add log(prior) to the estimated loglikelihood", no_argument,  SSM_SMC | SSM_KALMAN | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF },
         {"s", 's', "smooth",         "tune epsilon with the value of the acceptance rate obtained with exponential smoothing", no_argument,  SSM_KMCMC | SSM_PMCMC },
         {"a", 'a', "acc",            "print the acceptance rate", no_argument,  SSM_KMCMC | SSM_PMCMC },
-        {"z", 'z', "zmq",            "dispatch particles across machines using a zmq pipeline", no_argument,  SSM_PMCMC },
+        {"z", 'z', "tcp",            "dispatch particles across machines", no_argument,  SSM_SIMUL | SSM_SMC | SSM_PMCMC | SSM_MIF },
         {"b", 'b', "ic_only",        "only fit the initial condition using fixed lag smoothing", no_argument,  SSM_MIF },
         {"l", 'l', "least_squares",  "minimize the sum of squared errors instead of maximizing the likelihood", no_argument,  SSM_SIMPLEX },
         {"g", 'g', "seed_time",      "seed the random number generator with the current time", no_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL }
@@ -231,10 +230,6 @@ void ssm_options_load(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
             opts->size_stop = atof(optarg);
             break;
 
-        case 'X': //chunk
-            opts->chunk = atoi(optarg);
-            break;
-
         case 'Q': //interpolator
             strncpy(opts->interpolator, optarg, SSM_STR_BUFFSIZE);
             break;
@@ -295,8 +290,8 @@ void ssm_options_load(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
             opts->print |= SSM_PRINT_DIAG;
             break;
 
-        case 'z': //zmq
-            opts->flag_zmq = 1;
+        case 'z': //tcp
+            opts->flag_tcp = 1;
             break;
 
         case 'b': //ic_only
@@ -327,6 +322,27 @@ void ssm_options_load(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
 
 void ssm_options_set_implementation(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv[])
 {
+    if(algo & SSM_WORKER){
+	if(argc != 2){
+	    ssm_print_err("invalid usage, correct usage is: worker <implementation> <algorithm> [options]");
+	    exit(EXIT_FAILURE);
+	} else {
+	    
+	    if(!strcmp(argv[1], "smc")){
+		opts->worker_algo = SSM_SMC;
+	    } else if (!strcmp(argv[1], "mif")){
+		opts->worker_algo = SSM_MIF;
+	    } else if (!strcmp(argv[1], "pmcmc")){
+		opts->worker_algo = SSM_PMCMC;
+	    } else if (!strcmp(argv[1], "simul")){
+		opts->worker_algo = SSM_SIMUL;
+	    } else {
+		ssm_print_err("worker algorithm has to be either smc, mif, pmcmc or simul");
+		exit(EXIT_FAILURE);
+	    }
+	}
+    }
+
     //constraints methods
     if ( algo & (SSM_KALMAN | SSM_KSIMPLEX | SSM_KMCMC) ){
 

@@ -1022,6 +1022,8 @@ ssm_options_t *ssm_options_new(void)
     opts->server = ssm_c1_new(SSM_STR_BUFFSIZE);
 
     //fill default
+    opts->worker_algo = 0;
+
     opts->implementation = 0;
     opts->noises_off = 0;
     opts->print = 0;
@@ -1051,8 +1053,7 @@ ssm_options_t *ssm_options_new(void)
     opts->flag_smooth = 0;
     opts->alpha = 0.02;
     opts->n_traj = 1000;
-    opts->flag_zmq = 0;
-    opts->chunk = 0;
+    opts->flag_tcp = 0;
     opts->flag_least_squares = 0;
     opts->size_stop = 1e-6;
     opts->freq = 1;
