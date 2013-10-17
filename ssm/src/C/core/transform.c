@@ -90,7 +90,7 @@ double ssm_f_inv_logit_ab(double x, double a, double b)
  */
 double ssm_f_der_id(double x)
 {
-    return 0;
+    return 1;
 }
 
 
@@ -112,6 +112,14 @@ double ssm_f_der_inv_log(double x)
     return exp(x);
 }
 
+
+/**
+ * 2nd derivative of ssm_f_inv_id
+ */
+double ssm_f_der2_inv_id(double x)
+{
+    return 0;
+}
 
 /**
  * 2nd derivative of ssm_f_inv_log

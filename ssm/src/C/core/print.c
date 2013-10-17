@@ -404,19 +404,23 @@ void ssm_print_header_hat(FILE *stream, ssm_nav_t *nav)
     fprintf(stream, "date,");
 
     for(i=0; i<nav->states_sv_inc->length; i++){
-        fprintf(stream, "lower_%s,upper_%s,", nav->states_sv_inc->p[i]->name, nav->states_sv_inc->p[i]->name);
+        fprintf(stream, "mean_%s,lower_%s,upper_%s,", nav->states_sv_inc->p[i]->name, nav->states_sv_inc->p[i]->name, nav->states_sv_inc->p[i]->name);
     }
 
     for(i=0; i<nav->states_remainders->length; i++){
-        fprintf(stream, "lower_%s,upper_%s,", nav->states_remainders->p[i]->name, nav->states_remainders->p[i]->name);
+        fprintf(stream, "mean_%s,lower_%s,upper_%s,", nav->states_remainders->p[i]->name, nav->states_remainders->p[i]->name, nav->states_remainders->p[i]->name);
     }
 
     for(i=0; i<nav->states_diff->length; i++){
-	fprintf(stream, "lower_%s,upper_%s,", nav->states_diff->p[i]->name, nav->states_diff->p[i]->name);
+	fprintf(stream, "mean_%s,lower_%s,upper_%s,", nav->states_diff->p[i]->name, nav->states_diff->p[i]->name, nav->states_diff->p[i]->name);
     }
 
     for(i=0; i<nav->observed_length; i++){
-	fprintf(stream, ",lower_%s,upper_%s", nav->observed[i]->name, nav->observed[i]->name);
+	if(i<nav->observed_length-1){ 
+	    fprintf(stream, "mean_%s,lower_%s,upper_%s,", nav->observed[i]->name, nav->observed[i]->name, nav->observed[i]->name);
+	} else {
+	    fprintf(stream, "mean_%s,lower_%s,upper_%s", nav->observed[i]->name, nav->observed[i]->name, nav->observed[i]->name);
+	}
     }
 
     fprintf(stream, "\n");
@@ -494,7 +498,11 @@ void ssm_print_hat(FILE *stream, ssm_hat_t *hat, ssm_nav_t *nav, ssm_row_t *row)
         snprintf(key, SSM_STR_BUFFSIZE, "upper_%s", observed->name);
         json_object_set_new(jout, key, json_real(hat->observed_95[observed->offset][1]));
 #else
-	fprintf(stream, ",%g,%g,%g", hat->observed[observed->offset], hat->observed_95[observed->offset][0], hat->observed_95[observed->offset][1]);
+	if( i < nav->observed_length-1){
+	    fprintf(stream, "%g,%g,%g,", hat->observed[observed->offset], hat->observed_95[observed->offset][0], hat->observed_95[observed->offset][1]);
+	} else {
+	    fprintf(stream, "%g,%g,%g", hat->observed[observed->offset], hat->observed_95[observed->offset][0], hat->observed_95[observed->offset][1]);
+	}
 #endif
     }
 

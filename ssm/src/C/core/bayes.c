@@ -140,6 +140,7 @@ ssm_err_code_t ssm_metropolis_hastings(ssm_fitness_t *fitness, double *alpha, ss
     success |= ssm_log_prob_prior   (&fitness->log_prior, proposed,                        nav, fitness); /* p{theta*} */
     success |= ssm_log_prob_prior   (&lprior_prev,        theta,                           nav, fitness); /* p{theta(i-1)} */
 
+
     if(success == SSM_SUCCESS) {
 
         // ( p{theta*}(y)  p{theta*} ) / ( p{theta(i-1)}(y) p{theta(i-1)} )  *  q{ theta(i-1) | theta* } / q{ theta* | theta(i-1) }

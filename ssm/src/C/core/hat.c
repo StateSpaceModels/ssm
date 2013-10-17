@@ -95,8 +95,9 @@ void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *n
         //sv and incidences
         for(i=0; i< nav->states_sv_inc->length; i++) {
             offset = nav->states_sv_inc->p[i]->offset;
-            hat->states_95[offset][0] = X->proj[offset] - 1.96*gsl_matrix_get(&Ct.matrix,offset,offset);
-            hat->states_95[offset][1] = X->proj[offset] + 1.96*gsl_matrix_get(&Ct.matrix,offset,offset);
+	    hat->states[offset] = X->proj[offset];
+            hat->states_95[offset][0] = X->proj[offset] - 1.96*sqrt(gsl_matrix_get(&Ct.matrix,offset,offset));
+	    hat->states_95[offset][1] = X->proj[offset] + 1.96*sqrt(gsl_matrix_get(&Ct.matrix,offset,offset));
         }
 
         //remainders
@@ -105,8 +106,9 @@ void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *n
             offset = state->offset;
             rem = state->f_remainder(X, calc, t);
             var = state->f_remainder_var(X, calc, nav, t);
-            hat->states_95[offset][0] = rem - 1.96*var;
-            hat->states_95[offset][1] = rem + 1.96*var;
+	    hat->states[offset] = rem;
+            hat->states_95[offset][0] = rem - 1.96*sqrt(var);
+            hat->states_95[offset][1] = rem + 1.96*sqrt(var);
         }
 
         //diffusions (we rely on a second-order Taylor approximation here)
@@ -117,8 +119,9 @@ void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *n
             grad = state->f_der_inv(X->proj[offset]);
             grad2 = state->f_der2_inv(X->proj[offset]);
             var = pow(grad,2.0) * gsl_matrix_get(&Ct.matrix,offset,offset) + pow(grad2,2.0)/4.0*pow(gsl_matrix_get(&Ct.matrix,offset,offset),2.0);
-            hat->states_95[offset][0] = state->f_inv(X->proj[offset]) - 1.96*var;
-            hat->states_95[offset][1] = state->f_inv(X->proj[offset]) + 1.96*var;
+	    hat->states[offset] = state->f_inv(X->proj[offset]);
+            hat->states_95[offset][0] = state->f_inv(X->proj[offset]) - 1.96*sqrt(var);
+            hat->states_95[offset][1] = state->f_inv(X->proj[offset]) + 1.96*sqrt(var);
         }
 
         //observed
@@ -127,8 +130,9 @@ void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *n
             offset = observed->offset;
             obs = observed->f_obs_mean(X, par, calc, t);
             var = observed->f_obs_var(X, par, calc, t);
-            hat->states_95[offset][0] = obs - 1.96*var;
-            hat->states_95[offset][1] = obs + 1.96*var;
+	    hat->states[offset] = obs;
+            hat->states_95[offset][0] = obs - 1.96*sqrt(var);
+	    hat->states_95[offset][1] = obs + 1.96*sqrt(var);
         }
 
     } else {
