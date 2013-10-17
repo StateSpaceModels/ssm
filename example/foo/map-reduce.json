@@ -14,62 +14,80 @@
   ],
 
   "version": "0.0.0",
+ 
+  "map": [
+    {
+      "prog": "simul",
+      "engines": {"ssm": "*"}
+      "commands": ["ode"],
+      "options": {
+        "end": "2043-07-25",
+        "traj": true
+      },
+      "inputs": [
+        {
+          "resource": "lhs",
+          "collection": true
+        }
+      ],
+      "outputs": [
+        {
+          "files": "data/skip_*.json"
+        },
+        {
+          "files": "data/X_*.json",
+          "save":true,
+        },
+      ]
+    },
+    {
+      "prog": "simplex",
+      "engines": {"ssm": "*"}
+      "commands": ["ode"],
+      "options": { 
+        "n_iter": 10000,
+        "trace": true
+      },
+      "inputs": [
+        {
+          "files": "data/skip_*.json"
+        }
+      ],
+      "outputs": [
+        {
+          "files": "data/trace_*.json",
+          "save":true
+        },
+        {
+          "files": "data/mle_*.json"
+        }
+      ]
+    }
+  ],
+
 
   "resources": [
     {
-      "name": "inputs",
-      "path": "data/lhs.json",
-      "format": "json"
+      "name": "X_0",
+      "path": "data/trace_0.csv",
+      "format": "csv"
+    },
+    {
+      "name": "X_1",
+      "path": "data/trace_0.csv",
+      "format": "csv"
     },
 
     {
-      "name": "map",
-      "data": [
-        {
-          "prog": "simul",
-          "version": "0.0.1",
-          "commands": ["ode"],
-          "options": {
-            "end": "2043-07-25",
-            "traj": true
-          },
-          "resources": ["X"]
-        },
-        {
-          "prog": "simplex",
-          "version": "0.0.1",
-          "commands": ["ode"],
-          "options": { 
-            "n_iter": 10000,
-            "trace": true
-          },
-          "resources": ["traces", "mle"]
-        }
-      ]
+      "name": "trace_0",
+      "path": "data/trace_0.csv",
+      "format": "csv"
     },
-
     {
-      "name": "reduce",
-      "data": []
-    },
-
-
-    {
-      "name": "traces",
-      "path": ["data/trace_0.csv", "data/trace_1.csv", "data/trace_2.csv", "data/trace_3.csv", "data/trace_4.csv"],
-      "format": "csv",
-      "schema": {
-        "fields": []
-      }
-    },
-
-    {
-      "name": "mle",
-      "path": ["data/theta_0.json", "data/theta_1.json", "data/theta_2.json", "data/theta_3.json", "data/theta_4.json"],
-      "format": "json",
-      "schema": {
-        "fields": []
-      }
+      "name": "trace_1",
+      "path": "data/trace_1.csv",
+      "format": "csv"
     }
+
   ]
 }
