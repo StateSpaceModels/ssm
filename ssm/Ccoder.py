@@ -224,16 +224,17 @@ class Ccoder(Cmodel):
                 eq = ''
                 for x_i in x['composition']:
                     for x_j in x['composition']:
-                        if eq != '':
-                            eq += ' + '
-                        eq += 'gsl_matrix_get(&Ct.matrix,' + str(self.order_states[x_i]) +','  + str(self.order_states[x_j]) + ')';
+                        if x_i != rem and x_j != rem :
+                            if eq != '':
+                                eq += ' + '
+                            eq += 'gsl_matrix_get(&Ct.matrix,' + str(self.order_states[x_i]) +','  + str(self.order_states[x_j]) + ')';
                 f_remainders_var[rem] = eq;
 
         # Initial compartment sizes in cases of no remainder
         ic = []
         for x in self.get_resource('populations'):
             if 'remainder' not in x:
-                ic.append([self.make_C_term(eq, True, force_par=True, set_t0=True) for t in x['composition']])
+                ic.append([self.make_C_term(t, True, force_par=True, set_t0=True) for t in x['composition']])
 
 
         return {
@@ -1070,7 +1071,7 @@ class Ccoder(Cmodel):
         Qs_env = matrix_product(Ls_env, Qr_env)
         Qs_env = matrix_product(Qs_env, zip(*Ls_env))
 
-
+        
         calc_Q = {'no_dem_sto': {'Q_proc':[],
                                  'Q_inc':[],
                                  'Q_cm': Qs_env,

@@ -98,7 +98,7 @@ static ssm_err_code_t run_smc(ssm_err_code_t (*f_pred) (ssm_X_t *, double, doubl
         }
     }
 
-    return (fitness->n_all_fail == data->n_obs) ? SSM_ERR_PRED: SSM_SUCCESS;
+    return ( (data->n_obs != 0) && (fitness->n_all_fail == data->n_obs) ) ? SSM_ERR_PRED: SSM_SUCCESS;
 }
 
 int main(int argc, char *argv[])
@@ -180,7 +180,6 @@ int main(int argc, char *argv[])
     double ratio;
     for(m=1; m<n_iter; m++) {
         var = ssm_adapt_eps_var_sd_fac(&sd_fac, adapt, var_input, nav, m);
-
         ssm_theta_ran(proposed, theta, var, sd_fac, calc[0], nav, 1);
         ssm_theta2input(input, proposed, nav);
         ssm_input2par(par_proposed, input, calc[0], nav);

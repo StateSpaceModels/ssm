@@ -23,6 +23,11 @@ static double f_der_inv_tpl_skl_{{ p.name }}(double x)
 {
     return {{ p.f_der_inv }};
 }
+
+static double f_der2_inv_tpl_skl_{{ p.name }}(double x)
+{
+    return {{ p.f_der2_inv }};
+}
 {% endif %}
 {% endfor %}
 
@@ -154,7 +159,7 @@ ssm_parameter_t **_ssm_parameters_new(int *parameters_length)
     parameters[{{ order_parameters[p.name] }}]->f_inv = &ssm_f_id;
     parameters[{{ order_parameters[p.name] }}]->f_der = &ssm_f_der_id;
     parameters[{{ order_parameters[p.name] }}]->f_der_inv = &ssm_f_der_id;
-    parameters[{{ order_parameters[p.name] }}]->f_der2_inv = &ssm_f_der_id;
+    parameters[{{ order_parameters[p.name] }}]->f_der2_inv = &ssm_f_der2_inv_id;
     {% endif %}
 
     {% if 'prior' in p and 'distribution' in p.prior and p.prior.distribution != 'fixed' %}
@@ -221,11 +226,14 @@ ssm_state_t **_ssm_states_new(int *states_length, ssm_parameter_t **parameters)
     states[{{ order_states['diff__' + p.name] }}]->f_inv = &f_inv_tpl_skl_{{ p.name }};
     states[{{ order_states['diff__' + p.name] }}]->f_der = &f_der_tpl_skl_{{ p.name }};
     states[{{ order_states['diff__' + p.name] }}]->f_der_inv = &f_der_inv_tpl_skl_{{ p.name }};
+    states[{{ order_states['diff__' + p.name] }}]->f_der2_inv = &f_der2_inv_tpl_skl_{{ p.name }};
     {% else %}
     states[{{ order_states['diff__' + p.name] }}]->f = &ssm_f_id;
     states[{{ order_states['diff__' + p.name] }}]->f_inv = &ssm_f_id;
-    states[{{ order_states['diff__' + p.name] }}]->f_der = &ssm_f_id;
-    states[{{ order_states['diff__' + p.name] }}]->f_der_inv = &ssm_f_id;
+    states[{{ order_states['diff__' + p.name] }}]->f_der = &ssm_f_der_id;
+    states[{{ order_states['diff__' + p.name] }}]->f_der_inv = &ssm_f_der_id;
+    states[{{ order_states['diff__' + p.name] }}]->f_der2_inv = &ssm_f_der2_inv_id;;
+
     {% endif %}
 
     states[{{ order_states['diff__' + p.name] }}]->f_remainder = NULL;

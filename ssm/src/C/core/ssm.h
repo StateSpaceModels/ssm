@@ -687,6 +687,7 @@ void ssm_swap_X(ssm_X_t ***X, ssm_X_t ***tmp_X);
 /* transform.c */
 double ssm_f_id(double x);
 double ssm_f_der_id(double x);
+double ssm_f_der2_inv_id(double x);
 double ssm_f_log(double x);
 double ssm_f_inv_log(double x);
 double ssm_f_logit(double x);
