@@ -42,8 +42,8 @@ class Ccoder(Cmodel):
         if term == xify:
             term = 'x'
 
-        if term in self.map_prior_id2id:
-            term = self.map_prior_id2id[term]
+        if term in self.map_prior_name2name:
+            term = self.map_prior_name2name[term]
 
         if term == 'correct_rate':
             return '' if no_correct_rate else 'ssm_correct_rate'
@@ -170,11 +170,18 @@ class Ccoder(Cmodel):
 
         for p in parameters:
             if 'transformation' in p:
-                p['f_user2par'] = self.make_C_term(p['transformation'], True, force_par=True, xify=p['prior']['id'] if ('prior' in p and 'id' in p['prior']) else p['id'], set_t0=True)
+                if 'schema' in p:
+                    xify = [x['name'] for x in p['schema']['fields'] if x['name'] != 'date'][0]
+                elif 'prior' in p and 'name' in p['prior']:
+                    xify = p['prior']['name']
+                else:
+                    xify = p['name']
+                    
+                p['f_user2par'] = self.make_C_term(p['transformation'], True, force_par=True, xify=xify, set_t0=True)
 
                 ## inverse of the transformation function
-                ## if 'prior' in p and 'id' in p['prior']:
-                ##     p['f_par2user'] = self.make_C_term(p['transformation']+ '-' + p['id'], True, inverse=p['prior']['id'], force_par=True, xify=p['id'], set_t0=True)
+                ## if 'prior' in p and 'name' in p['prior']:
+                ##     p['f_par2user'] = self.make_C_term(p['transformation']+ '-' + p['name'], True, inverse=p['prior']['name'], force_par=True, xify=p['name'], set_t0=True)
 
             if 'to_prior' in p:
                 p['f_2prior'] = self.make_C_term(p['to_prior'], True)
@@ -190,27 +197,27 @@ class Ccoder(Cmodel):
         #make C code for f_, f_inv f_der, f_der_inv
         for p in drifts:
             if 'transformation' in p:
-                p['f'] = self.make_C_term(p['transformation'], True, human=True, xify=p['id'], set_t0=True)
-                p['f_inv'] = self.make_C_term(p['transformation']+ '- x', True, inverse=p['id'], human=True, set_t0=True)
-                p['f_der'] = self.make_C_term(p['transformation'], True, derivate=p['id'], human=True, xify=p['id'], set_t0=True)
+                p['f'] = self.make_C_term(p['transformation'], True, human=True, xify=p['name'], set_t0=True)
+                p['f_inv'] = self.make_C_term(p['transformation']+ '- x', True, inverse=p['name'], human=True, set_t0=True)
+                p['f_der'] = self.make_C_term(p['transformation'], True, derivate=p['name'], human=True, xify=p['name'], set_t0=True)
                 p['f_der_inv'] = self.make_C_term(p['f_inv'], True, derivate='x', human=True, set_t0=True)
                 p['f_der2_inv'] = self.make_C_term(p['f_der_inv'], True, derivate='x', human=True, set_t0=True)
 
-            if p['id'] in self.order_parameters:
-                p['offset_ic'] = self.order_parameters[p['id']]
+            if p['name'] in self.order_parameters:
+                p['offset_ic'] = self.order_parameters[p['name']]
 
 
         #sort parameters
         #start by making dict:
-        pdict = {x['id']:x for x in parameters}
-        sdict = {'diff__' + x['id']: x for x in drifts}
+        pdict = {x['name']:x for x in parameters}
+        sdict = {'diff__' + x['name']: x for x in drifts}
 
         f_remainders = {}
         f_remainders_par = {}
         f_remainders_var = {}
         for x in self.get_resource('populations'):
             if 'remainder' in x:
-                rem = x['remainder']['id']
+                rem = x['remainder']['name']
                 eq = x['remainder']['pop_size'] + ' - ' + ' - '.join([r for r in x['composition'] if r != rem])
                 f_remainders[rem] = self.make_C_term(eq, True)
                 f_remainders_par[rem] = self.make_C_term(eq, True, force_par=True, set_t0=True)
@@ -385,7 +392,7 @@ class Ccoder(Cmodel):
             if r['from'] not in (['U'] + self.remainder):
                 myrate = r['rate']
                 if 'white_noise' in r:
-                    myrate = '({0})*{1}'.format(myrate, r['white_noise']['id'])
+                    myrate = '({0})*{1}'.format(myrate, r['white_noise']['name'])
 
                 rates.add(myrate)
 
@@ -397,7 +404,7 @@ class Ccoder(Cmodel):
             if r['from'] not in (['U'] + self.remainder):
                 myrate = r['rate']
                 if 'white_noise' in r:
-                    myrate = '({0})*{1}'.format(myrate, r['white_noise']['id'])
+                    myrate = '({0})*{1}'.format(myrate, r['white_noise']['name'])
 
                 r['ind_cache'] = rates.index(myrate)
 
@@ -459,7 +466,7 @@ class Ccoder(Cmodel):
             for nbreac in range(len(reac_from_univ)):
                 myrate = self.make_C_term(reac_from_univ[nbreac]['rate'], False)
                 if 'white_noise' in reac_from_univ[nbreac]:
-                    myrate = '({0})*{1}'.format(myrate, reac_from_univ[nbreac]['white_noise']['id'])
+                    myrate = '({0})*{1}'.format(myrate, reac_from_univ[nbreac]['white_noise']['name'])
 
                 poisson.append('calc->inc[ORDER_{0}][{1}] = gsl_ran_poisson(calc->randgsl, ({2})*dt)'.format(s, nbreac, myrate))
                 incDict[reac_from_univ[nbreac]['to']] += ' + calc->inc[ORDER_{0}][{1}]'.format(s, nbreac)
@@ -529,7 +536,7 @@ class Ccoder(Cmodel):
 
         def get_rhs_term(sign, cached, reaction):
             if 'white_noise' in reaction:
-                noise_id = reaction['white_noise']['id']
+                noise_id = reaction['white_noise']['name']
                 noise_sd = self.toC(reaction['white_noise']['sd'], False)
             else:
                 noise_id = None
@@ -586,7 +593,7 @@ class Ccoder(Cmodel):
         ##############################################################################################################
         ##we create the ODE and  4 versions of the SDE system (no_dem_sto, no_white_noise, no_dem_sto_no_white_noise and full)
         ##############################################################################################################
-        unique_noises_id = [x['id'] for x in self.white_noise]
+        unique_noises_id = [x['name'] for x in self.white_noise]
         dem_sto_id = ['dem_sto__' +str(i) for i, x in enumerate(self.proc_model)]
 
         def eq_dem_env(eq_list):
@@ -867,7 +874,7 @@ class Ccoder(Cmodel):
 
         for x in obs:
             term = {}
-            term['id'] = x['id']
+            term['name'] = x['name']
             term['grads'] = []
             for s in (self.par_sv + self.par_inc + self.par_diff):
                 Cterm = self.make_C_term(x['pdf']['mean'], True, derivate=s if 'diff__' not in s else s.split('diff__')[1])
@@ -877,7 +884,7 @@ class Ccoder(Cmodel):
                     grad['ind'] = self.order_states[s]
                     term['grads'].append(grad)
 
-            h_grads[x['id']]=term
+            h_grads[x['name']]=term
 
 
         return {'h_grads': h_grads}
@@ -912,14 +919,14 @@ class Ccoder(Cmodel):
         N_PAR_INC = len(self.par_inc)
         N_DIFF = len(self.par_diff)
 
-        unique_noises_names = [x['id'] for x in self.white_noise]
+        unique_noises_names = [x['name'] for x in self.white_noise]
         N_ENV_STO_UNIQUE = len(unique_noises_names)
 
         ##add sd and order properties to noisy reactions
         N_ENV_STO = 0
         for reaction in proc_model:
             if 'white_noise' in reaction:
-                reaction['order_env_sto_unique'] = unique_noises_names.index(reaction['white_noise']['id'])
+                reaction['order_env_sto_unique'] = unique_noises_names.index(reaction['white_noise']['name'])
                 reaction['order_env_sto'] = N_ENV_STO
                 N_ENV_STO += 1
 

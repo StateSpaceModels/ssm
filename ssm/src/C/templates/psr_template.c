@@ -43,7 +43,7 @@ void ssm_step_psr(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_ca
 
     /*0-declaration of noise terms (if any)*/
     {% for n in white_noise %}
-    double {{ n.id }};{% endfor %}
+    double {{ n.name }};{% endfor %}
 
     double _r[{{ step.caches|length }}];
     {% if step.sf %}
@@ -70,10 +70,10 @@ void ssm_step_psr(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_ca
     {% if white_noise %}
     if(nav->noises_off & SSM_NO_WHITE_NOISE){
         {% for n in white_noise %}
-        {{ n.id }} = 1.0;{% endfor %}
+        {{ n.name }} = 1.0;{% endfor %}
     } else {
         {% for n in white_noise %}
-        {{ n.id }} = gsl_ran_gamma(calc->randgsl, (dt)/ pow(gsl_vector_get(par, ORDER_{{ n.sd }}), 2), pow(gsl_vector_get(par, ORDER_{{ n.sd }}), 2))/dt;{% endfor %}
+        {{ n.name }} = gsl_ran_gamma(calc->randgsl, (dt)/ pow(gsl_vector_get(par, ORDER_{{ n.sd }}), 2), pow(gsl_vector_get(par, ORDER_{{ n.sd }}), 2))/dt;{% endfor %}
     }
     {% endif %}
 

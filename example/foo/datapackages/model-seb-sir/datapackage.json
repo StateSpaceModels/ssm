@@ -30,7 +30,7 @@
         {"from": "U",       "to": "S_nyc",   "rate": "mu_b_nyc*N_nyc",             "description":"birth"},
         {"from": "U",       "to": "S_paris", "rate": "mu_b_paris*N_paris",         "description":"birth"},
 
-        {"from": "S_nyc",   "to": "I_nyc",   "rate": "r0_nyc/N_nyc*v*I_nyc",       "description":"infection", "keywords": ["transmission"], "tracked": ["Inc_in_nyc"], "white_noise": {"name":"noise_SI", "sd": "sto"}},
+        {"from": "S_nyc",   "to": "I_nyc",   "rate": "r0_nyc/N_nyc*v*I_nyc",       "description":"infection", "keywords": ["transmission"], "tracked": ["Inc_in_nyc"], "white_noise": {"name": "noise_SI", "sd": "sto"}},
         {"from": "S_paris", "to": "I_paris", "rate": "r0_paris/N_paris*v*I_paris", "description":"infection", "keywords": ["transmission"]},
 
         {"from": "I_nyc",   "to": "R_nyc",   "rate": "correct_rate(v)",            "description":"recovery", "tracked": ["Inc_out"]},
@@ -66,17 +66,17 @@
           "schema": {
             "fields":[
               {
-                "name": "date"
+                "name": "date",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "data",
                   "field": "date"
                 }
               },
               {
-                "name": "data"
+                "name": "data",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "data",
                   "field": "all_CDC_inc"
                 }
@@ -96,17 +96,17 @@
           "schema": {
             "fields":[
               {
-                "name": "date"
+                "name": "date",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "data",
                   "field": "date"
                 }
               },
               {
-                "name": "data"
+                "name": "data",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "data",
                   "field": "paris_CDC_prev"
                 }
@@ -126,17 +126,17 @@
           "schema": {
             "fields":[
               {
-                "name": "date"
+                "name": "date",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "data",
                   "field": "date"
                 }
               },
               {
-                "name": "data"
+                "name": "data",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "data",
                   "field": "all_google_inc"
                 }
@@ -156,17 +156,17 @@
           "schema": {
             "fields":[
               {
-                "name": "date"
+                "name": "date",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "data",
                   "field": "date"
                 }
               },
               {
-                "name": "data"
+                "name": "data",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "data",
                   "field": "nyc_CDC_inc"
                 }
@@ -345,17 +345,17 @@
           "schema": {
             "fields":[
               {
-                "name": "date"
+                "name": "date",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "mu_b",
                   "field": "date"
                 }
               },
               {
-                "name": "mu_b"
+                "name": "mu_b",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "mu_b",
                   "field": "paris"
                 }
@@ -370,17 +370,17 @@
           "schema": {
             "fields":[
               {
-                "name": "date"
+                "name": "date",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "mu_b",
                   "field": "date"
                 }
               },
               {
-                "name": "mu_b"
+                "name": "mu_b",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "mu_b",
                   "field": "nyc"
                 }
@@ -395,17 +395,17 @@
           "schema": {
             "fields":[
               {
-                "name": "date"
+                "name": "date",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "mu_d",
                   "field": "date"
                 }
               },
               {
-                "name": "mu_d"
+                "name": "mu_d",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "mu_d",
                   "field": "paris"
                 }
@@ -420,17 +420,17 @@
           "schema": {
             "fields":[
               {
-                "name": "date"
+                "name": "date",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "mu_d",
                   "field": "date"
                 }
               },
               {
-                "name": "mu_d"
+                "name": "mu_d",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "mu_d",
                   "field": "nyc"
                 }
@@ -445,17 +445,17 @@
           "schema": {
             "fields":[
               {
-                "name": "date"
+                "name": "date",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "N",
                   "field": "date"
                 }
               },
               {
-                "name": "N"
+                "name": "N",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "N",
                   "field": "paris"
                 }
@@ -470,17 +470,17 @@
           "schema": {
             "fields":[
               {
-                "name": "date"
+                "name": "date",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "N",
                   "field": "date"
                 }
               },
               {
-                "name": "N"
+                "name": "N",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "N",
                   "field": "nyc"
                 }
@@ -495,17 +495,17 @@
           "schema": {
             "fields":[
               {
-                "name": "date"
+                "name": "date",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "prop",
                   "field": "date"
                 }
               },
               {
-                "name": "prop"
+                "name": "prop",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "prop",
                   "field": "all_CDC_inc"
                 }
@@ -520,17 +520,17 @@
           "schema": {
             "fields":[
               {
-                "name": "date"
+                "name": "date",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "prop",
                   "field": "date"
                 }
               },
               {
-                "name": "paris_CDC_prev"
+                "name": "paris_CDC_prev",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "prop",
                   "field": "all_google_inc"
                 }
@@ -545,17 +545,17 @@
           "schema": {
             "fields":[
               {
-                "name": "date"
+                "name": "date",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "prop",
                   "field": "date"
                 }
               },
               {
-                "name": "prop"
+                "name": "prop",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "prop",
                   "field": "all_google_inc"
                 }
@@ -570,17 +570,17 @@
           "schema": {
             "fields":[
               {
-                "name": "date"
+                "name": "date",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "prop",
                   "field": "date"
                 }
               },
               {
-                "name": "prop"
+                "name": "prop",
                 "foreignkey": {
-                  "pkg": "data-seb-bar",
+                  "datapackage": "data-seb-bar",
                   "resource": "prop",
                   "field": "nyc_CDC_inc"
                 }

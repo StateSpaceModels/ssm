@@ -57,43 +57,67 @@ class Data(Cmodel):
         return row
 
 
-
-    def get_data(self, path, root=None, name=None):
-
+    def get_field(self, resource, field, root=None):
         root = root or self.root
+            
+        try:
+            f = [x for x in resource['schema']['fields'] if x['name'] == field][0]
+        except IndexError:
+            raise DataError("invalid field: " + field)            
 
-        plist = os.path.normpath(path).split(os.sep)
-        if plist[0] == 'datapackages':
+        if 'foreignkey' in f:
+            root = os.path.join(root, 'datapackages', f['foreignkey']['datapackage'])
+
             try:
-                datapackage =  json.load(open(os.path.join(*([root] + plist[0:2] + ['datapackage.json']))))
+                datapackage = json.load(open(os.path.join(root, 'datapackage.json')))                
+                resource = [x for x in datapackage['resources'] if x['name'] == f['foreignkey']['resource']][0]
             except:
                 print "Unexpected error:", sys.exc_info()[0]
-                raise DataError("invalid link: " + path)
+                raise DataError("invalid foreignkey for " + f['name'])
+        
+            return self.get_field(resource, f['foreignkey']['field'], root=root)
 
+        elif 'path' in resource:
+            with open(os.path.join(root, resource['path']), 'rb') as f:
+                reader = csv.DictReader(f)
+                res = [self.cast({field: x[field]}) for x in reader]
+                if not res:
+                    raise DataError("invalid field for " + f['foreignkey']['field'])
 
+                return res
+            
+        elif 'data' in resource:
+            try:
+                res = [{f['foreignkey']['field']: x[f['foreignkey']['field']]} for x in resource['data']]
+            except:
+                raise DataError("invalid field for " + f['foreignkey']['field'])                
+                
+            return res
 
-            r = [x for x in datapackage['resources'] if x['name']==plist[2]]
-            if not r:
-                raise DataError("invalid link: " + path)
-
-            resource = r[0]
-            if 'data' in resource:
-                if len(plist) == 3:
-                    return [self.cast(x) for x in resource['data']]
-                else:
-                    return [self.cast({'data': x['date'], plist[3]: x[plist[3]]}) for x in resource['data']]
-
-            elif 'path' in resource:
-                return self.get_data(resource['path'], root = os.path.join(*([root] + plist[0:2])), name = None if len(plist) < 4 else plist[3])
 
         else:
-            with open(os.path.join(root, path), 'rb') as f:
-                reader = csv.DictReader(f)
+            raise DataError('could not get data ' + resource['name'] + ' ' + fied)
+        
 
-                if name:
-                    return [self.cast({'date': x['date'], name: x[name]}) for x in reader]
-                else:
-                    return [self.cast(x) for x in reader]
+    def get_data(self, resource):
+
+        data = []
+
+        for f in resource['schema']['fields']:
+            data.append(self.get_field(resource, f['name']))
+    
+        sizes = [len(x) for x in data]
+        if(len(set(sizes))) != 1:
+            raise DataError("invalid tabular data for " + resource['name'])
+
+        res = []
+        for i in range(len(data[0])):
+            row = {}
+            for j in range(len(data)):
+                row.update(data[j][i])
+            res.append(row)
+
+        return res
 
 
     def get_inc_reset(self, pdf):
@@ -113,24 +137,29 @@ class Data(Cmodel):
 
         obs = copy.deepcopy(self.obs_model)
 
-        obs_id = [x['id'] for x in obs]
+        obs_id = [x['name'] for x in obs]
 
         dateset = set()
         data = {}
         for i, x in enumerate(obs):
-            data[x['id']] = x
-            data[x['id']]['order'] = i
-            data[x['id']]['ind_inc_reset'] = [self.order_states[s] for s in self.get_inc_reset(x['pdf'])]
-            data[x['id']]['data']['dict'] = {d['date']:d[x['id']] for d in self.get_data(x['data']['path'])}
+            data[x['name']] = x
+            data[x['name']]['order'] = i
+            data[x['name']]['ind_inc_reset'] = [self.order_states[s] for s in self.get_inc_reset(x['pdf'])]
+            data[x['name']]['dict'] = {d['date']:d[x['name']] for d in self.get_data(x)}
 
-            if 'transformation' in data[x['id']]:
-                f = eval('lambda {0}: {1}'.format(data[x['id']]['data']['id'], data[x['id']]['transformation']))
+            if 'transformation' in x:
+                if 'schema' in x:
+                    on = [y['name'] for y in x['schema']['fields'] if y['name'] != 'date'][0]
+                else:
+                    on = x['name']
+
+                f = eval('lambda {0}: {1}'.format(on, x['transformation']))
             else:
-                f = lambda x: x
+                f = lambda v: v
 
-            data[x['id']]['data']['f'] = f
+            data[x['name']]['f'] = f
 
-            dateset |= set(data[x['id']]['data']['dict'].keys())
+            dateset |= set(data[x['name']]['dict'].keys())
 
 
         dates = list(dateset)
@@ -147,11 +176,11 @@ class Data(Cmodel):
             }
 
             for x in obs_id:
-                if d in data[x]['data']['dict']:
+                if d in data[x]['dict']:
                     row['reset'].extend(data[x]['ind_inc_reset'])
-                    if data[x]['data']['dict'][d] is not None:
+                    if data[x]['dict'][d] is not None:
                         row['observed'].append(data[x]['order'])
-                        row['values'].append(data[x]['data']['f'](data[x]['data']['dict'][d]))
+                        row['values'].append(data[x]['f'](data[x]['dict'][d]))
 
             row['reset'] = list(set(row['reset']))
             data_C.append(row)
@@ -161,17 +190,18 @@ class Data(Cmodel):
 
     def prepare_covariates(self):
 
-        parameters = {x['id']:x for x in self.get_resource('parameters')}
+        parameters = {x['name']:x for x in self.get_resource('parameters')}
 
         data_C = []
 
         for p in self.par_forced:
             if 'transformation' in parameters[p]:
-                f = eval('lambda {0}: {1}'.format(parameters[p]['prior']['id'], parameters[p]['transformation']))
+                x = [x['name'] for x in p['schema']['fields'] if x['name'] != 'date'][0]
+                f = eval('lambda {0}: {1}'.format(x, parameters[p]['transformation']))
             else:
                 f = lambda x: x
 
-            data =  self.get_data(parameters[p]['prior']['path'])
+            data =  self.get_data(parameters[p])
             name = [x for x in data[0].keys() if x!= 'date'][0]
             x = []; y = []
             for d in data:
@@ -179,7 +209,7 @@ class Data(Cmodel):
                     x.append((d['date']-self.t0).days)
                     y.append(f(d[name]))
 
-            data_C.append({'id': p, 'x': x, 'y': y})
+            data_C.append({'name': p, 'x': x, 'y': y})
 
         return data_C
 
@@ -188,4 +218,4 @@ if __name__=="__main__":
 
     d = Data(os.path.join('..' ,'example', 'foo', 'datapackages', 'model-seb-sir', 'datapackage.json'))
     print d.prepare_covariates()
-    #print d.prepare_data()[29]
+    print d.prepare_data()[29]

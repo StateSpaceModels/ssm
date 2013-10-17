@@ -35,7 +35,7 @@ class Cmodel:
 
         ###########################################################################
 
-        self.remainder = sorted([x['remainder']['id'] for x in self.get_resource('populations') if 'remainder' in x])
+        self.remainder = sorted([x['remainder']['name'] for x in self.get_resource('populations') if 'remainder' in x])
         self.ur = ['U'] + self.remainder
 
         parameters = self.get_resource('parameters')
@@ -44,9 +44,8 @@ class Cmodel:
         observations = self.get_resource('observations')
 
         #par_forced (covariates)
-        par_forced = [x['id'] for x in parameters if 'prior' in x and 'path' in x['prior']]
+        par_forced = [x['name'] for x in parameters if 'schema' in x]
         self.par_forced = sorted(par_forced)
-
 
         #par_sv and par_inc (incidence)
         par_sv = set()
@@ -80,7 +79,7 @@ class Cmodel:
 
             if 'white_noise' in r:
                 par_noise.add(r['white_noise']['sd'])
-                if r['white_noise']['id'] not in [y['id'] for y in self.white_noise]:
+                if r['white_noise']['name'] not in [y['name'] for y in self.white_noise]:
                     self.white_noise.append(r['white_noise'])
 
         self.par_noise = sorted(list(par_noise))
@@ -89,7 +88,7 @@ class Cmodel:
 
         #par_obs
         par_obs = set();
-        priors = [x['id'] for x in parameters]
+        priors = [x['name'] for x in parameters]
         for o in observations:
             for p in [o['pdf']['mean'], o['pdf']['sd']]:
                 el =  self.change_user_input(p)
@@ -120,13 +119,13 @@ class Cmodel:
         par_diff = []
         if sde:
             for x in sde.get('drift', []):
-                par_diff.append(x['id'])
+                par_diff.append(x['name'])
 
         self.par_diff = ['diff__' + x for x in sorted(par_diff)]
 
         ##par_other
         par_ssm = self.par_sv + self.par_inc + self.remainder + self.par_diff + self.par_noise + self.par_proc +  self.par_obs + self.par_forced + self.par_disp
-        self.par_other = sorted([x['id'] for x in parameters if x['id'] not in par_ssm])
+        self.par_other = sorted([x['name'] for x in parameters if x['name'] not in par_ssm])
 
         ##all parameters
         self.all_par = par_ssm + self.par_other + ['t']
@@ -136,11 +135,11 @@ class Cmodel:
         self.order_states = {x:i for i,x in enumerate(self.par_sv + self.par_inc + self.par_diff + self.remainder)}
         self.order_parameters = {x:i for i,x in enumerate(self.par_sv + self.par_noise + self.par_proc + self.par_disp + self.par_obs + self.par_other)}
 
-        #map prior id to id
-        self.map_prior_id2id = {}
+        #map prior name to name
+        self.map_prior_name2name = {}
         for p in parameters:
-            if 'prior' in p and 'id' in p['prior']:
-                self.map_prior_id2id[p['prior']['id']] = p['id']
+            if 'prior' in p and 'name' in p['prior']:
+                self.map_prior_name2name[p['prior']['name']] = p['name']
 
 
         # proc_model
@@ -159,7 +158,7 @@ class Cmodel:
         remainder_def = {}
         for x in self.get_resource('populations'):
             if 'remainder' in x:
-                remainder_def[x['remainder']['id']] = '({0}-{1})'.format(x['remainder']['pop_size'], '-'.join([s for s in x['composition'] if s != x['remainder']['id']]))
+                remainder_def[x['remainder']['name']] = '({0}-{1})'.format(x['remainder']['pop_size'], '-'.join([s for s in x['composition'] if s != x['remainder']['name']]))
 
         resolve_remainder = lambda x: remainder_def[x] if x in self.remainder else x
 
