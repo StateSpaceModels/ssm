@@ -1,0 +1,27 @@
+{
+  "name": "ssm",
+  "version": "0.0.0",
+  "description": "Command line interface for S|S|M",
+  "bin": {
+    "ssm": "bin/ssm",
+    "ssm-build": "bin/ssm-build"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "State",
+    "Space",
+    "Models",
+    "Inference",
+    "Dynamical",
+    "systems",
+    "Statistics"
+  ],
+  "author": "Sebastien Ballesteros",
+  "license": "GPLv3",
+  "dependencies": {
+    "commander": "~2.0.0"
+  }
+}

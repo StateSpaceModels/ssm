@@ -1,5 +1,8 @@
 .DS_Store
 
+node_nodules
+npm-debug.log
+
 *.pyc
 
 # Object files

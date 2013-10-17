@@ -1,0 +1,23 @@
+#!/usr/bin/env node
+
+var program = require('commander')
+  , path = require('path');
+
+
+program
+  .version(require('../package').version)
+  .usage('<command> [options]')
+
+  .command('build', 'build a model from a datapackage.json')
+
+  .parse(process.argv);
+
+
+process.on('uncaughtException', function(err){
+  if(err.code === 'ECONNREFUSED'){
+    console.error('\033[91mFAIL\033[0m: could not connect to the server (%s).', err.code);
+    process.exit(1);
+  } else {
+    console.error('something went wrong run plom help or plom help cmd for help');
+  }
+});
