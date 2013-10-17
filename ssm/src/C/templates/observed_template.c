@@ -4,7 +4,7 @@
 
 {% for x in observed %}
 
-static double f_likelihood_tpl_{{ x.id }}(double y, ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
+static double f_likelihood_tpl_{{ x.name }}(double y, ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
 {
     double like;
     double *X = p_X->proj;
@@ -20,19 +20,19 @@ static double f_likelihood_tpl_{{ x.id }}(double y, ssm_X_t *p_X, ssm_par_t *par
     return like;
 }
 
-static double f_obs_mean_tpl_{{ x.id }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
+static double f_obs_mean_tpl_{{ x.name }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
 {
     double *X = p_X->proj;
     return {{ x.pdf.mean }};
 }
 
-static double f_obs_var_tpl_{{ x.id }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
+static double f_obs_var_tpl_{{ x.name }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
 {
     double *X = p_X->proj;
     return pow({{ x.pdf.sd }}, 2);
 }
 
-static double f_obs_ran_tpl_{{ x.id }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
+static double f_obs_ran_tpl_{{ x.name }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
 {
     double *X = p_X->proj;
     double gsl_mu = {{ x.pdf.mean }};
@@ -53,7 +53,7 @@ static double f_obs_ran_tpl_{{ x.id }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t 
  */
 {% for h, x in h_grads.items() %}
 {% for t, y in x.items() %}
-static double f_var_pred_tpl_{{ y.id }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, double t)
+static double f_var_pred_tpl_{{ y.name }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, double t)
 {
     double res = 0;
     int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
@@ -91,13 +91,13 @@ ssm_observed_t **_ssm_observed_new(int *observed_length)
     }
 
     {% for x in observed %}
-    observed[{{ loop.index0 }}]->name = strdup("{{ x.id }}");
+    observed[{{ loop.index0 }}]->name = strdup("{{ x.name }}");
     observed[{{ loop.index0 }}]->offset = {{ loop.index0 }};
-    observed[{{ loop.index0 }}]->f_likelihood = &f_likelihood_tpl_{{ x.id }};
-    observed[{{ loop.index0 }}]->f_obs_mean = &f_obs_mean_tpl_{{ x.id }};
-    observed[{{ loop.index0 }}]->f_obs_var = &f_obs_var_tpl_{{ x.id }};
-    observed[{{ loop.index0 }}]->f_obs_ran = &f_obs_ran_tpl_{{ x.id }};
-    observed[{{ loop.index0 }}]->f_var_pred = &f_var_pred_tpl_{{ x.id }};
+    observed[{{ loop.index0 }}]->f_likelihood = &f_likelihood_tpl_{{ x.name }};
+    observed[{{ loop.index0 }}]->f_obs_mean = &f_obs_mean_tpl_{{ x.name }};
+    observed[{{ loop.index0 }}]->f_obs_var = &f_obs_var_tpl_{{ x.name }};
+    observed[{{ loop.index0 }}]->f_obs_ran = &f_obs_ran_tpl_{{ x.name }};
+    observed[{{ loop.index0 }}]->f_var_pred = &f_var_pred_tpl_{{ x.name }};
     {% endfor %}
 
     return observed;
