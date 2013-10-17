@@ -25,22 +25,20 @@ class TestNoiseResults(unittest.TestCase):
             os.system('make')
             os.system('make install')
             os.chdir('/Users/dureaujoseph/ssm_test_model/')
-            os.system('./smc < /Users/dureaujoseph/ssm/example/foo/datapackage.json')
 
       
       def setUp(self):
       # Things that need to be done before tests
-            os.system('./smc < /Users/dureaujoseph/ssm/example/foo/datapackage.json')
+            os.chdir('/Users/dureaujoseph/ssm_test_model/')
 
       @classmethod
       def tearDownClass(cls):
-            os.system('./smc < /Users/dureaujoseph/ssm/example/foo/datapackage.json')
-            #shutil.rmtree('/Users/dureaujoseph/ssm_test_model/')
+            shutil.rmtree('/Users/dureaujoseph/ssm_test_model/')
 
       def test_kalman_map(self):
-            os.system('./ksimplex --prior -M 100 -c < /Users/dureaujoseph/ssm/example/noise/datapackage.json')
+            os.system('./ksimplex --prior -M 1000 -c < /Users/dureaujoseph/ssm/example/noise/datapackage.json')
             tab = genfromtxt('trace_0.csv',delimiter=',',names=True)
-            self.assertAlmostEqual(tab[35][5],-729.491)
+            self.assertAlmostEqual(tab[721][5],-477.225)
 
 class TestTransfsAndPMCMC(unittest.TestCase):
       @classmethod
@@ -48,69 +46,65 @@ class TestTransfsAndPMCMC(unittest.TestCase):
             print("")
             print("Testing transformations and pMCMC by sampling from priors")
             # copy noise from the examples and build it
-            shutil.copytree(Root + '/../example/noise',Root + '/noise')     
-            os.chdir(Root+'/noise')
-            os.system('plom build -t theta.json --local'  + "> /dev/null 2>&1")
+            #b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'example', 'noise', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
+            #b.prepare()
+            #b.code()
+            #b.write_data()
+
+            #os.chdir('/Users/dureaujoseph/ssm_test_model/C/templates')
+            #os.system('make clean')
+            #os.system('make')
+            #os.system('make install')
+            #os.chdir('/Users/dureaujoseph/ssm_test_model/')
             
       def setUp(self):
       # Things that need to be done before tests
-            os.chdir(Root+'/noise/model')
+            os.chdir('/Users/dureaujoseph/ssm_test_model/')
 
       @classmethod
       def tearDownClass(cls):
-            shutil.rmtree(Root + '/noise')
+            os.chdir('/Users/dureaujoseph/ssm_test_model/')
+            #            shutil.rmtree('/Users/dureaujoseph/ssm_test_model/')
 
             
       def test_prior_unif_transf_log(self):
-            os.system('plom pipe theta.json -S r0:city1__all:distribution:uniform,r0:city1__all:guess:10,r0:city1__all:min:9.5,r0:city1__all:max:10.5 | ./pmcmc ode -M 10000 -S 10000 -E 10000 -o 0 --full --quiet')
-            os.system('plom pipe theta.json -T -C -S r0:city1__all:distribution:uniform,r0:city1__all:guess:10,r0:city1__all:min:9.5,r0:city1__all:max:10.5 | ./pmcmc ode -M 10000 -S 10000 -E 10000 -o 0 --full --quiet')
-            test = self.call_test_unif('r0.city1__all')
+            os.chdir('/Users/dureaujoseph/ssm/example')
+            #            shutil.copytree('noise','noise_test')
+            f = open('/Users/dureaujoseph/ssm/example/noise_test/datapackage.json')
+            j = json.load(f)
+            j['resources'][0]['data']['r0_paris'] = 10
+            with open('/Users/dureaujoseph/ssm/example/noise_test/datapackage.json','w') as outfile:
+                  json.dump(j,outfile)
+            f = open('/Users/dureaujoseph/ssm/example/noise_test/datapackages/model-jdureau-noise/datapackage.json')
+            j = json.load(f)
+            j['resources'][3]['data'][4]['prior']['upper']=10.5
+            j['resources'][3]['data'][4]['prior']['lower']=9.5
+            with open('/Users/dureaujoseph/ssm/example/noise_test/datapackages/model-jdureau-noise/datapackage.json','w') as outfile:
+                  json.dump(j,outfile)
+                  
+            #b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'example', 'noise_test', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
+            #b.prepare()
+            #b.code()
+            #b.write_data()
+
+            #os.chdir('/Users/dureaujoseph/ssm_test_model/C/templates')
+            #os.system('make clean')
+            #os.system('make')
+            #os.system('make install')
+            
+            os.chdir('/Users/dureaujoseph/ssm_test_model/')
+            
+            os.system('./pmcmc ode  -C 10000 -W 10000 -O 1 -M 10000 -c < /Users/dureaujoseph/ssm/example/noise_test/datapackage.json')
+            
+            #shutil.rmtree('/Users/dureaujoseph/ssm/example/noise_test')
+
+            #            os.system('./pmcmc ode -M 10000 -C 10000 -W 10000 -O 0 -S r0:city1__all:distribution:uniform,r0:city1__all:guess:10,r0:city1__all:min:9.5,r0:city1__all:max:10.5 < /Users/dureaujoseph/ssm/example/noise/datapackage.json')
+            #   os.system('plom pipe theta.json -T -S r0:city1__all:distribution:uniform,r0:city1__all:guess:10,r0:city1__all:min:9.5,r0:city1__all:max:10.5 | ./pmcmc ode -M 10000 -C 10000 -W 10000 -O 0')
+            #test = self.call_test_unif('r0.city1__all')
+            test = 0
             self.assertEqual(test,'1')
 
-      def test_prior_normal_transf_log(self):
-            os.system('plom pipe theta.json -S r0:city1__all:distribution:normal,r0:city1__all:guess:10,r0:city1__all:min:8.04,r0:city1__all:max:11.96 | ./pmcmc ode -M 10000 -S 10000 -E 10000 -o 0 --full --quiet')
-            os.system('plom pipe theta.json -T -C -S r0:city1__all:distribution:normal,r0:city1__all:guess:10,r0:city1__all:min:8.04,r0:city1__all:max:11.96 | ./pmcmc ode -M 10000 -S 10000 -E 10000 -o 0 --full --quiet')
-            test = self.call_test_normal('r0.city1__all')
-            self.assertEqual(test,'1')
 
-      def test_prior_normal_and_unif_transf_log(self):
-            os.system('plom pipe theta.json -S r0:city1__all:distribution:normal,r0:city1__all:guess:10,r0:city1__all:min:8.04,r0:city1__all:max:11.96,r0:city2__all:distribution:uniform,r0:city2__all:guess:10,r0:city2__all:min:9.5,r0:city2__all:max:10.5 | ./pmcmc ode -M 10000 -S 10000 -E 10000 -o 0 --full --quiet')
-            os.system('plom pipe theta.json -T -C -S r0:city1__all:distribution:normal,r0:city1__all:guess:10,r0:city1__all:min:8.04,r0:city1__all:max:11.96,r0:city2__all:distribution:uniform,r0:city2__all:guess:10,r0:city2__all:min:9.5,r0:city2__all:max:10.5 | ./pmcmc ode -M 10000 -S 10000 -E 10000 -o 0 --full --quiet')
-            test1 = self.call_test_normal('r0.city1__all')
-            test2 = self.call_test_unif('r0.city2__all')
-            self.assertEqual(int(test1)*int(test2),1)
-
-      def test_prior_unif_transf_logit_ab(self):
-            os.system('plom pipe theta.json -S r0:all:transformation:logit_ab,r0:city1__all:distribution:uniform,r0:city1__all:guess:10,r0:city1__all:min:9.5,r0:city1__all:max:10.5 | ./pmcmc ode -M 10000 -S 10000 -E 10000 -o 0 --full --quiet')
-            os.system('plom pipe theta.json -T -C -S r0:all:transformation:logit_ab,r0:city1__all:distribution:uniform,r0:city1__all:guess:10,r0:city1__all:min:9.5,r0:city1__all:max:10.5 | ./pmcmc ode -M 10000 -S 10000 -E 10000 -o 0 --full --quiet')
-            test = self.call_test_unif('r0.city1__all')
-            self.assertEqual(test,'1')
-
-      def test_prior_unif_transf_identity(self):
-            os.system('plom pipe theta.json -S r0:all:transformation:identity,r0:city1__all:distribution:uniform,r0:city1__all:guess:10,r0:city1__all:min:9.5,r0:city1__all:max:10.5 | ./pmcmc ode -M 10000 -S 10000 -E 10000 -o 0 --full --quiet')
-            os.system('plom pipe theta.json -T -C -S r0:all:transformation:identity,r0:city1__all:distribution:uniform,r0:city1__all:guess:10,r0:city1__all:min:9.5,r0:city1__all:max:10.5 | ./pmcmc ode -M 10000 -S 10000 -E 10000 -o 0 --full --quiet')
-            test = self.call_test_unif('r0.city1__all')
-            self.assertEqual(test,'1')
-
-      def test_prior_normal_transf_identity(self):
-            os.system('plom pipe theta.json -S r0:all:transformation:identity,r0:city1__all:distribution:normal,r0:city1__all:guess:10,r0:city1__all:min:8.04,r0:city1__all:max:11.96 | ./pmcmc ode -M 10000 -S 10000 -E 10000 -o 0 --full --quiet')
-            os.system('plom pipe theta.json -T -C -S r0:all:transformation:identity,r0:city1__all:distribution:normal,r0:city1__all:guess:10,r0:city1__all:min:8.04,r0:city1__all:max:11.96 | ./pmcmc ode -M 10000 -S 10000 -E 10000 -o 0 --full --quiet')
-            test = self.call_test_normal('r0.city1__all')
-            self.assertEqual(test,'1')
-
-      def call_test_unif(self,varname):
-            shutil.copyfile(Root+'/TestsR/test_unif.r',Root+'/noise/model/test_R0_unif.r')
-            os.system('R --vanilla < test_R0_unif.r ' + varname  + "> /dev/null 2>&1")
-            f = open(Root+"/noise/model/outfile.txt","r")
-            x = f.readlines()
-            return x[0]
-
-      def call_test_normal(self,varname):
-            shutil.copyfile(Root+'/TestsR/test_normal.r',Root+'/noise/model/test_R0_normal.r')
-            os.system('R --vanilla < test_R0_normal.r ' + varname  + "> /dev/null 2>&1")
-            f = open(Root+"/noise/model/outfile.txt","r")
-            x = f.readlines()
-            return x[0]
 
 
 class TestKalmanOnDiffusions(unittest.TestCase):
@@ -376,8 +370,8 @@ def suite_pMCMCsmoothing():
 
 if __name__ == '__main__' :
 
-      run_NoiseResults = 1
-      run_TransfsAndPMCMC = 0
+      run_NoiseResults = 0
+      run_TransfsAndPMCMC = 1
       run_KalmanOnDiffusions = 0
       run_SMCSDEagainstKalman = 0
       run_pMCMCsmoothing = 0
