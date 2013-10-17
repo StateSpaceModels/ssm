@@ -18,6 +18,6 @@ process.on('uncaughtException', function(err){
     console.error('\033[91mFAIL\033[0m: could not connect to the server (%s).', err.code);
     process.exit(1);
   } else {
-    console.error('something went wrong run plom help or plom help cmd for help');
+    console.error('something went wrong run ssm help or ssm help cmd for help');
   }
 });
