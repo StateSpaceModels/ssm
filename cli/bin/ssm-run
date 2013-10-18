@@ -128,14 +128,15 @@ function getFilesFromPaths(inputs, paths, callback){
 
 function makeTask(mapStep, commandInputs){
 
-  var outputDirname =  path.resolve(pkgRoot, oDirname);
-
   return commandInputs.map(function(x){
     return {
       command: mapStep.command,
-      args: [mapStep.options.id, x.id, mapStep.options.dirname, oDirname].concat(mapStep.args),
+      args: [mapStep.argId, x.id].concat(mapStep.args),
       input: x.input,
       outputs: mapStep.outputs //for post processing after task has been completed
+      options: {
+        cwd: pkgRoot
+      }
     }
   });
 

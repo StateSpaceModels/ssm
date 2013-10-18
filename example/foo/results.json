@@ -22,11 +22,8 @@
         {
           "engines": {"ssm": "*"},
           "command": "simul",
-          "args": ["ode", "--end", "2043-07-25", "--traj", "--next", "skip_"],
-          "options": {
-            "id": "--id",
-            "dirname": "--path"
-          },
+          "args": ["ode", "--end", "2043-07-25", "--traj", "--next", "skip_", "--path", "data"],
+          "argId": "--id",
           "inputs": [
             {
               "resources": "lhs",
@@ -47,11 +44,8 @@
         {
           "engines": {"ssm": "*"},
           "command": "simplex",
-          "args": ["ode", "--n_iter", "10000", "--trace", "--next", "mle_"],
-          "options": {
-            "id": "--id",
-            "dirname": "--path"
-          },         
+          "args": ["ode", "--n_iter", "10000", "--trace", "--next", "mle_", "--path", "data"],    
+          "argId": "--id",
           "inputs": [
             {
               "files": "data/skip_*.json"
