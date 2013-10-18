@@ -37,6 +37,7 @@ void ssm_options_load(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
         {"D", 'D', "dt",             "integration time step", required_argument,  SSM_WORKER | SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
         {"I", 'I', "id",             "general id (unique integer identifier that will be appended to the output)", required_argument,  SSM_WORKER | SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
         {"P", 'P', "path",           "root path for output files (if any) (no trailing slash)", required_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
+        {"X", 'X', "next",           "write the outputed parameters in a file prefixed by the argument", required_argument,  SSM_WORKER | SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
         {"N", 'N', "n_thread",       "number of threads to be used", required_argument,  SSM_SMC | SSM_PMCMC | SSM_MIF | SSM_SIMUL },
         {"J", 'J', "n_parts",        "number of particles", required_argument,  SSM_SMC | SSM_PMCMC | SSM_MIF | SSM_SIMUL },
         {"O", 'O', "n_obs",          "number of observations to be fitted (for tempering)", required_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF },
@@ -59,7 +60,6 @@ void ssm_options_load(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
         {"V", 'V', "size",           "simplex size used as stopping criteria", required_argument,  SSM_KSIMPLEX | SSM_SIMPLEX },
         {"Q", 'Q', "interpolator",   "gsl interpolator for covariates", required_argument,  SSM_WORKER | SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
         {"R", 'R', "server",         "domain name or IP address of the particule server (e.g 127.0.0.1)", required_argument,  SSM_WORKER },
-
 
         {"h", 'h', "help",           "print the usage on stdout", no_argument,  SSM_WORKER | SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
         {"v", 'v', "verbose",        "print logs (verbose)", no_argument,  SSM_WORKER | SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
@@ -148,6 +148,10 @@ void ssm_options_load(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
 
         case 'P': //path
             strncpy(opts->path, optarg, SSM_STR_BUFFSIZE);
+            break;
+
+	case 'X': //next
+            strncpy(opts->next, optarg, SSM_STR_BUFFSIZE);
             break;
 
         case 'N': //n_thread

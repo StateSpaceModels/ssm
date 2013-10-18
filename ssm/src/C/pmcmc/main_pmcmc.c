@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    ssm_pipe_theta(stdout, jparameters, theta, var, nav);
+    ssm_pipe_theta(stdout, jparameters, theta, var, nav, opts);
 
     json_decref(jparameters);
 

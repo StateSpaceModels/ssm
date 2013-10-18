@@ -1039,6 +1039,7 @@ ssm_options_t *ssm_options_new(void)
     //alloc char *
     opts->freeze_forcing = ssm_c1_new(SSM_STR_BUFFSIZE);
     opts->path = ssm_c1_new(SSM_STR_BUFFSIZE);
+    opts->next = ssm_c1_new(SSM_STR_BUFFSIZE);
     opts->interpolator = ssm_c1_new(SSM_STR_BUFFSIZE);
     opts->start = ssm_c1_new(SSM_STR_BUFFSIZE);
     opts->end = ssm_c1_new(SSM_STR_BUFFSIZE);
@@ -1059,6 +1060,7 @@ ssm_options_t *ssm_options_new(void)
     opts->eps_rel = 1e-3;
     strncpy(opts->freeze_forcing, "", SSM_STR_BUFFSIZE);
     strncpy(opts->path, ".", SSM_STR_BUFFSIZE);
+    strncpy(opts->next, "", SSM_STR_BUFFSIZE);
     opts->n_thread = 1;
     opts->like_min = 1e-17;
     opts->J = 1;
@@ -1093,6 +1095,7 @@ void ssm_options_free(ssm_options_t *opts)
 {
     free(opts->freeze_forcing);
     free(opts->path);
+    free(opts->next);
     free(opts->interpolator);
     free(opts->start);
     free(opts->end);

@@ -22,6 +22,9 @@
   "author": "Sebastien Ballesteros",
   "license": "GPLv3",
   "dependencies": {
-    "commander": "~2.0.0"
+    "commander": "~2.0.0",
+    "async": "~0.2.9",
+    "glob": "~3.2.6",
+    "minimatch": "~0.2.12"
   }
 }

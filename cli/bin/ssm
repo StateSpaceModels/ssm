@@ -9,6 +9,7 @@ program
   .usage('<command> [options]')
 
   .command('build', 'build a model from a datapackage.json')
+  .command('run', 'run am analysis from a datapackage.json')
 
   .parse(process.argv);
 

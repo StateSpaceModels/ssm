@@ -452,6 +452,7 @@ typedef struct
     double eps_rel;          /**< relative error for adaptive step-size control */
     char *freeze_forcing;    /**< freeze the metadata to their value at the specified ISO8601 date */
     char *path;              /**< path where the outputs will be stored */
+    char *next;              /**< write the outputed parameters in a file prefixed by the argument */
     int n_thread;            /**< number of threads */
     double like_min;         /**< particles with likelihood smaller that like_min are considered lost */
     int J;                   /**< number of particles */
@@ -717,8 +718,8 @@ void ssm_print_log(char *msg);
 void ssm_print_warning(char *msg);
 void ssm_print_err(char *msg);
 void ssm_json_dumpf(FILE *stream, const char *flag, json_t *msg);
-void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_var_t *var, ssm_nav_t *nav);
-void ssm_pipe_hat(FILE *stream, json_t *jparameters, ssm_input_t *input, ssm_hat_t *hat, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, double t);
+void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_var_t *var, ssm_nav_t *nav, ssm_options_t *opts);
+void ssm_pipe_hat(FILE *stream, json_t *jparameters, ssm_input_t *input, ssm_hat_t *hat, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_options_t *opts, double t);
 void ssm_print_header_X(FILE *stream, ssm_nav_t *nav);
 void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, const int index);
 void ssm_print_header_trace(FILE *stream, ssm_nav_t *nav);

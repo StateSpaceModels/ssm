@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
         ssm_simplex(theta, var, &params, &f_simplex, nav, size_stop, n_iter);
     }
 
-    ssm_pipe_theta(stdout, jparameters, theta, NULL, nav);
+    ssm_pipe_theta(stdout, jparameters, theta, NULL, nav, opts);
 
     json_decref(jparameters);
 

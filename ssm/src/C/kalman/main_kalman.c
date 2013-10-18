@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
         ssm_print_trace(nav->trace, theta, nav, fitness->log_like, 0);
     }
 
-    ssm_pipe_theta(stdout, jparameters, theta, NULL, nav);
+    ssm_pipe_theta(stdout, jparameters, theta, NULL, nav, opts);
 
     json_decref(jparameters);
 

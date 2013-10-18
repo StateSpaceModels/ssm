@@ -140,7 +140,7 @@ int main(int argc, char *argv[])
 	if (!(nav->print & SSM_PRINT_HAT)) { //hat was not computed
 	    ssm_hat_eval(hat, J_X, J_par, nav, calc[0], NULL, t1, 0);	
 	}
-	ssm_pipe_hat(stdout, jparameters, input, hat, J_par[0], calc[0], nav, t1);
+	ssm_pipe_hat(stdout, jparameters, input, hat, J_par[0], calc[0], nav, opts, t1);
     }
 
     json_decref(jparameters);

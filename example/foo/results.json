@@ -23,6 +23,7 @@
           "engines": {"ssm": "*"},
           "command": "simul",
           "args": ["ode", "--end", "2043-07-25", "--traj"],
+          "progId": "--id",
           "inputs": [
             {
               "resource": "lhs",
@@ -35,7 +36,7 @@
             },
             {
               "files": "data/X_*.json",
-              "save":true,
+              "save":true
             }
           ]
         },
@@ -44,6 +45,7 @@
           "engines": {"ssm": "*"},
           "command": "simplex",
           "args": ["ode", "--n_iter", "10000", "--trace"],
+          "progId": "--id",
           "inputs": [
             {
               "files": "data/skip_*.json"

@@ -65,7 +65,7 @@ void ssm_json_dumpf(FILE *stream, const char *id, json_t *data)
     json_decref(root);
 }
 
-void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_var_t *var, ssm_nav_t *nav)
+void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_var_t *var, ssm_nav_t *nav, ssm_options_t *opts)
 {
     int i, j, index;
     double x;
@@ -119,12 +119,19 @@ void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_v
         }
     }
 
-    json_dumpf(jparameters, stdout, JSON_COMPACT);
-    fflush(stdout);
+    
+    if(strcmp(opts->next, "") != 0){
+	char path[SSM_STR_BUFFSIZE];
+	snprintf(path, SSM_STR_BUFFSIZE, "%s_%d.json", opts->next, opts->id);
+	json_dump_file(jparameters, path, JSON_INDENT(2));
+    } else {
+	json_dumpf(jparameters, stdout, JSON_COMPACT); printf("\n");
+	fflush(stdout);	
+    }
 }
 
 
-void ssm_pipe_hat(FILE *stream, json_t *jparameters, ssm_input_t *input, ssm_hat_t *hat, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, double t)
+void ssm_pipe_hat(FILE *stream, json_t *jparameters, ssm_input_t *input, ssm_hat_t *hat, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_options_t *opts, double t)
 {
     int i, index;
     double x;
@@ -147,8 +154,14 @@ void ssm_pipe_hat(FILE *stream, json_t *jparameters, ssm_input_t *input, ssm_hat
         }
     }
 
-    json_dumpf(jparameters, stdout, JSON_COMPACT);
-    fflush(stdout);
+    if(strcmp(opts->next, "") != 0){
+	char path[SSM_STR_BUFFSIZE];
+	snprintf(path, SSM_STR_BUFFSIZE, "%s_%d.json", opts->next, opts->id);
+	json_dump_file(jparameters, path, JSON_INDENT(2));
+    } else {
+	json_dumpf(jparameters, stdout, JSON_COMPACT); printf("\n");
+	fflush(stdout);	
+    }
 }
 
 

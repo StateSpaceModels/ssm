@@ -158,7 +158,7 @@ ssm_parameter_t **_ssm_parameters_new(int *parameters_length)
     parameters[{{ order_parameters[p.name] }}]->f = &ssm_f_id;
     parameters[{{ order_parameters[p.name] }}]->f_inv = &ssm_f_id;
     parameters[{{ order_parameters[p.name] }}]->f_der = &ssm_f_der_id;
-    parameters[{{ order_parameters[p.name] }}]->f_der_inv = &ssm_f_der_id;
+    parameters[{{ order_parameters[p.name] }}]->f_der_inv = &ssm_f_der_id;  //ssm_f_der_inv_id would be the same
     parameters[{{ order_parameters[p.name] }}]->f_der2_inv = &ssm_f_der2_inv_id;
     {% endif %}
 
@@ -231,8 +231,8 @@ ssm_state_t **_ssm_states_new(int *states_length, ssm_parameter_t **parameters)
     states[{{ order_states['diff__' + p.name] }}]->f = &ssm_f_id;
     states[{{ order_states['diff__' + p.name] }}]->f_inv = &ssm_f_id;
     states[{{ order_states['diff__' + p.name] }}]->f_der = &ssm_f_der_id;
-    states[{{ order_states['diff__' + p.name] }}]->f_der_inv = &ssm_f_der_id;
-    states[{{ order_states['diff__' + p.name] }}]->f_der2_inv = &ssm_f_der2_inv_id;;
+    states[{{ order_states['diff__' + p.name] }}]->f_der_inv = &ssm_f_der_id; //ssm_f_der_inv_id would be the same
+    states[{{ order_states['diff__' + p.name] }}]->f_der2_inv = &ssm_f_der2_inv_id;
 
     {% endif %}
 
