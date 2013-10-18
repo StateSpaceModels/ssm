@@ -7,7 +7,7 @@ var program = require('commander')
 
 program
 //  .option('-l, --local', 'build using a local version of SSM')
-  .option('-o, --output [path]', 'the directory for the builds', path.join(process.cwd(), 'ssm_model'))
+  .option('-o, --output [path]', 'the directory for the builds', path.resolve('ssm_model'))
   .parse(process.argv);
 
 console.log('Building the model locally...');
@@ -38,10 +38,8 @@ templater.stderr.pipe(process.stderr);
 
 templater.on('exit', function (code) {
 
-  console.log(path.join(program.output, 'C', 'templates'));
-
   if(code === 0) {
-    var make = spawn('make', ['install'], {cwd: path.join(program.output, 'C', 'templates')});
+    var make = spawn('make', ['install'], {cwd: path.resolve(program.output, 'C', 'templates')});
     make.stdout.pipe(process.stdout);
     make.stderr.pipe(process.stderr);
 

@@ -22,11 +22,14 @@
         {
           "engines": {"ssm": "*"},
           "command": "simul",
-          "args": ["ode", "--end", "2043-07-25", "--traj"],
-          "progId": "--id",
+          "args": ["ode", "--end", "2043-07-25", "--traj", "--next", "skip_"],
+          "options": {
+            "id": "--id",
+            "dirname": "--path"
+          },
           "inputs": [
             {
-              "resource": "lhs",
+              "resources": "lhs",
               "collection": true
             }
           ],
@@ -36,7 +39,7 @@
             },
             {
               "files": "data/X_*.json",
-              "save":true
+              "savePrefix": "X_"
             }
           ]
         },
@@ -44,8 +47,11 @@
         {
           "engines": {"ssm": "*"},
           "command": "simplex",
-          "args": ["ode", "--n_iter", "10000", "--trace"],
-          "progId": "--id",
+          "args": ["ode", "--n_iter", "10000", "--trace", "--next", "mle_"],
+          "options": {
+            "id": "--id",
+            "dirname": "--path"
+          },         
           "inputs": [
             {
               "files": "data/skip_*.json"
@@ -54,7 +60,7 @@
           "outputs": [
             {
               "files": "data/trace_*.json",
-              "save":true
+              "savePrefix": "trace_"
             },
             {
               "files": "data/mle_*.json"
@@ -79,7 +85,7 @@
     },
     {
       "name": "X_1",
-      "path": "data/X_0.csv",
+      "path": "data/X_1.csv",
       "format": "csv"
     },
 
