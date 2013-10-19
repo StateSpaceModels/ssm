@@ -23,7 +23,7 @@
           "engines": {"ssm": "*"},
           "command": "simul",
           "args": ["ode", "--end", "2043-07-25", "--traj", "--next", "skip_", "--path", "data"],
-          "argId": "--id",
+          "argsId": ["--id", "*"],
           "inputs": [
             {
               "resources": "lhs",
@@ -36,7 +36,9 @@
             },
             {
               "files": "data/X_*.json",
-              "savePrefix": "X_"
+              "save" : {
+                "resource": "X_*"
+              }
             }
           ]
         },
@@ -45,7 +47,7 @@
           "engines": {"ssm": "*"},
           "command": "simplex",
           "args": ["ode", "--n_iter", "10000", "--trace", "--next", "mle_", "--path", "data"],    
-          "argId": "--id",
+          "argsId": ["--id", "*"],
           "inputs": [
             {
               "files": "data/skip_*.json"
@@ -54,7 +56,9 @@
           "outputs": [
             {
               "files": "data/trace_*.json",
-              "savePrefix": "trace_"
+              "save" : {
+                "resource": "trace_*"
+              }
             },
             {
               "files": "data/mle_*.json"

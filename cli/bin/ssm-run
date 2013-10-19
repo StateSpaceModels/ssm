@@ -39,30 +39,28 @@ walltime = (parseFloat(walltime[0], 10)*60*60 + parseFloat(walltime[1], 10)*60 +
 
 console.log('\033[94mINFO\033[0m: starting an async queue (concurrency: %d)', concurrency);
 
-////create the queue
-//var q = async.queue(function (task, callback) {
-//  console.log('\033[94mINFO\033[0m: starting task %d', task.id);
-//  runTask(task, walltime, callback);
-//}, concurrency);
-//
-////send the tasks
-//tasks.forEach(function(task){
-//  q.push(task, function (err) {
-//    if(err) console.error('\033[91mFAIL\033[0m: ' +  err);
-//  });
-//});
-//
-//q.drain = function(){
-//  console.log('\033[94mINFO\033[0m: all the tasks has been processed');
-//};
+//create the queue
+var q = async.queue(function (task, callback) {
+  runTask(task, walltime, callback);
+}, concurrency);
 
 
-function getPathsFromInputs(inputs, resources, callback){
+q.drain = function(){
+  console.log('\033[94mINFO\033[0m: all the tasks has been processed');
+};
+
+
+/**
+ * For each input of inputs, map an object with a pattern property
+ * (optional) and a path property containing a list of path
+ * corresponding to pattern
+ */
+function addPaths(inputs, resources, callback){
 
   async.map(inputs, function(input, cb){
     var names, paths;
 
-    if('resources' in input){      
+    if('resources' in input){ 
 
       names = resources
         .map(function(x){return x.name})
@@ -72,73 +70,125 @@ function getPathsFromInputs(inputs, resources, callback){
         .filter(function(x){return names.indexOf(x.name) !== -1})
         .map(function(x){return path.resolve(pkgRoot, x.path)});
 
-      cb(null, paths);
+      input.paths = paths;
+
+      cb(null, input);
     } else if ('files' in input){ 
 
-      glob(path.resolve(pkgRoot, input.files), {matchBase: true}, cb);
+      glob(path.resolve(pkgRoot, input.files), {matchBase: true}, function(err, paths){
+        input.paths = paths
+        cb(err, input);
+      });
     } else {
       
       cb(new Error('invalid input'));
     }
-  }, function(err, results){    
-    if(err) return callback(err);
-    callback(null, [].concat.apply([], results));
-  });
+  }, callback);
 
 };
 
 
 /**
- * return list of object with string content of file + id (taken form
- * filename)
+ * inputs have an extra paths (list of path property) we add an extra
+ * data property ({id: input:})
  */
-function getFilesFromPaths(inputs, paths, callback){
-  async.map(paths, fs.readFile, function(err, files){
-    if (err) return callback(err);
+function addData(inputs, callback){
 
-    var res;
+  async.map(inputs, function(input, cb){
 
-    if (inputs.collection){
-      var data;
-      try{
-        data = JSON.parse(files[0]);
-      } catch(e){
-        return callback(e);        
-      }
+    async.map(input.paths, function(path, cb2){
 
-      res = data.map(function(x, i){
-        return {id:i.toString(), input: JSON.stringify({resources: x})};
+      fs.readFile(path, function(err, data){
+        if(err) return cb2(null, null);
+        
+        if (input.collection){
+          try{
+            data = JSON.parse(data);
+          } catch(e){
+            return cb2(e);        
+          }
+
+          data = data.map(function(x, i){
+            return {id:i.toString(), input: JSON.stringify(x)};
+          });
+
+          cb2(null, data);
+
+        } else {
+          
+          var re = new RegExp(input.files.replace('*', '(.*)'));
+          var id = path.match(re)[1];
+
+          cb2(null, {id: id, input: data});
+        }
+        
       });
-
-      callback(null, res);
-
-    } else {
       
-      res = files.map(function(x, i){
-        var id = path.basename(paths[i], path.extname(paths[i])).split('_');
-        return {id: id[id.length -1], input: x};
-      });
+    }, function(err, data){
+      if(err) return cb(err);
+      input.data = data;
+      cb(null, input);
+    });
+       
+  }, callback);
 
-      callback(null, res);
-    }
-
-  });
 };
 
 
-function makeTask(mapStep, commandInputs){
 
-  return commandInputs.map(function(x){
-    return {
-      command: mapStep.command,
-      args: [mapStep.argId, x.id].concat(mapStep.args),
-      input: x.input,
-      outputs: mapStep.outputs //for post processing after task has been completed
-      options: {
-        cwd: pkgRoot
+var map = pkg.analysis[0].data;
+var i=0;
+
+(function pushTask(){
+
+  //TODO clean from previous batch task.
+
+  addPaths(map[i].inputs, pkg.resources, function(err){
+    addData(map[i].inputs, function(err){
+
+      console.log(i);
+
+      q.push(makeTaskBatch(map[i]), function(err){
+        //TODO store results
+        
+        i++;
+
+        if(i<map.length){        
+          pushTask();
+        }
+        
+      });
+
+    })
+  });
+  
+})();
+
+
+
+
+function makeTaskBatch(step){
+
+  var batch = [];
+
+  for(var i=0; i<step.inputs.length; i++){    
+    for(var j=0; j<step.inputs[i].data.length; j++){      
+      if(step.inputs[i].data[j]){
+        batch.push(
+          {
+            command: step.command,
+            args: [step.argsId[0], step.inputs[i].data[j].id].concat(step.args),
+            input: inputs[i].data[j].input,
+            options: {
+              cwd: pkgRoot
+            }
+          }
+        )
       }
     }
-  });
+  }
+
+  return batch;
 
 };
 
@@ -151,43 +201,49 @@ function runTask(task, walltime, callback){
 
   //process.stderr.setMaxListeners(0);
 
-  var plomPipe  = spawn(path.join(__dirname, 'plom-pipe'), task.pipeOption)
-    , algo = spawn(task.prog, task.progOption);
+  setTimeout(function(){
+    console.log('hello %j', task);
+    callback();
+  }, 1000);
 
-  prog.stdin.write(JSON.stringify(whatToDo.theta)+'\n', encoding="utf8");
 
-  var timeoutId;
-
-  plomPipe.stdout.pipe(algo.stdin);
-
-//  plomPipe.stderr.pipe(process.stderr);
-//  algo.stderr.pipe(process.stderr);
-  algo.stdout.resume();
-
-  plomPipe.on('exit', function (code) {
-    if (code !== 0) {
-      console.error('plom-pipe exited with code ' + code);
-      algo.kill();
-    } else {
-
-      timeoutId = setTimeout(function(){        
-        console.error('\033[93mWARNING\033[0m: walltime overshoot for task %j', task);
-        algo.kill();
-      }, walltime);
-      
-    }
-  });
-
-  algo.on('exit', function (code) {
-
-    clearTimeout(timeoutId);   
-
-    if (code !== 0) {
-      callback(new Error(util.format('sub tasks\n%j\n exited with code %j', task, code)));
-    } else {
-      console.log('\033[94mINFO\033[0m: sub tasks\n%j\n exited with code %d', task, code);
-      callback(null);
-    }
-  });
+//  var plomPipe  = spawn(path.join(__dirname, 'plom-pipe'), task.pipeOption)
+//    , algo = spawn(task.prog, task.progOption);
+//
+//  prog.stdin.write(JSON.stringify(whatToDo.theta)+'\n', encoding="utf8");
+//
+//  var timeoutId;
+//
+//  plomPipe.stdout.pipe(algo.stdin);
+//
+////  plomPipe.stderr.pipe(process.stderr);
+////  algo.stderr.pipe(process.stderr);
+//  algo.stdout.resume();
+//
+//  plomPipe.on('exit', function (code) {
+//    if (code !== 0) {
+//      console.error('plom-pipe exited with code ' + code);
+//      algo.kill();
+//    } else {
+//
+//      timeoutId = setTimeout(function(){        
+//        console.error('\033[93mWARNING\033[0m: walltime overshoot for task %j', task);
+//        algo.kill();
+//      }, walltime);
+//      
+//    }
+//  });
+//
+//  algo.on('exit', function (code) {
+//
+//    clearTimeout(timeoutId);   
+//
+//    if (code !== 0) {
+//      callback(new Error(util.format('sub tasks\n%j\n exited with code %j', task, code)));
+//    } else {
+//      console.log('\033[94mINFO\033[0m: sub tasks\n%j\n exited with code %d', task, code);
+//      callback(null);
+//    }
+//  });
 
 };

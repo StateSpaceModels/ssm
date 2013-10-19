@@ -4,9 +4,7 @@ var program = require('commander')
   , path = require('path')
   , spawn = require('child_process').spawn;
 
-
 program
-//  .option('-l, --local', 'build using a local version of SSM')
   .option('-o, --output [path]', 'the directory for the builds', path.resolve('ssm_model'))
   .parse(process.argv);
 
