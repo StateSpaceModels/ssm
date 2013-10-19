@@ -238,6 +238,7 @@ class Ccoder(Cmodel):
 
 
         return {
+            'map_name2prior_name': self.map_name2prior_name,
             'parameters': parameters,
             'order_parameters': self.order_parameters,
             'order_states': self.order_states,

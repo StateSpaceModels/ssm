@@ -137,9 +137,13 @@ class Cmodel:
 
         #map prior name to name
         self.map_prior_name2name = {}
+        self.map_name2prior_name = {}
         for p in parameters:
             if 'prior' in p and 'name' in p['prior']:
                 self.map_prior_name2name[p['prior']['name']] = p['name']
+                self.map_name2prior_name[p['name']] = p['prior']['name']
+            else:
+                self.map_name2prior_name[p['name']] = p['name']
 
 
         # proc_model

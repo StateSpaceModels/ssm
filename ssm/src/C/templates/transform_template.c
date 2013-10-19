@@ -132,7 +132,7 @@ ssm_parameter_t **_ssm_parameters_new(int *parameters_length)
 
     {% for p in pars %}
     //{{ p.name }}
-    parameters[{{ order_parameters[p.name] }}]->name = strdup("{{ p.name }}");
+    parameters[{{ order_parameters[p.name] }}]->name = strdup("{{ map_name2prior_name[p.name] }}");
     parameters[{{ order_parameters[p.name] }}]->offset = {{ order_parameters[p.name] }};
     parameters[{{ order_parameters[p.name] }}]->offset_theta = -1;
 
