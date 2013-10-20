@@ -51,6 +51,8 @@ static double f_simplex(const gsl_vector *theta, void *params)
     ssm_fitness_t *fit = p->fitness;
     int flag_prior = p->flag_prior;
     int flag_least_squares = p->flag_least_squares;
+    printf("youu\n");
+    printf("flag %d\n",flag_least_squares);
 
     ssm_err_code_t status = SSM_SUCCESS;
 
