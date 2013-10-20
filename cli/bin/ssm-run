@@ -7,19 +7,23 @@ var program = require('commander')
   , util = require('util')
   , async = require('async')
   , minimatch = require("minimatch")
-  , glob = require("glob")
-  , spawn = require('child_process').spawn;
+  , glob = require('glob')
+  , clone = require('clone')
+  , spawn = require('child_process').spawn
+  , resolvePath = require('../lib/util').resolvePath;
 
 program
   .option('-w, --walltime <w>', 'walltime in the format hh:mm:ss', '01:00:00')
   .option('-c, --threads <threads>', 'run the design locally using an async queue to process independent tasks in parallel (up to the concurrency limit which default to the number of cpus).', parseInt)
-  .option('-d, --cwd', 'current working directory of the child processes.', process.cwd())
+  .option('-d, --cwd <cwd>', 'current working directory of the child processes.', resolvePath, process.cwd())
   .option('-f, --force', 'just do it.')
   .parse(process.argv);
 
 if (!program.args[0]) {
   console.error('\033[91mFAIL\033[0m: Invalid usage, ssm run <datapackage.json>');
   process.exit(1);
+} else { //resolve ~ (if any)
+  program.args[0] = resolvePath(program.args[0]);
 }
 
 //check walltime
@@ -70,20 +74,26 @@ function addPaths(inputs, resources, callback){
         .filter(function(x){return names.indexOf(x.name) !== -1})
         .map(function(x){return path.resolve(pkgRoot, x.path)});
 
-      input.paths = paths;
-
-      cb(null, input);
+      cb(null, paths);
     } else if ('files' in input){ 
 
       glob(path.resolve(pkgRoot, input.files), {matchBase: true}, function(err, paths){
-        input.paths = paths
-        cb(err, input);
+        cb(err, paths);
       });
     } else {
       
       cb(new Error('invalid input'));
     }
-  }, callback);
+  }, function(err, pathss){
+    if (err) return callback(err);
+    
+    inputs.forEach(function(input, i){
+      input.paths = pathss[i];
+    });
+
+    callback(null, inputs);
+
+  });
 
 };
 
@@ -93,15 +103,15 @@ function addPaths(inputs, resources, callback){
  * data property ({id: input:})
  */
 function addData(inputs, callback){
+  var i = 0;
+  (function loader(){
 
-  async.map(inputs, function(input, cb){
-
-    async.map(input.paths, function(path, cb2){
+    async.map(inputs[i].paths, function(path, cb2){
 
       fs.readFile(path, function(err, data){
         if(err) return cb2(null, null);
         
-        if (input.collection){
+        if (inputs[i].collection){
           try{
             data = JSON.parse(data);
           } catch(e){
@@ -116,7 +126,7 @@ function addData(inputs, callback){
 
         } else {
           
-          var re = new RegExp(input.files.replace('*', '(.*)'));
+          var re = new RegExp(inputs[i].files.replace('*', '(.*)'));
           var id = path.match(re)[1];
 
           cb2(null, {id: id, input: data});
@@ -125,12 +135,19 @@ function addData(inputs, callback){
       });
       
     }, function(err, data){
-      if(err) return cb(err);
-      input.data = data;
-      cb(null, input);
+
+      if(err) return callback(err);
+      inputs[i].data = (inputs[i].collection)? data[0]: data;
+
+      if(++i < inputs.lenght){
+        loader();
+      } else {
+        callback(null, inputs);
+      }
+
     });
-       
-  }, callback);
+    
+  })();
 
 };
 
@@ -138,32 +155,75 @@ function addData(inputs, callback){
 
 var map = pkg.analysis[0].data;
 var i=0;
+var j=0;
 
 (function pushTask(){
-
-  //TODO clean from previous batch task.
-
+  
   addPaths(map[i].inputs, pkg.resources, function(err){
+    if(err) throw(err);
     addData(map[i].inputs, function(err){
+      if(err) throw(err);
 
-      console.log(i);
-
-      q.push(makeTaskBatch(map[i]), function(err){
-        //TODO store results
-        
-        i++;
-
-        if(i<map.length){        
-          pushTask();
+      var taskBatch = makeTaskBatch(map[i]);
+      
+      if(!taskBatch.length){
+        if(++i <map.length){
+          rmPrevOutputs(map[i-1].outputs, pkgRoot, function(err){
+            pushTask();
+          });
         }
-        
-      });
+      } else {
 
-    })
+        mkdirpOutputs(map[i].outputs, pkgRoot, function(err){
+          j=0;
+          q.push(taskBatch, function(err){
+            if(err) throw(err);
+
+            if (++j >= taskBatch.length){
+              if (++i <map.length) {
+                rmPrevOutputs(map[i-1].outputs, pkgRoot, function(err){
+                  pkgOutputs(map[i].outputs, pkg, pkgRoot, function(err){
+                    pushTask();
+                  });
+                });
+              }
+            }
+          });
+        });
+
+      }
+
+    });
   });
   
 })();
 
+
+function mkdirpOutputs(outputs, root, callback){
+
+//  var dirs;
+//  outputs.forEach(function(x, i){
+//    dirs.push(path.dirname(path.join(root, x.files)));
+//    if( ('save' in x) && ('files' in x.save)){
+//      dirs.push(path.dirname(path.join(root, x.save.files)));
+//    }
+//  });
+//
+//  async.each(dirs, mkdirp, callback);
+
+  callback(null);
+
+}
+
+
+function rmPrevOutputs(prevOutputs, pkgRoot, callback){
+  callback(null);
+}
+
+
+function pkgOutputs(outputs, pkg, pkgRoot, callback){
+  callback(null);
+}
 
 
 
@@ -172,15 +232,24 @@ function makeTaskBatch(step){
   var batch = [];
 
   for(var i=0; i<step.inputs.length; i++){    
-    for(var j=0; j<step.inputs[i].data.length; j++){      
+    for(var j=0; j<step.inputs[i].data.length; j++){
       if(step.inputs[i].data[j]){
         batch.push(
           {
-            command: step.command,
-            args: [step.argsId[0], step.inputs[i].data[j].id].concat(step.args),
-            input: inputs[i].data[j].input,
+            command: path.join(program.cwd, step.command),
+            args: step.args.map(function(arg){              
+              if(arg.indexOf('$ROOT') !== -1){
+                var x = arg.replace('$ROOT', '');
+                return path.join(pkgRoot, x);
+              } else if (arg.indexOf('$ID') !== -1){
+                return arg.replace('$ID', step.inputs[i].data[j].id);
+              } else {
+                return arg;
+              }
+            }),
+            input: step.inputs[i].data[j].input,
             options: {
-              cwd: pkgRoot
+              cwd: program.cwd
             }
           }
         )
@@ -192,58 +261,37 @@ function makeTaskBatch(step){
 
 };
 
-    
 
 /**
  * walltime is in millisec
  */
 function runTask(task, walltime, callback){
 
-  //process.stderr.setMaxListeners(0);
+  console.log(task.options);
+  var prog = spawn(task.command, task.args, task.options);
+  prog.on('error', console.log);
 
-  setTimeout(function(){
-    console.log('hello %j', task);
-    callback();
-  }, 1000);
+  prog.stdout.resume(); // start the flow of data, discarding it.
 
+//  prog.stderr.pipe(process.stdout);
+//  prog.stdout.pipe(process.stdout);
 
-//  var plomPipe  = spawn(path.join(__dirname, 'plom-pipe'), task.pipeOption)
-//    , algo = spawn(task.prog, task.progOption);
-//
-//  prog.stdin.write(JSON.stringify(whatToDo.theta)+'\n', encoding="utf8");
-//
-//  var timeoutId;
-//
-//  plomPipe.stdout.pipe(algo.stdin);
-//
-////  plomPipe.stderr.pipe(process.stderr);
-////  algo.stderr.pipe(process.stderr);
-//  algo.stdout.resume();
-//
-//  plomPipe.on('exit', function (code) {
-//    if (code !== 0) {
-//      console.error('plom-pipe exited with code ' + code);
-//      algo.kill();
-//    } else {
-//
-//      timeoutId = setTimeout(function(){        
-//        console.error('\033[93mWARNING\033[0m: walltime overshoot for task %j', task);
-//        algo.kill();
-//      }, walltime);
-//      
-//    }
-//  });
-//
-//  algo.on('exit', function (code) {
-//
-//    clearTimeout(timeoutId);   
-//
-//    if (code !== 0) {
-//      callback(new Error(util.format('sub tasks\n%j\n exited with code %j', task, code)));
-//    } else {
-//      console.log('\033[94mINFO\033[0m: sub tasks\n%j\n exited with code %d', task, code);
-//      callback(null);
-//    }
-//  });
+  prog.stdin.write(task.input+'\n', encoding="utf8");
+
+  var timeoutId = setTimeout(function(){        
+    console.error('\033[93mWARNING\033[0m: walltime overshoot for task %j', task);
+    prog.kill();
+  }, walltime);
+
+  prog.on('exit', function (code) {
+    clearTimeout(timeoutId);   
+
+    if (code !== 0) {
+      callback(new Error(util.format('task %s\nexited with code %d', task.command + ' ' + task.args.join(' '), code)));
+    } else {
+      console.log('\033[94mINFO\033[0m: task %s\nexited with code %d', task.command + ' ' + task.args.join(' '), code);
+      callback(null);
+    }
+  });
 
 };

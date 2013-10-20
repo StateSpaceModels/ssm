@@ -24,7 +24,7 @@
 json_t *ssm_load_json_stream(FILE *stream)
 {
     json_error_t error;
-    json_t *data = json_loadf(stream, 0, &error);
+    json_t *data = json_loadf(stream, JSON_DISABLE_EOF_CHECK, &error);
     if(!data) {
         ssm_print_err(error.text);
         exit(EXIT_FAILURE);
@@ -51,10 +51,7 @@ json_t *ssm_load_json_file(const char *path)
 
 json_t *ssm_load_data(ssm_options_t *opts)
 {
-    char path[SSM_STR_BUFFSIZE];
-    snprintf(path, SSM_STR_BUFFSIZE, "%s/.data.json", opts->path);
-
-    json_t *jdata = ssm_load_json_file(path);
+    json_t *jdata = ssm_load_json_file(".data.json");
 
     return jdata;
 }
