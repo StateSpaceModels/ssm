@@ -534,7 +534,7 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
     data->rows = rows;
 
 
-    ssm_data_extend(data, jdata, nav, opts);
+    ssm_data_adapt_to_simul(data, jdata, nav, opts);
 
     return data;
 }
@@ -573,9 +573,10 @@ void ssm_data_free(ssm_data_t *data)
 
 
 /**
- * extend data (in case of simulation)
+ * in case of simulation extend data or reset n_obs to take into
+ * account opts->end ISO 8601 date
  */
-void ssm_data_extend(ssm_data_t *data, json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
+void ssm_data_adapt_to_simul(ssm_data_t *data, json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
 {
     int i, n;
 
@@ -583,25 +584,57 @@ void ssm_data_extend(ssm_data_t *data, json_t *jdata, ssm_nav_t *nav, ssm_option
         return;
     }
 
-    unsigned int time_start;
-    struct tm tm_start;
-    memset(&tm_start, 0, sizeof(struct tm));
-    if(data->length){
-        strptime(data->rows[data->length-1]->date, "%Y-%m-%d", &tm_start);
-        time_start = data->rows[data->length-1]->time;
-    } else {
-        strptime(data->date_t0, "%Y-%m-%d", &tm_start);
-        time_start = 0;
-    }
-    time_t t_start = mktime(&tm_start);
+    struct tm tm_start_date_t0;
+    memset(&tm_start_date_t0, 0, sizeof(struct tm));
+
+    strptime(data->date_t0, "%Y-%m-%d", &tm_start_date_t0);
+    time_t t_start_date_t0 = mktime(&tm_start_date_t0);
 
     struct tm tm_end;
     memset(&tm_end, 0, sizeof(struct tm));
     strptime(opts->end, "%Y-%m-%d", &tm_end);
     time_t t_end = mktime(&tm_end);
 
+    double delta_date_t0 = difftime(t_end, t_start_date_t0)/(24.0*60.0*60.0);
+    if(delta_date_t0 < 0.0){
+	ssm_print_err("end date is before t0");
+	exit(EXIT_FAILURE);
+    }
+
+    unsigned int time_start;
+    struct tm tm_start;
+    memset(&tm_start, 0, sizeof(struct tm));
+    time_t t_start;
+    if(data->length){
+        strptime(data->rows[data->length-1]->date, "%Y-%m-%d", &tm_start);
+        time_start = data->rows[data->length-1]->time;
+	t_start = mktime(&tm_start);
+    } else {
+        t_start = t_start_date_t0;
+    }
+
     double delta = difftime(t_end, t_start)/(24.0*60.0*60.0);
     if(delta < 0.0){
+
+	//there are data but t_end before the last data point. In this case we just adjuts n_obs and n_obs_nonan
+	if(data->length){
+	    data->n_obs = 0;
+	    data->n_obs_nonan = 0;
+
+	    while(data->rows[data->n_obs]->time <= delta_date_t0){
+		if(data->rows[data->n_obs]->ts_nonan_length){
+		    data->n_obs_nonan += 1;
+		}
+		data->n_obs += 1;
+	    }
+	    
+	    //safety
+	    data->n_obs = GSL_MIN(data->n_obs, data->length);
+	    data->n_obs_nonan = GSL_MIN(data->n_obs, data->n_obs_nonan);
+
+	    return;
+	}
+
         ssm_print_err("end date is before t0");
         exit(EXIT_FAILURE);
     }

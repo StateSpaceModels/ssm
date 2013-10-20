@@ -563,36 +563,46 @@ S'void test_data__rows(void)'
 p206
 sa(dp207
 g14
-S'test_data__extend'
+S'test_data__ssm_data_adapt_to_simul'
 p208
 sg16
-S'extend'
+S'ssm_data_adapt_to_simul'
 p209
 sg18
-S'void test_data__extend(void)'
+S'void test_data__ssm_data_adapt_to_simul(void)'
 p210
-sasg48
-(dp211
+sa(dp211
 g14
-S'test_data__cleanup'
+S'test_data__ssm_data_adapt_to_simul_non_extra_domain'
 p212
 sg16
-S'cleanup'
+S'ssm_data_adapt_to_simul_non_extra_domain'
 p213
 sg18
-S'void test_data__cleanup(void)'
+S'void test_data__ssm_data_adapt_to_simul_non_extra_domain(void)'
 p214
-ssg53
-F1381895747.0
-sg54
+sasg48
 (dp215
 g14
-S'test_data__initialize'
+S'test_data__cleanup'
 p216
 sg16
-S'initialize'
+S'cleanup'
 p217
 sg18
-S'void test_data__initialize(void)'
+S'void test_data__cleanup(void)'
 p218
+ssg53
+F1382243298.0
+sg54
+(dp219
+g14
+S'test_data__initialize'
+p220
+sg16
+S'initialize'
+p221
+sg18
+S'void test_data__initialize(void)'
+p222
 ssbs.

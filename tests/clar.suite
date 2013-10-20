@@ -35,7 +35,8 @@ extern void test_calc__cleanup(void);
 extern void test_data__data_new(void);
 extern void test_data__ind_nonan(void);
 extern void test_data__rows(void);
-extern void test_data__extend(void);
+extern void test_data__ssm_data_adapt_to_simul(void);
+extern void test_data__ssm_data_adapt_to_simul_non_extra_domain(void);
 extern void test_data__initialize(void);
 extern void test_data__cleanup(void);
 static const struct clar_func _clar_cb_inputs[] = {
@@ -76,7 +77,8 @@ static const struct clar_func _clar_cb_data[] = {
     { "data_new", &test_data__data_new },
     { "ind_nonan", &test_data__ind_nonan },
     { "rows", &test_data__rows },
-    { "extend", &test_data__extend }
+    { "ssm_data_adapt_to_simul", &test_data__ssm_data_adapt_to_simul },
+    { "ssm_data_adapt_to_simul_non_extra_domain", &test_data__ssm_data_adapt_to_simul_non_extra_domain }
 };
 static struct clar_suite _clar_suites[] = {
     {
@@ -89,7 +91,7 @@ static struct clar_suite _clar_suites[] = {
         "data",
         { "initialize", &test_data__initialize },
         { "cleanup", &test_data__cleanup },
-        _clar_cb_data, 4, 1
+        _clar_cb_data, 5, 1
     },
     {
         "fitness",
@@ -135,4 +137,4 @@ static struct clar_suite _clar_suites[] = {
     }
 };
 static const size_t _clar_suite_count = 9;
-static const size_t _clar_callback_count = 22;
+static const size_t _clar_callback_count = 23;

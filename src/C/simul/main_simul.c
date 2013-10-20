@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
         fitness->cum_status[j] = SSM_SUCCESS;
     }
 
-    for(n=0; n<data->length; n++) {
+    for(n=0; n<data->n_obs; n++) {
 	t0 = (n) ? data->rows[n-1]->time: 0;
 	t1 = data->rows[n]->time;
 
