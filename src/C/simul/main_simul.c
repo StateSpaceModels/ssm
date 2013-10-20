@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
 	}
     }
 
-    if(!is_predict_from_traces){
+    if(!(nav->print & SSM_PRINT_LOG) &&!is_predict_from_traces){
 	if (!(nav->print & SSM_PRINT_HAT)) { //hat was not computed
 	    ssm_hat_eval(hat, J_X, J_par, nav, calc[0], NULL, t1, 0);	
 	}

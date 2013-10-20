@@ -192,7 +192,9 @@ int main(int argc, char *argv[])
 
     }
 
-    ssm_pipe_theta(stdout, jparameters, mle, NULL, nav, opts);
+    if (!(nav->print & SSM_PRINT_LOG)) {
+	ssm_pipe_theta(stdout, jparameters, mle, NULL, nav, opts);
+    }
 
     json_decref(jparameters);
 

@@ -40,7 +40,7 @@ void ssm_print_warning(char *data)
     fflush(stdout);
     json_decref(root);
 #else
-    printf("%s\n", data);
+    fprintf(stderr, "%s\n", data);
 #endif
 }
 
