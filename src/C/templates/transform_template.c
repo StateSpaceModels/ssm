@@ -91,10 +91,10 @@ static double f_2prior_tpl_{{ p.name }}(double x, ssm_hat_t *hat, ssm_par_t *par
     //sanitize
     {% if 'prior' in p %}
     {% if  'lower' in p.prior %}
-    res = GSL_MAX({{ p.prior.lower }},  x);
+    res = GSL_MAX({{ p.prior.lower }},  res);
     {% endif %}
     {% if  'upper' in p.prior %}
-    res = GSL_MIN({{ p.prior.upper }},  x);
+    res = GSL_MIN({{ p.prior.upper }},  res);
     {% endif %}
     {% endif %}
 
