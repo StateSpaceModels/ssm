@@ -1,14 +1,16 @@
 S|S|M
 =====
 
-_Pipable_ plug-and-play inference methods for time series analysis with *S*tate *S*pace *M*odels coded with <3 by [epy.io](http://epy.io).
+_Pipable_ plug-and-play inference methods for time series analysis
+with *S*tate *S*pace *M*odels.
 
     cat theta.json | ./simplex -M 10000 | ./ksimplex -M 10000 > mle.json
     cat mle.json | ./kmcmc -M 100000 | ./pmcmc -J 1000 -M 500000
 
-All the methods are implemented in plain C.  The C code contain
-generic part (working with any models) and model specific part.  The
-specific parts are templated using Python.
+All the methods are implemented in C. The C code contain generic part
+(working with any models) and model specific part.  The specific parts
+are templated using Python and [SymPy](http://sympy.org/) for symbolic
+mathematics.
 
 Installation
 ============
@@ -40,6 +42,7 @@ On Ubuntu:
  
 
 ##Building the standalone C libraries
+
 in src/C:
 
     make
@@ -58,46 +61,53 @@ in the package directory (that you will find after unpacking the tarball in ```d
 
     python setup.py install
 
-Note: you might have to run ```python setup.py install```
+Note: you might have to run ```sudo python setup.py install```
 
-##Generating the model-specific code:
+##Installing the npm package
 
-In your script you can use:
+    npm install -g ssm
+
+
+##Building a model from a datapackage.json file
+
+From the command line:
+
+    ssm build <datapackage.json> [options]
+
+
+This is equivalent to running a script doing:
 
     import os
     from ssm.Builder import Builder
 
     path_model_coded_in_C = os.path.join(os.getenv("HOME"), 'ssm_test_model')
-    path_model_datapackage = os.path.join(os.getenv("HOME") , 'ssm', 'example', 'foo', 'datapackages', 'model-seb-sir', 'datapackage.json')
+    path_model_datapackage = os.path.join(os.getenv("HOME") , 'ssm', 'examples', 'foo', 'datapackages', 'model-seb-sir', 'datapackage.json')
 
     b = Builder(path_model_coded_in_C, path_model_datapackage)
     b.prepare()
     b.code()
     b.write_data()
 
-
-##Building the inference methods
-
-in ```path_model_coded_in_C/C/templates/```:
+to generate the model specific code and then in ```path_model_coded_in_C/C/templates/``` running:
 
     make
     make install
     
-All the inference methods binaries are now available in ```path_model_coded_in_C/```
+to build the binaries (now available in ```path_model_coded_in_C/```)
 
 
 Tests
 =====
 
 C code (whith [clar](https://github.com/vmg/clar)):
-In tests:
+In ```tests/```:
 
     make test
 
 (see Makefile)
 
 Python code:
-In src/:
+In ```src/```:
 
     python -m unittest discover
 
