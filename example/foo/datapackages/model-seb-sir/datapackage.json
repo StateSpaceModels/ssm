@@ -227,7 +227,7 @@
           "description": "Number of infectious",
           "keywords": ["infectious"],
           "transformation": "10^-pr_I_nyc * N_nyc",
-          "to_prior": "-log(I_paris)/(log(10)*N_nyc)",
+          "to_prior": "-log(I_nyc)/(log(10)*N_nyc)",
           "prior": {
             "name": "pr_I_nyc",
             "description": "exponent (10^-x) to get a proportion of infectious",
