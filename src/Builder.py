@@ -37,7 +37,7 @@ class Builder(Data, Ccoder):
         self.path_rendered = path_rendered
         self.env = Environment(loader=FileSystemLoader(os.path.join(self.path_rendered, 'C', 'templates')))
 
-    def prepare(self, path_templates=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src', 'C'), replace=True):
+    def prepare(self, path_templates=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'C'), replace=True):
         """
         copy templates to path_rendered
         """
@@ -135,3 +135,4 @@ if __name__=="__main__":
     b.prepare()
     b.code()
     b.write_data()
+    

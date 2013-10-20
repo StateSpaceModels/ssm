@@ -40,7 +40,7 @@ On Ubuntu:
  
 
 ##Building the standalone C libraries
-in ssm/src/C:
+in src/C:
 
     make
     make install

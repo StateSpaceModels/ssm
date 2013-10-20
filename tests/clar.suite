@@ -1,0 +1,138 @@
+extern void test_inputs__input_new(void);
+extern void test_inputs__par_new(void);
+extern void test_inputs__theta_new(void);
+extern void test_inputs__var_new(void);
+extern void test_inputs__X_new(void);
+extern void test_inputs__par2X(void);
+extern void test_inputs__remainders(void);
+extern void test_inputs__theta2input(void);
+extern void test_inputs__initialize(void);
+extern void test_inputs__cleanup(void);
+extern void test_parameters__parameters_new(void);
+extern void test_parameters__initialize(void);
+extern void test_parameters__cleanup(void);
+extern void test_observed__observed_new(void);
+extern void test_observed__initialize(void);
+extern void test_observed__cleanup(void);
+extern void test_iterators__states_sv(void);
+extern void test_iterators__par_all_and_ssm_in_par(void);
+extern void test_iterators__initialize(void);
+extern void test_iterators__cleanup(void);
+extern void test_states__states_new(void);
+extern void test_states__initialize(void);
+extern void test_states__cleanup(void);
+extern void test_nav__nav_it_theta(void);
+extern void test_nav__nav_it_theta_opts_no_diff(void);
+extern void test_nav__initialize(void);
+extern void test_nav__cleanup(void);
+extern void test_fitness__fitness_new(void);
+extern void test_fitness__initialize(void);
+extern void test_fitness__cleanup(void);
+extern void test_calc__calc_new(void);
+extern void test_calc__covariates(void);
+extern void test_calc__initialize(void);
+extern void test_calc__cleanup(void);
+extern void test_data__data_new(void);
+extern void test_data__ind_nonan(void);
+extern void test_data__rows(void);
+extern void test_data__extend(void);
+extern void test_data__initialize(void);
+extern void test_data__cleanup(void);
+static const struct clar_func _clar_cb_inputs[] = {
+    { "input_new", &test_inputs__input_new },
+    { "par_new", &test_inputs__par_new },
+    { "theta_new", &test_inputs__theta_new },
+    { "var_new", &test_inputs__var_new },
+    { "X_new", &test_inputs__X_new },
+    { "par2X", &test_inputs__par2X },
+    { "remainders", &test_inputs__remainders },
+    { "theta2input", &test_inputs__theta2input }
+};
+static const struct clar_func _clar_cb_parameters[] = {
+    { "parameters_new", &test_parameters__parameters_new }
+};
+static const struct clar_func _clar_cb_observed[] = {
+    { "observed_new", &test_observed__observed_new }
+};
+static const struct clar_func _clar_cb_iterators[] = {
+    { "states_sv", &test_iterators__states_sv },
+    { "par_all_and_ssm_in_par", &test_iterators__par_all_and_ssm_in_par }
+};
+static const struct clar_func _clar_cb_states[] = {
+    { "states_new", &test_states__states_new }
+};
+static const struct clar_func _clar_cb_nav[] = {
+    { "nav_it_theta", &test_nav__nav_it_theta },
+    { "nav_it_theta_opts_no_diff", &test_nav__nav_it_theta_opts_no_diff }
+};
+static const struct clar_func _clar_cb_fitness[] = {
+    { "fitness_new", &test_fitness__fitness_new }
+};
+static const struct clar_func _clar_cb_calc[] = {
+    { "calc_new", &test_calc__calc_new },
+    { "covariates", &test_calc__covariates }
+};
+static const struct clar_func _clar_cb_data[] = {
+    { "data_new", &test_data__data_new },
+    { "ind_nonan", &test_data__ind_nonan },
+    { "rows", &test_data__rows },
+    { "extend", &test_data__extend }
+};
+static struct clar_suite _clar_suites[] = {
+    {
+        "calc",
+        { "initialize", &test_calc__initialize },
+        { "cleanup", &test_calc__cleanup },
+        _clar_cb_calc, 2, 1
+    },
+    {
+        "data",
+        { "initialize", &test_data__initialize },
+        { "cleanup", &test_data__cleanup },
+        _clar_cb_data, 4, 1
+    },
+    {
+        "fitness",
+        { "initialize", &test_fitness__initialize },
+        { "cleanup", &test_fitness__cleanup },
+        _clar_cb_fitness, 1, 1
+    },
+    {
+        "inputs",
+        { "initialize", &test_inputs__initialize },
+        { "cleanup", &test_inputs__cleanup },
+        _clar_cb_inputs, 8, 1
+    },
+    {
+        "iterators",
+        { "initialize", &test_iterators__initialize },
+        { "cleanup", &test_iterators__cleanup },
+        _clar_cb_iterators, 2, 1
+    },
+    {
+        "nav",
+        { "initialize", &test_nav__initialize },
+        { "cleanup", &test_nav__cleanup },
+        _clar_cb_nav, 2, 1
+    },
+    {
+        "observed",
+        { "initialize", &test_observed__initialize },
+        { "cleanup", &test_observed__cleanup },
+        _clar_cb_observed, 1, 1
+    },
+    {
+        "parameters",
+        { "initialize", &test_parameters__initialize },
+        { "cleanup", &test_parameters__cleanup },
+        _clar_cb_parameters, 1, 1
+    },
+    {
+        "states",
+        { "initialize", &test_states__initialize },
+        { "cleanup", &test_states__cleanup },
+        _clar_cb_states, 1, 1
+    }
+};
+static const size_t _clar_suite_count = 9;
+static const size_t _clar_callback_count = 22;
