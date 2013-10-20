@@ -130,7 +130,9 @@ class Builder(Data, Ccoder):
 
 if __name__=="__main__":
 
-    b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'examples', 'foo', 'datapackages', 'model-seb-sir', 'datapackage.json'))
+    #    b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'examples', 'foo', 'datapackages', 'model-seb-sir', 'datapackage.json'))
+
+    b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), '/Users/dureaujoseph/plom-io/plague-UK-1665/Plague-analysis-jdureau/datapackages/model-jdureau-plague/datapackage.json')
     
     b.prepare()
     b.code()

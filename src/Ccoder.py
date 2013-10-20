@@ -236,7 +236,6 @@ class Ccoder(Cmodel):
             if 'remainder' not in x:
                 ic.append([self.make_C_term(t, True, force_par=True, set_t0=True) for t in x['composition']])
 
-
         return {
             'map_name2prior_name': self.map_name2prior_name,
             'parameters': parameters,

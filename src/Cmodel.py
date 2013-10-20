@@ -30,7 +30,7 @@ class Cmodel:
         self.model = model
 
         self.op = set(['+', '-', '*', '/', '^', ',', '(', ')']) ##!!!CAN'T contain square bracket '[' ']'
-        self.reserved = set(['U', 'x'])
+        self.reserved = set(['U', 'x', 't', 'M_E', 'M_LOG2E', 'M_LOG10E', 'M_SQRT2', 'M_SQRT1_2', 'M_SQRT3', 'M_PI', 'M_PI_2', 'M_PI_4', 'M_SQRTPI', 'M_2_SQRTPI', 'M_1_PI', 'M_2_PI', 'M_LN10', 'M_LN2', 'M_LNPI]', 'M_EULER'])
         self.special_functions = set(['terms_forcing', 'heaviside', 'ramp', 'slowstep', 'sin', 'cos', 'correct_rate', 'sqrt'])
 
         ###########################################################################
@@ -71,7 +71,7 @@ class Cmodel:
         for r in reactions:
             el =  self.change_user_input(r['rate'])
             for e in el:
-                if e not in self.op and e not in self.special_functions and e not in self.par_sv and e not in self.par_forced:
+                if e not in self.op and e not in self.reserved and e not in self.special_functions and e not in self.par_sv and e not in self.par_forced:
                     try:
                         float(e)
                     except ValueError:
@@ -93,7 +93,7 @@ class Cmodel:
             for p in [o['pdf']['mean'], o['pdf']['sd']]:
                 el =  self.change_user_input(p)
                 for e in el:
-                    if e not in self.op and e not in self.special_functions and e not in self.par_sv and e not in self.par_noise and e not in self.par_proc and e not in self.par_forced and e not in self.par_inc:
+                    if e not in self.op and e not in self.reserved and e not in self.special_functions and e not in self.par_sv and e not in self.par_noise and e not in self.par_proc and e not in self.par_forced and e not in self.par_inc:
                         try:
                             float(e)
                         except ValueError:
@@ -107,7 +107,7 @@ class Cmodel:
         for x in disp:
             el =  self.change_user_input(x)
             for e in el:
-                if e not in self.op and e not in self.special_functions and e not in self.par_sv and e not in self.par_proc and e not in self.par_obs and e not in self.par_noise and e not in self.par_forced:
+                if e not in self.op and e not in self.reserved and e not in self.special_functions and e not in self.par_sv and e not in self.par_proc and e not in self.par_obs and e not in self.par_noise and e not in self.par_forced:
                     try:
                         float(e)
                     except ValueError:
