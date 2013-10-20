@@ -22,3 +22,7 @@ npm-debug.log
 *.exe
 *.out
 *.app
+
+clar.suite
+clar.cache
+ssmtest

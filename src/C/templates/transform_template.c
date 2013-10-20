@@ -86,7 +86,19 @@ static double f_user2par_tpl_{{ p.name }}(double x, ssm_input_t *par, ssm_calc_t
 static double f_2prior_tpl_{{ p.name }}(double x, ssm_hat_t *hat, ssm_par_t *par, ssm_calc_t *calc, double t)
 {
     double *X = hat->states;
-    return {{ p.f_2prior }};
+    double res = {{ p.f_2prior }};
+
+    //sanitize
+    {% if 'prior' in p %}
+    {% if  'lower' in p.prior %}
+    res = GSL_MAX({{ p.prior.lower }},  x);
+    {% endif %}
+    {% if  'upper' in p.prior %}
+    res = GSL_MIN({{ p.prior.upper }},  x);
+    {% endif %}
+    {% endif %}
+
+    return res;
 }
 {% endif %}
 {% endfor %}
