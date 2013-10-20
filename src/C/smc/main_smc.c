@@ -156,6 +156,10 @@ int main(int argc, char *argv[])
 
     if (!(nav->print & SSM_PRINT_LOG)) {
 	ssm_pipe_theta(stdout, jparameters, theta, NULL, nav, opts);
+    } else {
+	char str[SSM_STR_BUFFSIZE];
+	snprintf(str, SSM_STR_BUFFSIZE, "logLike.: %g", fitness->log_like);
+	ssm_print_log(str);
     }
 
     json_decref(jparameters);

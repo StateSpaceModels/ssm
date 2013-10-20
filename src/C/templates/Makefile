@@ -1,5 +1,5 @@
 CC=gcc #clang -ferror-limit=2
-CFLAGS=-std=gnu99 -g -Wall -DGSL_RANGE_CHECK_OFF
+CFLAGS=-std=gnu99 -O3 -Wall -DGSL_RANGE_CHECK_OFF
 LDFLAGS=-lssm -lssmtpl -lssm -lm -lgsl -lgslcblas -ljansson -lzmq
 LIB=libssmtpl.a
 SRC= $(wildcard *.c)
