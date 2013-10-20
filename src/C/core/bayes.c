@@ -119,7 +119,6 @@ ssm_err_code_t ssm_log_prob_prior(double *log_prior, ssm_theta_t *theta, ssm_nav
         lp += log(p_tmp);
     }
 
-
     *log_prior = lp;
 
     return (is_err) ? SSM_ERR_PRIOR: SSM_SUCCESS;
@@ -145,7 +144,6 @@ ssm_err_code_t ssm_metropolis_hastings(ssm_fitness_t *fitness, double *alpha, ss
 
         // ( p{theta*}(y)  p{theta*} ) / ( p{theta(i-1)}(y) p{theta(i-1)} )  *  q{ theta(i-1) | theta* } / q{ theta* | theta(i-1) }
         *alpha = exp( (fitness->log_like - fitness->log_like_prev + lproposal_prev - lproposal + fitness->log_prior - lprior_prev) );
-
         ran = gsl_ran_flat(calc->randgsl, 0.0, 1.0);
 
         if(ran < *alpha) {

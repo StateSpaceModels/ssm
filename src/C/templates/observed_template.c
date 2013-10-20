@@ -11,6 +11,7 @@ static double f_likelihood_tpl_{{ x.name }}(double y, ssm_X_t *p_X, ssm_par_t *p
     double gsl_mu = {{ x.pdf.mean }};
     double gsl_sd = {{ x.pdf.sd }};
 
+
     if (y > 0.0) {
         like = gsl_cdf_gaussian_P(y + 0.5 - gsl_mu, gsl_sd) - gsl_cdf_gaussian_P(y - 0.5 - gsl_mu, gsl_sd);
     } else {

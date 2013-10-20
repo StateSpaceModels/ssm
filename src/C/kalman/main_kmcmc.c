@@ -25,7 +25,7 @@ static ssm_err_code_t run_kalman_and_store_traj(ssm_X_t **D_X, ssm_par_t *par, s
     ssm_err_code_t rc;
 
     fitness->log_like = 0.0;
-    fitness->log_prior = 0.0;
+    fitness->log_prior = 0.0;    
 
     for(n=0; n<data->n_obs; n++) {
         t0 = (n) ? data->rows[n-1]->time: 0;
@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
 
         if(success == SSM_SUCCESS){
             ssm_par2X(D_X[0], par_proposed, calc, nav);
-            D_X[0]->dt = D_X[0]->dt0;
+	    D_X[0]->dt = D_X[0]->dt0;
             ssm_kalman_reset_Ct(D_X[0], nav);
 
             success |= run_kalman_and_store_traj(D_X, par, fitness, data, calc, nav);

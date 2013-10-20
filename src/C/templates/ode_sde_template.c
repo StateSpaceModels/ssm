@@ -78,6 +78,7 @@ void ssm_step_sde_{{ noises_off }}(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_n
     //    f[states_diff->p[i]->offset] = 0.0;
     //}
 
+
     /*compute incidence:integral between t and t+1*/
     {% for eq in func.obs %}
     f[states_inc->p[{{ eq.index }}]->offset] {% if noises_off == 'ode'%}={% else %}= X[states_inc->p[{{ eq.index }}]->offset] + {% endif %} {{ eq.eq }};{% endfor %}

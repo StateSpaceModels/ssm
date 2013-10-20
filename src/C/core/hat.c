@@ -85,6 +85,7 @@ void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *n
     int offset;
     ssm_implementations_t implementation = nav->implementation;
 
+
     if (implementation == SSM_EKF) {
         int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
         ssm_X_t *X = *J_X;
@@ -106,9 +107,9 @@ void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *n
             offset = state->offset;
             rem = state->f_remainder(X, calc, t);
             var = state->f_remainder_var(X, calc, nav, t);
-	    hat->states[offset] = rem;
-            hat->states_95[offset][0] = rem - 1.96*sqrt(var);
-            hat->states_95[offset][1] = rem + 1.96*sqrt(var);
+	    hat->remainders[offset] = rem;
+            hat->remainders_95[offset][0] = rem - 1.96*sqrt(var);
+            hat->remainders_95[offset][1] = rem + 1.96*sqrt(var);
         }
 
         //diffusions (we rely on a second-order Taylor approximation here)
@@ -130,9 +131,9 @@ void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *n
             offset = observed->offset;
             obs = observed->f_obs_mean(X, par, calc, t);
             var = observed->f_obs_var(X, par, calc, t);
-	    hat->states[offset] = obs;
-            hat->states_95[offset][0] = obs - 1.96*sqrt(var);
-	    hat->states_95[offset][1] = obs + 1.96*sqrt(var);
+	    hat->observed[offset] = obs;
+            hat->observed_95[offset][0] = obs - 1.96*sqrt(var);
+	    hat->observed_95[offset][1] = obs + 1.96*sqrt(var);
         }
 
     } else {

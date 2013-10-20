@@ -27,14 +27,15 @@ void ssm_eval_Q_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm
     // demographic stochasticity and white noise terms (if any) //
     //////////////////////////////////////////////////////////////
 
+    {% if tpl.sf %}
+    double _sf[{{ step.sf|length }}];
+    {% endif %}
+
+
     {% if tpl.Q_proc or tpl.Q_inc or tpl.Q_sde %}
 
     {% if is_diff  %}
     double diffed[states_diff->length];
-    {% endif %}
-
-    {% if tpl.sf %}
-    double _sf[{{ step.sf|length }}];
     {% endif %}
 
     {% if is_diff %}
@@ -56,8 +57,11 @@ void ssm_eval_Q_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm
 
 
     /* caches */
+    {% if tpl.sf %}
     {% for sf in step.sf %}
     _sf[{{ loop.index0 }}] = {{ sf }};{% endfor %}
+    {% endif %}
+
 
     /*
       Q_proc contains only term involving state variables.

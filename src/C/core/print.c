@@ -436,13 +436,17 @@ void ssm_print_header_hat(FILE *stream, ssm_nav_t *nav)
         }
     }
 
+    for(i=0; i< nav->observed_length; i++) {
+	fprintf(stream, ",y_%s", nav->observed[i]->name);
+    }
+
     fprintf(stream, "\n");
 }
 
 
 void ssm_print_hat(FILE *stream, ssm_hat_t *hat, ssm_nav_t *nav, ssm_row_t *row)
 {
-    int i;
+    int i, offset;
 
     ssm_state_t *state;
     ssm_observed_t *observed;
@@ -512,6 +516,33 @@ void ssm_print_hat(FILE *stream, ssm_hat_t *hat, ssm_nav_t *nav, ssm_row_t *row)
         json_object_set_new(jout, key, json_real(hat->observed_95[observed->offset][1]));
 #else
         fprintf(stream, ",%g,%g,%g", hat->observed[observed->offset], hat->observed_95[observed->offset][0], hat->observed_95[observed->offset][1]);
+#endif
+    }
+
+    double y[nav->observed_length];
+    double is_nan[nav->observed_length];
+    for(i=0; i< nav->observed_length; i++) {
+	is_nan[i] = 1;
+    }
+    for(i=0; i<row->ts_nonan_length; i++) {
+        offset = row->observed[i]->offset;
+        y[offset] = row->values[i];
+	is_nan[i] = 0;
+    }
+    for(i=0; i< nav->observed_length; i++) {
+#if SSM_JSON
+	snprintf(key, SSM_STR_BUFFSIZE, "y_%s", observed->name);
+	if(is_nan[i]){
+	    json_object_set_new(jout, observed->name, "nan");
+	} else {
+	    json_object_set_new(jout, observed->name, y[i]);
+	}
+#else
+	if(is_nan[i]){
+	    fprintf(stream, ",nan");
+	} else {
+	    fprintf(stream, ",%g", y[i]);
+	}
 #endif
     }
 
