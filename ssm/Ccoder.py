@@ -236,6 +236,8 @@ class Ccoder(Cmodel):
             if 'remainder' not in x:
                 ic.append([self.make_C_term(t, True, force_par=True, set_t0=True) for t in x['composition']])
 
+        print pars
+        print pdict
 
         return {
             'parameters': parameters,
