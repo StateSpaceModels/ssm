@@ -97,7 +97,7 @@ In tests:
 (see Makefile)
 
 Python code:
-In ssm/:
+In src/:
 
     python -m unittest discover
 

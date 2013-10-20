@@ -4,7 +4,8 @@
   "description": "Command line interface for S|S|M",
   "bin": {
     "ssm": "bin/ssm",
-    "ssm-build": "bin/ssm-build"
+    "ssm-build": "bin/ssm-build",
+    "ssm-run": "bin/ssm-run"
   },
   "main": "index.js",
   "scripts": {
