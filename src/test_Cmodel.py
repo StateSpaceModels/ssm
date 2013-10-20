@@ -7,7 +7,7 @@ import os
 class TestCmodel(unittest.TestCase):
 
     def setUp(self):
-        model = json.load(open(os.path.join('..' ,'example', 'foo', 'datapackages', 'model-seb-sir', 'datapackage.json')))
+        model = json.load(open(os.path.join('..' ,'examples', 'foo', 'datapackages', 'model-seb-sir', 'datapackage.json')))
         self.m = Cmodel(model)
 
     def test_change_user_input(self):

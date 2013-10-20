@@ -29,7 +29,7 @@ clar.suite:
 fixture_data:
 	test -d $(CLAR_FIXTURE_PATH) || mkdir -p $(CLAR_FIXTURE_PATH); \
 	cp $(MODEL_PATH).data.json $(CLAR_FIXTURE_PATH)data.json; \
-	cp ../example/foo/datapackage.json $(CLAR_FIXTURE_PATH)
+	cp ../examples/foo/datapackage.json $(CLAR_FIXTURE_PATH)
 
 # remove all generated files
 clean:

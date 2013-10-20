@@ -16,7 +16,7 @@ class TestNoiseResults(unittest.TestCase):
             print("")
             print("Testing classic numerical results on noise example")
             # copy noise from the examples and build it
-            b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'example', 'noise', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
+            b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'examples', 'noise', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
             b.prepare()
             b.code()
             b.write_data()
@@ -38,7 +38,7 @@ class TestNoiseResults(unittest.TestCase):
             #            shutil.rmtree('/Users/dureaujoseph/ssm_test_model/')
 
       def test_kalman_map(self):
-            os.system('./ksimplex --prior -M 1000 -c < /Users/dureaujoseph/ssm/example/noise/datapackage.json')
+            os.system('./ksimplex --prior -M 1000 -c < /Users/dureaujoseph/ssm/examples/noise/datapackage.json')
             tab = genfromtxt('trace_0.csv',delimiter=',',names=True)
             self.assertAlmostEqual(tab[374][5],-327.031)
 
@@ -48,7 +48,7 @@ class TestTransfsAndPMCMC(unittest.TestCase):
             print("")
             print("Testing transformations and pMCMC by sampling from priors")
             # copy noise from the examples and build it
-            #b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'example', 'noise', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
+            #b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'examples', 'noise', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
             #b.prepare()
             #b.code()
             #b.write_data()
@@ -70,23 +70,23 @@ class TestTransfsAndPMCMC(unittest.TestCase):
 
 
       def test_prior_unif_transf_log(self):
-            os.chdir('/Users/dureaujoseph/ssm/example')
+            os.chdir('/Users/dureaujoseph/ssm/examples')
             shutil.copytree('noise','noise_test')
-            f = open('/Users/dureaujoseph/ssm/example/noise_test/datapackage.json')
+            f = open('/Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')
             j = json.load(f)
             j['resources'][0]['data']['r0_paris'] = 10
-            with open('/Users/dureaujoseph/ssm/example/noise_test/datapackage.json','w') as outfile:
+            with open('/Users/dureaujoseph/ssm/examples/noise_test/datapackage.json','w') as outfile:
                   json.dump(j,outfile)
-            f = open('/Users/dureaujoseph/ssm/example/noise_test/datapackages/model-jdureau-noise/datapackage.json')
+            f = open('/Users/dureaujoseph/ssm/examples/noise_test/datapackages/model-jdureau-noise/datapackage.json')
             j = json.load(f)
             j['resources'][3]['data'][4]['prior']['upper']=10.5
             j['resources'][3]['data'][4]['prior']['lower']=9.5
-            with open('/Users/dureaujoseph/ssm/example/noise_test/datapackages/model-jdureau-noise/datapackage.json','w') as outfile:
+            with open('/Users/dureaujoseph/ssm/examples/noise_test/datapackages/model-jdureau-noise/datapackage.json','w') as outfile:
                   json.dump(j,outfile)
 
 
             os.chdir('/Users/dureaujoseph/ssm/ssm/')
-            b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'example', 'noise_test', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
+            b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'examples', 'noise_test', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
             b.prepare()
             b.code()
             b.write_data()
@@ -98,23 +98,23 @@ class TestTransfsAndPMCMC(unittest.TestCase):
             
             os.chdir('/Users/dureaujoseph/ssm_test_model/')
             
-            os.system('./pmcmc ode  -C 5000 -W 5000 -O 0 -M 20000 -c -a < /Users/dureaujoseph/ssm/example/noise_test/datapackage.json')
+            os.system('./pmcmc ode  -C 5000 -W 5000 -O 0 -M 20000 -c -a < /Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')
             
-            shutil.rmtree('/Users/dureaujoseph/ssm/example/noise_test')
+            shutil.rmtree('/Users/dureaujoseph/ssm/examples/noise_test')
             test = self.call_test_unif('r0_paris')
             self.assertEqual(test,'1')
 
 
 
       def test_prior_normal_transf_log(self):
-            os.chdir('/Users/dureaujoseph/ssm/example')
+            os.chdir('/Users/dureaujoseph/ssm/examples')
             shutil.copytree('noise','noise_test')
-            f = open('/Users/dureaujoseph/ssm/example/noise_test/datapackage.json')
+            f = open('/Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')
             j = json.load(f)
             j['resources'][0]['data']['r0_paris'] = 10
-            with open('/Users/dureaujoseph/ssm/example/noise_test/datapackage.json','w') as outfile:
+            with open('/Users/dureaujoseph/ssm/examples/noise_test/datapackage.json','w') as outfile:
                   json.dump(j,outfile)
-            f = open('/Users/dureaujoseph/ssm/example/noise_test/datapackages/model-jdureau-noise/datapackage.json')
+            f = open('/Users/dureaujoseph/ssm/examples/noise_test/datapackages/model-jdureau-noise/datapackage.json')
             j = json.load(f)
             j['resources'][3]['data'][4]['prior']['distribution']='normal'
             j['resources'][3]['data'][4]['prior']['lower']=0
@@ -122,11 +122,11 @@ class TestTransfsAndPMCMC(unittest.TestCase):
             j['resources'][3]['data'][4]['prior']['sd']=1
             del j['resources'][3]['data'][4]['prior']['upper']
             del j['resources'][3]['data'][4]['prior']['lower']
-            with open('/Users/dureaujoseph/ssm/example/noise_test/datapackages/model-jdureau-noise/datapackage.json','w') as outfile:
+            with open('/Users/dureaujoseph/ssm/examples/noise_test/datapackages/model-jdureau-noise/datapackage.json','w') as outfile:
                   json.dump(j,outfile)
 
             os.chdir('/Users/dureaujoseph/ssm/ssm/')
-            b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'example', 'noise_test', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
+            b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'examples', 'noise_test', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
             b.prepare()
             b.code()
             b.write_data()
@@ -138,9 +138,9 @@ class TestTransfsAndPMCMC(unittest.TestCase):
 
             os.chdir('/Users/dureaujoseph/ssm_test_model/')
             
-            os.system('./pmcmc ode  -C 5000 -W 5000 -O 0 -M 20000 -c -a < /Users/dureaujoseph/ssm/example/noise_test/datapackage.json')
+            os.system('./pmcmc ode  -C 5000 -W 5000 -O 0 -M 20000 -c -a < /Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')
 
-            shutil.rmtree('/Users/dureaujoseph/ssm/example/noise_test')
+            shutil.rmtree('/Users/dureaujoseph/ssm/examples/noise_test')
             test = self.call_test_normal('r0_paris')
             self.assertEqual(test,'1')
 
@@ -149,15 +149,15 @@ class TestTransfsAndPMCMC(unittest.TestCase):
 
 
       def test_prior_normal_and_unif_transf_log(self):
-            os.chdir('/Users/dureaujoseph/ssm/example')
+            os.chdir('/Users/dureaujoseph/ssm/examples')
             shutil.copytree('noise','noise_test')
-            f = open('/Users/dureaujoseph/ssm/example/noise_test/datapackage.json')
+            f = open('/Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')
             j = json.load(f)
             j['resources'][0]['data']['r0_paris'] = 10
             j['resources'][0]['data']['r0_nyc'] = 10
-            with open('/Users/dureaujoseph/ssm/example/noise_test/datapackage.json','w') as outfile:
+            with open('/Users/dureaujoseph/ssm/examples/noise_test/datapackage.json','w') as outfile:
                   json.dump(j,outfile)
-            f = open('/Users/dureaujoseph/ssm/example/noise_test/datapackages/model-jdureau-noise/datapackage.json')
+            f = open('/Users/dureaujoseph/ssm/examples/noise_test/datapackages/model-jdureau-noise/datapackage.json')
             j = json.load(f)
             j['resources'][3]['data'][4]['prior']['distribution']='normal'
             j['resources'][3]['data'][4]['prior']['lower']=0
@@ -167,7 +167,7 @@ class TestTransfsAndPMCMC(unittest.TestCase):
             del j['resources'][3]['data'][4]['prior']['lower']
             j['resources'][3]['data'][5]['prior']['lower']=9.5
             j['resources'][3]['data'][5]['prior']['upper']=10.5
-            with open('/Users/dureaujoseph/ssm/example/noise_test/datapackages/model-jdureau-noise/datapackage.json','w') as outfile:
+            with open('/Users/dureaujoseph/ssm/examples/noise_test/datapackages/model-jdureau-noise/datapackage.json','w') as outfile:
                   json.dump(j,outfile)
 
             os.chdir('/Users/dureaujoseph/ssm/ssm/src/C')
@@ -176,7 +176,7 @@ class TestTransfsAndPMCMC(unittest.TestCase):
             os.system('make install')
 
             os.chdir('/Users/dureaujoseph/ssm/ssm/')
-            b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'example', 'noise_test', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
+            b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'examples', 'noise_test', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
             b.prepare()
             b.code()
             b.write_data()
@@ -188,9 +188,9 @@ class TestTransfsAndPMCMC(unittest.TestCase):
 
             os.chdir('/Users/dureaujoseph/ssm_test_model/')
             
-            os.system('./pmcmc ode  -C 1000 -W 100000 -O 0 -M 100000 -c -a < /Users/dureaujoseph/ssm/example/noise_test/datapackage.json')
+            os.system('./pmcmc ode  -C 1000 -W 100000 -O 0 -M 100000 -c -a < /Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')
 
-            shutil.rmtree('/Users/dureaujoseph/ssm/example/noise_test')
+            shutil.rmtree('/Users/dureaujoseph/ssm/examples/noise_test')
             test1 = self.call_test_normal('r0_paris')
             test2 = self.call_test_unif('r0_nyc')
             print test1
@@ -200,25 +200,25 @@ class TestTransfsAndPMCMC(unittest.TestCase):
 
 
       def test_prior_normal_transf_logit_ab(self):
-            os.chdir('/Users/dureaujoseph/ssm/example')
+            os.chdir('/Users/dureaujoseph/ssm/examples')
             shutil.copytree('noise','noise_test')
-            f = open('/Users/dureaujoseph/ssm/example/noise_test/datapackage.json')
+            f = open('/Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')
             j = json.load(f)
             j['resources'][0]['data']['r0_paris'] = 10
-            with open('/Users/dureaujoseph/ssm/example/noise_test/datapackage.json','w') as outfile:
+            with open('/Users/dureaujoseph/ssm/examples/noise_test/datapackage.json','w') as outfile:
                   json.dump(j,outfile)
-            f = open('/Users/dureaujoseph/ssm/example/noise_test/datapackages/model-jdureau-noise/datapackage.json')
+            f = open('/Users/dureaujoseph/ssm/examples/noise_test/datapackages/model-jdureau-noise/datapackage.json')
             j = json.load(f)
             j['resources'][3]['data'][4]['prior']['distribution']='normal'
             j['resources'][3]['data'][4]['prior']['lower']=0
             j['resources'][3]['data'][4]['prior']['upper']=20
             j['resources'][3]['data'][4]['prior']['mean']=10
             j['resources'][3]['data'][4]['prior']['sd']=1
-            with open('/Users/dureaujoseph/ssm/example/noise_test/datapackages/model-jdureau-noise/datapackage.json','w') as outfile:
+            with open('/Users/dureaujoseph/ssm/examples/noise_test/datapackages/model-jdureau-noise/datapackage.json','w') as outfile:
                   json.dump(j,outfile)
 
             os.chdir('/Users/dureaujoseph/ssm/ssm/')
-            b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'example', 'noise_test', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
+            b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'examples', 'noise_test', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
             b.prepare()
             b.code()
             b.write_data()
@@ -230,34 +230,34 @@ class TestTransfsAndPMCMC(unittest.TestCase):
 
             os.chdir('/Users/dureaujoseph/ssm_test_model/')
             
-            os.system('./pmcmc ode  -C 5000 -W 5000 -O 0 -M 20000 -c -a < /Users/dureaujoseph/ssm/example/noise_test/datapackage.json')
+            os.system('./pmcmc ode  -C 5000 -W 5000 -O 0 -M 20000 -c -a < /Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')
 
-            shutil.rmtree('/Users/dureaujoseph/ssm/example/noise_test')
+            shutil.rmtree('/Users/dureaujoseph/ssm/examples/noise_test')
             test = self.call_test_normal('r0_paris')
             self.assertEqual(test,'1') 
 
 
       def test_prior_normal_transf_identity(self):
-            os.chdir('/Users/dureaujoseph/ssm/example')
+            os.chdir('/Users/dureaujoseph/ssm/examples')
             shutil.copytree('noise','noise_test')
-            f = open('/Users/dureaujoseph/ssm/example/noise_test/datapackage.json')
+            f = open('/Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')
             j = json.load(f)
             j['resources'][0]['data']['r0_paris'] = 10
-            with open('/Users/dureaujoseph/ssm/example/noise_test/datapackage.json','w') as outfile:
+            with open('/Users/dureaujoseph/ssm/examples/noise_test/datapackage.json','w') as outfile:
                   json.dump(j,outfile)
-            f = open('/Users/dureaujoseph/ssm/example/noise_test/datapackages/model-jdureau-noise/datapackage.json')
+            f = open('/Users/dureaujoseph/ssm/examples/noise_test/datapackages/model-jdureau-noise/datapackage.json')
             j = json.load(f)
             j['resources'][3]['data'][4]['prior']['distribution']='normal'
             j['resources'][3]['data'][4]['prior']['mean']=10
             j['resources'][3]['data'][4]['prior']['sd']=1
             del j['resources'][3]['data'][4]['prior']['upper']
             del j['resources'][3]['data'][4]['prior']['lower']
-            with open('/Users/dureaujoseph/ssm/example/noise_test/datapackages/model-jdureau-noise/datapackage.json','w') as outfile:
+            with open('/Users/dureaujoseph/ssm/examples/noise_test/datapackages/model-jdureau-noise/datapackage.json','w') as outfile:
                   json.dump(j,outfile)
 
 
             os.chdir('/Users/dureaujoseph/ssm/ssm/')
-            b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'example', 'noise_test', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
+            b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'examples', 'noise_test', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
             b.prepare()
             b.code()
             b.write_data()
@@ -269,9 +269,9 @@ class TestTransfsAndPMCMC(unittest.TestCase):
 
             os.chdir('/Users/dureaujoseph/ssm_test_model/')
             
-            os.system('./pmcmc ode  -C 5000 -W 5000 -O 0 -M 20000 -c -a < /Users/dureaujoseph/ssm/example/noise_test/datapackage.json')
+            os.system('./pmcmc ode  -C 5000 -W 5000 -O 0 -M 20000 -c -a < /Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')
 
-            shutil.rmtree('/Users/dureaujoseph/ssm/example/noise_test')
+            shutil.rmtree('/Users/dureaujoseph/ssm/examples/noise_test')
             test = self.call_test_normal('r0_paris')
             self.assertEqual(test,'1') 
 
@@ -299,9 +299,9 @@ class TestKalmanOnDiffusions(unittest.TestCase):
 
             # copy noise from the examples, add a diffusing parameter for tests, and build it
             
-            os.chdir('/Users/dureaujoseph/ssm/example')
+            os.chdir('/Users/dureaujoseph/ssm/examples')
             shutil.copytree('noise','noise_test')
-            f = open('/Users/dureaujoseph/ssm/example/noise_test/datapackages/model-jdureau-noise/datapackage.json')
+            f = open('/Users/dureaujoseph/ssm/examples/noise_test/datapackages/model-jdureau-noise/datapackage.json')
             j = json.load(f)
             j['resources'][3]['data'].append({})
             j['resources'][3]['data'].append({})
@@ -321,7 +321,7 @@ class TestKalmanOnDiffusions(unittest.TestCase):
             j['resources'][4]['data']['drift'][0]['name']='test_par'
             j['resources'][4]['data']['drift'][0]['f']=0.0
             j['resources'][4]['data']['dispersion']=[['test_vol']]
-            with open('/Users/dureaujoseph/ssm/example/noise_test/datapackages/model-jdureau-noise/datapackage.json','w') as outfile:
+            with open('/Users/dureaujoseph/ssm/examples/noise_test/datapackages/model-jdureau-noise/datapackage.json','w') as outfile:
                   json.dump(j,outfile)
 
             os.chdir('/Users/dureaujoseph/ssm/ssm/src/C/')
@@ -330,7 +330,7 @@ class TestKalmanOnDiffusions(unittest.TestCase):
             os.system('make install')
             
             os.chdir('/Users/dureaujoseph/ssm/ssm/')
-            b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'example', 'noise_test', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
+            b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'examples', 'noise_test', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
             b.prepare()
             b.code()
             b.write_data()
@@ -352,16 +352,16 @@ class TestKalmanOnDiffusions(unittest.TestCase):
       @classmethod
       def tearDownClass(cls):
             os.chdir('/Users/dureaujoseph/ssm_test_model/')
-            shutil.rmtree('/Users/dureaujoseph/ssm/example/noise_test')
+            shutil.rmtree('/Users/dureaujoseph/ssm/examples/noise_test')
             
       def test_1step(self):
 
-            os.system('./kalman -O 2  -c -x < /Users/dureaujoseph/ssm/example/noise_test/datapackage.json')
+            os.system('./kalman -O 2  -c -x < /Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')
             tab = genfromtxt('hat_0.csv',delimiter=',',names=True)
             self.assertAlmostEqual(tab['lower_test_par'][0],-1.96/math.sqrt(7),5)
 
       def test_10step(self):
-            os.system('./kalman -O 10  -c -x < /Users/dureaujoseph/ssm/example/noise_test/datapackage.json')
+            os.system('./kalman -O 10  -c -x < /Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')
             tab = genfromtxt('hat_0.csv',delimiter=',',names=True)
             self.assertAlmostEqual(tab['lower_test_par'][9]/math.sqrt(10),-1.96/math.sqrt(7),5)
 
@@ -371,9 +371,9 @@ class TestSMCSDEagainstKalman(unittest.TestCase):
             print("")
             print("Testing SMC against EKF on linear examples")
 
-            os.chdir('/Users/dureaujoseph/ssm/example')
+            os.chdir('/Users/dureaujoseph/ssm/examples')
             shutil.copytree('noise','noise_test')
-            f = open('/Users/dureaujoseph/ssm/example/noise_test/datapackages/model-jdureau-noise/datapackage.json')
+            f = open('/Users/dureaujoseph/ssm/examples/noise_test/datapackages/model-jdureau-noise/datapackage.json')
             j = json.load(f)
             j['resources'][0]["data"] = []
             j['resources'][0]["data"].append({"name":"paris","composition":["S","I","I2","E1","E2"]})
@@ -457,16 +457,16 @@ class TestSMCSDEagainstKalman(unittest.TestCase):
             j['resources'][4]['data']['drift'][0]['name']='r0'
             j['resources'][4]['data']['drift'][0]['f']=0.0
             j['resources'][4]['data']['dispersion']=[['vol']]
-            with open('/Users/dureaujoseph/ssm/example/noise_test/datapackages/model-jdureau-noise/datapackage.json','w') as outfile:
+            with open('/Users/dureaujoseph/ssm/examples/noise_test/datapackages/model-jdureau-noise/datapackage.json','w') as outfile:
                   json.dump(j,outfile)
 
-            f = open('/Users/dureaujoseph/ssm/example/noise_test/datapackage.json')
+            f = open('/Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')
             j = json.load(f)
             j['resources'][0]["data"]={}
             j['resources'][0]["data"]["r0"] = 100
             j['resources'][1]["data"]={}
             j['resources'][1]["data"]["r0"] = {"r0":0.02}
-            with open('/Users/dureaujoseph/ssm/example/noise_test/datapackage.json','w') as outfile:
+            with open('/Users/dureaujoseph/ssm/examples/noise_test/datapackage.json','w') as outfile:
                   json.dump(j,outfile)
 
             os.chdir('/Users/dureaujoseph/ssm/ssm/src/C/')
@@ -475,7 +475,7 @@ class TestSMCSDEagainstKalman(unittest.TestCase):
             os.system('make install')
             
             os.chdir('/Users/dureaujoseph/ssm/ssm/')
-            b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'example', 'noise_test', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
+            b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'examples', 'noise_test', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
             b.prepare()
             b.code()
             b.write_data()
@@ -495,13 +495,13 @@ class TestSMCSDEagainstKalman(unittest.TestCase):
       @classmethod
       def tearDownClass(cls):
             os.chdir('/Users/dureaujoseph/ssm_test_model/')
-            shutil.rmtree('/Users/dureaujoseph/ssm/example/noise_test')
+            shutil.rmtree('/Users/dureaujoseph/ssm/examples/noise_test')
                         
       def test_only_env_sto(self):
-            os.system('./kalman -O 2  -c -x --no_dem_sto < /Users/dureaujoseph/ssm/example/noise_test/datapackage.json')
+            os.system('./kalman -O 2  -c -x --no_dem_sto < /Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')
             tab0 = genfromtxt('hat_0.csv',delimiter=',',names=True)
             nparts = 500
-            os.system('./smc sde --no_dem_sto -t -O 2 -x -J ' + str(nparts) + ' -I 1 -N 4 --dt 0.0001  < /Users/dureaujoseph/ssm/example/noise_test/datapackage.json')
+            os.system('./smc sde --no_dem_sto -t -O 2 -x -J ' + str(nparts) + ' -I 1 -N 4 --dt 0.0001  < /Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')
             tab1 = genfromtxt('hat_1.csv',delimiter=',',names=True)
             
             meanSMC0a = tab1[1][13]
@@ -530,9 +530,9 @@ class TestpMCMCsmoothing(unittest.TestCase):
       def setUpClass(cls):
             print("")
             print("Testing smoothing density provided by pMCMC")
-            os.chdir('/Users/dureaujoseph/ssm/example')
+            os.chdir('/Users/dureaujoseph/ssm/examples')
             shutil.copytree('noise','noise_test')
-            f = open('/Users/dureaujoseph/ssm/example/noise_test/datapackages/model-jdureau-noise/datapackage.json')
+            f = open('/Users/dureaujoseph/ssm/examples/noise_test/datapackages/model-jdureau-noise/datapackage.json')
             j = json.load(f)
             j['resources'][0]["data"] = []
             j['resources'][0]["data"].append({"name":"paris","composition":["S","I","I2","E1","E2"]})
@@ -616,16 +616,16 @@ class TestpMCMCsmoothing(unittest.TestCase):
             j['resources'][4]['data']['drift'][0]['name']='r0'
             j['resources'][4]['data']['drift'][0]['f']=0.0
             j['resources'][4]['data']['dispersion']=[['vol']]
-            with open('/Users/dureaujoseph/ssm/example/noise_test/datapackages/model-jdureau-noise/datapackage.json','w') as outfile:
+            with open('/Users/dureaujoseph/ssm/examples/noise_test/datapackages/model-jdureau-noise/datapackage.json','w') as outfile:
                   json.dump(j,outfile)
 
-            f = open('/Users/dureaujoseph/ssm/example/noise_test/datapackage.json')
+            f = open('/Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')
             j = json.load(f)
             j['resources'][0]["data"]={}
             j['resources'][0]["data"]["E2"] = 200000
             j['resources'][1]["data"]={}
             j['resources'][1]["data"]["E2"] = {"E2":0.02}
-            with open('/Users/dureaujoseph/ssm/example/noise_test/datapackage.json','w') as outfile:
+            with open('/Users/dureaujoseph/ssm/examples/noise_test/datapackage.json','w') as outfile:
                   json.dump(j,outfile)
 
             os.chdir('/Users/dureaujoseph/ssm/ssm/src/C/')
@@ -634,7 +634,7 @@ class TestpMCMCsmoothing(unittest.TestCase):
             os.system('make install')
             
             os.chdir('/Users/dureaujoseph/ssm/ssm/')
-            b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'example', 'noise_test', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
+            b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'examples', 'noise_test', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
             b.prepare()
             b.code()
             b.write_data()
@@ -653,18 +653,18 @@ class TestpMCMCsmoothing(unittest.TestCase):
 
       @classmethod
       def tearDownClass(cls):
-            shutil.rmtree('/Users/dureaujoseph/ssm/example/noise_test')
+            shutil.rmtree('/Users/dureaujoseph/ssm/examples/noise_test')
 
       def test_particle_genealogy(self):
             # We assess that the exploration of the genealogy to reconstruct sampled traj is correct by checking the trajectory
             # of the random walk through the distribution of its increments
             
-            os.system('./kalman -O 2  -c -x --no_dem_sto < /Users/dureaujoseph/ssm/example/noise_test/datapackage.json')
+            os.system('./kalman -O 2  -c -x --no_dem_sto < /Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')
             tab0 = genfromtxt('hat_0.csv',delimiter=',',names=True)
             nparts = 100
             nbiters = 2
             
-            os.system('./pmcmc sde -t -x --no_dem_sto -J ' + str(nparts) + ' -M ' + str(nbiters) + ' -I 1 -N 4 -T '  + str(nbiters) + '  < /Users/dureaujoseph/ssm/example/noise_test/datapackage.json')          
+            os.system('./pmcmc sde -t -x --no_dem_sto -J ' + str(nparts) + ' -M ' + str(nbiters) + ' -I 1 -N 4 -T '  + str(nbiters) + '  < /Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')          
             tab1 = genfromtxt('X_1.csv',delimiter=',',names=True)
 
             x = []
@@ -677,11 +677,11 @@ class TestpMCMCsmoothing(unittest.TestCase):
       def test_correct_timing(self):
             # We check that timing has not been broken when playing with the indexes reconstructing the sampled path in pmcmc
 
-            os.system('./kalman -O 3  -c -x --no_dem_sto < /Users/dureaujoseph/ssm/example/noise_test/datapackage.json')
+            os.system('./kalman -O 3  -c -x --no_dem_sto < /Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')
             tab0 = genfromtxt('hat_0.csv',delimiter=',',names=True)
             nparts = 2
             nbiters = 500
-            os.system('./pmcmc sde -t -x --no_dem_sto -O 4 -J ' + str(nparts) + ' -M ' + str(nbiters) + ' -I 2 -N 4 -T '  + str(nbiters) + '  < /Users/dureaujoseph/ssm/example/noise_test/datapackage.json')          
+            os.system('./pmcmc sde -t -x --no_dem_sto -O 4 -J ' + str(nparts) + ' -M ' + str(nbiters) + ' -I 2 -N 4 -T '  + str(nbiters) + '  < /Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')          
             tab1 = genfromtxt('X_2.csv',delimiter=',',names=True)
 
             ### t = 1 (first obs)
@@ -720,9 +720,9 @@ class TestpMCMCsmoothingWithNaNs(unittest.TestCase):
       def setUpClass(cls):
             print("")
             print("Testing smoothing density provided by pMCMC, in presence of NaNs")
-            os.chdir('/Users/dureaujoseph/ssm/example')
+            os.chdir('/Users/dureaujoseph/ssm/examples')
             shutil.copytree('noise','noise_test')
-            f = open('/Users/dureaujoseph/ssm/example/noise_test/datapackages/model-jdureau-noise/datapackage.json')
+            f = open('/Users/dureaujoseph/ssm/examples/noise_test/datapackages/model-jdureau-noise/datapackage.json')
             j = json.load(f)
             j['resources'][0]["data"] = []
             j['resources'][0]["data"].append({"name":"paris","composition":["S","I","I2","E1","E2"]})
@@ -806,19 +806,19 @@ class TestpMCMCsmoothingWithNaNs(unittest.TestCase):
             j['resources'][4]['data']['drift'][0]['name']='r0'
             j['resources'][4]['data']['drift'][0]['f']=0.0
             j['resources'][4]['data']['dispersion']=[['vol']]
-            with open('/Users/dureaujoseph/ssm/example/noise_test/datapackages/model-jdureau-noise/datapackage.json','w') as outfile:
+            with open('/Users/dureaujoseph/ssm/examples/noise_test/datapackages/model-jdureau-noise/datapackage.json','w') as outfile:
                   json.dump(j,outfile)
 
-            f = open('/Users/dureaujoseph/ssm/example/noise_test/datapackage.json')
+            f = open('/Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')
             j = json.load(f)
             j['resources'][0]["data"]={}
             j['resources'][0]["data"]["E2"] = 200000
             j['resources'][1]["data"]={}
             j['resources'][1]["data"]["E2"] = {"E2":0.02}
-            with open('/Users/dureaujoseph/ssm/example/noise_test/datapackage.json','w') as outfile:
+            with open('/Users/dureaujoseph/ssm/examples/noise_test/datapackage.json','w') as outfile:
                   json.dump(j,outfile)
 
-            os.chdir('/Users/dureaujoseph/ssm/example/noise_test/datapackages/model-jdureau-noise/datapackages/data-jdureau-test/data')
+            os.chdir('/Users/dureaujoseph/ssm/examples/noise_test/datapackages/model-jdureau-noise/datapackages/data-jdureau-test/data')
             shutil.copy('data.csv','data_temp.csv')
 
             with open('data_temp.csv','rU') as csvfile:
@@ -857,7 +857,7 @@ class TestpMCMCsmoothingWithNaNs(unittest.TestCase):
             os.system('make install')
             
             os.chdir('/Users/dureaujoseph/ssm/ssm/')
-            b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'example', 'noise_test', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
+            b = Builder(os.path.join(os.getenv("HOME"), 'ssm_test_model'), os.path.join('..' ,'examples', 'noise_test', 'datapackages', 'model-jdureau-noise', 'datapackage.json'))
             b.prepare()
             b.code()
             b.write_data()
@@ -877,18 +877,18 @@ class TestpMCMCsmoothingWithNaNs(unittest.TestCase):
 
       @classmethod
       def tearDownClass(cls):
-            shutil.rmtree('/Users/dureaujoseph/ssm/example/noise_test')
+            shutil.rmtree('/Users/dureaujoseph/ssm/examples/noise_test')
 
       def test_particle_genealogy(self):
             # We assess that the exploration of the genealogy to reconstruct sampled traj is correct by checking the trajectory
             # of the random walk through the distribution of its increments
             
-            os.system('./kalman -O 2  -c -x --no_dem_sto < /Users/dureaujoseph/ssm/example/noise_test/datapackage.json')
+            os.system('./kalman -O 2  -c -x --no_dem_sto < /Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')
             tab0 = genfromtxt('hat_0.csv',delimiter=',',names=True)
             nparts = 100
             nbiters = 2
             
-            os.system('./pmcmc sde -t -x --no_dem_sto -J ' + str(nparts) + ' -M ' + str(nbiters) + ' -I 1 -N 4 -T '  + str(nbiters) + '  < /Users/dureaujoseph/ssm/example/noise_test/datapackage.json')          
+            os.system('./pmcmc sde -t -x --no_dem_sto -J ' + str(nparts) + ' -M ' + str(nbiters) + ' -I 1 -N 4 -T '  + str(nbiters) + '  < /Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')          
             tab1 = genfromtxt('X_1.csv',delimiter=',',names=True)
 
             x = []
@@ -901,11 +901,11 @@ class TestpMCMCsmoothingWithNaNs(unittest.TestCase):
       def test_correct_timing(self):
             # We check that timing has not been broken when playing with the indexes reconstructing the sampled path in pmcmc
 
-            os.system('./kalman -O 3  -c -x --no_dem_sto < /Users/dureaujoseph/ssm/example/noise_test/datapackage.json')
+            os.system('./kalman -O 3  -c -x --no_dem_sto < /Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')
             tab0 = genfromtxt('hat_0.csv',delimiter=',',names=True)
             nparts = 2
             nbiters = 500
-            os.system('./pmcmc sde -t -x --no_dem_sto -O 4 -J ' + str(nparts) + ' -M ' + str(nbiters) + ' -I 2 -N 4 -T '  + str(nbiters) + '  < /Users/dureaujoseph/ssm/example/noise_test/datapackage.json')          
+            os.system('./pmcmc sde -t -x --no_dem_sto -O 4 -J ' + str(nparts) + ' -M ' + str(nbiters) + ' -I 2 -N 4 -T '  + str(nbiters) + '  < /Users/dureaujoseph/ssm/examples/noise_test/datapackage.json')          
             tab1 = genfromtxt('X_2.csv',delimiter=',',names=True)
 
             ### t = 1 (first obs)

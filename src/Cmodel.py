@@ -225,5 +225,5 @@ if __name__=="__main__":
     import json
     import os
 
-    model = json.load(open(os.path.join('..' ,'example', 'foo', 'datapackages', 'model-seb-sir', 'datapackage.json')))
+    model = json.load(open(os.path.join('..' ,'examples', 'foo', 'datapackages', 'model-seb-sir', 'datapackage.json')))
     m = Cmodel(model)
