@@ -22,7 +22,9 @@ if(!program.args[0]){
 
 var tplter = [
   "import os",
-  "from ssm.Builder import Builder",
+  "import sys",
+  "sys.path.append('" + path.resolve(__dirname, '..', 'src') + "')",
+  "from Builder import Builder",
   "path_model_coded_in_C = '" + program.output + "'",
   "path_model_datapackage = '" + pathDatapackage + "'",
   "b = Builder(path_model_coded_in_C, path_model_datapackage)",
@@ -30,6 +32,7 @@ var tplter = [
   "b.code()",
   "b.write_data()"
 ].join('\n');
+
 
 var templater = spawn('python', ['-c', tplter]);
 templater.stdout.pipe(process.stdout);

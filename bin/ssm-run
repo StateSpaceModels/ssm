@@ -64,7 +64,7 @@ function addPaths(inputs, resources, callback){
   async.map(inputs, function(input, cb){
     var names, paths;
 
-    if('resources' in input){ 
+    if('resource' in input){ 
 
       names = resources
         .map(function(x){return x.name})
@@ -75,9 +75,9 @@ function addPaths(inputs, resources, callback){
         .map(function(x){return path.resolve(pkgRoot, x.path)});
 
       cb(null, paths);
-    } else if ('files' in input){ 
+    } else if ('path' in input){ 
 
-      glob(path.resolve(pkgRoot, input.files), {matchBase: true}, function(err, paths){
+      glob(path.resolve(pkgRoot, input.path), {matchBase: true}, function(err, paths){
         cb(err, paths);
       });
     } else {
@@ -126,7 +126,7 @@ function addData(inputs, callback){
 
         } else {
           
-          var re = new RegExp(inputs[i].files.replace('*', '(.*)'));
+          var re = new RegExp(inputs[i].path.replace('*', '(.*)'));
           var id = path.match(re)[1];
 
           cb2(null, {id: id, input: data});
@@ -203,9 +203,9 @@ function mkdirpOutputs(outputs, root, callback){
 
 //  var dirs;
 //  outputs.forEach(function(x, i){
-//    dirs.push(path.dirname(path.join(root, x.files)));
-//    if( ('save' in x) && ('files' in x.save)){
-//      dirs.push(path.dirname(path.join(root, x.save.files)));
+//    dirs.push(path.dirname(path.join(root, x.path)));
+//    if( ('save' in x) && ('path' in x.save)){
+//      dirs.push(path.dirname(path.join(root, x.save.path)));
 //    }
 //  });
 //
@@ -241,8 +241,8 @@ function makeTaskBatch(step){
               if(arg.indexOf('$ROOT') !== -1){
                 var x = arg.replace('$ROOT', '');
                 return path.join(pkgRoot, x);
-              } else if (arg.indexOf('$ID') !== -1){
-                return arg.replace('$ID', step.inputs[i].data[j].id);
+              } else if (arg.indexOf('*') !== -1){
+                return arg.replace('*', step.inputs[i].data[j].id);
               } else {
                 return arg;
               }

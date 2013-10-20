@@ -53,6 +53,8 @@ static ssm_err_code_t run_kalman_and_store_traj(ssm_X_t **D_X, ssm_par_t *par, s
 
 int main(int argc, char *argv[])
 {
+    char str[SSM_STR_BUFFSIZE];
+
     ssm_options_t *opts = ssm_options_new();
     ssm_options_load(opts, SSM_KMCMC, argc, argv);
 
@@ -113,6 +115,11 @@ int main(int argc, char *argv[])
         ssm_print_trace(nav->trace, theta, nav, fitness->log_like_prev + fitness->log_prior_prev, m);
     }
 
+    if (nav->print & SSM_PRINT_LOG) {
+	snprintf(str, SSM_STR_BUFFSIZE, "%d\t logLike.: %g\t accepted: %d\t acc. rate: %g", m, fitness->log_like_prev + fitness->log_prior_prev, !(success & SSM_MH_REJECT), adapt->ar);
+	ssm_print_log(str);
+    }
+
     ////////////////
     // iterations //
     ////////////////
@@ -167,6 +174,11 @@ int main(int argc, char *argv[])
         if (nav->print & SSM_PRINT_DIAG) {
             ssm_print_ar(nav->diag, adapt, m);
         }
+
+	if (nav->print & SSM_PRINT_LOG) {
+	    snprintf(str, SSM_STR_BUFFSIZE, "%d\t logLike.: %g\t accepted: %d\t acc. rate: %g", m, fitness->log_like_prev + fitness->log_prior_prev, !(success & SSM_MH_REJECT), adapt->ar);
+	    ssm_print_log(str);
+	}
     }
 
     if (!(nav->print & SSM_PRINT_LOG)) {

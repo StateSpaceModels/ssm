@@ -20,6 +20,7 @@
 
 int main(int argc, char *argv[])
 {
+    char str[SSM_STR_BUFFSIZE];
     int j, n, np1, t0, t1, the_j;
 
     ssm_options_t *opts = ssm_options_new();
@@ -190,6 +191,10 @@ int main(int argc, char *argv[])
             ssm_print_trace(nav->trace, mle, nav, fitness->log_like, m);
         }
 
+	if (nav->print & SSM_PRINT_LOG) {
+	    snprintf(str, SSM_STR_BUFFSIZE, "%d\t logLike.: %g", m, fitness->log_like);
+	    ssm_print_log(str);
+	}
     }
 
     if (!(nav->print & SSM_PRINT_LOG)) {

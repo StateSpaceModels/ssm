@@ -66,7 +66,7 @@ void ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_si
 	    if (status == GSL_SUCCESS) {
 		ssm_print_log ("converged to maximum !");
 	    }
-	    sprintf(str, "%5d logLike = %12.5f size = %.14f", iter, fitness, size);
+	    sprintf(str, "%d\t logLike.: %12.5f\t size: %.14f", iter, fitness, size);
 	    ssm_print_log(str);
 	}
 
