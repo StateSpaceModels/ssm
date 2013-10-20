@@ -96,7 +96,6 @@ static ssm_err_code_t run_smc(ssm_err_code_t (*f_pred) (ssm_X_t *, double, doubl
             ssm_resample_X(fitness, D_J_X, D_J_X_tmp, n);
         }
     }
-    printf(" fit all fail %d",fitness->n_all_fail);
     return ( (data->n_obs != 0) && (fitness->n_all_fail == data->n_obs) ) ? SSM_ERR_PRED: SSM_SUCCESS;
 }
 
@@ -151,9 +150,7 @@ int main(int argc, char *argv[])
     }
 
     ssm_err_code_t success = run_smc(f_pred, D_J_X, D_J_X_tmp, par_proposed, calc, data, fitness, nav, workers);
-    printf("su1 %d\n",success == SSM_SUCCESS?1:0);
     success |= ssm_log_prob_prior(&fitness->log_prior, proposed, nav, fitness);
-    printf("su2 %d\n",success == SSM_SUCCESS?1:0);
 
     if(success != SSM_SUCCESS){
         ssm_print_err("epic fail, initialization step failed");
