@@ -22,21 +22,21 @@
         {
           "engines": {"ssm": "*"},
           "command": "simplex",
-          "args": ["ode", "--end", "2043-07-25", "--traj", "--next", "skip_", "--path", "$ROOT/data", "--id", "$ID"],
+          "args": ["ode", "--end", "2043-07-25", "--traj", "--next", "skip_", "--path", "$ROOT/data", "--id", "*"],
           "inputs": [
             {
-              "resources": "lhs",
+              "resource": "lhs",
               "collection": true
             }
           ],
           "outputs": [
             {
-              "files": "data/skip_*.json"
+              "path": "data/skip_*.json"
             },
             {
-              "files": "data/X_*.json",
+              "path": "data/X_*.json",
               "save" : {
-                "resources": "X_*"
+                "resource": "X_*"
               }
             }
           ]
@@ -45,21 +45,21 @@
         {
           "engines": {"ssm": "*"},
           "command": "simplex",
-          "args": ["ode", "--iter", "10000", "--trace", "--next", "mle_", "--path", "$ROOT/data", "--id", "$ID"],
+          "args": ["ode", "--iter", "10000", "--trace", "--next", "mle_", "--path", "$ROOT/data", "--id", "*"],
           "inputs": [
             {
-              "files": "data/skip_*.json"
+              "path": "data/skip_*.json"
             }
           ],
           "outputs": [
             {
-              "files": "data/trace_*.json",
+              "path": "data/trace_*.json",
               "save" : {
-                "resources": "trace_*"
+                "resource": "trace_*"
               }
             },
             {
-              "files": "data/mle_*.json"
+              "path": "data/mle_*.json"
             }
           ]
         }
@@ -97,3 +97,4 @@
     }
   ]
 }
+
