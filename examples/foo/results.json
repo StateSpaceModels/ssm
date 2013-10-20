@@ -1,0 +1,99 @@
+{
+  "name": "results-seb-foo",
+  "description": "LHS within the priors",
+  "keywords": ["lhs"],
+  "version": "0.0.0",
+  "dependencies": {
+    "model-seb-sir": "*"
+  },
+  "licenses": [
+    {
+      "type": "cc0",
+      "url": "http://creativecommons.org/publicdomain/zero/1.0/"
+    }
+  ],
+
+  "version": "0.0.0",
+
+  "analysis": [
+    {
+      "name": "map",
+      "data": [
+        {
+          "engines": {"ssm": "*"},
+          "command": "simplex",
+          "args": ["ode", "--end", "2043-07-25", "--traj", "--next", "skip_", "--path", "$ROOT/data", "--id", "$ID"],
+          "inputs": [
+            {
+              "resources": "lhs",
+              "collection": true
+            }
+          ],
+          "outputs": [
+            {
+              "files": "data/skip_*.json"
+            },
+            {
+              "files": "data/X_*.json",
+              "save" : {
+                "resources": "X_*"
+              }
+            }
+          ]
+        },
+
+        {
+          "engines": {"ssm": "*"},
+          "command": "simplex",
+          "args": ["ode", "--iter", "10000", "--trace", "--next", "mle_", "--path", "$ROOT/data", "--id", "$ID"],
+          "inputs": [
+            {
+              "files": "data/skip_*.json"
+            }
+          ],
+          "outputs": [
+            {
+              "files": "data/trace_*.json",
+              "save" : {
+                "resources": "trace_*"
+              }
+            },
+            {
+              "files": "data/mle_*.json"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+
+  "resources": [
+    {
+      "name": "lhs",
+      "path": "data/lhs.json",
+      "format": "json"
+    },
+
+    {
+      "name": "X_0",
+      "path": "data/X_0.csv",
+      "format": "csv"
+    },
+    {
+      "name": "X_1",
+      "path": "data/X_1.csv",
+      "format": "csv"
+    },
+
+    {
+      "name": "trace_0",
+      "path": "data/trace_0.csv",
+      "format": "csv"
+    },
+    {
+      "name": "trace_1",
+      "path": "data/trace_1.csv",
+      "format": "csv"
+    }
+  ]
+}

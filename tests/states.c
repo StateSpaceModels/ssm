@@ -30,6 +30,7 @@ void test_states__states_new(void)
 {    
     int i;
     char *expected_names[] = {"I_nyc", "I_paris", "S_nyc", "S_paris", "Inc_in_nyc", "Inc_out", "r0_nyc", "r0_paris", "R_nyc", "R_paris"};
+    char *expected_ic_names[] = {"pr_I_nyc", "pr_I_paris", "S_nyc", "pr_S_paris", "Inc_in_nyc", "Inc_out", "r0_nyc", "r0_paris", "R_nyc", "R_paris"};
     int expected_offsets[] = {0, 1, 2, 3, 4, 5, 6, 7, 0, 1};
 
     cl_check(states_length == sizeof(expected_names)/sizeof(*expected_names));
@@ -37,7 +38,7 @@ void test_states__states_new(void)
 	cl_assert(states[i]->offset == expected_offsets[i]);
 	cl_assert_equal_s(states[i]->name, expected_names[i]);
 	if(states[i]->ic){
-	    cl_assert_equal_s(states[i]->ic->name, states[i]->name);
+	    cl_assert_equal_s(states[i]->ic->name, expected_ic_names[i]);
 	}
     }
 }

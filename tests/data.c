@@ -87,15 +87,25 @@ void test_data__rows(void)
 }
 
 
-void test_data__extend(void)
+void test_data__ssm_data_adapt_to_simul(void)
 {
     strncpy(opts->end, "2014-07-25", SSM_STR_BUFFSIZE);
     int prev_length = data->length;
-    ssm_data_extend(data, jdata, nav, opts);
+    ssm_data_adapt_to_simul(data, jdata, nav, opts);
 
     cl_assert_equal_s(data->rows[prev_length]->date, "2013-07-26");
     cl_check(data->rows[prev_length]->time == 365);
 
     cl_assert_equal_s(data->rows[data->length-1]->date, "2014-07-25");
     cl_check(data->rows[data->length-1]->time == 729);
+}
+
+
+void test_data__ssm_data_adapt_to_simul_non_extra_domain(void)
+{
+    strncpy(opts->end, "2012-12-06", SSM_STR_BUFFSIZE);
+    ssm_data_adapt_to_simul(data, jdata, nav, opts);
+
+    cl_check(data->n_obs == 19);
+    cl_check(data->n_obs_nonan == 14);
 }

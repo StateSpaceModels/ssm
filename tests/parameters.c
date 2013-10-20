@@ -20,7 +20,7 @@ void test_parameters__cleanup(void)
 void test_parameters__parameters_new(void)
 {    
     int i;
-    char *expected_names[] = {"I_nyc", "I_paris", "S_nyc", "S_paris", "sto", "r0_nyc", "r0_paris", "v", "vol", "phi", "rep_all_CDC_inc", "rep_all_google_inc", "rep_nyc_CDC_inc", "rep_paris_CDC_prev"};
+    char *expected_names[] = {"pr_I_nyc", "pr_I_paris", "S_nyc", "pr_S_paris", "sto", "r0_nyc", "r0_paris", "pr_v", "vol", "phi", "rep_all_CDC_inc", "rep_all_google_inc", "rep_nyc_CDC_inc", "rep_paris_CDC_prev"};
 
     cl_check(parameters_length == sizeof(expected_names)/sizeof(*expected_names));
     for(i=0; i<parameters_length; i++){
