@@ -135,4 +135,3 @@ if __name__=="__main__":
     b.prepare()
     b.code()
     b.write_data()
-    

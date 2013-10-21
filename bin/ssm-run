@@ -10,6 +10,7 @@ var program = require('commander')
   , glob = require('glob')
   , clone = require('clone')
   , spawn = require('child_process').spawn
+  , mkdirp = require('mkdirp')
   , resolvePath = require('../lib/util').resolvePath;
 
 program
@@ -68,7 +69,7 @@ function addPaths(inputs, resources, callback){
 
       names = resources
         .map(function(x){return x.name})
-        .filter(minimatch.filter(input.resources, {matchBase: true}));
+        .filter(minimatch.filter(input.resource, {matchBase: true}));
 
       paths = resources
         .filter(function(x){return names.indexOf(x.name) !== -1})
@@ -153,11 +154,11 @@ function addData(inputs, callback){
 
 
 
-var map = pkg.analysis[0].data;
+var map = clone(pkg.analysis[0].data);
 var i=0;
 var j=0;
 
-(function pushTask(){
+(function pushTask(callback){
   
   addPaths(map[i].inputs, pkg.resources, function(err){
     if(err) throw(err);
@@ -168,9 +169,7 @@ var j=0;
       
       if(!taskBatch.length){
         if(++i <map.length){
-          rmPrevOutputs(map[i-1].outputs, pkgRoot, function(err){
-            pushTask();
-          });
+          pushTask(callback);
         }
       } else {
 
@@ -180,14 +179,16 @@ var j=0;
             if(err) throw(err);
 
             if (++j >= taskBatch.length){
-              if (++i <map.length) {
-                rmPrevOutputs(map[i-1].outputs, pkgRoot, function(err){
-                  pkgOutputs(map[i].outputs, pkg, pkgRoot, function(err){
-                    pushTask();
-                  });
-                });
-              }
+              pkgAndMvOutputs(map[i].outputs, pkg, pkgRoot, function(err){
+                if(err) throw(err);                  
+                if (++i <map.length) {
+                  pushTask(callback);
+                } else {
+                  callback(map, pkgRoot, pkg, writeDataPackage);
+                }
+              });
             }
+
           });
         });
 
@@ -196,34 +197,121 @@ var j=0;
     });
   });
   
-})();
+})(cleanUp);
 
 
+/**
+ * delete all the outputs non saved
+ */
+function cleanUp(map, root, pkg, callback){
+
+  var i = 0;
+
+  (function mapWalker(){
+    var out;
+    for(var j=0; j<map[i].outputs.length; j++){
+      out = map[i].outputs[j];
+      if(!('save' in out) || ( ('save' in out) && ('path' in out.save) && (out.save.path !== out.path))){
+
+        glob(path.resolve(root, out.path), {matchBase: true}, function(err, paths){
+          if(err) throw err;
+
+          async.each(paths, fs.unlink, function(err){
+            if(err) throw err;
+
+            if(++i<map.length){
+              mapWalker();
+            }else {
+              return callback(root, pkg);
+            }
+          });
+
+        });
+      }
+    }
+  })();
+  
+};
+
+
+function writeDataPackage(root, pkg){
+
+  fs.writeFile(path.join(root, 'datapackage2.json'), JSON.stringify(pkg, null, 2), function(err){
+    if(err) throw err;
+  });
+
+};
+
+
+/**
+ * make output directories for running computation *and * stored
+ * results
+ */
 function mkdirpOutputs(outputs, root, callback){
 
-//  var dirs;
-//  outputs.forEach(function(x, i){
-//    dirs.push(path.dirname(path.join(root, x.path)));
-//    if( ('save' in x) && ('path' in x.save)){
-//      dirs.push(path.dirname(path.join(root, x.save.path)));
-//    }
-//  });
-//
-//  async.each(dirs, mkdirp, callback);
+  var dirs = [];
+  outputs.forEach(function(x, i){
+    dirs.push(path.dirname(path.join(root, x.path)));
+    if( ('save' in x) && ('path' in x.save)){
+      dirs.push(path.dirname(path.join(root, x.save.path)));
+    }
+  });
 
-  callback(null);
+  async.each(dirs, mkdirp, callback);
 
-}
+};
 
 
-function rmPrevOutputs(prevOutputs, pkgRoot, callback){
-  callback(null);
-}
+/**
+ * All the directories necessary already exist
+ */
+function pkgAndMvOutputs(outputs, pkg, root, callback){
+  //get files of run that succeeded
+
+  async.each(outputs.filter(function(x){ return ('save' in x); }), function(output, cb){
+    
+    //get files from run that succeeded
+    glob(path.resolve(root, output.path), {matchBase: true}, function(err, paths){
+      if(err) return cb(err);
+      if(!paths.length) return cb(null);
+
+      //add entry to datapackage
+      var re = new RegExp(output.path.replace('*', '(.*)'));
+      var id;
+      paths.map(function(x){
+        id = x.match(re)[1];
+        
+        pkg.resources.push({
+          name: output.save.resource.replace('*', id),
+          path: (output.save.path && path.resolve(root, output.save.path.replace('*', id))) || x
+        });
+      });
 
 
-function pkgOutputs(outputs, pkg, pkgRoot, callback){
-  callback(null);
-}
+      //mv outputs (if needed)
+      if(('path' in output.save) && (output.save.path !== output.path )){
+        
+        var mv = paths.map(function(x){
+          id = x.match(re)[1];
+          return {
+            oldPath: x,
+            newPath:  path.resolve(root, output.save.path.replace('*', id))
+          };
+        });
+
+        async.each(mv, function(item, cb2){
+          fs.rename(item.oldPath, item.newPath, cb2);
+        }, cb);
+
+      } else {
+        return cb(null);
+      }
+
+    });           
+
+  }, callback);   
+  
+};
 
 
 
@@ -267,7 +355,6 @@ function makeTaskBatch(step){
  */
 function runTask(task, walltime, callback){
 
-  console.log(task.options);
   var prog = spawn(task.command, task.args, task.options);
   prog.on('error', console.log);
 

@@ -21,8 +21,8 @@
       "data": [
         {
           "engines": {"ssm": "*"},
-          "command": "simplex",
-          "args": ["ode", "--end", "2043-07-25", "--traj", "--next", "skip_", "--path", "$ROOT/data", "--id", "*"],
+          "command": "smc",
+          "args": ["ode", "--traj", "--next", "skip_", "--path", "$ROOT/data", "--id", "*"],
           "inputs": [
             {
               "resource": "lhs",
@@ -34,7 +34,7 @@
               "path": "data/skip_*.json"
             },
             {
-              "path": "data/X_*.json",
+              "path": "data/X_*.csv",
               "save" : {
                 "resource": "X_*"
               }
@@ -45,7 +45,7 @@
         {
           "engines": {"ssm": "*"},
           "command": "simplex",
-          "args": ["ode", "--iter", "10000", "--trace", "--next", "mle_", "--path", "$ROOT/data", "--id", "*"],
+          "args": ["ode", "--iter", "100", "--trace", "--next", "mle_", "--path", "$ROOT/data", "--id", "*"],
           "inputs": [
             {
               "path": "data/skip_*.json"
@@ -53,9 +53,10 @@
           ],
           "outputs": [
             {
-              "path": "data/trace_*.json",
+              "path": "data/trace_*.csv",
               "save" : {
-                "resource": "trace_*"
+                "resource": "trace_*",
+                "path": "data/my_trace_*.csv"
               }
             },
             {
@@ -72,28 +73,6 @@
       "name": "lhs",
       "path": "data/lhs.json",
       "format": "json"
-    },
-
-    {
-      "name": "X_0",
-      "path": "data/X_0.csv",
-      "format": "csv"
-    },
-    {
-      "name": "X_1",
-      "path": "data/X_1.csv",
-      "format": "csv"
-    },
-
-    {
-      "name": "trace_0",
-      "path": "data/trace_0.csv",
-      "format": "csv"
-    },
-    {
-      "name": "trace_1",
-      "path": "data/trace_1.csv",
-      "format": "csv"
     }
   ]
 }
