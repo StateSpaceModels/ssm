@@ -235,6 +235,8 @@ ssm_err_code_t ssm_kalman_update(ssm_fitness_t *fitness, ssm_X_t *X, ssm_row_t *
     // positivity and symmetry could have been lost when updating Ct
     cum_status |= _ssm_check_and_correct_Ct(X, calc, nav);
 
+    // positivity of state variables and remainder could have been lost when updating X_sv
+    cum_status |= ssm_check_no_neg_sv_or_remainder(X, nav, calc, t);
 
     // log_like   
     fitness->log_like += ssm_sanitize_log_likelihood(log(ssm_dmvnorm(row->ts_nonan_length, &pred_error.vector, &zero.vector, &St.matrix, 1.0)), row, fitness, nav);
