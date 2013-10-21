@@ -142,9 +142,7 @@ int main(int argc, char *argv[])
             ssm_kalman_reset_Ct(D_X[0], nav);
 
             success |= run_kalman_and_store_traj(D_X, par, fitness, data, calc, nav);
-	    printf("run ok %d\n",success==SSM_SUCCESS?1:0);
             success |= ssm_metropolis_hastings(fitness, &ratio, proposed, theta, var, sd_fac, nav, calc, 1);
-	    printf("accepted %d\n",success==SSM_SUCCESS?1:0);
         }
 
         if(success == SSM_SUCCESS){ //everything went well and the proposed theta was accepted

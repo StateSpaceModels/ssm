@@ -139,31 +139,14 @@ ssm_err_code_t ssm_metropolis_hastings(ssm_fitness_t *fitness, double *alpha, ss
     success |= ssm_log_prob_prior   (&fitness->log_prior, proposed,                        nav, fitness); /* p{theta*} */
     success |= ssm_log_prob_prior   (&lprior_prev,        theta,                           nav, fitness); /* p{theta(i-1)} */
 
-    int i;
-    printf("prop ");
-    for(i=0;i<8;i++){
-	printf(" %f ",gsl_vector_get(proposed,i));
-    }
-    printf("\n");
-    printf("theta ");
-    for(i=0;i<8;i++){
-	printf(" %f ",gsl_vector_get(theta,i));
-    }
-    printf("\n");
-
-
-    printf("L %f Lpr %f qpr %f q %f p %f ppr %f\n",fitness->log_like,fitness->log_like_prev,lproposal_prev,lproposal,fitness->log_prior,lprior_prev);
 
     if(success == SSM_SUCCESS) {
 
         // ( p{theta*}(y)  p{theta*} ) / ( p{theta(i-1)}(y) p{theta(i-1)} )  *  q{ theta(i-1) | theta* } / q{ theta* | theta(i-1) }
         *alpha = exp( (fitness->log_like - fitness->log_like_prev + lproposal_prev - lproposal + fitness->log_prior - lprior_prev) );
-	printf("alpha %f\n",*alpha);
         ran = gsl_ran_flat(calc->randgsl, 0.0, 1.0);
 
         if(ran < *alpha) {
-	    printf("accepted\n");
-	    printf("test %d\n",success==SSM_SUCCESS?1:0);
             return success; //accepted
         }
     } else {
