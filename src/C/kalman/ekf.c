@@ -236,8 +236,7 @@ ssm_err_code_t ssm_kalman_update(ssm_fitness_t *fitness, ssm_X_t *X, ssm_row_t *
     cum_status |= _ssm_check_and_correct_Ct(X, calc, nav);
 
 
-    // log_like
-    //fitness->log_like += (log(ssm_dmvnorm(row->ts_nonan_length, &pred_error.vector, &zero.vector, &St.matrix, 1.0)));
+    // log_like   
     fitness->log_like += ssm_sanitize_log_likelihood(log(ssm_dmvnorm(row->ts_nonan_length, &pred_error.vector, &zero.vector, &St.matrix, 1.0)), row, fitness, nav);
 
     return cum_status;

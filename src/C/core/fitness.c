@@ -20,9 +20,9 @@
 
 
 /**
- *  checks for numerical issues and avoid 0.0 to avoid NaN when taking
- *  log.  Also, ensures a uniform likelihood scale by making sure that
- *  everything below fitness->like_min is fitness->like_min.
+ *  checks for numerical issues.  Also, ensures a uniform likelihood
+ *  scale by making sure that everything below fitness->log_like_min
+ *  is fitness->log_like_min*row->ts_nonan_length.
  */
 double ssm_sanitize_log_likelihood(double log_like, ssm_row_t *row, ssm_fitness_t *fitness, ssm_nav_t *nav)
 {

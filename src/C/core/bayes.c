@@ -139,7 +139,7 @@ ssm_err_code_t ssm_metropolis_hastings(ssm_fitness_t *fitness, double *alpha, ss
     success |= ssm_log_prob_prior   (&fitness->log_prior, proposed,                        nav, fitness); /* p{theta*} */
     success |= ssm_log_prob_prior   (&lprior_prev,        theta,                           nav, fitness); /* p{theta(i-1)} */
 
-    printf("L %f Lpr %f qpr %f q %f p %f ppr %f\n",fitness->log_like,fitness->log_like_prev,lproposal_prev,lproposal,fitness->log_prior,lprior_prev);
+    //    printf("L %f Lpr %f qpr %f q %f p %f ppr %f\n",fitness->log_like,fitness->log_like_prev,lproposal_prev,lproposal,fitness->log_prior,lprior_prev);
 
     if(success == SSM_SUCCESS) {
 

@@ -414,30 +414,22 @@ void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *
 void ssm_print_header_hat(FILE *stream, ssm_nav_t *nav)
 {
     int i;
-    fprintf(stream, "date,");
+    fprintf(stream, "date");
 
     for(i=0; i<nav->states_sv_inc->length; i++){
-        fprintf(stream, "mean_%s,lower_%s,upper_%s,", nav->states_sv_inc->p[i]->name, nav->states_sv_inc->p[i]->name, nav->states_sv_inc->p[i]->name);
+        fprintf(stream, ",mean_%s,lower_%s,upper_%s", nav->states_sv_inc->p[i]->name, nav->states_sv_inc->p[i]->name, nav->states_sv_inc->p[i]->name);
     }
 
     for(i=0; i<nav->states_remainders->length; i++){
-        fprintf(stream, "mean_%s,lower_%s,upper_%s,", nav->states_remainders->p[i]->name, nav->states_remainders->p[i]->name, nav->states_remainders->p[i]->name);
+        fprintf(stream, ",mean_%s,lower_%s,upper_%s", nav->states_remainders->p[i]->name, nav->states_remainders->p[i]->name, nav->states_remainders->p[i]->name);
     }
 
     for(i=0; i<nav->states_diff->length; i++){
-        fprintf(stream, "mean_%s,lower_%s,upper_%s,", nav->states_diff->p[i]->name, nav->states_diff->p[i]->name, nav->states_diff->p[i]->name);
+        fprintf(stream, ",mean_%s,lower_%s,upper_%s", nav->states_diff->p[i]->name, nav->states_diff->p[i]->name, nav->states_diff->p[i]->name);
     }
 
     for(i=0; i<nav->observed_length; i++){
-        if(i<nav->observed_length-1){
-            fprintf(stream, "mean_%s,lower_%s,upper_%s,", nav->observed[i]->name, nav->observed[i]->name, nav->observed[i]->name);
-        } else {
-            fprintf(stream, "mean_%s,lower_%s,upper_%s", nav->observed[i]->name, nav->observed[i]->name, nav->observed[i]->name);
-        }
-    }
-
-    for(i=0; i< nav->observed_length; i++) {
-	fprintf(stream, ",y_%s", nav->observed[i]->name);
+	fprintf(stream, ",mean_%s,lower_%s,upper_%s", nav->observed[i]->name, nav->observed[i]->name, nav->observed[i]->name);
     }
 
     fprintf(stream, "\n");
@@ -516,33 +508,6 @@ void ssm_print_hat(FILE *stream, ssm_hat_t *hat, ssm_nav_t *nav, ssm_row_t *row)
         json_object_set_new(jout, key, json_real(hat->observed_95[observed->offset][1]));
 #else
         fprintf(stream, ",%g,%g,%g", hat->observed[observed->offset], hat->observed_95[observed->offset][0], hat->observed_95[observed->offset][1]);
-#endif
-    }
-
-    double y[nav->observed_length];
-    double is_nan[nav->observed_length];
-    for(i=0; i< nav->observed_length; i++) {
-	is_nan[i] = 1;
-    }
-    for(i=0; i<row->ts_nonan_length; i++) {
-        offset = row->observed[i]->offset;
-        y[offset] = row->values[i];
-	is_nan[i] = 0;
-    }
-    for(i=0; i< nav->observed_length; i++) {
-#if SSM_JSON
-	snprintf(key, SSM_STR_BUFFSIZE, "y_%s", observed->name);
-	if(is_nan[i]){
-	    json_object_set_new(jout, observed->name, "nan");
-	} else {
-	    json_object_set_new(jout, observed->name, y[i]);
-	}
-#else
-	if(is_nan[i]){
-	    fprintf(stream, ",nan");
-	} else {
-	    fprintf(stream, ",%g", y[i]);
-	}
 #endif
     }
 
