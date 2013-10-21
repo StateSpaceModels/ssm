@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 	
         if(!flag_no_filter && data->rows[n]->ts_nonan_length && (fitness->cum_status[0] == SSM_SUCCESS)) {
             fitness->cum_status[0] |= ssm_kalman_update(fitness, X, data->rows[n], t1, par, calc, nav);
-	    if( fitness->cum_status[0] & SSM_ERR_REM ) { 
+	    if( fitness->cum_status[0] & SSM_ERR_REM_SV ) { 
 		fitness->log_like =  GSL_NEGINF;
 		if(nav->print & SSM_PRINT_WARNING) {
 		    ssm_print_warning("error: negative state variable or remainder");
