@@ -55,6 +55,7 @@ static double f_ksimplex(const gsl_vector *theta, void *params)
         return GSL_POSINF; //GSL simplex algo minimizes so we return POSINF
     }
 
+
     ssm_theta2input(input, (gsl_vector *) theta, nav);
     ssm_input2par(par, input, calc, nav);
     ssm_par2X(X, par, calc, nav);

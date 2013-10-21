@@ -42,7 +42,7 @@ void ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_si
     int i;
     for (i=0; i<nav->theta_all->length; i++) {
 	gsl_vector_set(x, i, gsl_vector_get(theta, i));
-	gsl_vector_set(jump_sizes, i, sqrt(gsl_matrix_get(var, i, i))); //note the sqrt !!
+	gsl_vector_set(jump_sizes, i, sqrt(gsl_matrix_get(var, i, i))/100.0); //note the sqrt !!
     }
 
     minex_func.n = nav->theta_all->length;
@@ -52,6 +52,7 @@ void ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_si
     simp = gsl_multimin_fminimizer_alloc(T, nav->theta_all->length);
 
     gsl_multimin_fminimizer_set(simp, &minex_func, x, jump_sizes);
+
 
     do {
 	iter++;
