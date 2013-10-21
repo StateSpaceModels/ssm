@@ -105,7 +105,7 @@ ssm_err_code_t ssm_check_no_neg_sv_or_remainder(ssm_X_t *p_X, ssm_nav_t *nav, ss
 
     for(i=0; i<states_sv->length; i++){
         if (p_X->proj[states_sv->p[i]->offset] < 0.0){
-            if (nav->print & SSM_PRINT_WARNING) {
+	    if (nav->print & SSM_PRINT_WARNING) {
                 ssm_print_warning("negative state variable");
             }
             return SSM_ERR_REM;
