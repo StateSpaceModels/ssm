@@ -53,9 +53,7 @@ void ssm_step_psr(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_ca
     int i;
     double diffed[states_diff->length];
     int is_diff = ! (nav->noises_off & SSM_NO_DIFF);
-    {% endif %}
 
-    {% if is_diff %}
     for(i=0; i<states_diff->length; i++){
         ssm_state_t *p = states_diff->p[i];
         if(is_diff){

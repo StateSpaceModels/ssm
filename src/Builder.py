@@ -37,7 +37,7 @@ class Builder(Data, Ccoder):
         self.path_rendered = path_rendered
         self.env = Environment(loader=FileSystemLoader(os.path.join(self.path_rendered, 'C', 'templates')))
 
-    def prepare(self, path_templates=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'C'), replace=True):
+    def prepare(self, path_templates=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'C', 'templates'), replace=True):
         """
         copy templates to path_rendered
         """
@@ -49,7 +49,7 @@ class Builder(Data, Ccoder):
 
         #copy templates to uploads/rendered/user_name/model_id
         if not os.path.exists(self.path_rendered):
-            shutil.copytree(path_templates, os.path.join(self.path_rendered, 'C'))
+            shutil.copytree(path_templates, os.path.join(self.path_rendered, 'C', 'templates'))
 
     def archive(self, replace=True):
         """make a tarball"""

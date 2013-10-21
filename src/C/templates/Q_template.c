@@ -36,9 +36,7 @@ void ssm_eval_Q_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm
 
     {% if is_diff  %}
     double diffed[states_diff->length];
-    {% endif %}
 
-    {% if is_diff %}
     for(i=0; i<states_diff->length; i++){
         ssm_state_t *p = states_diff->p[i];
         {% if noises_off != 'ode'%}

@@ -10,15 +10,12 @@ void ssm_eval_Ht(ssm_X_t *p_X, ssm_row_t *row, double t, ssm_par_t *par, ssm_nav
     gsl_matrix *Ht = calc->_Ht;
     int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
 
-    ssm_it_states_t *states_diff = nav->states_diff;
     ssm_it_states_t *states_inc = nav->states_inc;
     ssm_it_states_t *states_sv = nav->states_sv;
+    ssm_it_states_t *states_diff = nav->states_diff;
 
     {% if is_diff  %}
     int is_diff = ! (nav->noises_off & SSM_NO_DIFF);
-    {% endif %}
-
-    {% if is_diff  %}
     double diffed[states_diff->length];
     {% endif %}
 

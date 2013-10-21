@@ -420,19 +420,6 @@ typedef ssm_err_code_t (*ssm_f_pred_t) (ssm_X_t *, double, double, ssm_par_t *, 
 
 
 /**
- * Measuring durations
- */
-typedef struct
-{
-    unsigned int d; ///< days
-    unsigned int h; ///< hours
-    unsigned int m; ///< minutes
-    double s;       ///< seconds
-} ssm_duration_t;
-
-
-
-/**
  * options
  */
 typedef struct

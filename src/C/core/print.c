@@ -438,7 +438,7 @@ void ssm_print_header_hat(FILE *stream, ssm_nav_t *nav)
 
 void ssm_print_hat(FILE *stream, ssm_hat_t *hat, ssm_nav_t *nav, ssm_row_t *row)
 {
-    int i, offset;
+    int i;
 
     ssm_state_t *state;
     ssm_observed_t *observed;
