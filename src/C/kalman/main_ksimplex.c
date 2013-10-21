@@ -71,15 +71,17 @@ static double f_ksimplex(const gsl_vector *theta, void *params)
         ssm_X_reset_inc(X, data->rows[n], nav);
 
         fitness->cum_status[0] |= ssm_f_prediction_ode(X, t0, t1, par, nav, calc);
-        if(data->rows[n]->ts_nonan_length) {
+	
+        if(data->rows[n]->ts_nonan_length && (fitness->cum_status[0] == SSM_SUCCESS)) {
             fitness->cum_status[0] |= ssm_kalman_update(fitness, X, data->rows[n], t1, par, calc, nav);
-            if(fitness->cum_status[0] != SSM_SUCCESS){
-                if (nav->print & SSM_PRINT_WARNING) {
-                    ssm_print_warning("warning: something went wrong");
-                }
-                return GSL_POSINF; //GSL simplex algo minimizes so we return POSINF
-            }
         }
+
+	if(fitness->cum_status[0] != SSM_SUCCESS){
+	    if (nav->print & SSM_PRINT_WARNING) {
+		ssm_print_warning("warning: something went wrong");
+	    }
+	    return GSL_POSINF; //GSL simplex algo minimizes so we return POSINF
+	}
     }
 
     if (flag_prior) {

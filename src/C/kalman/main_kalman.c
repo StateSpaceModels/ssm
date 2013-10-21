@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
         if (nav->print & SSM_PRINT_DIAG) {
             ssm_print_pred_res(nav->diag, &X, par, nav, calc, data, data->rows[n], fitness);
         }
-
+	
         if(!flag_no_filter && data->rows[n]->ts_nonan_length && (fitness->cum_status[0] == SSM_SUCCESS)) {
             fitness->cum_status[0] |= ssm_kalman_update(fitness, X, data->rows[n], t1, par, calc, nav);
             //TODO: handle error (exit(EXIT_FAILURE) ??)

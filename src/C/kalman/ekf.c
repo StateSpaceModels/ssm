@@ -171,6 +171,12 @@ ssm_err_code_t ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X,
     status  =  gsl_matrix_add(&St.matrix,&Rt.matrix);
     cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
 
+    for(i=0; i< row->ts_nonan_length; i++){
+	if (gsl_matrix_get(&St.matrix,i,i)<SSM_ZERO_LOG){
+	    gsl_matrix_set(&St.matrix,i,i,SSM_ZERO_LOG);
+        }
+    }
+
     // Kt = Ct * Ht * sc_st^-1
     status = gsl_linalg_LU_decomp(&St.matrix, p, &i); // inversion requires LU decomposition
     cum_status |=  (status != GSL_SUCCESS) ? SSM_ERR_KAL : SSM_SUCCESS;
@@ -229,7 +235,9 @@ ssm_err_code_t ssm_kalman_update(ssm_fitness_t *fitness, ssm_X_t *X, ssm_row_t *
     // positivity and symmetry could have been lost when updating Ct
     cum_status |= _ssm_check_and_correct_Ct(X, calc, nav);
 
+
     // log_like
+    //fitness->log_like += (log(ssm_dmvnorm(row->ts_nonan_length, &pred_error.vector, &zero.vector, &St.matrix, 1.0)));
     fitness->log_like += ssm_sanitize_log_likelihood(log(ssm_dmvnorm(row->ts_nonan_length, &pred_error.vector, &zero.vector, &St.matrix, 1.0)), row, fitness, nav);
 
     return cum_status;
