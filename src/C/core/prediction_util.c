@@ -86,29 +86,40 @@ double ssm_correct_rate(double rate, double dt)
 
 
 /**
- * Check if state variable or remainder has not become negative
+ * Check if remainder has not become negative
  */
-ssm_err_code_t ssm_check_no_neg_sv_or_remainder(ssm_X_t *p_X, ssm_nav_t *nav, ssm_calc_t *calc, double t)
+ssm_err_code_t ssm_check_no_neg_remainder(ssm_X_t *p_X, ssm_nav_t *nav, ssm_calc_t *calc, double t)
 {
     int i;
     ssm_it_states_t *rem = nav->states_remainders;
-    ssm_it_states_t *states_sv = nav->states_sv;
 
     for(i=0; i<rem->length; i++){
         if (rem->p[i]->f_remainder(p_X, calc, t) < 0.0){
             if (nav->print & SSM_PRINT_WARNING) {
                 ssm_print_warning("remainder negative");
             }
-            return SSM_ERR_REM;
+            return SSM_ERR_REM_SV;
         }
     }
+
+    return SSM_SUCCESS;
+}
+
+
+/**
+ * Check if state variable has not become negative
+ */
+ssm_err_code_t ssm_check_no_neg_sv(ssm_X_t *p_X, ssm_nav_t *nav, ssm_calc_t *calc, double t)
+{
+    int i;
+    ssm_it_states_t *states_sv = nav->states_sv;
 
     for(i=0; i<states_sv->length; i++){
         if (p_X->proj[states_sv->p[i]->offset] < 0.0){
             if (nav->print & SSM_PRINT_WARNING) {
                 ssm_print_warning("negative state variable");
             }
-            return SSM_ERR_REM;
+            return SSM_ERR_REM_SV;
         }
     }
 

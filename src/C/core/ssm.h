@@ -62,7 +62,7 @@ typedef enum {SSM_NO_DEM_STO = 1 << 0, SSM_NO_WHITE_NOISE = 1 << 1, SSM_NO_DIFF 
 
 typedef enum {SSM_PRINT_TRACE = 1 << 0, SSM_PRINT_X = 1 << 1, SSM_PRINT_HAT = 1 << 2, SSM_PRINT_DIAG = 1 << 3, SSM_PRINT_LOG = 1 << 4, SSM_PRINT_WARNING = 1 << 5 } ssm_print_t;
 
-typedef enum {SSM_SUCCESS = 1 << 0 , SSM_ERR_LIKE= 1 << 1, SSM_ERR_REM = 1 << 2, SSM_ERR_PRED = 1 << 3, SSM_ERR_KAL = 1 << 4, SSM_ERR_IC = 1 << 5, SSM_MH_REJECT = 1 << 6, SSM_ERR_PROPOSAL = 1 << 7, SSM_ERR_PRIOR = 1 << 8} ssm_err_code_t;
+typedef enum {SSM_SUCCESS = 1 << 0 , SSM_ERR_LIKE= 1 << 1, SSM_ERR_REM_SV = 1 << 2, SSM_ERR_PRED = 1 << 3, SSM_ERR_KAL = 1 << 4, SSM_ERR_IC = 1 << 5, SSM_MH_REJECT = 1 << 6, SSM_ERR_PROPOSAL = 1 << 7, SSM_ERR_PRIOR = 1 << 8} ssm_err_code_t;
 
 typedef enum {SSM_WORKER_J_PAR = 1 << 0, SSM_WORKER_D_X = 1 << 1, SSM_WORKER_FITNESS = 1 << 2 } ssm_worker_opt_t;
 
@@ -653,7 +653,8 @@ void ssm_X_copy(ssm_X_t *dest, ssm_X_t *src);
 void ssm_X_reset_inc(ssm_X_t *X, ssm_row_t *row, ssm_nav_t *nav);
 void ssm_ran_multinomial (const gsl_rng * r, const size_t K, unsigned int N, const double p[], unsigned int n[]);
 double ssm_correct_rate(double rate, double dt);
-ssm_err_code_t ssm_check_no_neg_sv_or_remainder(ssm_X_t *p_X, ssm_nav_t *nav, ssm_calc_t *calc, double t);
+ssm_err_code_t ssm_check_no_neg_remainder(ssm_X_t *p_X, ssm_nav_t *nav, ssm_calc_t *calc, double t);
+ssm_err_code_t ssm_check_no_neg_sv(ssm_X_t *p_X, ssm_nav_t *nav, ssm_calc_t *calc, double t);
 ssm_f_pred_t ssm_get_f_pred(ssm_nav_t *nav);
 ssm_err_code_t ssm_f_prediction_ode                           (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
 ssm_err_code_t ssm_f_prediction_sde_no_dem_sto_no_white_noise (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
