@@ -1,0 +1,41 @@
+{
+  "name": "analysis-jdureau-noise",
+  "description": "starting values",
+  "keywords": ["trial"],
+  "version": "0.0.0",
+  "dependencies": {
+    "model-jdureau-noise": "*"
+  },
+  "licenses": [
+    {
+      "type": "cc0",
+      "url": "http://creativecommons.org/publicdomain/zero/1.0/"
+    }
+  ],
+
+  "version": "0.0.0",
+
+  "resources": [
+    {
+      "name": "values",
+      "data": {
+        "pr_I_paris": 1e-05,
+        "r0_nyc": 20.0,
+        "r0_paris": 20.0,
+        "pr_v": 11.0,
+        "rep_all_CDC_inc":0.6
+      }
+    },
+
+    {
+      "name": "covariance",
+      "data": {
+        "pr_I_paris": {"pr_I_paris": 0.03},
+        "r0_nyc": {"r0_nyc": 0.04, "pr_v": 0.01},
+        "r0_paris": {"r0_paris": 0.02},
+        "pr_v": {"pr_v": 0.02, "r0_nyc": 0.01},
+        "rep_all_CDC_inc": {"rep_all_CDC_inc": 0.02}
+      }
+    }
+  ]
+}

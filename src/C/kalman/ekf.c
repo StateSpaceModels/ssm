@@ -134,7 +134,9 @@ ssm_err_code_t ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X,
 		tmp = row->observed[i]->f_obs_var(X, par, calc, t);
 		if (tmp<SSM_ZERO_LOG){
 		    gsl_matrix_set(&Rt.matrix,i,j,SSM_ZERO_LOG);
-		    ssm_print_warning("Observation variance too low: fixed to SSM_ZERO_LOG.");
+		     if(nav->print & SSM_PRINT_WARNING){
+			 ssm_print_warning("Observation variance too low: fixed to SSM_ZERO_LOG.");
+		     }
 		} else {
 		    gsl_matrix_set(&Rt.matrix,i,j,tmp);
 		}
