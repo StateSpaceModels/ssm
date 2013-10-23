@@ -130,7 +130,7 @@ void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *n
             observed = nav->observed[i];
             offset = observed->offset;
             obs = observed->f_obs_mean(X, par, calc, t);
-            var = observed->f_obs_var(X, par, calc, t);
+            var = observed->f_var_pred(X, par, calc, nav, t);
 	    hat->observed[offset] = obs;
             hat->observed_95[offset][0] = obs - 1.96*sqrt(var);
 	    hat->observed_95[offset][1] = obs + 1.96*sqrt(var);
