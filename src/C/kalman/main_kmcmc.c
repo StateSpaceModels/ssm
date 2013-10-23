@@ -141,14 +141,14 @@ int main(int argc, char *argv[])
 	    D_X[0]->dt = D_X[0]->dt0;
             ssm_kalman_reset_Ct(D_X[0], nav);
 
-            success |= run_kalman_and_store_traj(D_X, par, fitness, data, calc, nav);
+            success |= run_kalman_and_store_traj(D_X, par_proposed, fitness, data, calc, nav);
             success |= ssm_metropolis_hastings(fitness, &ratio, proposed, theta, var, sd_fac, nav, calc, 1);
         }
 
         if(success == SSM_SUCCESS){ //everything went well and the proposed theta was accepted
             fitness->log_like_prev = fitness->log_like;
             fitness->log_prior_prev = fitness->log_prior;
-            ssm_theta_copy(theta, proposed);
+	    ssm_theta_copy(theta, proposed);
             ssm_par_copy(par, par_proposed);
 
             if ( (nav->print & SSM_PRINT_X) && data->n_obs ) {

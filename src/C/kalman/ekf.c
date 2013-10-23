@@ -133,7 +133,7 @@ ssm_err_code_t ssm_kalman_gain_computation(ssm_row_t *row, double t, ssm_X_t *X,
             if (i==j){
 		tmp = row->observed[i]->f_obs_var(X, par, calc, t);
 		if (tmp<SSM_ZERO_LOG){
-		    gsl_matrix_set(&Rt.matrix,i,j,SSM_ZERO_LOG);
+		     gsl_matrix_set(&Rt.matrix,i,j,SSM_ZERO_LOG);
 		     if(nav->print & SSM_PRINT_WARNING){
 			 ssm_print_warning("Observation variance too low: fixed to SSM_ZERO_LOG.");
 		     }
@@ -242,7 +242,6 @@ ssm_err_code_t ssm_kalman_update(ssm_fitness_t *fitness, ssm_X_t *X, ssm_row_t *
 
     // log_like   
     fitness->log_like += ssm_sanitize_log_likelihood(log(ssm_dmvnorm(row->ts_nonan_length, &pred_error.vector, &zero.vector, &St.matrix, 1.0)), row, fitness, nav);
-
     return cum_status;
 }
 
