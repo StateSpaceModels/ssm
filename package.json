@@ -5,7 +5,8 @@
   "bin": {
     "ssm": "bin/ssm",
     "ssm-build": "bin/ssm-build",
-    "ssm-run": "bin/ssm-run"
+    "ssm-run": "bin/ssm-run",
+    "ssm-lhs": "bin/ssm-lhs"
   },
   "main": "index.js",
   "scripts": {
@@ -28,6 +29,9 @@
     "glob": "~3.2.6",
     "minimatch": "~0.2.12",
     "mkdirp": "~0.3.5",
-    "clone": "~0.1.11"
+    "clone": "~0.1.11",
+    "dpkg-squirrel": "0.0.0",
+    "lhs": "0.0.0",
+    "rmath.js": "0.0.0"
   }
 }

@@ -7,6 +7,9 @@ with *S*tate *S*pace *M*odels.
     cat theta.json | ./simplex -M 10000 | ./ksimplex -M 10000 > mle.json
     cat mle.json | ./kmcmc -M 100000 | ./pmcmc -J 1000 -M 500000
 
+
+[![NPM](https://nodei.co/npm/ssm.png)](https://nodei.co/npm/ssm/)
+
 All the methods are implemented in C. The C code contain generic part
 (working with any models) and model specific part.  The specific parts
 are templated using Python and [SymPy](http://sympy.org/) for symbolic
