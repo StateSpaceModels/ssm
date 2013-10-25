@@ -272,7 +272,7 @@ typedef struct
     double (*f_der_inv) (double x_X); /**< derivative of f_inv */
     double (*f_der2_inv) (double x_X); /**< 2nd derivative of f_inv */
 
-    double (*f_remainder) (ssm_X_t *X, ssm_calc_t *calc, double t); /**< compute the remainder value */
+    double (*f_remainder) (ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, double t); /**< compute the remainder value */
     double (*f_remainder_var) (ssm_X_t *X, ssm_calc_t *calc, ssm_nav_t *nav, double t); /**< compute the remainder value */
 } ssm_state_t;
 
@@ -653,7 +653,7 @@ void ssm_X_copy(ssm_X_t *dest, ssm_X_t *src);
 void ssm_X_reset_inc(ssm_X_t *X, ssm_row_t *row, ssm_nav_t *nav);
 void ssm_ran_multinomial (const gsl_rng * r, const size_t K, unsigned int N, const double p[], unsigned int n[]);
 double ssm_correct_rate(double rate, double dt);
-ssm_err_code_t ssm_check_no_neg_sv_or_remainder(ssm_X_t *p_X, ssm_nav_t *nav, ssm_calc_t *calc, double t);
+ssm_err_code_t ssm_check_no_neg_sv_or_remainder(ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, double t);
 ssm_f_pred_t ssm_get_f_pred(ssm_nav_t *nav);
 ssm_err_code_t ssm_f_prediction_ode                           (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);
 ssm_err_code_t ssm_f_prediction_sde_no_dem_sto_no_white_noise (ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc);

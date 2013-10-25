@@ -105,7 +105,7 @@ static double f_2prior_tpl_{{ p.name }}(double x, ssm_hat_t *hat, ssm_par_t *par
 
 
 {% for rem, def in f_remainders.items() %}
-static double f_remainder_tpl_{{ rem }}(ssm_X_t *p_X, ssm_calc_t *calc, double t)
+static double f_remainder_tpl_{{ rem }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
 {
     double *X = p_X->proj;
     return {{ def }};

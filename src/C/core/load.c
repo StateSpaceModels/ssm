@@ -107,7 +107,10 @@ void ssm_par2X(ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav)
     ssm_it_states_t *diff = nav->states_diff;
 
     for(i=0; i<sv->length; i++){
-        X->proj[ sv->p[i]->offset ] = sv->p[i]->f(gsl_vector_get(par, sv->p[i]->ic->offset));
+	X->proj[ sv->p[i]->offset ] = sv->p[i]->f(gsl_vector_get(par, sv->p[i]->ic->offset));
+	if(nav->implementation == SSM_PSR){
+	    X->proj[ sv->p[i]->offset ] = round(X->proj[ sv->p[i]->offset ]);
+	} 
     }
 
     for(i=0; i<inc->length; i++){
