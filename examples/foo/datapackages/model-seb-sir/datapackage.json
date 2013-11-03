@@ -14,19 +14,14 @@
 
   "version": "0.0.0",
 
-  "resources": [
-
+  "models": [
     {
-      "name": "populations",
-      "data": [
+      "populations": [
         {"name": "paris", "composition": ["S_paris", "I_paris", "R_paris"], "remainder": {"name": "R_paris", "pop_size": "N_paris"}},
         {"name": "nyc",   "composition": ["S_nyc", "I_nyc", "R_nyc"],       "remainder": {"name": "R_nyc",   "pop_size": "N_nyc"}}
-      ]
-    },
+      ],
 
-    {
-      "name": "reactions",
-      "data":  [
+      "reactions": [
         {"from": "U",       "to": "S_nyc",   "rate": "mu_b_nyc*N_nyc",             "description":"birth"},
         {"from": "U",       "to": "S_paris", "rate": "mu_b_paris*N_paris",         "description":"birth"},
 
@@ -41,12 +36,9 @@
 
         {"from": "I_nyc",   "to": "U",       "rate": "mu_d_nyc",                   "description":"death", "tracked": ["Inc_out"]},
         {"from": "I_paris", "to": "U",       "rate": "mu_d_paris",                 "description":"death", "tracked": ["Inc_out"]}
-      ]
-    },
+      ],
 
-    {
-      "name": "sde",
-      "data": {
+      "sde": {
         "drift": [
           {"name": "r0_paris", "f": 0.0, "transformation": "log(r0_paris)"},
           {"name": "r0_nyc",   "f": 0.0, "transformation": "log(r0_nyc)"}
@@ -55,540 +47,315 @@
           ["vol", 0],
           [0, "vol"]
         ]
-      }
-    },
+      },
 
-    {
-      "name": "observations",
+      "observations": [
+        {
+          "name": "all_CDC_inc",
+          "start": "2012-07-26",
+          "distribution": "discretized_normal",
+          "mean": "rep_all_CDC_inc * prop_all_CDC_inc * Inc_out",
+          "sd": "sqrt(rep_all_CDC_inc * ( 1.0 - rep_all_CDC_inc ) * prop_all_CDC_inc * Inc_out + ( rep_all_CDC_inc * phi * prop_all_CDC_inc * Inc_out )^2 )"
+        },
+        {
+          "name": "paris_CDC_prev",
+          "start": "2012-07-26",
+          "distribution": "discretized_normal",
+          "mean": "rep_paris_CDC_prev * prop_paris_CDC_prev * I_paris",
+          "sd": "sqrt(rep_paris_CDC_prev * ( 1.0 - rep_paris_CDC_prev ) * prop_paris_CDC_prev * I_paris + ( rep_paris_CDC_prev * phi * prop_paris_CDC_prev * I_paris)^2 )"
+        },
+        {
+          "name": "all_google_inc",
+          "start": "2012-07-26",
+          "distribution": "discretized_normal",
+          "mean": "rep_all_google_inc * prop_all_google_inc * Inc_out",
+          "sd": "sqrt(rep_all_google_inc * ( 1.0 - rep_all_google_inc ) * prop_all_google_inc * Inc_out + ( rep_all_google_inc * phi * prop_all_google_inc * Inc_out )^2 )"
+        },
+        {
+          "name": "nyc_CDC_inc",
+          "start": "2012-07-26",
+          "distribution": "discretized_normal",
+          "mean": "rep_nyc_CDC_inc * prop_nyc_CDC_inc * Inc_in_nyc",
+          "sd": "sqrt(rep_nyc_CDC_inc * ( 1.0 - rep_nyc_CDC_inc ) * prop_nyc_CDC_inc * Inc_in_nyc + ( rep_nyc_CDC_inc * phi * prop_nyc_CDC_inc * Inc_in_nyc )^2 )"
+        }
+      ],
+
       "data": [
         {
           "name": "all_CDC_inc",
-          "schema": {
-            "fields":[
-              {
-                "name": "date",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "data",
-                  "field": "date"
-                }
-              },
-              {
-                "name": "data",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "data",
-                  "field": "all_CDC_inc"
-                }
-              }
-            ]
-          },
-          "start": "2012-07-26",
-          "pdf": {
-            "distribution": "discretized_normal",
-            "mean": "rep_all_CDC_inc * prop_all_CDC_inc * Inc_out",
-            "sd": "sqrt(rep_all_CDC_inc * ( 1.0 - rep_all_CDC_inc ) * prop_all_CDC_inc * Inc_out + ( rep_all_CDC_inc * phi * prop_all_CDC_inc * Inc_out )^2 )"
-          }
+          "time": {"datapackage": "data-seb-bar", "resource": "data", "field": "date"},
+          "data": {"datapackage": "data-seb-bar", "resource": "data", "field": "all_CDC_inc"}
         },
-
         {
           "name": "paris_CDC_prev",
-          "schema": {
-            "fields":[
-              {
-                "name": "date",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "data",
-                  "field": "date"
-                }
-              },
-              {
-                "name": "data",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "data",
-                  "field": "paris_CDC_prev"
-                }
-              }
-            ]
-          },
-          "start": "2012-07-26",
-          "pdf": {
-            "distribution": "discretized_normal",
-            "mean": "rep_paris_CDC_prev * prop_paris_CDC_prev * I_paris",
-            "sd": "sqrt(rep_paris_CDC_prev * ( 1.0 - rep_paris_CDC_prev ) * prop_paris_CDC_prev * I_paris + ( rep_paris_CDC_prev * phi * prop_paris_CDC_prev * I_paris)^2 )"
-          }
+          "time": {"datapackage": "data-seb-bar", "resource": "data", "field": "date"},
+          "data": {"datapackage": "data-seb-bar", "resource": "data", "field": "paris_CDC_prev"}
         },
-
         {
           "name": "all_google_inc",
-          "schema": {
-            "fields":[
-              {
-                "name": "date",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "data",
-                  "field": "date"
-                }
-              },
-              {
-                "name": "data",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "data",
-                  "field": "all_google_inc"
-                }
-              }
-            ]
-          },
-          "start": "2012-07-26",
-          "pdf": {
-            "distribution": "discretized_normal",
-            "mean": "rep_all_google_inc * prop_all_google_inc * Inc_out",
-            "sd": "sqrt(rep_all_google_inc * ( 1.0 - rep_all_google_inc ) * prop_all_google_inc * Inc_out + ( rep_all_google_inc * phi * prop_all_google_inc * Inc_out )^2 )"
-          }
+          "time": {"datapackage": "data-seb-bar", "resource": "data", "field": "date"},
+          "data": {"datapackage": "data-seb-bar", "resource": "data", "field": "all_google_inc"}
         },
-
         {
           "name": "nyc_CDC_inc",
-          "schema": {
-            "fields":[
-              {
-                "name": "date",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "data",
-                  "field": "date"
-                }
-              },
-              {
-                "name": "data",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "data",
-                  "field": "nyc_CDC_inc"
-                }
-              }
-            ]
-          },
-          "start": "2012-07-26",
-          "pdf": {
-            "distribution": "discretized_normal",
-            "mean": "rep_nyc_CDC_inc * prop_nyc_CDC_inc * Inc_in_nyc",
-            "sd": "sqrt(rep_nyc_CDC_inc * ( 1.0 - rep_nyc_CDC_inc ) * prop_nyc_CDC_inc * Inc_in_nyc + ( rep_nyc_CDC_inc * phi * prop_nyc_CDC_inc * Inc_in_nyc )^2 )"
-          }
+          "time": {"datapackage": "data-seb-bar", "resource": "data", "field": "date"},
+          "data": {"datapackage": "data-seb-bar", "resource": "data", "field": "nyc_CDC_inc"}
         }
-      ]
-    },
+      ],
 
-    {
-      "name": "parameters",
-      "data": [
+      "covariates": [
+        {
+          "name": "N_paris",
+          "time": {"datapackage": "data-seb-bar", "resource": "N", "field": "date"},
+          "data": {"datapackage": "data-seb-bar", "resource": "N", "field": "paris"}
+        },
+        {
+          "name": "N_paris",
+          "time": {"datapackage": "data-seb-bar", "resource": "N", "field": "date"},
+          "data": {"datapackage": "data-seb-bar", "resource": "N", "field": "nyc"}
+        },
+        {
+          "name": "mu_b_paris",
+          "time": {"datapackage": "data-seb-bar", "resource": "mu_b", "field": "date"},
+          "data": {"datapackage": "data-seb-bar", "resource": "mu_b", "field": "paris"}
+        },
+        {
+          "name": "mu_b_nyc",
+          "time": {"datapackage": "data-seb-bar", "resource": "mu_b", "field": "date"},
+          "data": {"datapackage": "data-seb-bar", "resource": "mu_b", "field": "nyc"}
+        },
+        {
+          "name": "mu_d_paris",
+          "time": {"datapackage": "data-seb-bar", "resource": "mu_d", "field": "date"},
+          "data": {"datapackage": "data-seb-bar", "resource": "mu_d", "field": "paris"}
+        },
+        {
+          "name": "mu_d_nyc",
+          "time": {"datapackage": "data-seb-bar", "resource": "mu_d", "field": "date"},
+          "data": {"datapackage": "data-seb-bar", "resource": "mu_d", "field": "nyc"}
+        },
+        {
+          "name": "prop_all_CDC_inc",
+          "time": {"datapackage": "data-seb-bar", "resource": "prop", "field": "date"},
+          "data": {"datapackage": "data-seb-bar", "resource": "prop", "field": "all_CDC_inc"},
+        },
+        {
+          "name": "prop_paris_CDC_prev",
+          "time": {"datapackage": "data-seb-bar", "resource": "prop", "field": "date"},
+          "data": {"datapackage": "data-seb-bar", "resource": "prop", "field": "paris_CDC_prev"},
+        },
+        {
+          "name": "prop_all_google_inc",
+          "time": {"datapackage": "data-seb-bar", "resource": "prop", "field": "date"},
+          "data": {"datapackage": "data-seb-bar", "resource": "prop", "field": "all_google_inc"},
+        },
+        {
+          "name": "prop_nyc_CDC_inc",
+          "time": {"datapackage": "data-seb-bar", "resource": "prop", "field": "date"},
+          "data": {"datapackage": "data-seb-bar", "resource": "prop", "field": "nyc_CDC_inc"},
+        }
+      ],
 
+      "parameters": [
         {
           "name": "S_paris",
           "description": "Number of susceptible",
+          "data": {"resource":  "pr_S_paris"},
           "transformation": "pr_S_paris*N_paris",
-          "to_prior": "S_paris/N_paris",
-          "prior": {
-            "name": "pr_S_paris",
-            "description": "Proportion of susceptible",
-            "distribution": "uniform",
-            "lower":0.04,
-            "upper":0.09
-          }
+          "to_resource": "S_paris/N_paris"
         },
-
         {
           "name": "S_nyc",
-          "description": "Proportion of susceptible",
+          "description": "Number of susceptible",
           "transformation": "pr_S_paris*N_nyc"
         },
-
         {
           "name": "I_paris",
           "description": "Number of infectious",
           "keywords": ["infectious"],
+          "data": {"resource":  "pr_I_paris"},
           "transformation": "pr_I_paris*N_paris",
-          "to_prior": "I_paris/N_paris",
-          "prior": {
-            "name": "pr_I_paris",
-            "description": "Proportion of infectious",
-            "distribution": "uniform",
-            "lower": 1e-6,
-            "upper": 1e-4
-          }
+          "to_resource": "I_paris/N_paris"
         },
-
         {
           "name": "I_nyc",
           "description": "Number of infectious",
           "keywords": ["infectious"],
+          "data": {"resource":  "pr_I_nyc"},
           "transformation": "10^-pr_I_nyc * N_nyc",
-          "to_prior": "-log(I_nyc)/(log(10)*N_nyc)",
-          "prior": {
-            "name": "pr_I_nyc",
-            "description": "exponent (10^-x) to get a proportion of infectious",
-            "distribution": "uniform",
-            "lower": 4,
-            "upper": 6
-          }
+          "to_resource": "-log(I_nyc)/(log(10)*N_nyc)"
         },
-
         {
           "name": "r0_paris",
           "description": "basic reproduction number",
-          "prior": {
-            "distribution": "uniform",
-            "lower": 15.0,
-            "upper": 35.0
-          }
+          "data": {"resource": "r0_paris"}
         },
-
         {
           "name": "r0_nyc",
           "description": "basic reproduction number",
-          "prior": {
-            "distribution": "uniform",
-            "lower": 15.0,
-            "upper": 35.0
-          }
+          "data": {"resource": "r0_nyc"}
         },
-
         {
           "name": "vol",
           "description": "volatility of the diffusion",
-          "prior": {
-            "distribution": "fixed",
-            "value": 0.1
-          }
+          "data": {"resource": "vol"}
         },
-
         {
           "name": "v",
           "description": "recovery rate",
+          "data": {"resource":  "pr_v"},
           "transformation": "1/pr_v",
-          "prior": {
-            "name": "pr_v",
-            "description": "duration of infection",
-            "distribution": "normal",
-            "mean": 7.0,
-            "sd": 2.0,
-            "lower": 0.0,
-            "unit": "day"
-          }
+          "to_resource": "1/v"
         },
-
         {
           "name": "sto",
           "description": "noise intensity",
-          "prior": {
-            "distribution": "fixed",
-            "value": 0.1
-          }
+          "data": {"resource":  "sto"}
         },
-
         {
           "name": "rep_all_CDC_inc",
           "description": "reporting rate",
-          "prior": {
-            "distribution": "uniform",
-            "lower": 0.5,
-            "upper": 0.8
-          }
+          "data": {"resource":  "rep_all_CDC_inc"}
         },
-
         {
           "name": "rep_paris_CDC_prev",
           "description": "reporting rate",
-          "prior": {
-            "distribution": "uniform",
-            "lower": 0.5,
-            "upper": 0.8
-          }
+          "data": {"resource":  "rep_paris_CDC_prev"}
         },
-
         {
           "name": "rep_all_google_inc",
           "description": "reporting rate",
-          "prior": {
-            "distribution": "uniform",
-            "lower": 0.5,
-            "upper": 0.8
-          }
+          "data": {"resource":  "rep_all_google_inc"}
         },
-
         {
           "name": "rep_nyc_CDC_inc",
           "description": "reporting rate",
-          "prior": {
-            "distribution": "uniform",
-            "lower": 0.5,
-            "upper": 0.8
-          }
+          "data": {"resource":  "rep_nyc_CDC_inc"}
         },
-
         {
           "name": "phi",
-          "description": "over-dispertion",
-          "prior": {
-            "distribution": "fixed",
-            "value": 0.1
-          }
-        },
-
-        {
-          "name": "mu_b_paris",
-          "description": "birth rate",
-          "schema": {
-            "fields":[
-              {
-                "name": "date",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "mu_b",
-                  "field": "date"
-                }
-              },
-              {
-                "name": "mu_b",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "mu_b",
-                  "field": "paris"
-                }
-              }
-            ]
-          }
-        },
-
-        {
-          "name": "mu_b_nyc",
-          "description": "birth rate",
-          "schema": {
-            "fields":[
-              {
-                "name": "date",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "mu_b",
-                  "field": "date"
-                }
-              },
-              {
-                "name": "mu_b",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "mu_b",
-                  "field": "nyc"
-                }
-              }
-            ]
-          }
-        },
-
-        {
-          "name": "mu_d_paris",
-          "description": "death rate",
-          "schema": {
-            "fields":[
-              {
-                "name": "date",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "mu_d",
-                  "field": "date"
-                }
-              },
-              {
-                "name": "mu_d",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "mu_d",
-                  "field": "paris"
-                }
-              }
-            ]
-          }
-        },
-
-        {
-          "name": "mu_d_nyc",
-          "description": "death rate",
-          "schema": {
-            "fields":[
-              {
-                "name": "date",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "mu_d",
-                  "field": "date"
-                }
-              },
-              {
-                "name": "mu_d",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "mu_d",
-                  "field": "nyc"
-                }
-              }
-            ]
-          }
-        },
-
-        {
-          "name": "N_paris",
-          "description": "population size",
-          "schema": {
-            "fields":[
-              {
-                "name": "date",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "N",
-                  "field": "date"
-                }
-              },
-              {
-                "name": "N",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "N",
-                  "field": "paris"
-                }
-              }
-            ]
-          }
-        },
-
-        {
-          "name": "N_nyc",
-          "description": "population size",
-          "schema": {
-            "fields":[
-              {
-                "name": "date",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "N",
-                  "field": "date"
-                }
-              },
-              {
-                "name": "N",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "N",
-                  "field": "nyc"
-                }
-              }
-            ]
-          }
-        },
-
-        {
-          "name": "prop_all_CDC_inc",
-          "description": "proportion of the population under surveillance",
-          "schema": {
-            "fields":[
-              {
-                "name": "date",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "prop",
-                  "field": "date"
-                }
-              },
-              {
-                "name": "prop",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "prop",
-                  "field": "all_CDC_inc"
-                }
-              }
-            ]
-          }
-        },
-
-        {
-          "name": "prop_paris_CDC_prev",
-          "description": "proportion of the population under surveillance",
-          "schema": {
-            "fields":[
-              {
-                "name": "date",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "prop",
-                  "field": "date"
-                }
-              },
-              {
-                "name": "paris_CDC_prev",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "prop",
-                  "field": "all_google_inc"
-                }
-              }
-            ]
-          }
-        },
-
-        {
-          "name": "prop_all_google_inc",
-          "description": "proportion of the population under surveillance",
-          "schema": {
-            "fields":[
-              {
-                "name": "date",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "prop",
-                  "field": "date"
-                }
-              },
-              {
-                "name": "prop",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "prop",
-                  "field": "all_google_inc"
-                }
-              }
-            ]
-          }
-        },
-
-        {
-          "name": "prop_nyc_CDC_inc",
-          "description": "proportion of the population under surveillance",
-          "schema": {
-            "fields":[
-              {
-                "name": "date",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "prop",
-                  "field": "date"
-                }
-              },
-              {
-                "name": "prop",
-                "foreignkey": {
-                  "datapackage": "data-seb-bar",
-                  "resource": "prop",
-                  "field": "nyc_CDC_inc"
-                }
-              }
-            ]
-          }
+          "description": "over-dispertion"
         }
       ]
+    }
+  ],
+
+  "resources": [
+    {
+      "name": "pr_S_paris",
+      "description": "Proportion of susceptible",
+      "data": {
+        "distribution": "uniform",
+        "lower":0.04,
+        "upper":0.09
+      }
+    },
+    {
+      "name": "pr_I_paris",
+      "description": "Proportion of infectious",
+      "data": {
+        "distribution": "uniform",
+        "lower": 1e-6,
+        "upper": 1e-4
+      }
+    },
+    {
+      "name": "pr_I_nyc",
+      "description": "exponent (10^-x) to get a proportion of infectious",
+      "data": {
+        "distribution": "uniform",
+        "lower": 4,
+        "upper": 6
+      }
+    },
+    {
+      "name": "r0_paris",
+      "description": "basic reproduction number",
+      "data": {
+        "distribution": "uniform",
+        "lower": 15.0,
+        "upper": 35.0
+      }
+    },
+    {
+      "name": "r0_nyc",
+      "description": "basic reproduction number",
+      "data": {
+        "distribution": "uniform",
+        "lower": 15.0,
+        "upper": 35.0
+      }
+    },
+    {
+      "name": "vol",
+      "description": "volatility of the diffusion",
+      "data": {
+        "distribution": "fixed",
+        "value": 0.1
+      }
+    },
+    {
+      "name": "pr_v",
+      "description": "duration of infection",
+      "data": {
+        "distribution": "normal",
+        "mean": 7.0,
+        "sd": 2.0,
+        "lower": 0.0,
+        "unit": "day"
+      }
+    },
+    {
+      "name": "sto",
+      "description": "noise intensity",
+      "data": {
+        "distribution": "fixed",
+        "value": 0.1
+      }
+    },
+    {
+      "name": "rep_all_CDC_inc",
+      "description": "reporting rate",
+      "data": {
+        "distribution": "uniform",
+        "lower": 0.5,
+        "upper": 0.8
+      }
+    },
+    {
+      "name": "rep_paris_CDC_prev",
+      "description": "reporting rate",
+      "data": {
+        "distribution": "uniform",
+        "lower": 0.5,
+        "upper": 0.8
+      }
+    },
+    {
+      "name": "rep_all_google_inc",
+      "description": "reporting rate",
+      "data": {
+        "distribution": "uniform",
+        "lower": 0.5,
+        "upper": 0.8
+      }
+    },
+    {
+      "name": "rep_nyc_CDC_inc",
+      "description": "reporting rate",
+      "data": {
+        "distribution": "uniform",
+        "lower": 0.5,
+        "upper": 0.8
+      }
+    },
+    {
+      "name": "phi",
+      "description": "over-dispertion",
+      "data": {
+        "distribution": "fixed",
+        "value": 0.1
+      }
     }
   ]
 }
