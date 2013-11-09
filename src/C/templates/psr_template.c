@@ -64,6 +64,7 @@ void ssm_step_psr(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_ca
     }
     {% endif %}
 
+
     /*1-generate noise increments (if any) (automaticaly generated code)*/
     {% if white_noise %}
     if(nav->noises_off & SSM_NO_WHITE_NOISE){

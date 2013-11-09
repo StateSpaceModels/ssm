@@ -92,21 +92,22 @@ ssm_err_code_t ssm_check_no_neg_sv_or_remainder(ssm_X_t *p_X, ssm_par_t *par, ss
 {
     int i;
     ssm_it_states_t *rem = nav->states_remainders;
-    ssm_it_states_t *states_sv = nav->states_sv;
+    ssm_it_states_t *states_sv_inc = nav->states_sv_inc;
+
+    for(i=0; i<states_sv_inc->length; i++){
+        if (p_X->proj[states_sv_inc->p[i]->offset] < 0.0){
+	    p_X->proj[states_sv_inc->p[i]->offset] = 0;
+	    if (nav->print & SSM_PRINT_WARNING) {
+                ssm_print_warning("negative state variable");
+            }
+	    //            return SSM_ERR_REM_SV;
+        }
+    }
 
     for(i=0; i<rem->length; i++){
         if (rem->p[i]->f_remainder(p_X, par, calc, t) < 0.0){
             if (nav->print & SSM_PRINT_WARNING) {
                 ssm_print_warning("remainder negative");
-            }
-            return SSM_ERR_REM_SV;
-        }
-    }
-
-    for(i=0; i<states_sv->length; i++){
-        if (p_X->proj[states_sv->p[i]->offset] < 0.0){
-	    if (nav->print & SSM_PRINT_WARNING) {
-                ssm_print_warning("negative state variable");
             }
             return SSM_ERR_REM_SV;
         }
@@ -174,7 +175,6 @@ ssm_err_code_t ssm_f_prediction_ode(ssm_X_t *p_X, double t0, double t1, ssm_par_
             return SSM_ERR_PRED;
         }
     }
-
     return ssm_check_no_neg_sv_or_remainder(p_X, par, nav, calc, t1);
 }
 

@@ -85,8 +85,7 @@ int main(int argc, char *argv[])
 	    }
 
 	} else if(calc[0]->threads_length > 1){
-
-            //send work
+	    //send work
             for (i=0; i<calc[0]->threads_length; i++) {
                 zmq_send(workers->sender, &i, sizeof (int), ZMQ_SNDMORE);
                 zmq_send(workers->sender, &n, sizeof (int), 0);
@@ -98,14 +97,12 @@ int main(int argc, char *argv[])
             }
 
         } else {
-
-            for(j=0;j<fitness->J;j++) {
+	    for(j=0;j<fitness->J;j++) {
                 ssm_X_reset_inc(J_X[j], data->rows[n], nav);
                 fitness->cum_status[j] |= (*f_pred)(J_X[j], t0, t1, par, nav, calc[0]);
-
-                if(data->rows[n]->ts_nonan_length) {
+		if(data->rows[n]->ts_nonan_length) {
                     fitness->weights[j] = (fitness->cum_status[j] == SSM_SUCCESS) ?  exp(ssm_log_likelihood(data->rows[n], J_X[j], par, calc[0], nav, fitness)) : 0.0;
-                    fitness->cum_status[j] = SSM_SUCCESS;
+		    fitness->cum_status[j] = SSM_SUCCESS;
                 }
             }
 
@@ -123,7 +120,6 @@ int main(int argc, char *argv[])
             if (nav->print & SSM_PRINT_DIAG) {
                 ssm_print_pred_res(nav->diag, J_X, par, nav, calc[0], data, data->rows[n], fitness);
             }
-
 	    ssm_resample_X(fitness, &J_X, &J_X_tmp, n);
 
         } else if (nav->print & SSM_PRINT_HAT) { //we do not filter or all data ara NaN (no info).

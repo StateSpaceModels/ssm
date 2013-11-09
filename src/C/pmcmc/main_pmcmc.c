@@ -51,7 +51,6 @@ static ssm_err_code_t run_smc(ssm_err_code_t (*f_pred) (ssm_X_t *, double, doubl
 		zmq_send(workers->sender, &j, sizeof (int), ZMQ_SNDMORE);                   	       	       
 		ssm_zmq_send_X(workers->sender, D_J_X[n][j], ZMQ_SNDMORE);
 		zmq_send(workers->sender, &(fitness->cum_status[j]), sizeof (ssm_err_code_t), 0);
-		//printf("part %d sent %d\n", j, 0);
 	    }
 
 	    //get results from the workers
@@ -60,12 +59,10 @@ static ssm_err_code_t run_smc(ssm_err_code_t (*f_pred) (ssm_X_t *, double, doubl
 		ssm_zmq_recv_X(D_J_X[ np1 ][ the_j ], workers->receiver);
 		zmq_recv(workers->receiver, &(fitness->weights[the_j]), sizeof (double), 0);
 		zmq_recv(workers->receiver, &(fitness->cum_status[the_j]), sizeof (ssm_err_code_t), 0);
-		//printf("part  %d received\n", the_j);
 	    }
 
 	} else if(calc[0]->threads_length > 1){
-
-            //send work
+	    //send work
             for (i=0; i<calc[0]->threads_length; i++) {
                 zmq_send(workers->sender, &i, sizeof (int), ZMQ_SNDMORE);
                 zmq_send(workers->sender, &n, sizeof (int), 0);
@@ -75,7 +72,6 @@ static ssm_err_code_t run_smc(ssm_err_code_t (*f_pred) (ssm_X_t *, double, doubl
             for (i=0; i<calc[0]->threads_length; i++) {
                 zmq_recv(workers->receiver, &id, sizeof (int), 0);
             }
-
         } else {
 
 	    for(j=0;j<fitness->J;j++) {
@@ -87,13 +83,12 @@ static ssm_err_code_t run_smc(ssm_err_code_t (*f_pred) (ssm_X_t *, double, doubl
 		}
 	    }
 	}
-
-
+	
         if(data->rows[n]->ts_nonan_length) {
             if(ssm_weight(fitness, data->rows[n], nav, n)) {
                 ssm_systematic_sampling(fitness, calc[0], n);
             }
-            ssm_resample_X(fitness, D_J_X, D_J_X_tmp, n);
+            ssm_resample_X(fitness, &D_J_X[np1], &D_J_X_tmp[np1], n);
         }
     }
     return ( (data->n_obs != 0) && (fitness->n_all_fail == data->n_obs) ) ? SSM_ERR_PRED: SSM_SUCCESS;
