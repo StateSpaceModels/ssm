@@ -223,7 +223,7 @@ void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm
 #if SSM_JSON
         json_object_set_new(jout, state->name, json_real(state->f_remainder(p_X, calc, t)));
 #else
-        fprintf(stream, "%g,", state->f_remainder(p_X, calc, t));
+        fprintf(stream, "%g,", state->f_remainder(p_X, par, calc, t));
 #endif
     }
 

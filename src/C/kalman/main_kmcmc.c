@@ -26,6 +26,7 @@ static ssm_err_code_t run_kalman_and_store_traj(ssm_X_t **D_X, ssm_par_t *par, s
 
     fitness->log_like = 0.0;
     fitness->log_prior = 0.0;    
+    
 
     for(n=0; n<data->n_obs; n++) {
         t0 = (n) ? data->rows[n-1]->time: 0;
@@ -39,6 +40,7 @@ static ssm_err_code_t run_kalman_and_store_traj(ssm_X_t **D_X, ssm_par_t *par, s
         if(rc != SSM_SUCCESS){
             return rc;
         }
+
         if(data->rows[n]->ts_nonan_length) {
             rc = ssm_kalman_update(fitness, D_X[np1], data->rows[n], t1, par, calc, nav);
             if(rc != SSM_SUCCESS){
@@ -131,6 +133,7 @@ int main(int argc, char *argv[])
         var = ssm_adapt_eps_var_sd_fac(&sd_fac, adapt, var_input, nav, m);
 
         ssm_theta_ran(proposed, theta, var, sd_fac, calc, nav, 1);
+
         ssm_theta2input(input, proposed, nav);
         ssm_input2par(par_proposed, input, calc, nav);
 

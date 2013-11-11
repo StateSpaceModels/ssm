@@ -76,7 +76,6 @@ int ssm_step_ekf(double t, const double X[], double f[], void *params)
     {% for eq in step.func.ode.obs %}
     f[states_inc->p[{{ eq.index }}]->offset] = {{ eq.eq }};{% endfor %}
 
-
     ////////////////
     // covariance //
     ////////////////

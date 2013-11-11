@@ -144,5 +144,4 @@ void ssm_adapt_var(ssm_adapt_t *adapt, ssm_theta_t *x, int m)
     for (i=0; i < x->size; i++) {
         x_bar[i] += (gsl_vector_get(x, i) - x_bar[i]) / dm;
     }
-
 }

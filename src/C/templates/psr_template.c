@@ -64,6 +64,7 @@ void ssm_step_psr(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_ca
     }
     {% endif %}
 
+
     /*1-generate noise increments (if any) (automaticaly generated code)*/
     {% if white_noise %}
     if(nav->noises_off & SSM_NO_WHITE_NOISE){
@@ -98,7 +99,7 @@ void ssm_step_psr(ssm_X_t *p_X, double t, ssm_par_t *par, ssm_nav_t *nav, ssm_ca
     /*compute incidence:integral between t and t+1 (automaticaly generated code)*/
 
     {% for eq in step_inc %}
-    X[states_inc->p[{{ eq.index }}]->offset] = {{ eq.right_hand_side }};{% endfor %}
+    X[states_inc->p[{{ eq.index }}]->offset] = X[states_inc->p[{{ eq.index }}]->offset] {{ eq.right_hand_side }};{% endfor %}
 }
 
 {% endblock %}

@@ -105,7 +105,7 @@ void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *n
         for(i=0; i< nav->states_remainders->length; i++) {
             state = nav->states_remainders->p[i];
             offset = state->offset;
-            rem = state->f_remainder(X, calc, t);
+            rem = state->f_remainder(X, par, calc, t);
             var = state->f_remainder_var(X, calc, nav, t);
 	    hat->remainders[offset] = rem;
             hat->remainders_95[offset][0] = rem - 1.96*sqrt(var);
@@ -161,7 +161,7 @@ void ssm_hat_eval(ssm_hat_t *hat, ssm_X_t **J_X, ssm_par_t **J_par, ssm_nav_t *n
             offset = state->offset;
             hat->remainders[offset] = 0.0;
             for(j=0; j<calc->J; j++) {
-                calc->to_be_sorted[j] = state->f_remainder(J_X[j], calc, t);
+                calc->to_be_sorted[j] = state->f_remainder(J_X[j], J_par[ *j_par ], calc, t);
                 hat->remainders[offset] += calc->to_be_sorted[j]*weights[ *j_weights ];
             }
             ssm_ci95(hat->remainders_95[offset], calc, fitness);

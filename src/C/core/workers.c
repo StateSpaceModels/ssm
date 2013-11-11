@@ -64,7 +64,8 @@ void *ssm_worker_inproc(void *params)
 
     int _zero = 0;
     int *j_par = (SSM_WORKER_J_PAR & wopts) ? &j: &_zero;
-    int *n_X = (SSM_WORKER_D_X & wopts) ? &n: &_zero;
+    int np1;
+    int *n_X = (SSM_WORKER_D_X & wopts) ? &np1 : &_zero;
 
     while (1) {
         zmq_poll (items, 2, -1);
@@ -73,6 +74,7 @@ void *ssm_worker_inproc(void *params)
             zmq_recv(receiver, &the_id, sizeof (int), 0);
             zmq_recv(receiver, &n, sizeof (int), 0);
 
+	    np1 = n + 1;
             t0 = (n) ? data->rows[n-1]->time: 0;
             t1 = data->rows[n]->time;
 
@@ -81,8 +83,8 @@ void *ssm_worker_inproc(void *params)
 
             for(j=J_start; j<J_end; j++ ){
                 ssm_X_reset_inc(D_J_X[*n_X][j], data->rows[n], nav);
-                fitness->cum_status[j] |= (*f_pred)(D_J_X[*n_X][j], t0, t1, J_par[*j_par], nav, calc);
-
+		fitness->cum_status[j] |= (*f_pred)(D_J_X[*n_X][j], t0, t1, J_par[*j_par], nav, calc);
+		
                 if((SSM_WORKER_FITNESS & wopts) && data->rows[n]->ts_nonan_length) {
                     fitness->weights[j] = (fitness->cum_status[j] == SSM_SUCCESS) ?  exp(ssm_log_likelihood(data->rows[n], D_J_X[*n_X][j], J_par[*j_par], calc, nav, fitness)) : 0.0;
                     fitness->cum_status[j] = SSM_SUCCESS;
