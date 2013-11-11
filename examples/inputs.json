@@ -38,82 +38,73 @@
       "data": [
         {
           "name": "Inc",
-          "schema": {
-            "fields": [
-              {"foreignkey": {"resource": "data", "field": "date"}},
-              {"foreignkey": {"resource": "data", "field": "Inc"}}
-            ]
-          }
+          "data": [
+            {"resource": "data", "field": "date"},
+            {"resource": "data", "field": "Inc"}
+          ]
         }
       ],
 
       "inputs": [
         {
           "name": "r0",
-          "foreignkey": {"resource": "r0"}
+          "data": {"resource": "r0"}
         },
         {
           "name": "v",
           "description": "recovery rate",
-          "foreignkey": {"resource":  "pr_v"},
+          "data": {"resource":  "pr_v"},
           "transformation": "1/pr_v",
           "to_resource": "1/v"
         },
         {
           "name": "sto",
-          "foreignkey": {"resource": "sto"}
+          "data": {"resource": "sto"}
         },
         {
           "name": "S",
           "description": "Number of susceptible",
-          "foreignkey": {"resource": "pr_S"},
+          "data": {"resource": "pr_S"},
           "transformation": "pr_S*N",
           "to_resource": "S/N"
         },
         {
           "name": "I",
           "description": "Number of infectious",
-          "foreignkey": {"resource": "pr_I"},
+          "data": {"resource": "pr_I"},
           "transformation": "10^-pr_I * N",
           "to_resource": "-log(I)/(log(10)*N)",
         },
 
         {
           "name": "rep",
-          "foreignkey": {"resource": "rep"}
+          "data": {"resource": "rep"}
         },
-
         {
           "name": "phi",
-          "foreignkey": {"resource": "phi"}
+          "data": {"resource": "phi"}
         },
 
         {
           "name": "N",
-          "schema": {
-            "fields": [
-              {"foreignkey": {"resource": "covariates", "field": "date"}},
-              {"foreignkey": {"resource": "covariates", "field": "N"}}
-            ]
-          }
+          "data": [
+            {"resource": "covariates", "field": "date"},
+            {"resource": "covariates", "field": "N"}
+          ]
         },
         {
           "name": "mu",
-          "schema": {
-            "fields": [
-              {"foreignkey": {"resource": "covariates", "field": "date"}},
-              {"foreignkey": {"resource": "covariates", "field": "mu"}}
-            ]
-          }
+          "data": [
+            {"resource": "covariates", "field": "date"},
+            {"resource": "covariates", "field": "mu"}
+          ]
         },
         {
           "name": "prop",
-          "schema": {
-            "fields": [
-              {"foreignkey": {"resource": "covariates", "field": "date"}},
-              {"foreignkey": {"resource": "covariates", "field": "prop"}}
-            ]
-          }
+          "data": [
+            {"resource": "covariates", "field": "date"},
+            {"resource": "covariates", "field": "prop"}
+          ]
         }
       ]
     }
