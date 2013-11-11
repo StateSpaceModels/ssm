@@ -60,6 +60,10 @@
           "to_resource": "1/v"
         },
         {
+          "name": "sto",
+          "foreignkey": {"resource": "sto"}
+        },
+        {
           "name": "S",
           "description": "Number of susceptible",
           "foreignkey": {"resource": "pr_S"},
@@ -195,6 +199,15 @@
     {
       "name": "phi",
       "description": "over-dispertion",
+      "data": {
+        "distribution": "fixed",
+        "value": 0.1
+      }
+    },
+
+    {
+      "name": "sto",
+      "description": "white noise intensity",
       "data": {
         "distribution": "fixed",
         "value": 0.1
