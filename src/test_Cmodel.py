@@ -1,14 +1,12 @@
 from Cmodel import Cmodel
 import unittest
 import copy
-import json
 import os
 
 class TestCmodel(unittest.TestCase):
 
     def setUp(self):
-        model = json.load(open(os.path.join('..' ,'examples', 'foo', 'datapackages', 'model-seb-sir', 'datapackage.json')))
-        self.m = Cmodel(model)
+        self.m = Cmodel(os.path.join('..' ,'examples', 'foo', 'package.json'), "sir")
 
     def test_change_user_input(self):
         x = self.m.change_user_input('r0*2*correct_rate(v)')
@@ -43,7 +41,6 @@ class TestCmodel(unittest.TestCase):
 
     def test_par_other(self):
         self.assertEqual(self.m.par_other, [])
-
 
 if __name__ == '__main__':
     unittest.main()

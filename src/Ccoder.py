@@ -33,8 +33,8 @@ class SsmError(Exception):
 class Ccoder(Cmodel):
     """write the C code from the user input coming from the web interface..."""
 
-    def __init__(self, model,  **kwargs):
-        Cmodel.__init__(self, model,  **kwargs)
+    def __init__(self, dpkg, model_name,  **kwargs):
+        Cmodel.__init__(self, dpkg, model_name,  **kwargs)
 
 
     def toC(self, term, no_correct_rate, force_par=False, xify=None, human=False, set_t0=False):
@@ -1165,7 +1165,7 @@ if __name__=="__main__":
     import json
     import os
 
-    model = json.load(open(os.path.join('..' ,'examples', 'foo', 'datapackages', 'model-seb-sir', 'datapackage.json')))
-    m = Ccoder(model)
+    dpkg = json.load(open(os.path.join('..' ,'examples', 'foo', 'package.json')))
+    m = Ccoder(dpkg, "sir")
     print m.parameters()['f_remainders_var']
     print m.order_states

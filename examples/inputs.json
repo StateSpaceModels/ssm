@@ -13,6 +13,8 @@
 
   "models": [
     {
+      "name": "sir",
+
       "populations": [
         {"name": "paris", "composition": ["S", "I", "R"], "remainder": {"name": "R", "pop_size": "N"}},
       ],

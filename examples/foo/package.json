@@ -16,6 +16,8 @@
 
   "models": [
     {
+      "name": "sir",
+
       "populations": [
         {"name": "paris", "composition": ["S_paris", "I_paris", "R_paris"], "remainder": {"name": "R_paris", "pop_size": "N_paris"}},
         {"name": "nyc",   "composition": ["S_nyc", "I_nyc", "R_nyc"],       "remainder": {"name": "R_nyc",   "pop_size": "N_nyc"}}
@@ -113,17 +115,17 @@
 
       "inputs": [
         {
-          "name": "N_paris",
+          "name": "N_nyc",
           "data": [
             {"datapackage": "bar", "resource": "N", "field": "date"},
-            {"datapackage": "bar", "resource": "N", "field": "paris"}
+            {"datapackage": "bar", "resource": "N", "field": "nyc"}
           ]
         },
         {
           "name": "N_paris",
           "data": [
             {"datapackage": "bar", "resource": "N", "field": "date"},
-            {"datapackage": "bar", "resource": "N", "field": "nyc"}
+            {"datapackage": "bar", "resource": "N", "field": "paris"}
           ]
         },
         {

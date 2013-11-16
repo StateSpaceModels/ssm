@@ -18,7 +18,15 @@
 
 import copy
 import sys
+import os
+import os.path
+import json
 
+class ModelError(Exception):
+    def __init__(self, value):
+        self.value = value
+        def __str__(self):
+            return repr(self.value)
 
 class Cmodel:
 
@@ -26,25 +34,62 @@ class Cmodel:
     parse a JSON model description
     """
 
-    def __init__(self, model,  **kwargs):
-        self.model = model
+    def __init__(self, path, model_name, **kwargs):
+
+        self.path = os.path.abspath(path)
+        self.root = os.path.dirname(self.path)
+        try:        
+            self.dpkg = json.load(open(self.path))
+        except ValueError:
+            raise ModelError('invalid JSON')            
+
+        try:
+            self.model = [x for x in self.dpkg['models'] if x['name'] == model_name][0]
+        except IndexError:
+            raise ModelError('invalid model name')
+            
 
         self.op = set(['+', '-', '*', '/', '^', ',', '(', ')']) ##!!!CAN'T contain square bracket '[' ']'
-        self.reserved = set(['U', 'x', 't', 'M_E', 'M_LOG2E', 'M_LOG10E', 'M_SQRT2', 'M_SQRT1_2', 'M_SQRT3', 'M_PI', 'M_PI_2', 'M_PI_4', 'M_SQRTPI', 'M_2_SQRTPI', 'M_1_PI', 'M_2_PI', 'M_LN10', 'M_LN2', 'M_LNPI]', 'M_EULER'])
+        self.reserved = set(['U', 'x', 't', 'M_E', 'M_LOG2E', 'M_LOG10E', 'M_SQRT2', 'M_SQRT1_2', 'M_SQRT3', 'M_PI', 'M_PI_2', 'M_PI_4', 'M_SQRTPI', 'M_2_SQRTPI', 'M_1_PI', 'M_2_PI', 'M_LN10', 'M_LN2', 'M_LNPI', 'M_EULER'])
         self.special_functions = set(['terms_forcing', 'heaviside', 'ramp', 'slowstep', 'sin', 'cos', 'correct_rate', 'sqrt'])
 
-        ###########################################################################
-
-        self.remainder = sorted([x['remainder']['name'] for x in self.get_resource('populations') if 'remainder' in x])
+        self.remainder = sorted([x['remainder']['name'] for x in self.model['populations'] if 'remainder' in x])
         self.ur = ['U'] + self.remainder
 
-        parameters = self.get_resource('parameters')
-        sde = self.get_resource('sde')
-        reactions = self.get_resource('reactions')
-        observations = self.get_resource('observations')
+        #resolve links for priors (named parameters here)
+        deps = {} #cache package.json of the dps
+        for i, p in enumerate(self.model['inputs']):
+            if 'data' in p:
+                if isinstance(p['data'], dict):
+                    if 'datapackage' in p['data']:
+                        if p['data']['datapackage'] not in deps:
+                            root = os.path.join(root, 'node_modules', p['data']['datapackage'])
+                            try:
+                                deps[p['data']['datapackage']] = json.load(open(os.path.join(root, 'package.json')))
+                            except:
+                                raise ModelError("invalid data for " + p['name'])
+
+                        try:                
+                            resource = [x for x in deps[p['data']['datapackage']]['resources'] if x['name'] == p['data']['resource']][0]
+                        except IndexError:
+                            raise ModelError('invalid model name')                    
+                    else:
+                        try:                
+                            resource = [x for x in self.dpkg['resources'] if x['name'] == p['data']['resource']][0]
+                        except IndexError:
+                            raise ModelError('invalid model name')
+
+
+                    self.model['inputs'][i]['data'] = copy.deepcopy(resource)
+            
+
+        parameters = self.model['inputs']
+        sde = self.model['sde']
+        reactions = self.model['reactions']
+        observations = self.model['observations']
 
         #par_forced (covariates)
-        par_forced = [x['name'] for x in parameters if 'schema' in x]
+        par_forced = [x['name'] for x in parameters if 'data' in x and isinstance(x['data'], list) and len(x['data']) == 2]
         self.par_forced = sorted(par_forced)
 
         #par_sv and par_inc (incidence)
@@ -88,9 +133,8 @@ class Cmodel:
 
         #par_obs
         par_obs = set();
-        priors = [x['name'] for x in parameters]
         for o in observations:
-            for p in [o['pdf']['mean'], o['pdf']['sd']]:
+            for p in [o['mean'], o['sd']]:
                 el =  self.change_user_input(p)
                 for e in el:
                     if e not in self.op and e not in self.reserved and e not in self.special_functions and e not in self.par_sv and e not in self.par_noise and e not in self.par_proc and e not in self.par_forced and e not in self.par_inc:
@@ -139,9 +183,9 @@ class Cmodel:
         self.map_prior_name2name = {}
         self.map_name2prior_name = {}
         for p in parameters:
-            if 'prior' in p and 'name' in p['prior']:
-                self.map_prior_name2name[p['prior']['name']] = p['name']
-                self.map_name2prior_name[p['name']] = p['prior']['name']
+            if 'data' in p and isinstance(p['data'], dict) and 'name' in p['data']:
+                self.map_prior_name2name[p['data']['name']] = p['name']
+                self.map_name2prior_name[p['name']] = p['data']['name']
             else:
                 self.map_name2prior_name[p['name']] = p['name']
 
@@ -176,10 +220,10 @@ class Cmodel:
 
 
         for i, m in enumerate(self.obs_model):
-            for x in m['pdf']:
-                if x != "distribution":
-                    self.obs_model[i]['pdf'][x] = self.obs_model[i]['pdf'][x].replace('^', '**')
-                    self.obs_model[i]['pdf'][x] = ''.join(map(resolve_remainder, self.change_user_input(self.obs_model[i]['pdf'][x])))
+            for x in m:
+                if x != "distribution" and x!= 'name' and x !='start':
+                    self.obs_model[i][x] = self.obs_model[i][x].replace('^', '**')
+                    self.obs_model[i][x] = ''.join(map(resolve_remainder, self.change_user_input(self.obs_model[i][x])))
 
         ## incidence def
         self.par_inc_def = []
@@ -214,7 +258,7 @@ class Cmodel:
     def get_resource(self, key):
         """get resource key from a datapackage.json"""
 
-        r = [x for x in self.model['resources'] if x['name']==key]
+        r = [x for x in self.dpkg['resources'] if x['name']==key]
 
         return r and r[0]['data']
 
@@ -222,8 +266,4 @@ class Cmodel:
 
 if __name__=="__main__":
 
-    import json
-    import os
-
-    model = json.load(open(os.path.join('..' ,'examples', 'foo', 'datapackages', 'model-seb-sir', 'datapackage.json')))
-    m = Cmodel(model)
+    m = Cmodel(os.path.join('..' ,'examples', 'foo', 'package.json'), "sir")
