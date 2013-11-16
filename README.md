@@ -54,49 +54,19 @@ in src/C:
 Note: this will install the libs in ```/usr/local```. Edit the variable
 ```PREFIX``` of the```Makefile``` to change this destination.
 
-##Creating and installing the python package
-
-At the root of the repo run:
-
-    python setup.py sdist
-    
-in the package directory (that you will find after unpacking the tarball in ```dist/```):
-
-    python setup.py install
-
-Note: you might have to run ```sudo python setup.py install```
 
 ##Installing the npm package
 
     npm install -g ssm
 
 
-##Building a model from a datapackage.json file
+# Building a model from a data pacakge (package.json file)
 
 From the command line:
 
-    ssm build <datapackage.json> [options]
+    ssm build <package.json> [options]
 
-
-This is equivalent to running a script doing:
-
-    import os
-    from ssm.Builder import Builder
-
-    path_model_coded_in_C = os.path.join(os.getenv("HOME"), 'ssm_test_model')
-    path_model_datapackage = os.path.join(os.getenv("HOME") , 'ssm', 'examples', 'foo', 'datapackages', 'model-seb-sir', 'datapackage.json')
-
-    b = Builder(path_model_coded_in_C, path_model_datapackage)
-    b.prepare()
-    b.code()
-    b.write_data()
-
-to generate the model specific code and then in ```path_model_coded_in_C/C/templates/``` running:
-
-    make
-    make install
-    
-to build the binaries (now available in ```path_model_coded_in_C/```)
+This will build the binaries (in ```path_model_coded_in_C/```)
 
 
 Tests
