@@ -36,6 +36,9 @@ class Builder(Data, Ccoder):
 
         self.path_rendered = path_rendered
         self.env = Environment(loader=FileSystemLoader(os.path.join(self.path_rendered, 'C', 'templates')))
+        self.env.filters.update({
+            'is_prior': lambda x: 'data' in x and isinstance(x, dict) and 'data' in x['data']
+        })
 
     def prepare(self, path_templates=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'C', 'templates'), replace=True):
         """
@@ -121,7 +124,7 @@ class Builder(Data, Ccoder):
 
         reset_all = []
         for x in self.obs_model:
-            reset_all += [self.order_states[s] for s in self.get_inc_reset(x['pdf'])]
+            reset_all += [self.order_states[s] for s in self.get_inc_reset(x)]
 
         x = {'start': self.t0.isoformat(), 'data': self.prepare_data(), 'covariates': self.prepare_covariates(), 'reset_all': list(set(reset_all))}
         with open(os.path.join(self.path_rendered, ".data.json"), "w") as f:

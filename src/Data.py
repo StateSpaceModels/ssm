@@ -34,11 +34,8 @@ class DataError(Exception):
 
 class Data(Cmodel):
 
-    def __init__(self, path,  **kwargs):
-        self.path = os.path.abspath(path)
-        model = json.load(open(self.path))
-        Cmodel.__init__(self, model,  **kwargs)
-        self.root = os.path.dirname(self.path)
+    def __init__(self, path, model_name,  **kwargs):
+        Cmodel.__init__(self, path, model_name, **kwargs)
 
         self.starts = [datetime.datetime.strptime(x['start'], "%Y-%m-%d").date() for x in self.obs_model]
         self.t0 =  min(self.starts)
@@ -120,16 +117,6 @@ class Data(Cmodel):
         return res
 
 
-    def get_inc_reset(self, pdf):
-        inc = set()
-        for x in pdf:
-            if x != "distribution":
-                for e in self.change_user_input(pdf[x]):
-                    if e in self.par_inc:
-                        inc.add(e)
-
-        return inc
-
 
     def prepare_data(self):
 
@@ -190,7 +177,7 @@ class Data(Cmodel):
 
     def prepare_covariates(self):
 
-        parameters = {x['name']:x for x in self.get_resource('parameters')}
+        parameters = {x['name']:x for x in self.model('inputs')}
 
         data_C = []
 
@@ -216,6 +203,6 @@ class Data(Cmodel):
 
 if __name__=="__main__":
 
-    d = Data(os.path.join('..' ,'example', 'foo', 'datapackages', 'model-seb-sir', 'datapackage.json'))
+    d = Data(os.path.join('..' ,'examples', 'foo', 'package.json'), "sir")
     print d.prepare_covariates()
     print d.prepare_data()[29]

@@ -29,13 +29,11 @@ class SsmError(Exception):
     def __str__(self):
         return repr(self.value)
 
-
 class Ccoder(Cmodel):
     """write the C code from the user input coming from the web interface..."""
 
-    def __init__(self, dpkg, model_name,  **kwargs):
-        Cmodel.__init__(self, dpkg, model_name,  **kwargs)
-
+    def __init__(self, path, model_name,  **kwargs):
+        Cmodel.__init__(self, path, model_name,  **kwargs)
 
     def toC(self, term, no_correct_rate, force_par=False, xify=None, human=False, set_t0=False):
 
@@ -162,18 +160,29 @@ class Ccoder(Cmodel):
         return self.generator_C(term, no_correct_rate, force_par=force_par, xify=xify, human=human, set_t0=set_t0)
 
 
+    def get_inc_reset(self, observation):
+        inc = set()
+        for x in observation:
+            if x != "distribution" and x!= 'name' and x !='start':
+                for e in self.change_user_input(observation[x]):
+                    if e in self.par_inc:
+                        inc.add(e)
+
+        return inc
+
+
     def parameters(self):
         """
         Everything needed to create ssm_parameter_t, ssm_state_t and load ssm_input_t
         """
-        parameters = copy.deepcopy(self.get_resource('parameters'))
+        parameters = copy.deepcopy(self.model['inputs'])
 
         for p in parameters:
             if 'transformation' in p:
-                if 'schema' in p:
-                    xify = [x['name'] for x in p['schema']['fields'] if x['name'] != 'date'][0]
-                elif 'prior' in p and 'name' in p['prior']:
-                    xify = p['prior']['name']
+                if 'data' in p and isinstance(p['data'], list) and len(p['data']) == 2:
+                    xify = p['data'][1]['field']
+                elif 'data' in p and 'name' in p['data']:
+                    xify = p['data']['name']
                 else:
                     xify = p['name']
                     
@@ -183,13 +192,13 @@ class Ccoder(Cmodel):
                 ## if 'prior' in p and 'name' in p['prior']:
                 ##     p['f_par2user'] = self.make_C_term(p['transformation']+ '-' + p['name'], True, inverse=p['prior']['name'], force_par=True, xify=p['name'], set_t0=True)
 
-            if 'to_prior' in p:
-                p['f_2prior'] = self.make_C_term(p['to_prior'], True)
+            if 'to_resource' in p:
+                p['f_2prior'] = self.make_C_term(p['to_resource'], True)
 
 
-        drifts = self.get_resource('sde')
+        drifts = self.model['sde']
         drifts = drifts and drifts['drift']
-        #TODO support ode drifts += self.get_resource('ode')
+        #TODO support ode drifts += self.model['ode']
 
         states = self.par_sv + self.par_inc
         pars = self.par_sv + self.par_noise + self.par_proc + self.par_disp + self.par_obs + self.par_other
@@ -215,7 +224,7 @@ class Ccoder(Cmodel):
         f_remainders = {}
         f_remainders_par = {}
         f_remainders_var = {}
-        for x in self.get_resource('populations'):
+        for x in self.model['populations']:
             if 'remainder' in x:
                 rem = x['remainder']['name']
                 eq = x['remainder']['pop_size'] + ' - ' + ' - '.join([r for r in x['composition'] if r != rem])
@@ -232,7 +241,7 @@ class Ccoder(Cmodel):
 
         # Initial compartment sizes in cases of no remainder
         ic = []
-        for x in self.get_resource('populations'):
+        for x in self.model['populations']:
             if 'remainder' not in x:
                 ic.append([self.make_C_term(t, True, force_par=True, set_t0=True) for t in x['composition']])
 
@@ -261,8 +270,8 @@ class Ccoder(Cmodel):
         obs = copy.deepcopy(self.obs_model)
 
         for x in obs:
-            x['pdf']['mean'] = self.make_C_term(x['pdf']['mean'], True)
-            x['pdf']['sd'] = self.make_C_term(x['pdf']['sd'], True)
+            x['mean'] = self.make_C_term(x['mean'], True)
+            x['sd'] = self.make_C_term(x['sd'], True)
 
         return {'observed': obs}
 
@@ -661,7 +670,7 @@ class Ccoder(Cmodel):
 
     def compute_diff(self):
 
-        sde = self.get_resource('sde')
+        sde = self.model['sde']
         if sde and 'dispersion' in sde:
             dispersion = sde['dispersion']
             diff.terms = []
@@ -846,21 +855,21 @@ class Ccoder(Cmodel):
         for s in range(len(self.par_sv)):
             Ht_sv.append([])
             for x in obs:
-                Cterm = self.make_C_term(x['pdf']['mean'], True, derivate=self.par_sv[s])
+                Cterm = self.make_C_term(x['mean'], True, derivate=self.par_sv[s])
                 Ht_sv[s].append(Cterm)
 
         ## Derivatives of observed means against incidence variables
         for s in range(len(self.par_inc)):
             Ht_inc.append([])
             for x in obs:
-                Cterm = self.make_C_term(x['pdf']['mean'], True, derivate=self.par_inc[s])
+                Cterm = self.make_C_term(x['mean'], True, derivate=self.par_inc[s])
                 Ht_inc[s].append(Cterm)
 
         ## Derivatives of observed means against diffusing variables
         for s in range(len(self.par_diff)):
             Ht_diff.append([])
             for x in obs:
-                Cterm = self.make_C_term(x['pdf']['mean'], True, derivate=self.par_diff[s])
+                Cterm = self.make_C_term(x['mean'], True, derivate=self.par_diff[s])
                 Ht_diff[s].append(Cterm)
 
         return {'Ht_sv': Ht_sv,
@@ -878,7 +887,7 @@ class Ccoder(Cmodel):
             term['name'] = x['name']
             term['grads'] = []
             for s in (self.par_sv + self.par_inc + self.par_diff):
-                Cterm = self.make_C_term(x['pdf']['mean'], True, derivate=s if 'diff__' not in s else s.split('diff__')[1])
+                Cterm = self.make_C_term(x['mean'], True, derivate=s if 'diff__' not in s else s.split('diff__')[1])
                 if Cterm!='0':
                     grad = {}
                     grad['Cterm'] = Cterm
@@ -1051,7 +1060,7 @@ class Ccoder(Cmodel):
         ## Create Q_sde
         ############################
 
-        sde = self.get_resource('sde')
+        sde = self.model['sde']
         if sde and 'dispersion' in sde:
             dispersion = sde['dispersion']
             # Q_sde = dispersion * dispersion'
@@ -1152,9 +1161,6 @@ class Ccoder(Cmodel):
             else:
                 calc_Q[key]['sf'] = []
 
-
-
-
         return calc_Q
 
 
@@ -1162,10 +1168,6 @@ if __name__=="__main__":
 
     """test Ccoder"""
 
-    import json
     import os
 
-    dpkg = json.load(open(os.path.join('..' ,'examples', 'foo', 'package.json')))
-    m = Ccoder(dpkg, "sir")
-    print m.parameters()['f_remainders_var']
-    print m.order_states
+    m = Ccoder(os.path.join('..' ,'examples', 'foo', 'package.json'), "sir")

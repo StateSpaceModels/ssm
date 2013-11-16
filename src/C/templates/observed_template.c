@@ -8,8 +8,8 @@ static double f_likelihood_tpl_{{ x.name }}(double y, ssm_X_t *p_X, ssm_par_t *p
 {
     double like;
     double *X = p_X->proj;
-    double gsl_mu = {{ x.pdf.mean }};
-    double gsl_sd = {{ x.pdf.sd }};
+    double gsl_mu = {{ x.mean }};
+    double gsl_sd = {{ x.sd }};
 
     //    printf("mu %f sd %f y %f",gsl_mu, gsl_sd,y);
 
@@ -25,20 +25,20 @@ static double f_likelihood_tpl_{{ x.name }}(double y, ssm_X_t *p_X, ssm_par_t *p
 static double f_obs_mean_tpl_{{ x.name }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
 {
     double *X = p_X->proj;
-    return {{ x.pdf.mean }};
+    return {{ x.mean }};
 }
 
 static double f_obs_var_tpl_{{ x.name }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
 {
     double *X = p_X->proj;
-    return pow({{ x.pdf.sd }}, 2);
+    return pow({{ x.sd }}, 2);
 }
 
 static double f_obs_ran_tpl_{{ x.name }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
 {
     double *X = p_X->proj;
-    double gsl_mu = {{ x.pdf.mean }};
-    double gsl_sd = {{ x.pdf.sd }};
+    double gsl_mu = {{ x.mean }};
+    double gsl_sd = {{ x.sd }};
 
     double yobs= gsl_mu+gsl_ran_gaussian(calc->randgsl, gsl_sd);
 

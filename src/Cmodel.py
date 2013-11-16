@@ -204,7 +204,7 @@ class Cmodel:
         # N- sum(par_sv) in the rates (and in the rates ONLY)
 
         remainder_def = {}
-        for x in self.get_resource('populations'):
+        for x in self.model['populations']:
             if 'remainder' in x:
                 remainder_def[x['remainder']['name']] = '({0}-{1})'.format(x['remainder']['pop_size'], '-'.join([s for s in x['composition'] if s != x['remainder']['name']]))
 
@@ -253,15 +253,6 @@ class Cmodel:
             mylist.append(mystring)
 
         return mylist
-
-
-    def get_resource(self, key):
-        """get resource key from a datapackage.json"""
-
-        r = [x for x in self.dpkg['resources'] if x['name']==key]
-
-        return r and r[0]['data']
-
 
 
 if __name__=="__main__":
