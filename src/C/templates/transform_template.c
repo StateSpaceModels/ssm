@@ -33,22 +33,22 @@ static double f_der2_inv_tpl_skl_{{ p.name }}(double x)
 
 
 {% for p in parameters %}
-{% if is_prior(p) %}
+{% if p|is_prior %}
 {% if p.data.data.distribution == 'uniform' %}
 static double f_prior_tpl_{{ p.name }}(double x)
 {
-    return gsl_ran_flat_pdf(x, {{ p.data.data..lower }}, {{ p.data.data..upper }});
+    return gsl_ran_flat_pdf(x, {{ p.data.data.lower }}, {{ p.data.data.upper }});
 }
 {% elif p.data.data.distribution == 'normal' %}
 static double f_prior_tpl_{{ p.name }}(double x)
 {
-    return gsl_ran_gaussian_pdf( (x - {{ p.data.data..mean }}), {{ p.data.data..sd }} );
+    return gsl_ran_gaussian_pdf( (x - {{ p.data.data.mean }}), {{ p.data.data.sd }} );
 }
 {% endif %}
 {% endif %}
 
 {# we create custom functions for logit_ab transformation (to enclose a and b). This is the case only for logit_ab #}
-{% if is_prior(p) and 'lower' in p.data.data and 'upper' in p.data.data and (p.data.data.lower !=0 or p.data.data.upper !=1) %}
+{% if p|is_prior and 'lower' in p.data.data and 'upper' in p.data.data and (p.data.data.lower !=0 or p.data.data.upper !=1) %}
 static double f_tpl_{{ p.name }}(double x)
 {
     return ssm_f_logit_ab(x, {{ p.data.data.lower }}, {{ p.data.data.upper }});
@@ -89,12 +89,12 @@ static double f_2prior_tpl_{{ p.name }}(double x, ssm_hat_t *hat, ssm_par_t *par
     double res = {{ p.f_2prior }};
 
     //sanitize
-    {% if is_prior(p) %}
+    {% if p|is_prior %}
     {% if  'lower' in p.data.data %}
-    res = GSL_MAX({{ p.prior.lower }},  res);
+    res = GSL_MAX({{ p.data.data.lower }},  res);
     {% endif %}
-    {% if  'upper' in p.prior %}
-    res = GSL_MIN({{ p.prior.upper }},  res);
+    {% if  'upper' in p.data.data %}
+    res = GSL_MIN({{ p.data.data.upper }},  res);
     {% endif %}
     {% endif %}
 
@@ -148,19 +148,19 @@ ssm_parameter_t **_ssm_parameters_new(int *parameters_length)
     parameters[{{ order_parameters[p.name] }}]->offset = {{ order_parameters[p.name] }};
     parameters[{{ order_parameters[p.name] }}]->offset_theta = -1;
 
-    {% if is_prior(p) and 'lower' in p.data.data and 'upper' in p.data.data and (p.data.data.lower !=0 or p.data.data.upper !=1) %}
+    {% if p|is_prior and 'lower' in p.data.data and 'upper' in p.data.data and (p.data.data.lower !=0 or p.data.data.upper !=1) %}
     parameters[{{ order_parameters[p.name] }}]->f = &f_tpl_{{ p.name }};
     parameters[{{ order_parameters[p.name] }}]->f_inv = &f_inv_tpl_{{ p.name }};
     parameters[{{ order_parameters[p.name] }}]->f_der = &f_der_tpl_{{ p.name }};
     parameters[{{ order_parameters[p.name] }}]->f_der_inv = &f_der_inv_tpl_{{ p.name }};
     parameters[{{ order_parameters[p.name] }}]->f_der2_inv = &f_der2_inv_tpl_{{ p.name }};
-    {% elif is_prior(p) and 'lower' in p.data.data and p.data.data.lower ==0 and 'upper' not in p.data.data %}
+    {% elif p|is_prior and 'lower' in p.data.data and p.data.data.lower ==0 and 'upper' not in p.data.data %}
     parameters[{{ order_parameters[p.name] }}]->f = &ssm_f_log;
     parameters[{{ order_parameters[p.name] }}]->f_inv = &ssm_f_inv_log;
     parameters[{{ order_parameters[p.name] }}]->f_der = &ssm_f_der_log;
     parameters[{{ order_parameters[p.name] }}]->f_der_inv = &ssm_f_der_inv_log;
     parameters[{{ order_parameters[p.name] }}]->f_der2_inv = &ssm_f_der2_inv_log;
-    {% elif is_prior(p) and 'lower' in p.data.data and 'upper' in p.data.data and p.data.data.lower == 0 and p.data.data.upper == 1 %}
+    {% elif p|is_prior and 'lower' in p.data.data and 'upper' in p.data.data and p.data.data.lower == 0 and p.data.data.upper == 1 %}
     parameters[{{ order_parameters[p.name] }}]->f = &ssm_f_logit;
     parameters[{{ order_parameters[p.name] }}]->f_inv = &ssm_f_inv_logit;
     parameters[{{ order_parameters[p.name] }}]->f_der = &ssm_f_der_logit;
@@ -174,7 +174,7 @@ ssm_parameter_t **_ssm_parameters_new(int *parameters_length)
     parameters[{{ order_parameters[p.name] }}]->f_der2_inv = &ssm_f_der2_inv_id;
     {% endif %}
 
-    {% if is_prior(p) and 'distribution' in p.data.data and p.data.data.distribution != 'fixed' %}
+    {% if p|is_prior and 'distribution' in p.data.data and p.data.data.distribution != 'fixed' %}
     parameters[{{ order_parameters[p.name] }}]->f_prior = &f_prior_tpl_{{ p.name }};
     {# TODO: fixed case #}
     {% else %}

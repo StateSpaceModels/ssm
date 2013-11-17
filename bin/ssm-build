@@ -18,7 +18,6 @@ program
 
 //logging
 var emitter = new EventEmitter();
-emitter.emmit('log', 'Building the model locally...');
 if(program.verbose){
   emitter.on('log', function(msg){
     console.log(msg);
@@ -27,6 +26,8 @@ if(program.verbose){
 emitter.on('error', function(msg){
   console.error('\033[91mFAIL\033[0m: ' + msg);
 });
+
+emitter.emit('log', 'Building the model locally...');
 
 var pathDpkg;
 
@@ -64,9 +65,9 @@ async.eachLimit(dpkg.models, os.cpus().length, function(model, cb){
           "import sys",
           "sys.path.append('" + path.resolve(__dirname, '..', 'src') + "')",
           "from Builder import Builder",
-          "path_model_coded_in_C = '" + pathModel + "'",
+          "path_model_coded_in_C = '" + program.output + "'",
           "path_model_datapackage = '" + pathDpkg + "'",
-          "b = Builder(path_model_coded_in_C, path_model_datapackage)",
+          "b = Builder(path_model_coded_in_C, path_model_datapackage, '" + model.name + "')",
           "b.prepare()",
           "b.code()",
           "b.write_data()"
@@ -79,13 +80,13 @@ async.eachLimit(dpkg.models, os.cpus().length, function(model, cb){
         templater.on('exit', function (code) {
 
           if(code === 0) {
-            var make = spawn('make', ['install'], {cwd: path.join(program.output, 'C', 'templates')});
+            var make = spawn('make', ['install'], {cwd: path.join(pathModel, 'C', 'templates')});
             make.stdout.pipe(process.stdout);
             make.stderr.pipe(process.stderr);
 
             make.on('exit', function (code) {
               if(code === 0){
-                emitter.emit('log','model has been created in ' + program.output);
+                emitter.emit('log','model has been created in ' + pathModel);
               } else {
                 emitter.emit('error', 'could not build the model ('+ code +').');
               }
@@ -95,6 +96,7 @@ async.eachLimit(dpkg.models, os.cpus().length, function(model, cb){
           }
 
         });
+
 
       });
 

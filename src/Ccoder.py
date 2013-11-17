@@ -32,8 +32,8 @@ class SsmError(Exception):
 class Ccoder(Cmodel):
     """write the C code from the user input coming from the web interface..."""
 
-    def __init__(self, path, model_name,  **kwargs):
-        Cmodel.__init__(self, path, model_name,  **kwargs)
+    def __init__(self, path_dpkg, model_name,  **kwargs):
+        Cmodel.__init__(self, path_dpkg, model_name,  **kwargs)
 
     def toC(self, term, no_correct_rate, force_par=False, xify=None, human=False, set_t0=False):
 
@@ -180,7 +180,7 @@ class Ccoder(Cmodel):
         for p in parameters:
             if 'transformation' in p:
                 if 'data' in p and isinstance(p['data'], list) and len(p['data']) == 2:
-                    xify = p['data'][1]['field']
+                    xify = p['data'][1]['name'] #!!!! the hash need a name property (in addition to datapackage resource and field)
                 elif 'data' in p and 'name' in p['data']:
                     xify = p['data']['name']
                 else:

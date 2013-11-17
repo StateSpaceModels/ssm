@@ -7,7 +7,6 @@ with *S*tate *S*pace *M*odels.
     cat theta.json | ./simplex -M 10000 | ./ksimplex -M 10000 > mle.json
     cat mle.json | ./kmcmc -M 100000 | ./pmcmc -J 1000 -M 500000
 
-
 [![NPM](https://nodei.co/npm/ssm.png)](https://nodei.co/npm/ssm/)
 
 All the methods are implemented in C. The C code contain generic part
@@ -29,11 +28,12 @@ Python:
 - [Python 2.7.x](www.python.org/)
 - [Jinja2](http://jinja.pocoo.org/docs/)
 - [SymPy](http://sympy.org/)
+- [dateutil](http://labix.org/python-dateutil)
 
 On OSX with [homebrew](http://mxcl.github.io/homebrew/) and [pip](https://pypi.python.org/pypi/pip):
 
     brew install jansson zmq gsl
-    sudo pip install jinja2 sympy
+    sudo pip install jinja2 sympy python-dateutil
 
 On Ubuntu:
 
@@ -41,7 +41,7 @@ On Ubuntu:
     apt-get install -y python-software-properties python g++ make build-essential
     add-apt-repository -y ppa:chris-lea/zeromq
     apt-get update
-    apt-get install -y libzmq-dev libjansson-dev python-sympy python-jinja2 libgsl0-dev
+    apt-get install -y libzmq-dev libjansson-dev python-sympy python-jinja2 python-dateutil libgsl0-dev
  
 
 ##Building the standalone C libraries
@@ -60,19 +60,19 @@ Note: this will install the libs in ```/usr/local```. Edit the variable
     npm install -g ssm
 
 
-# Building a model from a data package (package.json file)
+# Building models from a data package
 
 From the command line:
 
     ssm build <package.json> [options]
 
-This will build the binaries (in ```path_model_coded_in_C/```)
+This will build the binaries (in ```path_model_coded_in_C/<model_name>```)
 
 
 Tests
 =====
 
-C code (whith [clar](https://github.com/vmg/clar)):
+C code (with [clar](https://github.com/vmg/clar)):
 In ```tests/```:
 
     make test
@@ -83,7 +83,6 @@ Python code:
 In ```src/```:
 
     python -m unittest discover
-
 
 
 License

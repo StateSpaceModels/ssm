@@ -34,20 +34,19 @@ class Cmodel:
     parse a JSON model description
     """
 
-    def __init__(self, path, model_name, **kwargs):
+    def __init__(self, path_dpkg, model_name, **kwargs):
 
-        self.path = os.path.abspath(path)
+        self.path = os.path.abspath(path_dpkg)
         self.root = os.path.dirname(self.path)
         try:        
             self.dpkg = json.load(open(self.path))
-        except ValueError:
-            raise ModelError('invalid JSON')            
+        except ValueError, IOError :
+            raise ModelError('could not process package.json')            
 
         try:
             self.model = [x for x in self.dpkg['models'] if x['name'] == model_name][0]
         except IndexError:
             raise ModelError('invalid model name')
-            
 
         self.op = set(['+', '-', '*', '/', '^', ',', '(', ')']) ##!!!CAN'T contain square bracket '[' ']'
         self.reserved = set(['U', 'x', 't', 'M_E', 'M_LOG2E', 'M_LOG10E', 'M_SQRT2', 'M_SQRT1_2', 'M_SQRT3', 'M_PI', 'M_PI_2', 'M_PI_4', 'M_SQRTPI', 'M_2_SQRTPI', 'M_1_PI', 'M_2_PI', 'M_LN10', 'M_LN2', 'M_LNPI', 'M_EULER'])
