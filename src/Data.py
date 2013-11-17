@@ -89,7 +89,9 @@ class Data(Ccoder):
             data[x['name']]['dict'] = {d[date_name]:d[x_name] for d in self.get_data(x['name'])}
 
             if 'transformation' in x:                
-                on = linked_data['data'][1]['name'] #!!!! the hash need a name property (in addition to datapackage resource and field)
+                if 'name' not in linked_data['data'][1]:
+                    raise DataError('the foreignkey hash need a name property (the transformation has to be done in terms of this name)')
+                on = linked_data['data'][1]['name']
                 f = eval('lambda {0}: {1}'.format(on, x['transformation']))
             else:
                 f = lambda v: v

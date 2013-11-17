@@ -55,8 +55,14 @@ class Cmodel:
         self.remainder = sorted([x['remainder']['name'] for x in self.model['populations'] if 'remainder' in x])
         self.ur = ['U'] + self.remainder
 
-        #resolve links for priors (named parameters here)
-        deps = {} #cache package.json of the dps
+        #resolve links for priors (named parameters here) for every
+        #inputs, replace the foreignkey hash ({datapackage: resource:
+        #}) by it's corresponding resource. Note that if (and only if)
+        #the foreignkey hash has a name property, the name of the
+        #imported resource is changed to that. In case this
+        #alternative name is present, transformations have to be done
+        #in terms of this name.'
+        deps = {} #cache package.json of the dps    
         for i, p in enumerate(self.model['inputs']):
             if 'data' in p:
                 if isinstance(p['data'], dict):
@@ -79,8 +85,12 @@ class Cmodel:
                             raise ModelError('invalid model name')
 
 
-                    self.model['inputs'][i]['data'] = copy.deepcopy(resource)
-            
+                    imported_resource = copy.deepcopy(resource)
+                    if 'name' in p['data']:
+                        imported_resource['name'] = p['data']['name']
+
+                    self.model['inputs'][i]['data'] = imported_resource
+
 
         parameters = self.model['inputs']
         sde = self.model.get('sde', {})

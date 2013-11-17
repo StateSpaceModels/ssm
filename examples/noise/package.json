@@ -22,7 +22,7 @@
         {"name": "paris", "composition": ["S_paris", "I_paris", "R_paris"], "remainder": {"name": "R_paris", "pop_size": "N_paris"}},
         {"name": "nyc",   "composition": ["S_nyc", "I_nyc", "R_nyc"],       "remainder": {"name": "R_nyc",   "pop_size": "N_nyc"}}
       ],
-
+      
       "reactions": [
         {"from": "U",       "to": "S_paris", "rate": "mu_b_paris*N_paris",         "description":"birth"},
         {"from": "U",       "to": "S_nyc",   "rate": "mu_b_nyc*N_nyc",             "description":"birth"},
