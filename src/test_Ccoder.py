@@ -3,74 +3,137 @@ import unittest
 import copy
 import json
 import os
+import shutil
 
 class TestCcoder(unittest.TestCase):
 
     def setUp(self):
-        model = json.load(open(os.path.join('..' ,'examples', 'noise', 'package.json')))
-        self.m_noise = Ccoder(model)
+        shutil.copytree(os.path.join('..' ,'examples', 'noise'),os.path.join('..' ,'examples', '__tmp_noise'))
 
-        model = json.load(open(os.path.join('..' ,'examples', 'noise', 'package.json')))
-        del models[0]["reactions"][2]["white_noise"]
-        del models[0]["reactions"][3]["white_noise"]
-        models[0]["sde"] = {}
-        models[0]["sde"]["drift"]=[]
-        models[0]["sde"]["drift"].append({})
-        models[0]["sde"]["drift"][0]['name']='r0_paris'
-        models[0]["sde"]["drift"][0]['f']=0.0
-        models[0]["sde"]["drift"][0]['transformation']="log(r0_paris)"
-        models[0]["sde"]["drift"].append({})
-        models[0]["sde"]["drift"][1]['name']='r0_nyc'
-        models[0]["sde"]["drift"][1]['f']=0.0
-        models[0]["sde"]["drift"][1]['transformation']="log(r0_nyc)"
-        models[0]["sde"]["dispersion"]=[['vol',0],[0,'vol']]
-        diff_model = model
-        self.m_diff = Ccoder(model)
+        input = json.load(open(os.path.join('..' ,'examples', 'noise', 'package.json')))
+        noise = input["models"][0]
+        models = []
 
-        model = json.load(open(os.path.join('..' ,'examples', 'noise', 'package.json')))
-        del models[0]["reactions"][2]["white_noise"]
-        del models[0]["reactions"][3]["white_noise"]
-        models[0]["reactions"][0]["white_noise"] = {"name":"noise_SI", "sd": "sto"}
-        models[0]["reactions"][1]["white_noise"] = {"name":"noise_SI2", "sd": "sto"}
-        self.m_noise2 = Ccoder(model)
-
-        model = json.load(open(os.path.join('..' ,'examples', 'noise', 'package.json')))
-        del models[0]["reactions"][2]["white_noise"]
-        del models[0]["reactions"][3]["white_noise"]
-        models[0]["reactions"][4]["white_noise"] = {"name":"noise_SI", "sd": "sto"}
-        models[0]["reactions"][5]["white_noise"] = {"name":"noise_SI2", "sd": "sto"}
-        self.m_noise3 = Ccoder(model)
-
-        model = json.load(open(os.path.join('..' ,'examples', 'noise', 'package.json')))
-        del models[0]["reactions"][2]["white_noise"]
-        del models[0]["reactions"][3]["white_noise"]
-        models[0]["reactions"][8]["white_noise"] = {"name":"noise_SI", "sd": "sto"}
-        models[0]["reactions"][9]["white_noise"] = {"name":"noise_SI2", "sd": "sto"}
-        self.m_noise4 = Ccoder(model)
-
-        model = json.load(open(os.path.join('..' ,'examples', 'noise', 'package.json')))
-        del models[0]["reactions"][2]["white_noise"]
-        del models[0]["reactions"][3]["white_noise"]
-        models[0]["reactions"][10]["white_noise"] = {"name":"noise_SI", "sd": "sto"}
-        models[0]["reactions"][11]["white_noise"] = {"name":"noise_SI2", "sd": "sto"}
-        self.m_noise5 = Ccoder(model)
-
-        model = json.load(open(os.path.join('..' ,'examples', 'noise', 'package.json')))
-        models[0]["reactions"][4]["white_noise"] = {"name":"noise_SI", "sd": "sto"}
-        models[0]["reactions"][5]["white_noise"] = {"name":"noise_SI2", "sd": "sto"}
-        self.m_noise6 = Ccoder(model)
-
-        model = json.load(open(os.path.join('..' ,'examples', 'noise', 'package.json')))
-        models[0]["reactions"][4]["white_noise"] = {"name":"noise_SI23", "sd": "sto"}
-        models[0]["reactions"][5]["white_noise"] = {"name":"noise_SI24", "sd": "sto"}
-        self.m_noise7 = Ccoder(model)
-
-        model = diff_model
-        models[0]["reactions"].append({"from": "R_paris",   "to": "I_paris",   "rate": "correct_rate(v)",            "description":"testing"})
-        models[0]["reactions"].append({"from": "R_nyc",   "to": "I_nyc",   "rate": "correct_rate(v)",                "description":"testing"})
-        self.m_diff2 = Ccoder(model)
-
+        input = json.load(open(os.path.join('..' ,'examples', 'noise', 'package.json')))
+        noise = input["models"][0]
+        m_noise = noise
+        m_noise["name"] = "m_noise"
+        models.append(m_noise)
         
+        input = json.load(open(os.path.join('..' ,'examples', 'noise', 'package.json')))
+        noise = input["models"][0]
+        m_diff = noise
+        m_diff["name"] = "m_diff"
+        del m_diff["reactions"][2]["white_noise"]
+        del m_diff["reactions"][3]["white_noise"]
+        m_diff["sde"] = {}
+        m_diff["sde"]["drift"]=[]
+        m_diff["sde"]["drift"].append({})
+        m_diff["sde"]["drift"][0]['name']='r0_paris'
+        m_diff["sde"]["drift"][0]['f']=0.0
+        m_diff["sde"]["drift"][0]['transformation']="log(r0_paris)"
+        m_diff["sde"]["drift"].append({})
+        m_diff["sde"]["drift"][1]['name']='r0_nyc'
+        m_diff["sde"]["drift"][1]['f']=0.0
+        m_diff["sde"]["drift"][1]['transformation']="log(r0_nyc)"
+        m_diff["sde"]["dispersion"]=[['vol',0],[0,'vol']]
+        models.append(m_diff)
+
+        input = json.load(open(os.path.join('..' ,'examples', 'noise', 'package.json')))
+        noise = input["models"][0]
+        m_noise2 = noise
+        m_noise2["name"] = "m_noise2"
+        del m_noise2["reactions"][2]["white_noise"]
+        del m_noise2["reactions"][3]["white_noise"]
+        m_noise2["reactions"][0]["white_noise"] = {"name":"noise_SI", "sd": "sto"}
+        m_noise2["reactions"][1]["white_noise"] = {"name":"noise_SI2", "sd": "sto"}
+        models.append(m_noise2)
+
+        input = json.load(open(os.path.join('..' ,'examples', 'noise', 'package.json')))
+        noise = input["models"][0]
+        m_noise3 = noise
+        m_noise3["name"] = "m_noise3"
+        del m_noise3["reactions"][2]["white_noise"]
+        del m_noise3["reactions"][3]["white_noise"]
+        m_noise3["reactions"][4]["white_noise"] = {"name":"noise_SI", "sd": "sto"}
+        m_noise3["reactions"][5]["white_noise"] = {"name":"noise_SI2", "sd": "sto"}
+        models.append(m_noise3)
+
+        input = json.load(open(os.path.join('..' ,'examples', 'noise', 'package.json')))
+        noise = input["models"][0]
+        m_noise4 = noise
+        m_noise4["name"] = "m_noise4"
+        del m_noise4["reactions"][2]["white_noise"]
+        del m_noise4["reactions"][3]["white_noise"]
+        m_noise4["reactions"][8]["white_noise"] = {"name":"noise_SI", "sd": "sto"}
+        m_noise4["reactions"][9]["white_noise"] = {"name":"noise_SI2", "sd": "sto"}
+        models.append(m_noise4)
+
+        input = json.load(open(os.path.join('..' ,'examples', 'noise', 'package.json')))
+        noise = input["models"][0]
+        m_noise5 = noise
+        m_noise5["name"] = "m_noise5"
+        del m_noise5["reactions"][2]["white_noise"]
+        del m_noise5["reactions"][3]["white_noise"]
+        m_noise5["reactions"][10]["white_noise"] = {"name":"noise_SI", "sd": "sto"}
+        m_noise5["reactions"][11]["white_noise"] = {"name":"noise_SI2", "sd": "sto"}
+        models.append(m_noise5)
+
+        input = json.load(open(os.path.join('..' ,'examples', 'noise', 'package.json')))
+        noise = input["models"][0]
+        m_noise6 = noise
+        m_noise6["name"] = "m_noise6"
+        m_noise6["reactions"][4]["white_noise"] = {"name":"noise_SI", "sd": "sto"}
+        m_noise6["reactions"][5]["white_noise"] = {"name":"noise_SI2", "sd": "sto"}
+        models.append(m_noise6)
+
+        input = json.load(open(os.path.join('..' ,'examples', 'noise', 'package.json')))
+        noise = input["models"][0]
+        m_noise7 = noise
+        m_noise7["name"] = "m_noise7"
+        m_noise7["reactions"][4]["white_noise"] = {"name":"noise_SI23", "sd": "sto"}
+        m_noise7["reactions"][5]["white_noise"] = {"name":"noise_SI24", "sd": "sto"}
+        models.append(m_noise7)
+
+        input = json.load(open(os.path.join('..' ,'examples', 'noise', 'package.json')))
+        noise = input["models"][0]
+        m_diff2 = noise
+        m_diff2["name"] = "m_diff2"
+        del m_diff2["reactions"][2]["white_noise"]
+        del m_diff2["reactions"][3]["white_noise"]
+        m_diff2["sde"] = {}
+        m_diff2["sde"]["drift"]=[]
+        m_diff2["sde"]["drift"].append({})
+        m_diff2["sde"]["drift"][0]['name']='r0_paris'
+        m_diff2["sde"]["drift"][0]['f']=0.0
+        m_diff2["sde"]["drift"][0]['transformation']="log(r0_paris)"
+        m_diff2["sde"]["drift"].append({})
+        m_diff2["sde"]["drift"][1]['name']='r0_nyc'
+        m_diff2["sde"]["drift"][1]['f']=0.0
+        m_diff2["sde"]["drift"][1]['transformation']="log(r0_nyc)"
+        m_diff2["sde"]["dispersion"]=[['vol',0],[0,'vol']]
+        m_diff2["reactions"].append({"from": "R_paris",   "to": "I_paris",   "rate": "correct_rate(v)",            "description":"testing"})
+        m_diff2["reactions"].append({"from": "R_nyc",   "to": "I_nyc",   "rate": "correct_rate(v)",                "description":"testing"})
+        models.append(m_diff2)
+
+        input = json.load(open(os.path.join('..' ,'examples', 'noise', 'package.json')))
+        input["models"] = models
+        with open(os.path.join('..' ,'examples', '__tmp_noise', 'package.json'),"w") as outfile:
+            json.dump(input,outfile)
+        
+        self.m_noise = Ccoder(os.path.join('..' ,'examples', '__tmp_noise', 'package.json'),"m_noise")
+        self.m_diff = Ccoder(os.path.join('..' ,'examples', '__tmp_noise', 'package.json'),"m_diff")
+        self.m_noise2 = Ccoder(os.path.join('..' ,'examples', '__tmp_noise', 'package.json'),"m_noise2")
+        self.m_noise3 = Ccoder(os.path.join('..' ,'examples', '__tmp_noise', 'package.json'),"m_noise3")
+        self.m_noise4 = Ccoder(os.path.join('..' ,'examples', '__tmp_noise', 'package.json'),"m_noise4")
+        self.m_noise5 = Ccoder(os.path.join('..' ,'examples', '__tmp_noise', 'package.json'),"m_noise5")
+        self.m_noise6 = Ccoder(os.path.join('..' ,'examples', '__tmp_noise', 'package.json'),"m_noise6")
+        self.m_noise7 = Ccoder(os.path.join('..' ,'examples', '__tmp_noise', 'package.json'),"m_noise7")
+        self.m_diff2 = Ccoder(os.path.join('..' ,'examples', '__tmp_noise', 'package.json'),"m_diff2") 
+
+    def tearDown(self):
+        shutil.rmtree(os.path.join('..' ,'examples', '__tmp_noise'))
+    
     def test_make_C_term(self):
         terms = [
             {'x': 'mu_b_paris*(1.0+v*sin((v/N_paris+(mu_b_paris)))) + r0_paris', #input
@@ -82,8 +145,8 @@ class TestCcoder(unittest.TestCase):
              'c': 'gsl_spline_eval(calc->spline[ORDER_N_paris],t,calc->acc[ORDER_N_paris])'},
 
             {'x': 'rep_all_CDC_inc*(1.0-rep_all_CDC_inc)*prop_all_CDC_inc*x + (rep_all_CDC_inc*phi*prop_all_CDC_inc*x)**2',
-             'h': 'pow(phi,2)*pow(prop_all_CDC_inc,2)*pow(rep_all_CDC_inc,2)*pow(x,2)+prop_all_CDC_inc*rep_all_CDC_inc*x*(-rep_all_CDC_inc+1.0)',
-             'c': 'pow(gsl_vector_get(par, ORDER_phi),2)*pow(gsl_spline_eval(calc->spline[ORDER_prop_all_CDC_inc],t,calc->acc[ORDER_prop_all_CDC_inc]),2)*pow(gsl_vector_get(par, ORDER_rep_all_CDC_inc),2)*pow(x,2)+gsl_spline_eval(calc->spline[ORDER_prop_all_CDC_inc],t,calc->acc[ORDER_prop_all_CDC_inc])*gsl_vector_get(par, ORDER_rep_all_CDC_inc)*x*(-gsl_vector_get(par, ORDER_rep_all_CDC_inc)+1.0)'},
+             'h': 'pow(phi,2)*pow(prop_all_CDC_inc,2)*pow(rep_paris_CDC_prev,2)*pow(x,2)+prop_all_CDC_inc*rep_paris_CDC_prev*x*(-rep_paris_CDC_prev+1.0)',
+             'c': 'pow(gsl_vector_get(par, ORDER_phi),2)*pow(gsl_spline_eval(calc->spline[ORDER_prop_all_CDC_inc],t,calc->acc[ORDER_prop_all_CDC_inc]),2)*pow(gsl_vector_get(par, ORDER_rep_paris_CDC_prev),2)*pow(x,2)+gsl_spline_eval(calc->spline[ORDER_prop_all_CDC_inc],t,calc->acc[ORDER_prop_all_CDC_inc])*gsl_vector_get(par, ORDER_rep_paris_CDC_prev)*x*(-gsl_vector_get(par, ORDER_rep_paris_CDC_prev)+1.0)'},
         ]
 
         for t in terms:

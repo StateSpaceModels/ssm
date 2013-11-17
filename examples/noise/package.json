@@ -18,7 +18,7 @@
     {
       "name":"noise",
       
-      "population": [
+      "populations": [
         {"name": "paris", "composition": ["S_paris", "I_paris", "R_paris"], "remainder": {"name": "R_paris", "pop_size": "N_paris"}},
         {"name": "nyc",   "composition": ["S_nyc", "I_nyc", "R_nyc"],       "remainder": {"name": "R_nyc",   "pop_size": "N_nyc"}}
       ],
@@ -104,7 +104,7 @@
             {"datapackage": "noise-data", "resource": "data", "field": "all_CDC_inc_out"}
           ]
         }
-      ]
+      ],
 
       "inputs": [
         {
@@ -202,7 +202,7 @@
           "name": "I_nyc",
           "description": "Number of susceptible",
           "transformation": "pr_I_paris*N_nyc"
-        }
+        },
         {
           "name": "r0_paris",
           "description": "basic reproduction number",
@@ -335,7 +335,7 @@
         "r0_nyc": 20.0,
         "r0_paris": 20.0,
         "pr_v": 11.0,
-        "rep_all_CDC_inc":0.6,
+        "rep_all_CDC_inc":0.6
       }
     },
 

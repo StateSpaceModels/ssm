@@ -108,6 +108,7 @@ class Ccoder(Cmodel):
                 Cterm += self.toC(terms[ind], no_correct_rate, force_par=force_par, xify=xify, human=human, set_t0=set_t0)
                 ind += 1
 
+
         return Cterm
 
 
@@ -1060,11 +1061,15 @@ class Ccoder(Cmodel):
         ## Create Q_sde
         ############################
 
-        sde = self.model['sde']
-        if sde and 'dispersion' in sde:
-            dispersion = sde['dispersion']
-            # Q_sde = dispersion * dispersion'
-            Q_sde = matrix_product(dispersion, zip(*dispersion))
+        if 'sde' in self.model:
+            sde = self.model['sde']
+            if 'dispersion' in self.model['sde']:
+                sde = self.model['sde']
+                dispersion = sde['dispersion']
+                # Q_sde = dispersion * dispersion'
+                Q_sde = matrix_product(dispersion, zip(*dispersion))
+        else:
+            sde = []
 
 
         #####################################################################################

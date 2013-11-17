@@ -38,7 +38,7 @@ if(!program.args[0]){
   pathDpkg = resolvePath(program.args[0]);
 }
 
-var dpkgRoot = '/Users/team/ssm/examples/foo';
+var dpkgRoot = pathDpkg.substring(1,pathDpkg.length-12);
 var dpkg;
 try {
   dpkg = JSON.parse(fs.readFileSync(pathDpkg));
@@ -46,6 +46,7 @@ try {
   emitter.emit('error', e.message);
   process.exit(1);  
 }
+
 
 //build the models in parallel
 async.eachLimit(dpkg.models, os.cpus().length, function(model, cb){

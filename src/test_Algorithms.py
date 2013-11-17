@@ -17,7 +17,9 @@ class TestNoiseResults(unittest.TestCase):
             print("Testing classic numerical results on noise example")
 
             os.chdir(Root)
-            os.system('ssm build  ' + Root + '/../examples/noise/datapackages/model-jdureau-noise/datapackage.json')
+            print 'bef build'
+            os.system(Root + '/../bin/ssm-build  ' + Root + '/../examples/noise/package.json')
+            print 'aft build'
       
       def setUp(self):
       # Things that need to be done before tests
@@ -28,7 +30,7 @@ class TestNoiseResults(unittest.TestCase):
             shutil.rmtree(Root + '/ssm_model')
 
       def test_kalman_map(self):
-            os.system('./ksimplex --prior -M 1000 -c < ' + Root + '/../examples/noise/datapackage.json')
+            os.system('./ksimplex --prior -M 1000 -c < ' + Root + '/../examples/noise/package.json')
             tab = genfromtxt('trace_0.csv',delimiter=',',names=True)
             self.assertAlmostEqual(tab[321][5],-401.053)
 
@@ -839,11 +841,11 @@ def suite_pMCMCsmoothing():
 if __name__ == '__main__' :
 
       run_NoiseResults = 1
-      run_TransfsAndPMCMC = 1
-      run_KalmanOnDiffusions = 1
-      run_SMCSDEagainstKalman = 1
-      run_pMCMCsmoothing = 1
-      run_pMCMCsmoothingWithNaNs = 1
+      run_TransfsAndPMCMC = 0
+      run_KalmanOnDiffusions = 0
+      run_SMCSDEagainstKalman = 0
+      run_pMCMCsmoothing = 0
+      run_pMCMCsmoothingWithNaNs = 0
 
       Root = os.getcwd()
 

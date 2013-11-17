@@ -83,7 +83,10 @@ class Cmodel:
             
 
         parameters = self.model['inputs']
-        sde = self.model['sde']
+        if 'sde' in self.model:
+            sde = self.model['sde']
+        else:
+            sde = {}
         reactions = self.model['reactions']
         observations = self.model['observations']
 
@@ -187,8 +190,7 @@ class Cmodel:
                 self.map_name2prior_name[p['name']] = p['data']['name']
             else:
                 self.map_name2prior_name[p['name']] = p['name']
-
-
+        
         # proc_model
         self.proc_model = copy.deepcopy(reactions)
 
