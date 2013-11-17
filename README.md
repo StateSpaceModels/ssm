@@ -60,7 +60,7 @@ Note: this will install the libs in ```/usr/local```. Edit the variable
     npm install -g ssm
 
 
-# Building a model from a data pacakge (package.json file)
+# Building a model from a data package (package.json file)
 
 From the command line:
 

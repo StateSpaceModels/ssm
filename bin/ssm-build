@@ -1,59 +1,109 @@
 #!/usr/bin/env node
 
 var program = require('commander')
+  , os = require('os')
+  , fs = require('fs')
+  , mkdirp = require('mkdirp')
   , path = require('path')
   , spawn = require('child_process').spawn
-  , resolvePath = require('../lib/util').resolvePath;
+  , resolvePath = require('../lib/util').resolvePath
+  , links = require('../lib/links')
+  , EventEmitter = require('events').EventEmitter
+  , async = require('async');
 
 program
   .option('-o, --output [path]', 'the directory for the builds', resolvePath, path.resolve('ssm_model'))
+  .option('-V, --verbose', 'verbose mode')
   .parse(process.argv);
 
-console.log('Building the model locally...');
+//logging
+var emitter = new EventEmitter();
+emitter.emmit('log', 'Building the model locally...');
+if(program.verbose){
+  emitter.on('log', function(msg){
+    console.log(msg);
+  });
+}
+emitter.on('error', function(msg){
+  console.error('\033[91mFAIL\033[0m: ' + msg);
+});
 
-var pathDatapackage;
+var pathDpkg;
 
 if(!program.args[0]){
-  console.error('\033[91mFAIL\033[0m: invalid usage, path to datapackage.json is missing (ssm build <path> [options])');
+  emitter.emit('error', 'invalid usage, path to datapackage.json is missing (ssm build <path> [options])');
   process.exit(1);
 } else {
-  pathDatapackage = resolvePath(program.args[0]);
+  pathDpkg = resolvePath(program.args[0]);
 }
 
-var tplter = [
-  "import os",
-  "import sys",
-  "sys.path.append('" + path.resolve(__dirname, '..', 'src') + "')",
-  "from Builder import Builder",
-  "path_model_coded_in_C = '" + program.output + "'",
-  "path_model_datapackage = '" + pathDatapackage + "'",
-  "b = Builder(path_model_coded_in_C, path_model_datapackage)",
-  "b.prepare()",
-  "b.code()",
-  "b.write_data()"
-].join('\n');
+var dpkgRoot = '/Users/team/ssm/examples/foo';
+var dpkg;
+try {
+  dpkg = JSON.parse(fs.readFileSync(pathDpkg));
+} catch (e){
+  emitter.emit('error', e.message);
+  process.exit(1);  
+}
 
+//build the models in parallel
+async.eachLimit(dpkg.models, os.cpus().length, function(model, cb){
+  var pathModel = path.join(program.output, model.name);
 
-var templater = spawn('python', ['-c', tplter]);
-templater.stdout.pipe(process.stdout);
-templater.stderr.pipe(process.stderr);
+  mkdirp(pathModel, function (err) {
+    if(err) return cb(err);
 
-templater.on('exit', function (code) {
+    links.resolve(dpkgRoot, links.get(model), function(err, rlinks){
+      if(err) return cb(err);
 
-  if(code === 0) {
-    var make = spawn('make', ['install'], {cwd: path.join(program.output, 'C', 'templates')});
-    make.stdout.pipe(process.stdout);
-    make.stderr.pipe(process.stderr);
+      fs.writeFile(path.join(pathModel, '.data.json'), JSON.stringify(rlinks), function(err){
+        if(err) return cb(err);
+        
+        var tplter = [
+          "import os",
+          "import sys",
+          "sys.path.append('" + path.resolve(__dirname, '..', 'src') + "')",
+          "from Builder import Builder",
+          "path_model_coded_in_C = '" + pathModel + "'",
+          "path_model_datapackage = '" + pathDpkg + "'",
+          "b = Builder(path_model_coded_in_C, path_model_datapackage)",
+          "b.prepare()",
+          "b.code()",
+          "b.write_data()"
+        ].join('\n');
 
-    make.on('exit', function (code) {
-      if(code === 0){
-        console.log('\033[92mSUCCESS\033[0m: model has been created in %s.', program.output);
-      } else {
-        console.log('\033[91mFAIL\033[0m: could not build the model (%s).', code);
-      }
-    });
-  } else {
-    console.log('\033[91mFAIL\033[0m: could not build the model (%s).', code);
+        var templater = spawn('python', ['-c', tplter]);
+        templater.stdout.pipe(process.stdout);
+        templater.stderr.pipe(process.stderr);
+
+        templater.on('exit', function (code) {
+
+          if(code === 0) {
+            var make = spawn('make', ['install'], {cwd: path.join(program.output, 'C', 'templates')});
+            make.stdout.pipe(process.stdout);
+            make.stderr.pipe(process.stderr);
+
+            make.on('exit', function (code) {
+              if(code === 0){
+                emitter.emit('log','model has been created in ' + program.output);
+              } else {
+                emitter.emit('error', 'could not build the model ('+ code +').');
+              }
+            });
+          } else {
+            emitter.emit('error', 'could not build the model ('+ code +').');
+          }
+
+        });
+
+      });
+
+    });    
+
+  });
+
+}, function(err){
+  if(err){
+    emitter.emit('error', err.message);
   }
-
 });
