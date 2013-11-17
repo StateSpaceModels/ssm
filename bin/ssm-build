@@ -38,7 +38,7 @@ if(!program.args[0]){
   pathDpkg = resolvePath(program.args[0]);
 }
 
-var dpkgRoot = pathDpkg.substring(1,pathDpkg.length-12);
+var dpkgRoot = path.dirname(pathDpkg);
 var dpkg;
 try {
   dpkg = JSON.parse(fs.readFileSync(pathDpkg));

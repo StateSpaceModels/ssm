@@ -83,10 +83,8 @@ class Cmodel:
             
 
         parameters = self.model['inputs']
-        if 'sde' in self.model:
-            sde = self.model['sde']
-        else:
-            sde = {}
+        sde = self.model.get('sde', {})
+
         reactions = self.model['reactions']
         observations = self.model['observations']
 

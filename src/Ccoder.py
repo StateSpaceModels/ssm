@@ -1061,15 +1061,12 @@ class Ccoder(Cmodel):
         ## Create Q_sde
         ############################
 
-        if 'sde' in self.model:
+        sde = self.model.get('sde', {})
+        if 'dispersion' in sde:
             sde = self.model['sde']
-            if 'dispersion' in self.model['sde']:
-                sde = self.model['sde']
-                dispersion = sde['dispersion']
-                # Q_sde = dispersion * dispersion'
-                Q_sde = matrix_product(dispersion, zip(*dispersion))
-        else:
-            sde = []
+            dispersion = sde['dispersion']
+            # Q_sde = dispersion * dispersion'
+            Q_sde = matrix_product(dispersion, zip(*dispersion))
 
 
         #####################################################################################
