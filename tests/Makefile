@@ -4,11 +4,11 @@ CURRENT_MAKEFILE= $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 TESTS_PATH= $(dir $(abspath $(CURRENT_MAKEFILE)))
 CLAR_FIXTURE_PATH= $(TESTS_PATH)resources/
 
-MODEL_PATH= $(HOME)/ssm_test_model/
-
+DPKG_ROOT= ../examples/foo/
+MODEL_PATH= ../examples/foo/ssm_models/sir
 
 CFLAGS=-g -I.. -I. -Wall -DCLAR_FIXTURE_PATH=\"$(CLAR_FIXTURE_PATH)\"
-LDFLAGS=-L$(MODEL_PATH)C/templates -lssm -lssmtpl -lssm -lm -lgsl -lgslcblas -ljansson -lzmq
+LDFLAGS=-L$(MODEL_PATH)/C/templates -lssm -lssmtpl -lssm -lm -lgsl -lgslcblas -ljansson -lzmq
 
 .PHONY: clean test
 
@@ -28,8 +28,9 @@ clar.suite:
 
 fixture_data:
 	test -d $(CLAR_FIXTURE_PATH) || mkdir -p $(CLAR_FIXTURE_PATH); \
-	cp $(MODEL_PATH).data.json $(CLAR_FIXTURE_PATH)data.json; \
-	cp ../examples/foo/datapackage.json $(CLAR_FIXTURE_PATH)
+	../bin/ssm build ../examples/foo/package.json -o ../examples/foo/ssm_models -v; \
+	cp $(MODEL_PATH)/.data.json $(CLAR_FIXTURE_PATH); \
+	cp $(DPKG_ROOT)/package.json $(CLAR_FIXTURE_PATH)
 
 # remove all generated files
 clean:

@@ -17,12 +17,12 @@ mathematics.
 Installation
 ============
 
-##Dependencies
+##Installing the required dependencies
 
 C:
-- [gsl](http://www.gnu.org/software/gsl/)
-- [zmq](http://www.zeromq.org/)
-- [jansson](http://www.digip.org/jansson/)
+- [gsl](http://www.gnu.org/software/gsl/) (>= 1.15)
+- [zmq](http://www.zeromq.org/) (3.2 release)
+- [jansson](http://www.digip.org/jansson/) (>= 2.4)
 
 Python:
 - [Python 2.7.x](www.python.org/)
@@ -43,22 +43,16 @@ On Ubuntu:
     apt-get update
     apt-get install -y libzmq-dev libjansson-dev python-sympy python-jinja2 python-dateutil libgsl0-dev
  
-
-##Building the standalone C libraries
-
-in src/C:
-
-    make
-    make install
-
-Note: this will install the libs in ```/usr/local```. Edit the variable
-```PREFIX``` of the```Makefile``` to change this destination.
-
-
-##Installing the npm package
+##Installing S|S|M itself
 
     npm install -g ssm
 
+Note: requires that all the C and python dependencies have been
+installed _before_. It will build the standalone C libraries _and_
+install them in ```/usr/local```. Edit the variable ```PREFIX``` of
+the ```Makefile``` (in ```src/C```) to change this destination.
+
+Pull requests are welcome for a .gyp file and windows support!
 
 # Building models from a data package
 
@@ -66,23 +60,14 @@ From the command line:
 
     ssm build <package.json> [options]
 
-This will build the binaries (in ```path_model_coded_in_C/<model_name>```)
-
 
 Tests
 =====
 
-C code (with [clar](https://github.com/vmg/clar)):
-In ```tests/```:
+    npm test
 
-    make test
-
-(see Makefile)
-
-Python code:
-In ```src/```:
-
-    python -m unittest discover
+Notes:
+The C code is tested with [clar](https://github.com/vmg/clar)
 
 
 License

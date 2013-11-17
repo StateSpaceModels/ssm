@@ -16,8 +16,8 @@ static ssm_theta_t *theta;
 
 void test_inputs__initialize(void)
 {
-    jparameters = ssm_load_json_file(cl_fixture("datapackage.json"));
-    jdata = ssm_load_json_file(cl_fixture("data.json"));
+    jparameters = ssm_load_json_file(cl_fixture("package.json"));
+    jdata = ssm_load_json_file(cl_fixture(".data.json"));
     opts = ssm_options_new();
     nav = ssm_nav_new(jparameters, opts);
     data = ssm_data_new(jdata, nav, opts);
@@ -190,7 +190,7 @@ void test_inputs__remainders(void)
     ssm_par2X(X, par, calc, nav);
        
     for(i=0; i<nav->states_remainders->length; i++){
-	cl_check(nav->states_remainders->p[i]->f_remainder(X, calc, 0.0) == 1000000 - 1e-05*1000000 - 0.07*1000000);
+	cl_check(nav->states_remainders->p[i]->f_remainder(X, par, calc, 0.0) == 1000000 - 1e-05*1000000 - 0.07*1000000);
     }
 }
 

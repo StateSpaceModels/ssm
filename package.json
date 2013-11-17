@@ -9,8 +9,10 @@
     "ssm-lhs": "bin/ssm-lhs"
   },
   "main": "index.js",
+  "preferGlobal": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "install": "(cd src/C && make &&make install)",
+    "test": "(cd src && python test_Cmodel.py && python test_Ccoder.py) && (cd tests && make test)"
   },
   "keywords": [
     "State",

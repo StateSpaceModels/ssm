@@ -9,8 +9,8 @@ static ssm_data_t *data;
 
 void test_data__initialize(void)
 {
-    jparameters = ssm_load_json_file(cl_fixture("datapackage.json"));
-    jdata = ssm_load_json_file(cl_fixture("data.json"));
+    jparameters = ssm_load_json_file(cl_fixture("package.json"));
+    jdata = ssm_load_json_file(cl_fixture(".data.json"));
     opts = ssm_options_new();
     nav = ssm_nav_new(jparameters, opts);
     data = ssm_data_new(jdata, nav, opts);

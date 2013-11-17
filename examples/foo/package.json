@@ -262,7 +262,8 @@
         },
         {
           "name": "phi",
-          "description": "over-dispertion"
+          "description": "over-dispertion",
+          "data": {"resource": "phi"}
         }
       ]
     }

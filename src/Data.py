@@ -26,6 +26,14 @@ import sys
 import csv
 from Ccoder import Ccoder
 
+
+def parse_date(x):
+    """
+    parse a ISO8601 string into a datetime and convert it into a date
+    TODO support for datetime (necessitate work on C side)...
+    """
+    return dateutil.parser.parse(x).date()
+
 class DataError(Exception):
     def __init__(self, value):
         self.value = value
@@ -37,7 +45,7 @@ class Data(Ccoder):
     def __init__(self, path_rendered, path, model_name, **kwargs):
         Ccoder.__init__(self, path, model_name, **kwargs)
 
-        self.starts = [dateutil.parser.parse(x['start']).replace(tzinfo=None) for x in self.obs_model]
+        self.starts = [parse_date(x['start']) for x in self.obs_model]
         self.t0 =  min(self.starts)
 
         try:        
@@ -95,7 +103,7 @@ class Data(Ccoder):
 
         data_C = []
         for d in dates:
-            pd = dateutil.parser.parse(d).replace(tzinfo=None)
+            pd = parse_date(d)
             row = {
                 'date': pd.isoformat(),
                 'observed': [],
@@ -134,7 +142,7 @@ class Data(Ccoder):
             x = []; y = []
             for d in data:
                 if d[name] != None:
-                    x.append((dateutil.parser.parse(d[date_name]).replace(tzinfo=None)-self.t0).days)
+                    x.append((parse_date(d[date_name])-self.t0).days)
                     y.append(f(d[name]))
 
             data_C.append({'name': p, 'x': x, 'y': y})
@@ -144,6 +152,6 @@ class Data(Ccoder):
 
 if __name__=="__main__":
 
-    d = Data(os.path.join('..' ,'examples', 'foo', 'ssm_model'), os.path.join('..' ,'examples', 'foo', 'package.json'), "sir")
+    d = Data(os.path.join('..' ,'examples', 'foo', 'ssm_models'), os.path.join('..' ,'examples', 'foo', 'package.json'), "sir")
     print d.prepare_covariates()
     print d.prepare_data()[29]

@@ -134,7 +134,7 @@ class Builder(Data, Ccoder):
 
 if __name__=="__main__":
 
-    b = Builder(os.path.join('..' ,'examples', 'foo', 'ssm_model'), os.path.join('..' ,'examples', 'foo', 'package.json'), "sir")
+    b = Builder(os.path.join('..' ,'examples', 'foo', 'ssm_models'), os.path.join('..' ,'examples', 'foo', 'package.json'), "sir")
 
     b.prepare()
     b.code()

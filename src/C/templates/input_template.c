@@ -27,9 +27,9 @@ ssm_input_t *ssm_input_new(json_t *jparameters, ssm_nav_t *nav)
     ssm_input_t *input = gsl_vector_calloc(nav->par_all->length);
 
     {% for p in pars %}
-    {% if 'prior' in p and 'distribution' in p.prior and p.prior.distribution == 'fixed' %}
+    {% if p|is_prior and 'distribution' in p.data.data and p.data.data.distribution == 'fixed' %}
     //{{ p.name }}
-    gsl_vector_set(input, {{ order_parameters[p.name] }}, {{ p.prior.value }});
+    gsl_vector_set(input, {{ order_parameters[p.name] }}, {{ p.data.data.value }});
     {%endif%}
     {% endfor %}
 
