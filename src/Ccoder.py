@@ -197,7 +197,7 @@ class Ccoder(Cmodel):
                 p['f_2prior'] = self.make_C_term(p['to_resource'], True)
 
 
-        drifts = self.model['sde']
+        drifts = self.model.get('sde',{})
         drifts = drifts and drifts['drift']
         #TODO support ode drifts += self.model['ode']
 
@@ -671,7 +671,7 @@ class Ccoder(Cmodel):
 
     def compute_diff(self):
 
-        sde = self.model['sde']
+        sde = self.model.get('sde',{})
         if sde and 'dispersion' in sde:
             dispersion = sde['dispersion']
             diff.terms = []

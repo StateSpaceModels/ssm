@@ -145,8 +145,8 @@ class TestCcoder(unittest.TestCase):
              'c': 'gsl_spline_eval(calc->spline[ORDER_N_paris],t,calc->acc[ORDER_N_paris])'},
 
             {'x': 'rep_all_CDC_inc*(1.0-rep_all_CDC_inc)*prop_all_CDC_inc*x + (rep_all_CDC_inc*phi*prop_all_CDC_inc*x)**2',
-             'h': 'pow(phi,2)*pow(prop_all_CDC_inc,2)*pow(rep_paris_CDC_prev,2)*pow(x,2)+prop_all_CDC_inc*rep_paris_CDC_prev*x*(-rep_paris_CDC_prev+1.0)',
-             'c': 'pow(gsl_vector_get(par, ORDER_phi),2)*pow(gsl_spline_eval(calc->spline[ORDER_prop_all_CDC_inc],t,calc->acc[ORDER_prop_all_CDC_inc]),2)*pow(gsl_vector_get(par, ORDER_rep_paris_CDC_prev),2)*pow(x,2)+gsl_spline_eval(calc->spline[ORDER_prop_all_CDC_inc],t,calc->acc[ORDER_prop_all_CDC_inc])*gsl_vector_get(par, ORDER_rep_paris_CDC_prev)*x*(-gsl_vector_get(par, ORDER_rep_paris_CDC_prev)+1.0)'},
+             'h': 'pow(phi,2)*pow(prop_all_CDC_inc,2)*pow(rep_all_CDC_inc,2)*pow(x,2)+prop_all_CDC_inc*rep_all_CDC_inc*x*(-rep_all_CDC_inc+1.0)',
+             'c': 'pow(gsl_vector_get(par, ORDER_phi),2)*pow(gsl_spline_eval(calc->spline[ORDER_prop_all_CDC_inc],t,calc->acc[ORDER_prop_all_CDC_inc]),2)*pow(gsl_vector_get(par, ORDER_rep_all_CDC_inc),2)*pow(x,2)+gsl_spline_eval(calc->spline[ORDER_prop_all_CDC_inc],t,calc->acc[ORDER_prop_all_CDC_inc])*gsl_vector_get(par, ORDER_rep_all_CDC_inc)*x*(-gsl_vector_get(par, ORDER_rep_all_CDC_inc)+1.0)'},
         ]
 
         for t in terms:

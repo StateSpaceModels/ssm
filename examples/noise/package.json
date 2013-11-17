@@ -228,22 +228,22 @@
         {
           "name": "rep_all_CDC_inc",
           "description": "reporting rate",
-          "data": {"resource": "rep_all_CDC_inc"}
+          "data": {"resource": "rep_all_CDC_inc", "name":"repallCDCinc"}
         },
         {
           "name": "rep_all_google_inc",
           "description": "reporting rate",
-          "data": {"resource": "rep_all_CDC_inc"}
+	  "data": {"resource": "rep_all_CDC_inc", "name":"repallgoogleinc"}
         },
         {
           "name": "rep_nyc_CDC_inc",
           "description": "reporting rate",
-          "data": {"resource": "rep_all_CDC_inc"}
+	  "data": {"resource": "rep_all_CDC_inc", "name":"repnycCDCinc"}
         },
         {
           "name": "rep_paris_CDC_prev",
           "description": "reporting rate",
-          "data": {"resource": "rep_all_CDC_inc"}
+	  "data": {"resource": "rep_all_CDC_inc", "name":"repparisCDCprev"}
         },
         {
           "name": "phi",
@@ -260,7 +260,7 @@
       "description": "Proportion of susceptible",
       "data": {
         "distribution": "fixed",
-        "lower":0.07
+        "value":0.07
       }
     },
     {

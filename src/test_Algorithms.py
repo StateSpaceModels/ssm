@@ -23,11 +23,12 @@ class TestNoiseResults(unittest.TestCase):
       
       def setUp(self):
       # Things that need to be done before tests
-            os.chdir(Root + '/ssm_model')
+            os.chdir(Root + '/ssm_models/noise')
 
       @classmethod
       def tearDownClass(cls):
-            shutil.rmtree(Root + '/ssm_model')
+            os.chdir(Root + '/ssm_models')
+            #            shutil.rmtree(Root + '/ssm_model')
 
       def test_kalman_map(self):
             os.system('./ksimplex --prior -M 1000 -c < ' + Root + '/../examples/noise/package.json')
