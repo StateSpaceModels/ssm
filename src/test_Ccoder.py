@@ -422,7 +422,6 @@ class TestCcoder(unittest.TestCase):
         self.assertEqual(caches, ['_sf[0]'])
 
 
-
 if __name__ == '__main__':
     unittest.main()
 

@@ -8,7 +8,7 @@ INCLUDES=$(wildcard */*.h)
 OBJ= $(SRC:.c=.o)
 ALL_OBJ= $(ALL_SRC_NO_TEMPLATE:.c=.o)
 
-PREFIX=/usr/local
+PREFIX=$(HOME)/.ssm
 
 all: $(LIB)
 
@@ -48,8 +48,8 @@ libssmworker.a: worker/main_worker.o
 .PHONY: clean uninstall install
 
 install:
-	test -d $(PREFIX)/lib || mkdir $(PREFIX)/lib; cp $(LIB) $(PREFIX)/lib/; \
-	test -d $(PREFIX)/include || mkdir $(PREFIX)/include; cp $(INCLUDES) $(PREFIX)/include/
+	test -d $(PREFIX)/lib || mkdir -p $(PREFIX)/lib; cp $(LIB) $(PREFIX)/lib/; \
+	test -d $(PREFIX)/include || mkdir -p $(PREFIX)/include; cp $(INCLUDES) $(PREFIX)/include/
 
 clean:
 	rm $(ALL_OBJ); \

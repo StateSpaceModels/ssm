@@ -1,5 +1,5 @@
 CC=gcc #clang -ferror-limit=2
-CFLAGS=-std=gnu99 -O3 -DGSL_RANGE_CHECK_OFF
+CFLAGS=-std=gnu99 -O3 -DGSL_RANGE_CHECK_OFF -I $(HOME)/.ssm/include
 LDFLAGS=-lssm -lssmtpl -lssm -lm -lgsl -lgslcblas -ljansson -lzmq
 LIB=libssmtpl.a
 SRC= $(wildcard *.c)
@@ -19,31 +19,31 @@ $(LIB): $(OBJ)
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 simul: libssmtpl.a
-	$(CC) $(CFLAGS) -L. -o $@ -lssmsimul $(LDFLAGS)
+	$(CC) $(CFLAGS) -L. -L $(HOME)/.ssm/lib -o $@ -lssmsimul $(LDFLAGS)
 
 simplex: libssmtpl.a
-	$(CC) $(CFLAGS) -L. -o $@ -lssmsimplex $(LDFLAGS)
+	$(CC) $(CFLAGS) -L. -L $(HOME)/.ssm/lib -o $@ -lssmsimplex $(LDFLAGS)
 
 smc: libssmtpl.a
-	$(CC) $(CFLAGS) -L. -o $@ -lssmsmc $(LDFLAGS) 
+	$(CC) $(CFLAGS) -L. -L $(HOME)/.ssm/lib -o $@ -lssmsmc $(LDFLAGS) 
 
 mif: libssmtpl.a
-	$(CC) $(CFLAGS) -L. -o $@ -lssmmif $(LDFLAGS)  
+	$(CC) $(CFLAGS) -L. -L $(HOME)/.ssm/lib -o $@ -lssmmif $(LDFLAGS)  
 
 pmcmc: libssmtpl.a
-	$(CC) $(CFLAGS) -L. -o $@ -lssmpmcmc $(LDFLAGS)  
+	$(CC) $(CFLAGS) -L. -L $(HOME)/.ssm/lib -o $@ -lssmpmcmc $(LDFLAGS)  
 
 kalman: libssmtpl.a
-	$(CC) $(CFLAGS) -L. -o $@ -lssmkalman $(LDFLAGS) 
+	$(CC) $(CFLAGS) -L. -L $(HOME)/.ssm/lib -o $@ -lssmkalman $(LDFLAGS) 
 
 ksimplex: libssmtpl.a
-	$(CC) $(CFLAGS) -L. -o $@ -lssmksimplex $(LDFLAGS)
+	$(CC) $(CFLAGS) -L. -L $(HOME)/.ssm/lib -o $@ -lssmksimplex $(LDFLAGS)
 
 kmcmc: libssmtpl.a
-	$(CC) $(CFLAGS) -L. -o $@ -lssmkmcmc $(LDFLAGS)
+	$(CC) $(CFLAGS) -L. -L $(HOME)/.ssm/lib -o $@ -lssmkmcmc $(LDFLAGS)
 
 worker: libssmtpl.a
-	$(CC) $(CFLAGS) -L. -o $@ -lssmworker $(LDFLAGS) 
+	$(CC) $(CFLAGS) -L. -L $(HOME)/.ssm/lib -o $@ -lssmworker $(LDFLAGS) 
 
 .PHONY: clean
 
