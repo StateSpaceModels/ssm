@@ -42,6 +42,6 @@
     "dpkg-squirrel": "0.0.0",
     "lhs": "0.0.0",
     "rmath.js": "0.0.0",
-    "datapackage": "*"
+    "datapackage": "standard-analytics/datapackage.js"
   }
 }
