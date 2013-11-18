@@ -818,7 +818,7 @@ class Ccoder(Cmodel):
         s = N_REAC + N_ENV_STO ## number of noise terms (potentially non-independent)
         ##for demographic stochasticity, one independent noise term per reaction
 
-        Ls = [[0]*s for x in range(N_PAR_SV + N_PAR_INC)]
+        Ls = [[0]*s for x in range(N_PAR_SV + N_PAR_INC)]  
         Qs = [[0]*(N_PAR_SV + N_PAR_INC) for x in range(N_PAR_SV + N_PAR_INC)]
         Qr = [[0]*s for x in range(s)]
         Qr_dem = [[0]*s for x in range(N_REAC)]
@@ -955,6 +955,20 @@ class Ccoder(Cmodel):
         Qs_env = matrix_product(Ls_env, Qr_env)
         Qs_env = matrix_product(Qs_env, zip(*Ls_env))
 
+        # calc_Q contains different components of Q depending on the absence / presence
+        # of demographic and environmental noise.
+        #
+        # Q is made of:
+        #      - Q_proc, terms regarding exclusively proc state variables of the compartmental model
+        #      - Q_inc,  terms regarding at least one incidence state variable of the compartmental model
+        #      - Q_sde,  terms regarding the stochastic differential equation
+        #
+        #  note: Q_cm (compartmental model) is the union of Q_proc and Q_inc terms.
+        #
+        #          | Q_proc Q_inc   0     |     | Q_cm  Q_cm  0     |
+        #  Q   =   | Q_inc  Q_inc   0     |  =  | Q_cm  Q_cm  0     |
+        #          | 0      0       Q_sde |     | 0     0     Q_sde |
+
         
         calc_Q = {'no_dem_sto': {'Q_proc':[],
                                  'Q_inc':[],
@@ -1017,6 +1031,8 @@ class Ccoder(Cmodel):
 
 
         ##cache special functions
+        # for the moment, we only cache the terms contained in Q_cm.
+        # TODO: cache Q_sde terms.
         for key in calc_Q:
             if calc_Q[key]['Q_cm']:
 
