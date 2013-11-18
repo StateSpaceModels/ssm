@@ -42,6 +42,11 @@ class TestCmodel(unittest.TestCase):
     def test_par_other(self):
         self.assertEqual(self.m.par_other, [])
 
+    def test_pow2star(self):
+        self.assertEqual(self.m.pow2star('pow(x, 2)'), '(x)**(2)')
+        self.assertEqual(self.m.pow2star('pow(pow(x,2), pow(2, 3))'), '((x)**(2))**((2)**(3))')
+        self.assertEqual(self.m.pow2star('a+ sin((x))+pow(pow(x,2), pow(2, 3))+cos(x)'), 'a+sin((x))+((x)**(2))**((2)**(3))+cos(x)')
+
     def test_make_C_term(self):
         terms = [
             {'x': 'mu_b_paris*(1.0+v*sin((v/N_paris+(mu_b_paris)))) + r0_paris', #input

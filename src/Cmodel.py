@@ -209,6 +209,7 @@ class Cmodel:
         self.obs_model = copy.deepcopy(observations)
 
         #fix rates:
+        #replace pow by ** for sympy
         # We treat reaction starting from remainder as reaction
         # starting from U that is rate -> rate * from size. It results
         # in simpler code in Ccoder.py. We also replace remainder by
@@ -222,6 +223,8 @@ class Cmodel:
         resolve_remainder = lambda x: remainder_def[x] if x in self.remainder else x
 
         for i, m in enumerate(self.proc_model):
+            self.proc_model[i]['rate'] = self.pow2star(self.proc_model[i]['rate'])
+
             if self.proc_model[i]['from'] in self.remainder:
                 self.proc_model[i]['rate'] = '({0})*{1}'.format(self.proc_model[i]['rate'], self.proc_model[i]['from'])
 
@@ -231,6 +234,7 @@ class Cmodel:
         for i, m in enumerate(self.obs_model):
             for x in m:
                 if x != "distribution" and x!= 'name' and x !='start':
+                    self.obs_model[i][x] = self.pow2star(self.obs_model[i][x])
                     self.obs_model[i][x] = ''.join(map(resolve_remainder, self.change_user_input(self.obs_model[i][x])))
 
         ## incidence def
@@ -239,28 +243,70 @@ class Cmodel:
             self.par_inc_def.append([x for x in self.proc_model if "tracked" in x and inc in x['tracked'] ])
 
 
-    def change_user_input(self, reaction):
-        """transform the reaction in smtg that we can parse in a programming language:
+    def change_user_input(self, term):
+        """transform the term in smtg that we can parse in a programming language:
         example: change_user_input('r0*2*correct_rate(v)') -> ['r0', '*', '2', '*', 'correct_rate', '(', 'v', ')']"""
 
-        myreaction=reaction.replace(' ','') ##get rid of whitespaces
+        myterm=term.replace(' ','') ##get rid of whitespaces
         mylist=[]
         mystring=''
 
-        for i in range(len(myreaction)):
+        for i in range(len(myterm)):
 
-            if myreaction[i] in self.op :
+            if myterm[i] in self.op :
                 if len(mystring)>0:
                     mylist.append(mystring)
                     mystring=''
-                mylist.append(myreaction[i])
+                mylist.append(myterm[i])
             else:
-                mystring += myreaction[i]
+                mystring += myterm[i]
 
         if len(mystring)>0: ##the string doesn't end with an operator
             mylist.append(mystring)
 
         return mylist
+
+
+    def pow2star(self, term):
+        """replace pow(a,b) by (a)**(b) so that Sympy works"""
+
+
+        terms = self.change_user_input(term)
+
+        start = 0
+        for i, x in enumerate(terms):
+            if x == 'pow':
+                start = i
+                break
+
+        if not start and not terms[0] == 'pow':
+            return term
+
+        pos = 1 #counter for open parenthesis        
+        ind = start+2 #skip first parenthesis
+        lhs = ''
+        rhs = ''
+        left = True
+        while (ind < len(terms)):    
+            if terms[ind] == '(':
+                pos += 1
+            if terms[ind] == ')':
+                pos -= 1
+
+            if pos == 1 and terms[ind] == ',':
+                left = False
+            else:
+                if left:
+                    lhs += terms[ind]
+                else:
+                    if not (pos == 0 and terms[ind] == ')'):
+                        rhs += terms[ind]
+                    else:
+                        break;
+            ind += 1
+
+        return self.pow2star(''.join(terms).replace('pow({0},{1})'.format(lhs, rhs), '({0})**({1})'.format(lhs, rhs)))
+
 
 
 
