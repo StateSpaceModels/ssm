@@ -32,7 +32,7 @@ def parse_date(x):
     parse a ISO8601 string into a datetime and convert it into a date
     TODO support for datetime (necessitate work on C side)...
     """
-    return dateutil.parser.parse(x).date()
+    return dateutil.parser.parse(x).replace(tzinfo=None).date()
 
 class DataError(Exception):
     def __init__(self, value):

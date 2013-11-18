@@ -66,10 +66,19 @@ class TestCmodel(unittest.TestCase):
             self.assertEqual(self.m.make_C_term(t['x'], False, human=True), t['h'])
             self.assertEqual(self.m.make_C_term(t['x'], False, human=False), t['c'])
 
+
+    def test_make_C_term_nested(self):
+        self.assertEqual(self.m.make_C_term('correct_rate(correct_rate(x))', False, human=False), 'ssm_correct_rate(ssm_correct_rate(x,dt),dt)')
+        self.assertEqual(self.m.make_C_term('pow(correct_rate(correct_rate(x)),2)', False, human=False), 'pow(ssm_correct_rate(ssm_correct_rate(x,dt),dt),2)')
+        self.assertEqual(self.m.make_C_term('(correct_rate(correct_rate(x)))**(2)', False, human=False), 'pow(ssm_correct_rate(ssm_correct_rate(x,dt),dt),2)')
+        self.assertEqual(self.m.make_C_term('correct_rate(x) + correct_rate(correct_rate(x))', False, human=False), 'ssm_correct_rate(x,dt)+ssm_correct_rate(ssm_correct_rate(x,dt),dt)')
+        self.assertEqual(self.m.make_C_term('correct_rate(correct_rate(x))+ sin(v*x+(3*sin(r0_paris)))', False, human=False), 'ssm_correct_rate(ssm_correct_rate(x,dt),dt)+sin(gsl_vector_get(par,ORDER_v)*x+3*sin(diffed[ORDER_diff__r0_paris]))')
+
+
     def test_make_C_term_derivate(self):
-        x = 'sin(2*M_PI*(t/ONE_YEAR +r0_paris))'
-        h = '2*M_PI*cos(2*M_PI*(r0_paris+t/ONE_YEAR))'
-        c = '2*M_PI*cos(2*M_PI*(diffed[ORDER_diff__r0_paris]+t/ONE_YEAR))'
+        x = 'sin(2*PI*(t +r0_paris))'
+        h = '2*PI*cos(2*PI*(r0_paris+t))'
+        c = '2*PI*cos(2*PI*(diffed[ORDER_diff__r0_paris]+t))'
 
         self.assertEqual(self.m.make_C_term(x, False, human=True, derivate='r0_paris'), h)
         self.assertEqual(self.m.make_C_term(x, False, human=False, derivate='r0_paris'), c)
@@ -105,10 +114,10 @@ class TestCmodel(unittest.TestCase):
 
         #    def test_cache_special_function_C(self):
         #
-        #        caches = map(lambda x: self.m_diff.make_C_term(x, True), ['sin(2*M_PI*(t/ONE_YEAR +r0))', 'sin(2*M_PI*(t/ONE_YEAR +r0))', 'terms_forcing(v)*sin(2*M_PI*(t/ONE_YEAR +r0))*terms_forcing(v)'])
+        #        caches = map(lambda x: self.m_diff.make_C_term(x, True), ['sin(2*PI*(t +r0))', 'sin(2*PI*(t +r0))', 'terms_forcing(v)*sin(2*PI*(t +r0))*terms_forcing(v)'])
         #sf = self.m_diff.cache_special_function_C(caches, prefix='_sf[cac]')
 
-        #        self.assertEqual(sf, ['sin(2*M_PI*(drifted[ORDER_drift__par_proc__r0][cac]+t/ONE_YEAR))', 'terms_forcing(par[ORDER_v][routers[ORDER_v]->map[cac]],t,p_data,cac)'])
+        #        self.assertEqual(sf, ['sin(2*PI*(drifted[ORDER_drift__par_proc__r0][cac]+t))', 'terms_forcing(par[ORDER_v][routers[ORDER_v]->map[cac]],t,p_data,cac)'])
         #self.assertEqual(caches, ['_sf[cac][0]', '_sf[cac][0]', 'pow(_sf[cac][1],2)*_sf[cac][0]'])
 
 

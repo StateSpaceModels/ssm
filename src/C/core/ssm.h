@@ -743,6 +743,11 @@ void *ssm_worker_inproc(void *params);
 ssm_workers_t *ssm_workers_start(ssm_X_t ***D_J_X, ssm_par_t **J_par, ssm_data_t *data, ssm_calc_t **calc, ssm_fitness_t *fitness, ssm_f_pred_t f_pred, ssm_nav_t *nav, ssm_options_t *opts, ssm_worker_opt_t wopts);
 void ssm_workers_stop(ssm_workers_t *workers);
 
+/* special functions */
+double heaviside(double x);
+double ramp(double x);
+double slowstep(double x, double d);
+
 /******************************/
 /* kalman function signatures */
 /******************************/

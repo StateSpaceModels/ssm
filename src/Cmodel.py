@@ -344,44 +344,48 @@ class Cmodel:
 
 
     def generator_C(self, term, no_correct_rate, force_par=False, xify=None, human=False, set_t0=False):
+        """add extra terms (for C code) at the end of special functions (support nested special functions)"""
 
         terms = self.change_user_input(term)
 
         ind = 0
         Cterm = ''
+        stack = []
         while (ind < len(terms)):
 
             if terms[ind] in self.special_functions:
                 myf = terms[ind]
-
                 Cterm += self.toC(myf, no_correct_rate, force_par=force_par, xify=xify, human=human, set_t0=set_t0) + '('
                 ind += 2 #skip first parenthesis
-
-                pos = 1 #counter for open parenthesis
-                while pos > 0:
-                    if terms[ind] == '(':
-                        pos += 1
-                    if terms[ind] == ')':
-                        pos -= 1
-
-                    if pos >0:
-                        Cterm += self.toC(terms[ind], no_correct_rate, force_par=force_par, xify=xify, human=human, set_t0=set_t0)
-                        ind += 1
-
-                ##add extra terms (no whitespace)
-                if not human:
-                    if myf == 'terms_forcing': ##TODO fix
-                        Cterm += ',t,p_data,cac'
-                    elif myf == 'correct_rate' and not no_correct_rate:
-                        Cterm += ',dt'
-
-                ##close bracket
-                Cterm += terms[ind]
-                ind += 1
-
+                stack.append({"f": myf, "pos": 1}) #pos: counter for open parenthesis
             else:
-                Cterm += self.toC(terms[ind], no_correct_rate, force_par=force_par, xify=xify, human=human, set_t0=set_t0)
-                ind += 1
+                if stack:                
+                    if terms[ind] == '(':
+                        stack[-1]['pos'] += 1
+                        Cterm += '('
+                    elif terms[ind] == ')':
+                        stack[-1]['pos'] -= 1
+                        if stack[-1]['pos'] == 0:
+                            ftoclose = stack.pop()
+                            ##add extra terms (no whitespace)
+                            if not human:
+                                if ftoclose['f'] == 'correct_rate' and not no_correct_rate:
+                                    Cterm += ',dt)'
+                                else:
+                                    Cterm += ')'
+                            else:
+                                Cterm += ')'
+                            
+                        else:
+                            Cterm += ')'
+
+                    else:
+                        Cterm += self.toC(terms[ind], no_correct_rate, force_par=force_par, xify=xify, human=human, set_t0=set_t0)
+
+                    ind +=1
+                else:
+                    Cterm += self.toC(terms[ind], no_correct_rate, force_par=force_par, xify=xify, human=human, set_t0=set_t0)
+                    ind += 1
 
 
         return Cterm
@@ -434,7 +438,6 @@ class Cmodel:
 
         #make the ssm C expression
         return self.generator_C(term, no_correct_rate, force_par=force_par, xify=xify, human=human, set_t0=set_t0)
-
 
 
 if __name__=="__main__":
