@@ -28,7 +28,7 @@ void ssm_eval_Q_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm
     //////////////////////////////////////////////////////////////
 
     {% if tpl.sf %}
-    double _sf[{{ step.sf|length }}];
+    double _sf[{{ tpl.sf|length }}];
     {% endif %}
 
 
@@ -56,7 +56,7 @@ void ssm_eval_Q_{{ noises_off }}(const double X[], double t, ssm_par_t *par, ssm
 
     /* caches */
     {% if tpl.sf %}
-    {% for sf in step.sf %}
+    {% for sf in tpl.sf %}
     _sf[{{ loop.index0 }}] = {{ sf }};{% endfor %}
     {% endif %}
 
