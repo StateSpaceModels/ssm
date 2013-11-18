@@ -101,7 +101,7 @@
           "name": "nyc_CDC_inc",
           "data": [
             {"datapackage": "noise-data", "resource": "data", "field": "date"},
-            {"datapackage": "noise-data", "resource": "data", "field": "all_CDC_inc_out"}
+            {"datapackage": "noise-data", "resource": "data", "field": "nyc_CDC_inc"}
           ]
         }
       ],
