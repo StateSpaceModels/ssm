@@ -49,21 +49,21 @@
           "start": "2012-07-26",
           "distribution": "discretized_normal",
           "mean": "rep_all_CDC_inc * prop_all_CDC_inc * all_inc_out",
-          "sd": "sqrt(rep_all_CDC_inc * ( 1.0 - rep_all_CDC_inc ) * prop_all_CDC_inc * all_inc_out + ( rep_all_CDC_inc * phi * prop_all_CDC_inc * all_inc_out )^2 )"
+          "sd": "sqrt(rep_all_CDC_inc * ( 1.0 - rep_all_CDC_inc ) * prop_all_CDC_inc * all_inc_out + pow(rep_all_CDC_inc * phi * prop_all_CDC_inc * all_inc_out, 2) )"
         },
         {
           "name": "all_google_inc_out",
 	  "start": "2012-07-26",
           "distribution": "discretized_normal",
           "mean": "rep_all_google_inc * prop_all_google_inc * all_inc_out",
-          "sd": "sqrt(rep_all_google_inc * ( 1.0 - rep_all_google_inc ) * prop_all_google_inc * all_inc_out + ( rep_all_google_inc * phi * prop_all_google_inc * all_inc_out )^2 )"
+          "sd": "sqrt(rep_all_google_inc * ( 1.0 - rep_all_google_inc ) * prop_all_google_inc * all_inc_out + pow(rep_all_google_inc * phi * prop_all_google_inc * all_inc_out, 2) )"
         },
         {
           "name": "paris_CDC_prev",
 	  "start": "2012-07-26",
           "distribution": "discretized_normal",
           "mean": "rep_paris_CDC_prev * prop_paris_CDC_prev * I_paris",
-          "sd": "sqrt(rep_paris_CDC_prev * ( 1.0 - rep_paris_CDC_prev ) * prop_paris_CDC_prev * I_paris + ( rep_paris_CDC_prev * phi * prop_paris_CDC_prev * I_paris)^2 )"
+          "sd": "sqrt(rep_paris_CDC_prev * ( 1.0 - rep_paris_CDC_prev ) * prop_paris_CDC_prev * I_paris + pow(rep_paris_CDC_prev * phi * prop_paris_CDC_prev * I_paris, 2) )"
         },
 
         {
@@ -71,7 +71,7 @@
           "start": "2012-07-26",
 	  "distribution": "discretized_normal",
           "mean": "rep_nyc_CDC_inc * prop_nyc_CDC_inc * nyc_inc",
-          "sd": "sqrt(rep_nyc_CDC_inc * ( 1.0 - rep_nyc_CDC_inc ) * prop_nyc_CDC_inc * nyc_inc + ( rep_nyc_CDC_inc * phi * prop_nyc_CDC_inc * nyc_inc )^2 )"
+          "sd": "sqrt(rep_nyc_CDC_inc * ( 1.0 - rep_nyc_CDC_inc ) * prop_nyc_CDC_inc * nyc_inc + pow(rep_nyc_CDC_inc * phi * prop_nyc_CDC_inc * nyc_inc, 2) )"
         }
       ],
 

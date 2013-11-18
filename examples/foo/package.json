@@ -57,28 +57,28 @@
           "start": "2012-07-26",
           "distribution": "discretized_normal",
           "mean": "rep_all_CDC_inc * prop_all_CDC_inc * Inc_out",
-          "sd": "sqrt(rep_all_CDC_inc * ( 1.0 - rep_all_CDC_inc ) * prop_all_CDC_inc * Inc_out + ( rep_all_CDC_inc * phi * prop_all_CDC_inc * Inc_out )^2 )"
+          "sd": "sqrt(rep_all_CDC_inc * ( 1.0 - rep_all_CDC_inc ) * prop_all_CDC_inc * Inc_out + pow(rep_all_CDC_inc * phi * prop_all_CDC_inc * Inc_out, 2) )"
         },
         {
           "name": "paris_CDC_prev",
           "start": "2012-07-26",
           "distribution": "discretized_normal",
           "mean": "rep_paris_CDC_prev * prop_paris_CDC_prev * I_paris",
-          "sd": "sqrt(rep_paris_CDC_prev * ( 1.0 - rep_paris_CDC_prev ) * prop_paris_CDC_prev * I_paris + ( rep_paris_CDC_prev * phi * prop_paris_CDC_prev * I_paris)^2 )"
+          "sd": "sqrt(rep_paris_CDC_prev * ( 1.0 - rep_paris_CDC_prev ) * prop_paris_CDC_prev * I_paris + pow(rep_paris_CDC_prev * phi * prop_paris_CDC_prev * I_paris, 2) )"
         },
         {
           "name": "all_google_inc",
           "start": "2012-07-26",
           "distribution": "discretized_normal",
           "mean": "rep_all_google_inc * prop_all_google_inc * Inc_out",
-          "sd": "sqrt(rep_all_google_inc * ( 1.0 - rep_all_google_inc ) * prop_all_google_inc * Inc_out + ( rep_all_google_inc * phi * prop_all_google_inc * Inc_out )^2 )"
+          "sd": "sqrt(rep_all_google_inc * ( 1.0 - rep_all_google_inc ) * prop_all_google_inc * Inc_out + pow(rep_all_google_inc * phi * prop_all_google_inc * Inc_out, 2) )"
         },
         {
           "name": "nyc_CDC_inc",
           "start": "2012-07-26",
           "distribution": "discretized_normal",
           "mean": "rep_nyc_CDC_inc * prop_nyc_CDC_inc * Inc_in_nyc",
-          "sd": "sqrt(rep_nyc_CDC_inc * ( 1.0 - rep_nyc_CDC_inc ) * prop_nyc_CDC_inc * Inc_in_nyc + ( rep_nyc_CDC_inc * phi * prop_nyc_CDC_inc * Inc_in_nyc )^2 )"
+          "sd": "sqrt(rep_nyc_CDC_inc * ( 1.0 - rep_nyc_CDC_inc ) * prop_nyc_CDC_inc * Inc_in_nyc + pow(rep_nyc_CDC_inc * phi * prop_nyc_CDC_inc * Inc_in_nyc, 2) )"
         }
       ],
 
@@ -210,7 +210,7 @@
           "description": "Number of infectious",
           "keywords": ["infectious"],
           "data": {"resource": "pr_I_nyc"},
-          "transformation": "10^-pr_I_nyc * N_nyc",
+          "transformation": "pow(10, -pr_I_nyc) * N_nyc",
           "to_resource": "-log(I_nyc)/(log(10)*N_nyc)"
         },
         {

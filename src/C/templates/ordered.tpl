@@ -23,10 +23,30 @@
 {% for o in v %}
 #define ORDER_{{ o.name }} {{ o.order }}{% endfor %}{% endfor %}
 
+#define E M_E
+#define LN2 N_LN2
+#define LN10 M_LN10
+#define LOG2E M_LOG2E
+#define LOG10E M_LOG10E
+#define PI M_PI
+#define SQRT1_2 M_SQRT1_2
+#define SQRT2 M_SQRT2
+
+
 {% block code %}
 {% endblock %}
-
 
 {% for x, v in orders.items() %}
 {% for o in v %}
 #undef ORDER_{{ o.name }}{% endfor %}{% endfor %}
+
+
+#undef E
+#undef LN2
+#undef LN10
+#undef LOG2E
+#undef LOG10E
+#undef PI
+#undef SQRT1_2
+#undef SQRT2
+

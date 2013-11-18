@@ -51,9 +51,9 @@ class Cmodel:
         except IndexError:
             raise ModelError('invalid model name')
 
-        self.op = set(['+', '-', '*', '/', '^', ',', '(', ')']) ##!!!CAN'T contain square bracket '[' ']'
-        self.reserved = set(['U', 'x', 't', 'M_E', 'M_LOG2E', 'M_LOG10E', 'M_SQRT2', 'M_SQRT1_2', 'M_SQRT3', 'M_PI', 'M_PI_2', 'M_PI_4', 'M_SQRTPI', 'M_2_SQRTPI', 'M_1_PI', 'M_2_PI', 'M_LN10', 'M_LN2', 'M_LNPI', 'M_EULER'])
-        self.special_functions = set(['terms_forcing', 'heaviside', 'ramp', 'slowstep', 'sin', 'cos', 'correct_rate', 'sqrt'])
+        self.op = set(['+', '-', '*', '/', ',', '(', ')']) ##!!!CAN'T contain square bracket '[' ']'
+        self.reserved = set(['U', 'x', 't', 'E', 'LN2', 'LN10','LOG2E', 'LOG10E', 'PI', 'SQRT1_2', 'SQRT2']) #JS Math Global Object
+        self.special_functions = set(['terms_forcing', 'heaviside', 'ramp', 'slowstep', 'sin', 'cos', 'correct_rate', 'sqrt', 'pow'])
 
         self.remainder = sorted([x['remainder']['name'] for x in self.model['populations'] if 'remainder' in x])
         self.ur = ['U'] + self.remainder
@@ -209,7 +209,6 @@ class Cmodel:
         self.obs_model = copy.deepcopy(observations)
 
         #fix rates:
-        #replace ^ by ** for sympy
         # We treat reaction starting from remainder as reaction
         # starting from U that is rate -> rate * from size. It results
         # in simpler code in Ccoder.py. We also replace remainder by
@@ -223,8 +222,6 @@ class Cmodel:
         resolve_remainder = lambda x: remainder_def[x] if x in self.remainder else x
 
         for i, m in enumerate(self.proc_model):
-            self.proc_model[i]['rate'] = self.proc_model[i]['rate'].replace('^', '**')
-
             if self.proc_model[i]['from'] in self.remainder:
                 self.proc_model[i]['rate'] = '({0})*{1}'.format(self.proc_model[i]['rate'], self.proc_model[i]['from'])
 
@@ -234,7 +231,6 @@ class Cmodel:
         for i, m in enumerate(self.obs_model):
             for x in m:
                 if x != "distribution" and x!= 'name' and x !='start':
-                    self.obs_model[i][x] = self.obs_model[i][x].replace('^', '**')
                     self.obs_model[i][x] = ''.join(map(resolve_remainder, self.change_user_input(self.obs_model[i][x])))
 
         ## incidence def
