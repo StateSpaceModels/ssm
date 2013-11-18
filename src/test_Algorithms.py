@@ -26,12 +26,17 @@ class TestNoiseResults(unittest.TestCase):
       @classmethod
       def tearDownClass(cls):
             os.chdir(Root + '/ssm_models')
-            #            shutil.rmtree(Root + '/ssm_model')
+            #shutil.rmtree(Root + '/ssm_models')
+
+      def test_simplex_map(self):
+            os.system('cat ' + Root + '/../examples/noise/package.json | ./simplex --prior -M 10000 | ./smc sde -J 10000 -N 8 --trace ')
+            tab = genfromtxt('trace_0.csv',delimiter=',',names=True).tolist()
+            self.assertAlmostEqual(tab[5],-965.005)
 
       def test_kalman_map(self):
-            os.system('./ksimplex --prior -M 1000 -c < ' + Root + '/../examples/noise/package.json')
+            os.system('./ksimplex --prior -M 1000 --trace < ' + Root + '/../examples/noise/package.json')
             tab = genfromtxt('trace_0.csv',delimiter=',',names=True)
-            self.assertAlmostEqual(tab[321][5],-401.053)
+            self.assertAlmostEqual(tab[214][5],-336.683)
 
 class TestTransfsAndPMCMC(unittest.TestCase):
       @classmethod
