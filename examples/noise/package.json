@@ -228,22 +228,22 @@
         {
           "name": "rep_all_CDC_inc",
           "description": "reporting rate",
-          "data": {"resource": "rep_all_CDC_inc", "name":"repallCDCinc"}
+          "data": {"resource": "rep_all_CDC_inc"}
         },
         {
           "name": "rep_all_google_inc",
           "description": "reporting rate",
-	  "data": {"resource": "rep_all_CDC_inc", "name":"repallgoogleinc"}
-        },
+          "transformation": "rep_all_CDC_inc"       
+	},
         {
           "name": "rep_nyc_CDC_inc",
           "description": "reporting rate",
-	  "data": {"resource": "rep_all_CDC_inc", "name":"repnycCDCinc"}
+          "transformation": "rep_all_CDC_inc"
         },
         {
           "name": "rep_paris_CDC_prev",
           "description": "reporting rate",
-	  "data": {"resource": "rep_all_CDC_inc", "name":"repparisCDCprev"}
+          "transformation": "rep_all_CDC_inc"
         },
         {
           "name": "phi",
