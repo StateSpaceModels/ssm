@@ -1154,7 +1154,7 @@ class Ccoder(Cmodel):
                 optim_rates_inc = [x['term'] for x in calc_Q[key]['Q_inc']]
                 optim_rates = optim_rates_proc + optim_rates_inc
 
-                calc_Q[key]['sf'] = self.cache_special_function_C(optim_rates, prefix='_sf[cac]')
+                calc_Q[key]['sf'] = self.cache_special_function_C(optim_rates, prefix='_sf')
 
                 for i in range(len(optim_rates_proc)):
                     calc_Q[key]['Q_proc'][i]['term'] = optim_rates[i]
