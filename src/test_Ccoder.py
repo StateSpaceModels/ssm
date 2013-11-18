@@ -138,7 +138,7 @@ class TestCcoder(unittest.TestCase):
         terms = [
             {'x': 'mu_b_paris*(1.0+v*sin((v/N_paris+(mu_b_paris)))) + r0_paris', #input
              'h': 'mu_b_paris*(v*sin(mu_b_paris+v/N_paris)+1.0)+r0_paris', #expected human output
-             'c': 'gsl_spline_eval(calc->spline[ORDER_mu_b_paris],t,calc->acc[ORDER_mu_b_paris])*(gsl_vector_get(par, ORDER_v)*sin(gsl_spline_eval(calc->spline[ORDER_mu_b_paris],t,calc->acc[ORDER_mu_b_paris])+gsl_vector_get(par, ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_paris],t,calc->acc[ORDER_N_paris]))+1.0)+diffed[ORDER_diff__r0_paris]'}, #expected C output
+             'c': 'gsl_spline_eval(calc->spline[ORDER_mu_b_paris],t,calc->acc[ORDER_mu_b_paris])*(gsl_vector_get(par,ORDER_v)*sin(gsl_spline_eval(calc->spline[ORDER_mu_b_paris],t,calc->acc[ORDER_mu_b_paris])+gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_paris],t,calc->acc[ORDER_N_paris]))+1.0)+diffed[ORDER_diff__r0_paris]'}, #expected C output
 
             {'x': 'N_paris-S_paris-I_paris+S_paris+I_paris',
              'h': 'N_paris',
@@ -146,7 +146,7 @@ class TestCcoder(unittest.TestCase):
 
             {'x': 'rep_all_CDC_inc*(1.0-rep_all_CDC_inc)*prop_all_CDC_inc*x + (rep_all_CDC_inc*phi*prop_all_CDC_inc*x)**2',
              'h': 'pow(phi,2)*pow(prop_all_CDC_inc,2)*pow(rep_all_CDC_inc,2)*pow(x,2)+prop_all_CDC_inc*rep_all_CDC_inc*x*(-rep_all_CDC_inc+1.0)',
-             'c': 'pow(gsl_vector_get(par, ORDER_phi),2)*pow(gsl_spline_eval(calc->spline[ORDER_prop_all_CDC_inc],t,calc->acc[ORDER_prop_all_CDC_inc]),2)*pow(gsl_vector_get(par, ORDER_rep_all_CDC_inc),2)*pow(x,2)+gsl_spline_eval(calc->spline[ORDER_prop_all_CDC_inc],t,calc->acc[ORDER_prop_all_CDC_inc])*gsl_vector_get(par, ORDER_rep_all_CDC_inc)*x*(-gsl_vector_get(par, ORDER_rep_all_CDC_inc)+1.0)'},
+             'c': 'pow(gsl_vector_get(par,ORDER_phi),2)*pow(gsl_spline_eval(calc->spline[ORDER_prop_all_CDC_inc],t,calc->acc[ORDER_prop_all_CDC_inc]),2)*pow(gsl_vector_get(par,ORDER_rep_all_CDC_inc),2)*pow(x,2)+gsl_spline_eval(calc->spline[ORDER_prop_all_CDC_inc],t,calc->acc[ORDER_prop_all_CDC_inc])*gsl_vector_get(par,ORDER_rep_all_CDC_inc)*x*(-gsl_vector_get(par,ORDER_rep_all_CDC_inc)+1.0)'},
         ]
 
         for t in terms:
@@ -165,26 +165,26 @@ class TestCcoder(unittest.TestCase):
         #correct_rate is only skipped for C code
 
         x = 'mu_b_paris*(1.0+correct_rate(v)*sin((correct_rate(v)/N_paris+(mu_b_paris)))) + r0_paris'
-        c = 'gsl_spline_eval(calc->spline[ORDER_mu_b_paris],t,calc->acc[ORDER_mu_b_paris])*((gsl_vector_get(par, ORDER_v))*sin(gsl_spline_eval(calc->spline[ORDER_mu_b_paris],t,calc->acc[ORDER_mu_b_paris])+(gsl_vector_get(par, ORDER_v))/gsl_spline_eval(calc->spline[ORDER_N_paris],t,calc->acc[ORDER_N_paris]))+1.0)+diffed[ORDER_diff__r0_paris]'
+        c = 'gsl_spline_eval(calc->spline[ORDER_mu_b_paris],t,calc->acc[ORDER_mu_b_paris])*((gsl_vector_get(par,ORDER_v))*sin(gsl_spline_eval(calc->spline[ORDER_mu_b_paris],t,calc->acc[ORDER_mu_b_paris])+(gsl_vector_get(par,ORDER_v))/gsl_spline_eval(calc->spline[ORDER_N_paris],t,calc->acc[ORDER_N_paris]))+1.0)+diffed[ORDER_diff__r0_paris]'
 
         self.assertEqual(self.m_diff.make_C_term(x, True, human=False), c)
 
         #    def test_make_C_term_extra_terms(self):
         #terms = [
         #   {'x': 'terms_forcing(v)', 
-        #   'c': 'terms_forcing(gsl_vector_get(par, ORDER_v),t,p_data,cac)'}, 
+        #   'c': 'terms_forcing(gsl_vector_get(par,ORDER_v),t,p_data,cac)'}, 
         #
         #  {'x': 'heaviside(t-v)', 
-        #   'c': 'heaviside(t-gsl_vector_get(par, ORDER_v))'}, 
+        #   'c': 'heaviside(t-gsl_vector_get(par,ORDER_v))'}, 
         #
         #            {'x': 'heaviside((t-v))', 
-        #   'c': 'heaviside(t-gsl_vector_get(par, ORDER_v))'}, 
+        #   'c': 'heaviside(t-gsl_vector_get(par,ORDER_v))'}, 
         #
         #  {'x': 'ramp(t-v)', 
-        #   'c': 'ramp(t-gsl_vector_get(par, ORDER_v))'}, 
+        #   'c': 'ramp(t-gsl_vector_get(par,ORDER_v))'}, 
 
         #            {'x': 'correct_rate(v)', 
-        #   'c': 'ssm_correct_rate(gsl_vector_get(par, ORDER_v),dt)'}, 
+        #   'c': 'ssm_correct_rate(gsl_vector_get(par,ORDER_v),dt)'}, 
         #]
             
         #for t in terms:
@@ -457,28 +457,28 @@ class TestCcoder(unittest.TestCase):
 
         # testing jac
         # I ode - ((v)*I) - ((mu_d)*I) + ((r0/N*v*I)*S)
-        self.assertEqual(jac["caches"][jac["jac"][0][0]],"-gsl_spline_eval(calc->spline[ORDER_mu_d_nyc],t,calc->acc[ORDER_mu_d_nyc])-(gsl_vector_get(par, ORDER_v))+X[ORDER_S_nyc]*diffed[ORDER_diff__r0_nyc]*gsl_vector_get(par, ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])")
-        self.assertEqual(jac["caches"][jac["jac"][1][1]],"-gsl_spline_eval(calc->spline[ORDER_mu_d_paris],t,calc->acc[ORDER_mu_d_paris])-(gsl_vector_get(par, ORDER_v))+X[ORDER_S_paris]*diffed[ORDER_diff__r0_paris]*gsl_vector_get(par, ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_paris],t,calc->acc[ORDER_N_paris])")
+        self.assertEqual(jac["caches"][jac["jac"][0][0]],"-gsl_spline_eval(calc->spline[ORDER_mu_d_nyc],t,calc->acc[ORDER_mu_d_nyc])-(gsl_vector_get(par,ORDER_v))+X[ORDER_S_nyc]*diffed[ORDER_diff__r0_nyc]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])")
+        self.assertEqual(jac["caches"][jac["jac"][1][1]],"-gsl_spline_eval(calc->spline[ORDER_mu_d_paris],t,calc->acc[ORDER_mu_d_paris])-(gsl_vector_get(par,ORDER_v))+X[ORDER_S_paris]*diffed[ORDER_diff__r0_paris]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_paris],t,calc->acc[ORDER_N_paris])")
         self.assertEqual(jac["caches"][jac["jac_diff"][1][0]["value"]],"0")
         self.assertEqual(jac["caches"][jac["jac_diff"][0][1]["value"]],"0")
         
         # S ode - ((r0/N*v*I)*S) - ((mu_d)*S) + (mu_b*N)
-        self.assertEqual(jac["caches"][jac["jac"][2][2]],"-X[ORDER_I_nyc]*diffed[ORDER_diff__r0_nyc]*gsl_vector_get(par, ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])-gsl_spline_eval(calc->spline[ORDER_mu_d_nyc],t,calc->acc[ORDER_mu_d_nyc])")
-        self.assertEqual(jac["caches"][jac["jac"][3][3]],"-X[ORDER_I_paris]*diffed[ORDER_diff__r0_paris]*gsl_vector_get(par, ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_paris],t,calc->acc[ORDER_N_paris])-gsl_spline_eval(calc->spline[ORDER_mu_d_paris],t,calc->acc[ORDER_mu_d_paris])")
-        self.assertEqual(jac["caches"][jac["jac"][2][0]],"-X[ORDER_S_nyc]*diffed[ORDER_diff__r0_nyc]*gsl_vector_get(par, ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])")
-        self.assertEqual(jac["caches"][jac["jac"][3][1]],"-X[ORDER_S_paris]*diffed[ORDER_diff__r0_paris]*gsl_vector_get(par, ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_paris],t,calc->acc[ORDER_N_paris])")
+        self.assertEqual(jac["caches"][jac["jac"][2][2]],"-X[ORDER_I_nyc]*diffed[ORDER_diff__r0_nyc]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])-gsl_spline_eval(calc->spline[ORDER_mu_d_nyc],t,calc->acc[ORDER_mu_d_nyc])")
+        self.assertEqual(jac["caches"][jac["jac"][3][3]],"-X[ORDER_I_paris]*diffed[ORDER_diff__r0_paris]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_paris],t,calc->acc[ORDER_N_paris])-gsl_spline_eval(calc->spline[ORDER_mu_d_paris],t,calc->acc[ORDER_mu_d_paris])")
+        self.assertEqual(jac["caches"][jac["jac"][2][0]],"-X[ORDER_S_nyc]*diffed[ORDER_diff__r0_nyc]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])")
+        self.assertEqual(jac["caches"][jac["jac"][3][1]],"-X[ORDER_S_paris]*diffed[ORDER_diff__r0_paris]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_paris],t,calc->acc[ORDER_N_paris])")
         
         
         # testing jac_obs
         # all_inc
-        self.assertEqual(jac["caches"][jac["jac_obs"][0][0]],"gsl_spline_eval(calc->spline[ORDER_mu_d_nyc],t,calc->acc[ORDER_mu_d_nyc])+(gsl_vector_get(par, ORDER_v))")
-        self.assertEqual(jac["caches"][jac["jac_obs"][0][1]],"gsl_spline_eval(calc->spline[ORDER_mu_d_paris],t,calc->acc[ORDER_mu_d_paris])+(gsl_vector_get(par, ORDER_v))")
+        self.assertEqual(jac["caches"][jac["jac_obs"][0][0]],"gsl_spline_eval(calc->spline[ORDER_mu_d_nyc],t,calc->acc[ORDER_mu_d_nyc])+(gsl_vector_get(par,ORDER_v))")
+        self.assertEqual(jac["caches"][jac["jac_obs"][0][1]],"gsl_spline_eval(calc->spline[ORDER_mu_d_paris],t,calc->acc[ORDER_mu_d_paris])+(gsl_vector_get(par,ORDER_v))")
         self.assertEqual(jac["caches"][jac["jac_obs_diff"][0][0]["value"]],"0")
         self.assertEqual(jac["caches"][jac["jac_obs_diff"][0][1]["value"]],"0")
         # nyc_inc
-        self.assertEqual(jac["caches"][jac["jac_obs"][1][0]],"X[ORDER_S_nyc]*diffed[ORDER_diff__r0_nyc]*gsl_vector_get(par, ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])")
+        self.assertEqual(jac["caches"][jac["jac_obs"][1][0]],"X[ORDER_S_nyc]*diffed[ORDER_diff__r0_nyc]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])")
         self.assertEqual(jac["caches"][jac["jac_obs"][1][1]],"0")
-        self.assertEqual(jac["caches"][jac["jac_obs_diff"][1][0]["value"]],"X[ORDER_I_nyc]*X[ORDER_S_nyc]*gsl_vector_get(par, ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])")
+        self.assertEqual(jac["caches"][jac["jac_obs_diff"][1][0]["value"]],"X[ORDER_I_nyc]*X[ORDER_S_nyc]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])")
         self.assertEqual(jac["caches"][jac["jac_obs_diff"][1][1]["value"]],"0")
         
 

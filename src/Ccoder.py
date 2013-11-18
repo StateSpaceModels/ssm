@@ -51,7 +51,7 @@ class Ccoder(Cmodel):
 
         if term in self.par_sv or term in self.par_inc:
             if force_par:
-                return 'gsl_vector_get(par, ORDER_{0})'.format(term)
+                return 'gsl_vector_get(par,ORDER_{0})'.format(term)
             else:
                 return 'X[ORDER_{0}]'.format(term)
 
@@ -62,7 +62,7 @@ class Ccoder(Cmodel):
             if ('diff__' + term) in self.par_diff:
                 return 'diffed[ORDER_diff__{0}]'.format(term)
             else:
-                return 'gsl_vector_get(par, ORDER_{0})'.format(term)
+                return 'gsl_vector_get(par,ORDER_{0})'.format(term)
 
         else: ##r is an operator or x
             return term
