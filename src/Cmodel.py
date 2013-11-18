@@ -21,6 +21,9 @@ import sys
 import os
 import os.path
 import json
+from sympy import diff, Symbol, sympify, simplify
+from sympy.solvers import solve
+from sympy.printing import ccode
 
 class ModelError(Exception):
     def __init__(self, value):
@@ -262,6 +265,134 @@ class Cmodel:
             mylist.append(mystring)
 
         return mylist
+
+
+
+    def toC(self, term, no_correct_rate, force_par=False, xify=None, human=False, set_t0=False):
+
+        if term == xify:
+            term = 'x'
+
+        if term in self.map_prior_name2name:
+            term = self.map_prior_name2name[term]
+
+        if term == 'correct_rate':
+            return '' if no_correct_rate else 'ssm_correct_rate'
+
+        if human:
+            return term
+
+        if term in self.par_sv or term in self.par_inc:
+            if force_par:
+                return 'gsl_vector_get(par,ORDER_{0})'.format(term)
+            else:
+                return 'X[ORDER_{0}]'.format(term)
+
+        elif term in self.par_forced:
+            return 'gsl_spline_eval(calc->spline[ORDER_{0}],{1},calc->acc[ORDER_{0}])'.format(term, '0.0' if set_t0 else 't')
+
+        elif term in self.par_proc or term in self.par_noise or term in self.par_disp or term in self.par_obs or term in self.par_other:
+            if ('diff__' + term) in self.par_diff:
+                return 'diffed[ORDER_diff__{0}]'.format(term)
+            else:
+                return 'gsl_vector_get(par,ORDER_{0})'.format(term)
+
+        else: ##r is an operator or x
+            return term
+
+
+    def generator_C(self, term, no_correct_rate, force_par=False, xify=None, human=False, set_t0=False):
+
+        terms = self.change_user_input(term)
+
+        ind = 0
+        Cterm = ''
+        while (ind < len(terms)):
+
+            if terms[ind] in self.special_functions:
+                myf = terms[ind]
+
+                Cterm += self.toC(myf, no_correct_rate, force_par=force_par, xify=xify, human=human, set_t0=set_t0) + '('
+                ind += 2 #skip first parenthesis
+
+                pos = 1 #counter for open parenthesis
+                while pos > 0:
+                    if terms[ind] == '(':
+                        pos += 1
+                    if terms[ind] == ')':
+                        pos -= 1
+
+                    if pos >0:
+                        Cterm += self.toC(terms[ind], no_correct_rate, force_par=force_par, xify=xify, human=human, set_t0=set_t0)
+                        ind += 1
+
+                ##add extra terms (no whitespace)
+                if not human:
+                    if myf == 'terms_forcing': ##TODO fix
+                        Cterm += ',t,p_data,cac'
+                    elif myf == 'correct_rate' and not no_correct_rate:
+                        Cterm += ',dt'
+
+                ##close bracket
+                Cterm += terms[ind]
+                ind += 1
+
+            else:
+                Cterm += self.toC(terms[ind], no_correct_rate, force_par=force_par, xify=xify, human=human, set_t0=set_t0)
+                ind += 1
+
+
+        return Cterm
+
+
+    def make_C_term(self, term, no_correct_rate, derivate=None, inverse=None, human=False, force_par=False, xify=None, set_t0=False):
+
+        """transform a term into its ssm C expression OR the ssm C
+        expression of its derivate, differentiating against the
+        derivate (if derivate not None) OR compute inverse function
+        """
+
+        #prefix all the state variable and parameters by ssm___ to
+        #avoid namespace collision with Sympy as QCOSINE letters are
+        #used by SymPy
+
+        myterm = self.change_user_input(term)
+        safe = ''
+
+        for r in myterm:
+            if r in self.all_par:
+                safe += 'ssm___' + r
+            elif inverse and r == inverse:
+                safe += 'ssm___' + r
+            else:
+                safe += r
+
+        if derivate:
+	    sy = Symbol(str('ssm___' + derivate)) if derivate != 'x' else Symbol(derivate)
+	    pterm = diff(sympify(safe), sy)
+        elif inverse:
+            if inverse in myterm:
+                sy = Symbol(str('ssm___' + inverse))
+                pterm = solve(sympify(safe), sy)
+                if not pterm:
+                    raise SsmError("can't find a solution to " + term + "=0 solving for " + inverse)
+                elif len(pterm)!=1:
+                    raise SsmError("no unique solution for " + term + "=0 solving for " + inverse)
+                else:
+                    pterm = pterm[0]
+            else:
+                pterm = sympify(safe)
+
+        else:
+            pterm = sympify(safe)
+
+        #remove the ssm___ prefix
+        #term = ccode(simplify(pterm)).replace('ssm___', '') ##NOTE simplify is just too slow to be used...
+        term = ccode(pterm).replace('ssm___', '')
+
+        #make the ssm C expression
+        return self.generator_C(term, no_correct_rate, force_par=force_par, xify=xify, human=human, set_t0=set_t0)
+
 
 
 if __name__=="__main__":
