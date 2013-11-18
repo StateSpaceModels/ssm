@@ -189,8 +189,6 @@ class Ccoder(Cmodel):
         }
 
 
-
-
     def cache_special_function_C(self, caches_C, sf=None, prefix='_sf'):
         """caches_C: List of cached expression in C
         caches_C is modified in place
@@ -1053,6 +1051,7 @@ class Ccoder(Cmodel):
                 calc_Q[key]['sf'] = []
 
         return calc_Q
+
 
 
 if __name__=="__main__":

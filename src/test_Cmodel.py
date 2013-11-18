@@ -91,34 +91,23 @@ class TestCmodel(unittest.TestCase):
 
         self.assertEqual(self.m.make_C_term(x, True, human=False), c)
 
-        #    def test_make_C_term_extra_terms(self):
-        #terms = [
-        #   {'x': 'terms_forcing(v)', 
-        #   'c': 'terms_forcing(gsl_vector_get(par,ORDER_v),t,p_data,cac)'}, 
-        #
-        #  {'x': 'heaviside(t-v)', 
-        #   'c': 'heaviside(t-gsl_vector_get(par,ORDER_v))'}, 
-        #
-        #            {'x': 'heaviside((t-v))', 
-        #   'c': 'heaviside(t-gsl_vector_get(par,ORDER_v))'}, 
-        #
-        #  {'x': 'ramp(t-v)', 
-        #   'c': 'ramp(t-gsl_vector_get(par,ORDER_v))'}, 
-
-        #            {'x': 'correct_rate(v)', 
-        #   'c': 'ssm_correct_rate(gsl_vector_get(par,ORDER_v),dt)'}, 
-        #]
+    def test_make_C_term_extra_terms(self):
+        terms = [
+            {'x': 'heaviside(t-v)', 
+             'c': 'heaviside(t-gsl_vector_get(par,ORDER_v))'}, 
             
-        #for t in terms:
-        #   self.assertEqual(self.m_diff.make_C_term(t['x'], False, human=False), t['c'])
+            {'x': 'heaviside((t-v))', 
+             'c': 'heaviside(t-gsl_vector_get(par,ORDER_v))'}, 
 
-        #    def test_cache_special_function_C(self):
-        #
-        #        caches = map(lambda x: self.m_diff.make_C_term(x, True), ['sin(2*PI*(t +r0))', 'sin(2*PI*(t +r0))', 'terms_forcing(v)*sin(2*PI*(t +r0))*terms_forcing(v)'])
-        #sf = self.m_diff.cache_special_function_C(caches, prefix='_sf[cac]')
-
-        #        self.assertEqual(sf, ['sin(2*PI*(drifted[ORDER_drift__par_proc__r0][cac]+t))', 'terms_forcing(par[ORDER_v][routers[ORDER_v]->map[cac]],t,p_data,cac)'])
-        #self.assertEqual(caches, ['_sf[cac][0]', '_sf[cac][0]', 'pow(_sf[cac][1],2)*_sf[cac][0]'])
+            {'x': 'ramp(t-v)', 
+             'c': 'ramp(t-gsl_vector_get(par,ORDER_v))'}, 
+            
+            {'x': 'correct_rate(v)', 
+             'c': 'ssm_correct_rate(gsl_vector_get(par,ORDER_v),dt)'}, 
+        ]
+            
+        for t in terms:
+            self.assertEqual(self.m.make_C_term(t['x'], False, human=False), t['c'])
 
 
 

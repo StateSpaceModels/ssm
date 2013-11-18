@@ -404,6 +404,25 @@ class TestCcoder(unittest.TestCase):
         self.assertEqual(jac["caches"][jac["jac_obs_diff"][1][1]["value"]], "0")
         
 
+    def test_cache_special_function_C(self):
+
+        caches = map(lambda x: self.m_diff.make_C_term(x, False), ['sin(2*PI*(t +r0))', 'sin(2*PI*(t +r0))', 'sin(2*PI*(t +r0)) + correct_rate(v)'])
+        sf = self.m_diff.cache_special_function_C(caches)
+
+        self.assertEqual(sf, ['sin(2*PI*(r0+t))', 'ssm_correct_rate(gsl_vector_get(par,ORDER_v),dt)'])
+        self.assertEqual(caches, ['_sf[0]', '_sf[0]', '_sf[1]+_sf[0]'])
+
+
+    def test_cache_special_function_C_nested(self):
+
+        caches = map(lambda x: self.m_diff.make_C_term(x, False), ['pow(correct_rate(correct_rate(v)), pow(2,4))'])
+        sf = self.m_diff.cache_special_function_C(caches)
+
+        self.assertEqual(sf, ['pow(ssm_correct_rate(ssm_correct_rate(gsl_vector_get(par,ORDER_v),dt),dt),pow(2,4))'])
+        self.assertEqual(caches, ['_sf[0]'])
+
+
+
 if __name__ == '__main__':
     unittest.main()
 

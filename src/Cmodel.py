@@ -53,7 +53,7 @@ class Cmodel:
 
         self.op = set(['+', '-', '*', '/', ',', '(', ')']) ##!!!CAN'T contain square bracket '[' ']'
         self.reserved = set(['U', 'x', 't', 'E', 'LN2', 'LN10','LOG2E', 'LOG10E', 'PI', 'SQRT1_2', 'SQRT2']) #JS Math Global Object
-        self.special_functions = set(['terms_forcing', 'heaviside', 'ramp', 'slowstep', 'sin', 'cos', 'correct_rate', 'sqrt', 'pow'])
+        self.special_functions = set(['terms_forcing', 'heaviside', 'ramp', 'slowstep', 'sin', 'cos', 'correct_rate', 'ssm_correct_rate', 'sqrt', 'pow'])
 
         self.remainder = sorted([x['remainder']['name'] for x in self.model['populations'] if 'remainder' in x])
         self.ur = ['U'] + self.remainder
