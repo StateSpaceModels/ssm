@@ -25,8 +25,8 @@ class TestNoiseResults(unittest.TestCase):
 
       @classmethod
       def tearDownClass(cls):
-            os.chdir(Root + '/ssm_models')
-            #shutil.rmtree(Root + '/ssm_models')
+            #os.chdir(Root + '/ssm_models')
+            shutil.rmtree(Root + '/ssm_models')
 
       def test_simplex_map(self):
             os.system('cat ' + Root + '/../examples/noise/package.json | ./simplex --prior -M 10000 | ./smc sde -J 10000 -N 8 --trace ')
