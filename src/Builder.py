@@ -37,7 +37,7 @@ class Builder(Data, Ccoder):
         self.path_rendered = os.path.join(path_rendered, self.model['name'])
         self.env = Environment(loader=FileSystemLoader(os.path.join(self.path_rendered, 'C', 'templates')))
         self.env.filters.update({
-            'is_prior': lambda x: 'data' in x and isinstance(x, dict) and 'data' in x['data']
+            'is_prior': lambda x: ('data' in x) and isinstance(x['data'], dict) and ('data' in x['data']) and ('distribution' in x['data']['data'])
         })
 
     def prepare(self, path_templates=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'C', 'templates'), replace=True):
