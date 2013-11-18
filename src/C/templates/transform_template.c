@@ -174,7 +174,7 @@ ssm_parameter_t **_ssm_parameters_new(int *parameters_length)
     parameters[{{ order_parameters[p.name] }}]->f_der2_inv = &ssm_f_der2_inv_id;
     {% endif %}
 
-    {% if p|is_prior and 'distribution' in p.data.data and p.data.data.distribution != 'fixed' %}
+    {% if p|is_prior and p.data.data.distribution != 'fixed' %}
     parameters[{{ order_parameters[p.name] }}]->f_prior = &f_prior_tpl_{{ p.name }};
     {# TODO: fixed case #}
     {% else %}

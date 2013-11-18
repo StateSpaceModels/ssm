@@ -61,7 +61,7 @@ async.eachLimit(dpkg.models, os.cpus().length, function(model, cb){
   mkdirp(pathModel, function (err) {
     if(err) return cb(err);
 
-    links.resolve(dpkgRoot, links.get(model), function(err, rlinks){
+    links.resolve(dpkgRoot, dpkg, model.data.concat(model.inputs).filter(function(x){return (('data' in x) && Array.isArray(x.data));}), function(err, rlinks){
       if(err) return cb(err);
 
       fs.writeFile(path.join(pathModel, '.data.json'), JSON.stringify(rlinks), function(err){

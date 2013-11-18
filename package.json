@@ -8,11 +8,18 @@
     "ssm-run": "bin/ssm-run",
     "ssm-lhs": "bin/ssm-lhs"
   },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/standard-analytics/ssm.git"
+  },
+  "bugs": {
+    "url": "https://github.com/standard-analytics/ssm/issues"
+  },
   "main": "index.js",
   "preferGlobal": true,
   "scripts": {
-    "install": "(cd src/C && make &&make install)",
-    "test": "(cd src && python test_Cmodel.py && python test_Ccoder.py) && (cd tests && make test)"
+    "install": "(cd src/C && make && make install && make clean)",
+    "test": "(cd src && python test_Cmodel.py && python test_Ccoder.py) && (cd tests && make test && make clean)"
   },
   "keywords": [
     "State",
