@@ -66,7 +66,7 @@ makeLhs(dpkgRoot, dpkg, program, function(err, rlhs){
           data: [
             {
               command: "simplex",
-              args: ["--path", "$ROOT/data" , "-M", 10000, "--next", "mle_", "--id", "*", '--trace'],
+              args: ["--root", "$ROOT/data" , "-M", 10000, "--next", "mle_", "--id", "*", '--trace'],
               cwd: ".",
               walltime: "00:01:00",
               inputs: [

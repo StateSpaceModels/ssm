@@ -36,7 +36,7 @@ void ssm_options_load(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
     struct opts_part all_opts[] = {
         {"D", 'D', "dt",             "integration time step", required_argument,  SSM_WORKER | SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
         {"I", 'I', "id",             "general id (unique integer identifier that will be appended to the output)", required_argument,  SSM_WORKER | SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
-        {"P", 'P', "path",           "root path for output files (if any) (no trailing slash)", required_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
+        {"P", 'P', "root",           "root path for output files (if any) (no trailing slash)", required_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
         {"X", 'X', "next",           "write the outputed parameters in a file prefixed by the argument", required_argument,  SSM_WORKER | SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF | SSM_SIMUL },
         {"N", 'N', "n_thread",       "number of threads to be used", required_argument,  SSM_SMC | SSM_PMCMC | SSM_MIF | SSM_SIMUL },
         {"J", 'J', "n_parts",        "number of particles", required_argument,  SSM_SMC | SSM_PMCMC | SSM_MIF | SSM_SIMUL },
@@ -146,8 +146,8 @@ void ssm_options_load(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
             opts->id = atoi(optarg);
             break;
 
-        case 'P': //path
-            strncpy(opts->path, optarg, SSM_STR_BUFFSIZE);
+        case 'P': //root path
+            strncpy(opts->root, optarg, SSM_STR_BUFFSIZE);
             break;
 
 	case 'X': //next

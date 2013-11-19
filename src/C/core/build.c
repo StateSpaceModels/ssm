@@ -285,7 +285,7 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
 #if SSM_JSON
         nav->trace = stdout;
 #else
-        snprintf(str, SSM_STR_BUFFSIZE, "%s/trace_%d.csv", opts->path,  opts->id);
+        snprintf(str, SSM_STR_BUFFSIZE, "%s/trace_%d.csv", opts->root,  opts->id);
         nav->trace = fopen(str, "w");
         ssm_print_header_trace(nav->trace, nav);
 #endif
@@ -297,7 +297,7 @@ ssm_nav_t *ssm_nav_new(json_t *jparameters, ssm_options_t *opts)
 #if SSM_JSON
         nav->X = stdout;
 #else
-snprintf(str, SSM_STR_BUFFSIZE, "%s/X_%d.csv", opts->path,  opts->id);
+snprintf(str, SSM_STR_BUFFSIZE, "%s/X_%d.csv", opts->root,  opts->id);
  nav->X = fopen(str, "w");
  ssm_print_header_X(nav->X, nav);
 #endif
@@ -309,7 +309,7 @@ snprintf(str, SSM_STR_BUFFSIZE, "%s/X_%d.csv", opts->path,  opts->id);
 #if SSM_JSON
         nav->hat = stdout;
 #else
-        snprintf(str, SSM_STR_BUFFSIZE, "%s/hat_%d.csv", opts->path,  opts->id);
+        snprintf(str, SSM_STR_BUFFSIZE, "%s/hat_%d.csv", opts->root,  opts->id);
         nav->hat = fopen(str, "w");
         ssm_print_header_hat(nav->hat, nav);
 #endif
@@ -321,7 +321,7 @@ snprintf(str, SSM_STR_BUFFSIZE, "%s/X_%d.csv", opts->path,  opts->id);
 #if SSM_JSON
         nav->diag = stdout;
 #else
-        snprintf(str, SSM_STR_BUFFSIZE, "%s/diag_%d.csv", opts->path,  opts->id);
+        snprintf(str, SSM_STR_BUFFSIZE, "%s/diag_%d.csv", opts->root,  opts->id);
         nav->diag = fopen(str, "w");
         if(opts->algo & (SSM_SMC | SSM_KALMAN)){
             ssm_print_header_pred_res(nav->diag, nav);
@@ -1067,7 +1067,7 @@ ssm_options_t *ssm_options_new(void)
 
     //alloc char *
     opts->freeze_forcing = ssm_c1_new(SSM_STR_BUFFSIZE);
-    opts->path = ssm_c1_new(SSM_STR_BUFFSIZE);
+    opts->root = ssm_c1_new(SSM_STR_BUFFSIZE);
     opts->next = ssm_c1_new(SSM_STR_BUFFSIZE);
     opts->interpolator = ssm_c1_new(SSM_STR_BUFFSIZE);
     opts->start = ssm_c1_new(SSM_STR_BUFFSIZE);
@@ -1088,7 +1088,7 @@ ssm_options_t *ssm_options_new(void)
     opts->eps_abs = 1e-6;
     opts->eps_rel = 1e-3;
     strncpy(opts->freeze_forcing, "", SSM_STR_BUFFSIZE);
-    strncpy(opts->path, ".", SSM_STR_BUFFSIZE);
+    strncpy(opts->root, ".", SSM_STR_BUFFSIZE);
     strncpy(opts->next, "", SSM_STR_BUFFSIZE);
     opts->n_thread = 1;
     opts->like_min = 1e-17;
@@ -1123,7 +1123,7 @@ ssm_options_t *ssm_options_new(void)
 void ssm_options_free(ssm_options_t *opts)
 {
     free(opts->freeze_forcing);
-    free(opts->path);
+    free(opts->root);
     free(opts->next);
     free(opts->interpolator);
     free(opts->start);

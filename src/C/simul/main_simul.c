@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 	J_par[j] = ssm_par_new(input, calc[0], nav);
 	ssm_par2X(J_X[j], J_par[j], calc[0], nav);
     }
-    
+   
     ssm_f_pred_t f_pred = ssm_get_f_pred(nav);
 
     ssm_workers_t *workers = ssm_workers_start(&J_X, J_par, data, calc, fitness, f_pred, nav, opts, SSM_WORKER_J_PAR);

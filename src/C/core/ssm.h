@@ -438,7 +438,7 @@ typedef struct
     double eps_abs;          /**< absolute error for adaptive step-size control */
     double eps_rel;          /**< relative error for adaptive step-size control */
     char *freeze_forcing;    /**< freeze the metadata to their value at the specified ISO8601 date */
-    char *path;              /**< path where the outputs will be stored */
+    char *root;              /**< root path where the outputs will be stored */
     char *next;              /**< write the outputed parameters in a file prefixed by the argument */
     int n_thread;            /**< number of threads */
     double like_min;         /**< particles with likelihood smaller that like_min are considered lost */

@@ -122,7 +122,7 @@ void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_v
     
     if(strcmp(opts->next, "") != 0){
 	char path[SSM_STR_BUFFSIZE];
-	snprintf(path, SSM_STR_BUFFSIZE, "%s/%s%d.json", opts->path, opts->next, opts->id);
+	snprintf(path, SSM_STR_BUFFSIZE, "%s/%s%d.json", opts->root, opts->next, opts->id);
 	json_dump_file(jparameters, path, JSON_INDENT(2));
     } else {
 	json_dumpf(jparameters, stdout, JSON_COMPACT); printf("\n");
@@ -156,7 +156,7 @@ void ssm_pipe_hat(FILE *stream, json_t *jparameters, ssm_input_t *input, ssm_hat
 
     if(strcmp(opts->next, "") != 0){
 	char path[SSM_STR_BUFFSIZE];
-	snprintf(path, SSM_STR_BUFFSIZE, "%s/%s%d.json", opts->path, opts->next, opts->id);
+	snprintf(path, SSM_STR_BUFFSIZE, "%s/%s%d.json", opts->root, opts->next, opts->id);
 	json_dump_file(jparameters, path, JSON_INDENT(2));
     } else {
 	json_dumpf(jparameters, stdout, JSON_COMPACT); printf("\n");
