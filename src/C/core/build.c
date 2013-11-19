@@ -776,8 +776,6 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fi
         (calc->sys).dimension= dim;
         (calc->sys).params= calc;
 
-        calc->yerr = ssm_d1_new(dim);
-
         if(nav->implementation == SSM_EKF){
 
             int can_run;
@@ -980,8 +978,6 @@ void ssm_calc_free(ssm_calc_t *calc, ssm_nav_t *nav)
         gsl_odeiv2_step_free(calc->step);
         gsl_odeiv2_evolve_free(calc->evolve);
         gsl_odeiv2_control_free(calc->control);
-
-        free(calc->yerr);
 
         if(nav->implementation == SSM_EKF){
             gsl_vector_free(calc->_pred_error);

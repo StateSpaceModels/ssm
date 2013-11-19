@@ -161,14 +161,15 @@ ssm_f_pred_t ssm_get_f_pred(ssm_nav_t *nav)
 ssm_err_code_t ssm_f_prediction_ode(ssm_X_t *p_X, double t0, double t1, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc)
 {
     double t=t0;
-    double h = p_X->dt; //h is the initial integration step size
+    double *h = &p_X->dt; //h is the integration step size (we propagate it from data point to data points)
     calc->_par = par; //pass the ref to par so that it is available wihtin the function to integrate
 
     double *y = p_X->proj;
     gsl_odeiv2_evolve_reset (calc->evolve);
+    gsl_odeiv2_step_reset (calc->step);
 
     while (t < t1) {
-        int status = gsl_odeiv2_evolve_apply (calc->evolve, calc->control, calc->step, &(calc->sys), &t, t1, &h, y);
+        int status = gsl_odeiv2_evolve_apply (calc->evolve, calc->control, calc->step, &(calc->sys), &t, t1, h, y);
         if (status != GSL_SUCCESS) {
             if (nav->print & SSM_PRINT_WARNING) {
                 ssm_print_warning("gsl_odeiv2 error");

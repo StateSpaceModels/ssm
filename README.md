@@ -59,7 +59,7 @@ On first use, it is helpfull to run the following commands with ```--verbose```.
 
 ## Installing a model from a data package
 
-    ssm build package.json [options]
+    ssm install package.json [options]
 
 ## Boostrapping an inference pipeline
 
