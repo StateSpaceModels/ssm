@@ -165,6 +165,7 @@ ssm_err_code_t ssm_f_prediction_ode(ssm_X_t *p_X, double t0, double t1, ssm_par_
     calc->_par = par; //pass the ref to par so that it is available wihtin the function to integrate
 
     double *y = p_X->proj;
+    gsl_odeiv2_evolve_reset (calc->evolve);
 
     while (t < t1) {
         int status = gsl_odeiv2_evolve_apply (calc->evolve, calc->control, calc->step, &(calc->sys), &t, t1, &h, y);
