@@ -1171,6 +1171,21 @@ ssm_fitness_t *ssm_fitness_new(ssm_data_t *data, ssm_options_t *opts)
     fitness->log_prior = 0.0;
     fitness->log_prior_prev = 0.0;
 
+    //summary quantities
+    fitness->AIC = NAN;
+    fitness->AICc = NAN;
+    fitness->DIC = NAN;
+    fitness->summary_log_likelihood = NAN;
+    fitness->_min_deviance = NAN;
+    fitness->_deviance_cum = 0;
+
+    fitness->n = 0;
+
+    for(i=0; i<data->n_obs; i++){
+	fitness->n += data->rows[i]->ts_nonan_length;
+    }
+
+
     return fitness;
 }
 
@@ -1418,3 +1433,4 @@ void ssm_adapt_free(ssm_adapt_t *adapt)
 
     free(adapt);
 }
+

@@ -137,13 +137,17 @@ int main(int argc, char *argv[])
 
     if (n_iter == 0 && (nav->print & SSM_PRINT_TRACE)) {
         //simply return the sum of square or the log likelihood (can be used to do slices especially with least square where smc can't be used'...)
-        ssm_print_trace(nav->trace, theta, nav, f_simplex(theta, &params), 0);
+	fitness->log_like = f_simplex(theta, &params);
+        ssm_print_trace(nav->trace, theta, nav, fitness->log_like, 0);
     } else {
-        ssm_simplex(theta, var, &params, &f_simplex, nav, size_stop, n_iter);
+        fitness->log_like = ssm_simplex(theta, var, &params, &f_simplex, nav, size_stop, n_iter);
     }
 
     if (!(nav->print & SSM_PRINT_LOG)) {
-	ssm_pipe_theta(stdout, jparameters, theta, NULL, nav, opts);
+	if(!opts->flag_least_squares && !opts->flag_prior){
+	    ssm_aic(fitness, nav, fitness->log_like);
+	}
+	ssm_pipe_theta(stdout, jparameters, theta, NULL, fitness, nav, opts);
     }
 
     json_decref(jparameters);

@@ -65,16 +65,17 @@ void ssm_json_dumpf(FILE *stream, const char *id, json_t *data)
     json_decref(root);
 }
 
-void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_var_t *var, ssm_nav_t *nav, ssm_options_t *opts)
+void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_var_t *var, ssm_fitness_t *fitness, ssm_nav_t *nav, ssm_options_t *opts)
 {
     int i, j, index;
     double x;
 
-    json_t *jresource = json_object_get(jparameters, "resources");
-    json_t *jcovariance;
+    json_t *jresources = json_object_get(jparameters, "resources");
+    json_t *jcovariance = NULL;
+    json_t *jsummary = NULL;
 
-    for(index=0; index< json_array_size(jresource); index++){
-        json_t *el = json_array_get(jresource, index);
+    for(index=0; index< json_array_size(jresources); index++){
+        json_t *el = json_array_get(jresources, index);
 
         const char* name = json_string_value(json_object_get(el, "name"));
         if (strcmp(name, "values") == 0) {
@@ -87,7 +88,23 @@ void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_v
 
         } else if ((strcmp(name, "covariance") == 0)) {
             jcovariance = el;
-        }
+	} else if ((strcmp(name, "summary") == 0)) {
+	    jsummary = el;
+	}
+    }
+
+    json_t *jsummarydata = json_object();
+    json_object_set_new(jsummarydata, "AIC", isnan(fitness->AIC) ? json_null(): json_real(fitness->AIC));
+    json_object_set_new(jsummarydata, "AICc", isnan(fitness->AICc) ? json_null(): json_real(fitness->AICc));
+    json_object_set_new(jsummarydata, "DIC", isnan(fitness->DIC) ? json_null(): json_real(fitness->DIC));
+    json_object_set_new(jsummarydata, "log_likelihood", isnan(fitness->summary_log_likelihood) ? json_null(): json_real(fitness->summary_log_likelihood));
+    json_object_set_new(jsummarydata, "n_parameters", json_integer(nav->theta_all->length));
+    json_object_set_new(jsummarydata, "n_data", json_integer(fitness->n));
+
+    if(!jsummary){
+	json_array_append_new(jresources, json_pack("{s,s,s,s,s,o}", "name", "summary", "format", "json", "data", jsummarydata));
+    } else{
+	json_object_set_new(jsummary, "data", jsummarydata);
     }
 
     if(var){
@@ -110,15 +127,14 @@ void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_v
 
         if(json_object_size(jdata)){
             if(!jcovariance){
-                json_array_append_new(jresource, json_pack("{s,s,s,o}", "name", "covariance", "data", jdata));
+                json_array_append_new(jresources, json_pack("{s,s,s,s,s,o}", "name", "covariance", "format", "json", "data", jdata));
             } else{
                 json_object_set_new(jcovariance, "data", jdata);
             }
         } else {
             json_decref(jdata);
         }
-    }
-
+    }    
     
     if(strcmp(opts->next, "") != 0){
 	char path[SSM_STR_BUFFSIZE];
@@ -130,16 +146,20 @@ void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_v
     }
 }
 
-
+/**
+ * remove summary (if any) and pipe hat. This is typicaly used for simulations
+ */
 void ssm_pipe_hat(FILE *stream, json_t *jparameters, ssm_input_t *input, ssm_hat_t *hat, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_options_t *opts, double t)
 {
     int i, index;
     double x;
 
-    json_t *jresource = json_object_get(jparameters, "resources");
-
-    for(index=0; index< json_array_size(jresource); index++){
-        json_t *el = json_array_get(jresource, index);
+    json_t *jresources = json_object_get(jparameters, "resources");
+    json_t *jsummary = NULL;
+    int index_summary;
+	
+    for(index=0; index< json_array_size(jresources); index++){
+        json_t *el = json_array_get(jresources, index);
 
         const char* name = json_string_value(json_object_get(el, "name"));
         if (strcmp(name, "values") == 0) {
@@ -149,9 +169,14 @@ void ssm_pipe_hat(FILE *stream, json_t *jparameters, ssm_input_t *input, ssm_hat
                 x = nav->theta_all->p[i]->f_2prior(gsl_vector_get(input, nav->theta_all->p[i]->offset), hat, par, calc, t);
                 json_object_set_new(values, nav->theta_all->p[i]->name, json_real(x));
             }
+        } else if (strcmp(name, "summary") == 0){
+	    jsummary = el;
+	    index_summary = index;
+	}
+    }
 
-            break;
-        }
+    if(jsummary){
+	json_array_remove(jresources, index_summary);       
     }
 
     if(strcmp(opts->next, "") != 0){

@@ -374,6 +374,16 @@ typedef struct
     double log_prior;
     double log_prior_prev;
 
+    //summary quantities
+    double AIC;
+    double AICc;
+    double DIC;
+    double summary_log_likelihood; /**< ALWAYS without prior! the final log likelihood for non MCMC methods and the best likelihood found during the trace for MCMC methods*/
+    int n; /**< number of data point non NA consumed */
+
+    double _min_deviance; /**< min(deviance)*/
+    double _deviance_cum; /**< sum(deviance)*/
+
 } ssm_fitness_t;
 
 
@@ -399,11 +409,11 @@ typedef struct { /* [n_data] */
  */
 typedef struct
 {
-    int length;              /**< number of data points */
+    int length;              /**< number of rows (aligned data points) */
     int ts_length;           /**< the number of time series */
     char* date_t0;           /**< the smallest date (ISO 8601) before the first data point*/
-    int n_obs;               /**< the number of data point to taken into account for inference */
-    int n_obs_nonan;         /**< the number of data point to taken into account for inference discarding lines where all ts are NaN  */
+    int n_obs;               /**< the number of rows (aligned data points) to taken into account for inference */
+    int n_obs_nonan;         /**< the number of rows (aligned data points) to taken into account for inference discarding lines where all ts are NaN  */
 
     ssm_row_t **rows;   /**< [this.length] the data values */
     int length_nonan;        /**< number of data points with at least one time series != NaN */
@@ -642,6 +652,10 @@ void ssm_options_set_implementation(ssm_options_t *opts, ssm_algo_t algo, int ar
 double ssm_sanitize_log_likelihood(double log_like, ssm_row_t *row, ssm_fitness_t *fitness, ssm_nav_t *nav);
 double ssm_log_likelihood(ssm_row_t *row, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness);
 double ssm_sum_square(ssm_row_t *row, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness);
+void ssm_aic(ssm_fitness_t *fitness, ssm_nav_t *nav, double log_like);
+void ssm_dic_init(ssm_fitness_t *fitness, double log_like);
+void ssm_dic_update(ssm_fitness_t *fitness, double log_like);
+void ssm_dic_end(ssm_fitness_t *fitness, ssm_nav_t *nav, int m);
 
 /* mvn.c */
 int ssm_rmvnorm(const gsl_rng *r, const int n, const gsl_vector *mean, const gsl_matrix *var, double sd_fac, gsl_vector *result);
@@ -705,7 +719,7 @@ void ssm_print_log(char *msg);
 void ssm_print_warning(char *msg);
 void ssm_print_err(char *msg);
 void ssm_json_dumpf(FILE *stream, const char *flag, json_t *msg);
-void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_var_t *var, ssm_nav_t *nav, ssm_options_t *opts);
+void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_var_t *var, ssm_fitness_t *fitness, ssm_nav_t *nav, ssm_options_t *opts);
 void ssm_pipe_hat(FILE *stream, json_t *jparameters, ssm_input_t *input, ssm_hat_t *hat, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_options_t *opts, double t);
 void ssm_print_header_X(FILE *stream, ssm_nav_t *nav);
 void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_row_t *row, const int index);
@@ -736,7 +750,7 @@ int ssm_par_copy(ssm_par_t *dest, ssm_par_t *src);
 void ssm_sample_traj(ssm_X_t **D_X, ssm_X_t ***D_J_X, ssm_calc_t *calc, ssm_data_t *data, ssm_fitness_t *fitness);
 
 /* simplex.c */
-void ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_simplex)(const gsl_vector *x, void *params), ssm_nav_t *nav, double size_stop, int n_iter);
+double ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_simplex)(const gsl_vector *x, void *params), ssm_nav_t *nav, double size_stop, int n_iter);
 
 /* workers.c */
 void *ssm_worker_inproc(void *params);

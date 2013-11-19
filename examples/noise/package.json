@@ -326,6 +326,7 @@
 
     {
       "name": "values",
+      "format": "json",
       "data": {
         "pr_I_paris": 1e-05,
         "r0_nyc": 20.0,
@@ -337,6 +338,7 @@
 
     {
       "name": "covariance",
+      "format": "json",
       "data": {
         "pr_I_paris": {"pr_I_paris": 0.03},
         "r0_nyc": {"r0_nyc": 0.04, "pr_v": 0.01},

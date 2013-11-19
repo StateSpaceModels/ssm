@@ -63,3 +63,45 @@ double ssm_sum_square(ssm_row_t *row, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *ca
 
     return ss;
 }
+
+
+
+void ssm_aic(ssm_fitness_t *fitness, ssm_nav_t *nav, double log_like)
+{
+    int p = nav->theta_all->length;
+    fitness->summary_log_likelihood = log_like;
+    fitness->AIC = 2*p-2*log_like;
+    fitness->AICc = fitness->AIC + 2*p*(p+1)/ ((double) (fitness->n - p -1));
+    fitness->DIC = -2*log_like; //deviance in this case
+}
+
+
+void ssm_dic_init(ssm_fitness_t *fitness, double log_like)
+{
+    fitness->summary_log_likelihood = log_like;
+    fitness->_min_deviance = -2*log_like;
+    fitness->_deviance_cum = -2*log_like;
+}
+
+
+void ssm_dic_update(ssm_fitness_t *fitness, double log_like)
+{
+    if( log_like > fitness->summary_log_likelihood){
+	fitness->summary_log_likelihood = log_like;
+    }
+
+    double deviance = -2*log_like;
+    fitness->_deviance_cum += deviance;
+    if( deviance < fitness->_min_deviance){
+	fitness->_min_deviance = deviance;
+    }
+}
+
+void ssm_dic_end(ssm_fitness_t *fitness, ssm_nav_t *nav, int m)
+{
+    //populate AIC fields (based on the best log_likelihood found in the trace)
+    ssm_aic(fitness, nav, fitness->summary_log_likelihood);
+    //overwrite DIC with correct value
+    double mean_dev = fitness->_deviance_cum / ((double) m);
+    fitness->DIC = 2*mean_dev - fitness->_min_deviance;
+}

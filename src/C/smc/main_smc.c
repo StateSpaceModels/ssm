@@ -144,6 +144,8 @@ int main(int argc, char *argv[])
             ssm_print_warning("error log_prob_prior computation");
         }
         fitness->log_like += log_prob_prior_value;
+    } else {
+	ssm_aic(fitness, nav, fitness->log_like);
     }
 
     if (nav->print & SSM_PRINT_TRACE) {
@@ -151,7 +153,7 @@ int main(int argc, char *argv[])
     }
 
     if (!(nav->print & SSM_PRINT_LOG)) {
-	ssm_pipe_theta(stdout, jparameters, theta, NULL, nav, opts);
+	ssm_pipe_theta(stdout, jparameters, theta, NULL, fitness, nav, opts);
     } else {
 	char str[SSM_STR_BUFFSIZE];
 	snprintf(str, SSM_STR_BUFFSIZE, "logLike.: %g", fitness->log_like);

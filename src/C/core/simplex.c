@@ -22,7 +22,7 @@
  * simplex algo using GSL. Straightforward adaptation of the GSL doc
  * example
  */
-void ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_simplex)(const gsl_vector *x, void *params), ssm_nav_t *nav, double size_stop, int n_iter)
+double ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_simplex)(const gsl_vector *x, void *params), ssm_nav_t *nav, double size_stop, int n_iter)
 {
     char str[SSM_STR_BUFFSIZE];
 
@@ -83,4 +83,6 @@ void ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_si
     gsl_multimin_fminimizer_free(simp);
     gsl_vector_free(x);
     gsl_vector_free(jump_sizes);
+
+    return fitness;
 }
