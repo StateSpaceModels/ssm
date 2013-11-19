@@ -28,9 +28,8 @@ class SsmError(Exception):
 class Ccoder(Cmodel):
     """write the C code from the user input coming from the web interface..."""
 
-    def __init__(self, path_dpkg, model_name,  **kwargs):
-        Cmodel.__init__(self, path_dpkg, model_name,  **kwargs)
-
+    def __init__(self, dpkgRoot, dpkg,  **kwargs):
+        Cmodel.__init__(self, dpkgRoot, dpkg,  **kwargs)
 
     def get_inc_reset(self, observation):
         inc = set()
@@ -1056,8 +1055,9 @@ class Ccoder(Cmodel):
 
 if __name__=="__main__":
 
-    """test Ccoder"""
-
+    import json
     import os
 
-    m = Ccoder(os.path.join('..' ,'examples', 'foo', 'package.json'), "sir")
+    dpkgRoot = os.path.join('..' ,'examples', 'foo')
+    dpkg = json.load(open(os.path.join(dpkgRoot, 'package.json')))
+    m = Ccoder(dpkgRoot, dpkg)

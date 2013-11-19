@@ -3,16 +3,15 @@
 var program = require('commander')
   , path = require('path');
 
-
 program
   .version(require('../package').version)
   .usage('<command> [options]')
 
-  .command('build', 'build a model from a datapackage.json')
-  .command('run', 'run am analysis from a datapackage.json')
+  .command('install', 'install a model from a datapackage (package.json)')
+  .command('bootstrap', 'bootstrap a datapackage for an analysis')
+  .command('run', 'run am analysis from a datapackage (package.json)')
 
   .parse(process.argv);
-
 
 process.on('uncaughtException', function(err){
   if(err.code === 'ECONNREFUSED'){

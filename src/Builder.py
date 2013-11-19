@@ -30,11 +30,11 @@ from jinja2 import Environment, FileSystemLoader
 class Builder(Data, Ccoder):
     """build a model"""
 
-    def __init__(self, path_rendered, path_dpkg, model_name,  **kwargs):
-        Ccoder.__init__(self, path_dpkg, model_name, **kwargs)
-        Data.__init__(self, path_rendered, path_dpkg, model_name,  **kwargs)
+    def __init__(self, path_rendered, dpkgRoot, dpkg,  **kwargs):
+        Ccoder.__init__(self, dpkgRoot, dpkg, **kwargs)
+        Data.__init__(self, path_rendered, dpkgRoot, dpkg,  **kwargs)
 
-        self.path_rendered = os.path.join(path_rendered, self.model['name'])
+        self.path_rendered = os.path.abspath(path_rendered)
         self.env = Environment(loader=FileSystemLoader(os.path.join(self.path_rendered, 'C', 'templates')))
         self.env.filters.update({
             'is_prior': lambda x: ('data' in x) and isinstance(x['data'], dict) and ('data' in x['data']) and ('distribution' in x['data']['data'])
@@ -134,7 +134,10 @@ class Builder(Data, Ccoder):
 
 if __name__=="__main__":
 
-    b = Builder(os.path.join('..' ,'examples', 'foo', 'ssm_models'), os.path.join('..' ,'examples', 'foo', 'package.json'), "sir")
+
+    dpkgRoot = os.path.join('..' ,'examples', 'foo')
+    dpkg = json.load(open(os.path.join(dpkgRoot, 'package.json')))
+    b = Builder(os.path.join('..' ,'examples', 'foo', 'ssm_model'), dpkgRoot, dpkg)
 
     b.prepare()
     b.code()

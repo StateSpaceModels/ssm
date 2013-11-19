@@ -2,11 +2,14 @@ from Cmodel import Cmodel
 import unittest
 import copy
 import os
+import json
 
 class TestCmodel(unittest.TestCase):
 
     def setUp(self):
-        self.m = Cmodel(os.path.join('..' ,'examples', 'foo', 'package.json'), "sir")
+        dpkgRoot = os.path.join('..' ,'examples', 'foo')
+        dpkg = json.load(open(os.path.join(dpkgRoot, 'package.json')))
+        self.m = Cmodel(dpkgRoot, dpkg)
 
     def test_change_user_input(self):
         x = self.m.change_user_input('r0*2*correct_rate(v)')

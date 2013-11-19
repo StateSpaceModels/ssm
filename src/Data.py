@@ -26,7 +26,6 @@ import sys
 import csv
 from Ccoder import Ccoder
 
-
 def parse_date(x):
     """
     parse a ISO8601 string into a datetime and convert it into a date
@@ -42,15 +41,15 @@ class DataError(Exception):
 
 class Data(Ccoder):
 
-    def __init__(self, path_rendered, path, model_name, **kwargs):
-        Ccoder.__init__(self, path, model_name, **kwargs)
+    def __init__(self, path_rendered, dpkgRoot, dpkg, **kwargs):
+        Ccoder.__init__(self, dpkgRoot, dpkg, **kwargs)
 
         self.starts = [parse_date(x['start']) for x in self.obs_model]
         self.t0 =  min(self.starts)
 
         try:        
             #the .data.json contains all the data and metadata comming from the data package and it's dependencies'
-            self._data = json.load(open(os.path.join(path_rendered, self.model['name'],'.data.json')))
+            self._data = json.load(open(os.path.join(path_rendered,'.data.json')))
         except ValueError, IOError:
             raise DataError('could not process .data.json')
         
@@ -154,6 +153,9 @@ class Data(Ccoder):
 
 if __name__=="__main__":
 
-    d = Data(os.path.join('..' ,'examples', 'foo', 'ssm_models'), os.path.join('..' ,'examples', 'foo', 'package.json'), "sir")
+    dpkgRoot = os.path.join('..' ,'examples', 'foo')
+    dpkg = json.load(open(os.path.join(dpkgRoot, 'package.json')))
+    d = Data(os.path.join('..' ,'examples', 'foo', 'ssm_model'), dpkgRoot, dpkg)
     print d.prepare_covariates()
     print d.prepare_data()[29]
+    

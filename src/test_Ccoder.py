@@ -8,107 +8,71 @@ import shutil
 class TestCcoder(unittest.TestCase):
 
     def setUp(self):
-        shutil.copytree(os.path.join('..' ,'examples', 'noise'),os.path.join('..' ,'examples', '__tmp_noise'))
+        shutil.copytree(os.path.join('..' ,'examples', 'noise'), os.path.join('..' ,'examples', '__tmp_noise'))
 
-        dpkg = json.load(open(os.path.join('..' ,'examples', 'noise', 'package.json')))
-
-        noise = copy.deepcopy(dpkg["models"][0])
-        models = []
-
-        noise = copy.deepcopy(dpkg["models"][0])
-        m_noise = noise
-        m_noise["name"] = "m_noise"
-        models.append(m_noise)
+        dpkgRoot = os.path.join('..' ,'examples', 'noise')
+        dpkg = json.load(open(os.path.join(dpkgRoot, 'package.json')))
         
-        noise = copy.deepcopy(dpkg["models"][0])
-        m_diff = noise
-        m_diff["name"] = "m_diff"
-        del m_diff["reactions"][2]["white_noise"]
-        del m_diff["reactions"][3]["white_noise"]
-        m_diff["sde"] = {
-            "drift": [
-                {"name": "r0_paris", "f": 0.0, "transformation": "log(r0_paris)"},
-                {"name": "r0_nyc", "f": 0.0, "transformation": "log(r0_nyc)"}
+        self.m_noise = Ccoder(dpkgRoot, copy.deepcopy(dpkg))
+        
+        m_diff = copy.deepcopy(dpkg)    
+        del m_diff['model']['reactions'][2]['white_noise']
+        del m_diff['model']['reactions'][3]['white_noise']
+        m_diff['model']['sde'] = {
+            'drift': [
+                {'name': 'r0_paris', 'f': 0.0, 'transformation': 'log(r0_paris)'},
+                {'name': 'r0_nyc', 'f': 0.0, 'transformation': 'log(r0_nyc)'}
             ],
-            "dispertion": [['vol',0],[0,'vol']]
+            'dispertion': [['vol',0],[0,'vol']]
         }
-        models.append(m_diff)
+        self.m_diff = Ccoder(dpkgRoot, m_diff)
 
-        noise = copy.deepcopy(dpkg["models"][0])
-        m_noise2 = noise
-        m_noise2["name"] = "m_noise2"
-        del m_noise2["reactions"][2]["white_noise"]
-        del m_noise2["reactions"][3]["white_noise"]
-        m_noise2["reactions"][0]["white_noise"] = {"name":"noise_SI", "sd": "sto"}
-        m_noise2["reactions"][1]["white_noise"] = {"name":"noise_SI2", "sd": "sto"}
-        models.append(m_noise2)
+        m_noise2 = copy.deepcopy(dpkg)    
+        del m_noise2['model']['reactions'][2]['white_noise']
+        del m_noise2['model']['reactions'][3]['white_noise']
+        m_noise2['model']['reactions'][0]['white_noise'] = {'name':'noise_SI', 'sd': 'sto'}
+        m_noise2['model']['reactions'][1]['white_noise'] = {'name':'noise_SI2', 'sd': 'sto'}
+        self.m_noise2 = Ccoder(dpkgRoot, m_noise2)
 
-        noise = copy.deepcopy(dpkg["models"][0])
-        m_noise3 = noise
-        m_noise3["name"] = "m_noise3"
-        del m_noise3["reactions"][2]["white_noise"]
-        del m_noise3["reactions"][3]["white_noise"]
-        m_noise3["reactions"][4]["white_noise"] = {"name":"noise_SI", "sd": "sto"}
-        m_noise3["reactions"][5]["white_noise"] = {"name":"noise_SI2", "sd": "sto"}
-        models.append(m_noise3)
+        m_noise3 = copy.deepcopy(dpkg)    
+        del m_noise3['model']['reactions'][2]['white_noise']
+        del m_noise3['model']['reactions'][3]['white_noise']
+        m_noise3['model']['reactions'][4]['white_noise'] = {'name':'noise_SI', 'sd': 'sto'}
+        m_noise3['model']['reactions'][5]['white_noise'] = {'name':'noise_SI2', 'sd': 'sto'}
+        self.m_noise3 = Ccoder(dpkgRoot, m_noise3)
 
-        noise = copy.deepcopy(dpkg["models"][0])
-        m_noise4 = noise
-        m_noise4["name"] = "m_noise4"
-        del m_noise4["reactions"][2]["white_noise"]
-        del m_noise4["reactions"][3]["white_noise"]
-        m_noise4["reactions"][8]["white_noise"] = {"name":"noise_SI", "sd": "sto"}
-        m_noise4["reactions"][9]["white_noise"] = {"name":"noise_SI2", "sd": "sto"}
-        models.append(m_noise4)
+        m_noise4 = copy.deepcopy(dpkg)    
+        del m_noise4['model']['reactions'][2]['white_noise']
+        del m_noise4['model']['reactions'][3]['white_noise']
+        m_noise4['model']['reactions'][8]['white_noise'] = {'name':'noise_SI', 'sd': 'sto'}
+        m_noise4['model']['reactions'][9]['white_noise'] = {'name':'noise_SI2', 'sd': 'sto'}
+        self.m_noise4 = Ccoder(dpkgRoot, m_noise4)
 
-        noise = copy.deepcopy(dpkg["models"][0])
-        m_noise5 = noise
-        m_noise5["name"] = "m_noise5"
-        del m_noise5["reactions"][2]["white_noise"]
-        del m_noise5["reactions"][3]["white_noise"]
-        m_noise5["reactions"][10]["white_noise"] = {"name":"noise_SI", "sd": "sto"}
-        m_noise5["reactions"][11]["white_noise"] = {"name":"noise_SI2", "sd": "sto"}
-        models.append(m_noise5)
+        m_noise5 = copy.deepcopy(dpkg)    
+        del m_noise5['model']['reactions'][2]['white_noise']
+        del m_noise5['model']['reactions'][3]['white_noise']
+        m_noise5['model']['reactions'][10]['white_noise'] = {'name':'noise_SI', 'sd': 'sto'}
+        m_noise5['model']['reactions'][11]['white_noise'] = {'name':'noise_SI2', 'sd': 'sto'}
+        self.m_noise5 = Ccoder(dpkgRoot, m_noise5)
 
-        noise = copy.deepcopy(dpkg["models"][0])
-        m_noise6 = noise
-        m_noise6["name"] = "m_noise6"
-        m_noise6["reactions"][4]["white_noise"] = {"name":"noise_SI", "sd": "sto"}
-        m_noise6["reactions"][5]["white_noise"] = {"name":"noise_SI2", "sd": "sto"}
-        models.append(m_noise6)
+        m_noise6 = copy.deepcopy(dpkg)    
+        m_noise6['model']['reactions'][4]['white_noise'] = {'name':'noise_SI', 'sd': 'sto'}
+        m_noise6['model']['reactions'][5]['white_noise'] = {'name':'noise_SI2', 'sd': 'sto'}
+        self.m_noise6 = Ccoder(dpkgRoot, m_noise6)
 
-        noise = copy.deepcopy(dpkg["models"][0])
-        m_noise7 = noise
-        m_noise7["name"] = "m_noise7"
-        m_noise7["reactions"][4]["white_noise"] = {"name":"noise_SI23", "sd": "sto"}
-        m_noise7["reactions"][5]["white_noise"] = {"name":"noise_SI24", "sd": "sto"}
-        models.append(m_noise7)
+        m_noise7 = copy.deepcopy(dpkg)    
+        m_noise7['model']['reactions'][4]['white_noise'] = {'name':'noise_SI23', 'sd': 'sto'}
+        m_noise7['model']['reactions'][5]['white_noise'] = {'name':'noise_SI24', 'sd': 'sto'}
+        self.m_noise7 = Ccoder(dpkgRoot, m_noise7)
 
-        noise = copy.deepcopy(dpkg["models"][0])
-        m_diff2 = noise
-        m_diff2["name"] = "m_diff2"
-        del m_diff2["reactions"][2]["white_noise"]
-        del m_diff2["reactions"][3]["white_noise"]
-        m_diff2["sde"] = copy.deepcopy(m_diff["sde"])
-        m_diff2["reactions"].append({"from": "R_paris",   "to": "I_paris",   "rate": "correct_rate(v)",            "description":"testing"})
-        m_diff2["reactions"].append({"from": "R_nyc",   "to": "I_nyc",   "rate": "correct_rate(v)",                "description":"testing"})
-        models.append(m_diff2)
+        m_diff2 = copy.deepcopy(dpkg)    
+        del m_diff2['model']['reactions'][2]['white_noise']
+        del m_diff2['model']['reactions'][3]['white_noise']
+        m_diff2['model']['sde'] = copy.deepcopy(m_diff['model']['sde'])
+        m_diff2['model']['reactions'].append({'from': 'R_paris',   'to': 'I_paris',   'rate': 'correct_rate(v)',            'description':'testing'})
+        m_diff2['model']['reactions'].append({'from': 'R_nyc',   'to': 'I_nyc',   'rate': 'correct_rate(v)',                'description':'testing'})
+        self.m_diff2 = Ccoder(dpkgRoot, m_diff2)
 
-        dpkgTest = copy.deepcopy(dpkg)
-        dpkgTest["models"] = models
-        pathTest = os.path.join('..' ,'examples', '__tmp_noise', 'package.json')
-        with open(pathTest,"w") as outfile:
-            json.dump(dpkgTest, outfile)
-        
-        self.m_noise = Ccoder(pathTest,"m_noise")
-        self.m_diff = Ccoder(pathTest,"m_diff")
-        self.m_noise2 = Ccoder(pathTest,"m_noise2")
-        self.m_noise3 = Ccoder(pathTest,"m_noise3")
-        self.m_noise4 = Ccoder(pathTest,"m_noise4")
-        self.m_noise5 = Ccoder(pathTest,"m_noise5")
-        self.m_noise6 = Ccoder(pathTest,"m_noise6")
-        self.m_noise7 = Ccoder(pathTest,"m_noise7")
-        self.m_diff2 = Ccoder(pathTest,"m_diff2") 
 
     def tearDown(self):
         shutil.rmtree(os.path.join('..' ,'examples', '__tmp_noise'))
@@ -379,29 +343,29 @@ class TestCcoder(unittest.TestCase):
 
         # testing jac
         # I ode - ((v)*I) - ((mu_d)*I) + ((r0/N*v*I)*S)
-        self.assertEqual(jac["caches"][jac["jac"][0][0]], "-gsl_spline_eval(calc->spline[ORDER_mu_d_nyc],t,calc->acc[ORDER_mu_d_nyc])-(gsl_vector_get(par,ORDER_v))+X[ORDER_S_nyc]*diffed[ORDER_diff__r0_nyc]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])")
-        self.assertEqual(jac["caches"][jac["jac"][1][1]], "-gsl_spline_eval(calc->spline[ORDER_mu_d_paris],t,calc->acc[ORDER_mu_d_paris])-(gsl_vector_get(par,ORDER_v))+X[ORDER_S_paris]*diffed[ORDER_diff__r0_paris]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_paris],t,calc->acc[ORDER_N_paris])")
-        self.assertEqual(jac["caches"][jac["jac_diff"][1][0]["value"]], "0")
-        self.assertEqual(jac["caches"][jac["jac_diff"][0][1]["value"]], "0")
+        self.assertEqual(jac['caches'][jac['jac'][0][0]], '-gsl_spline_eval(calc->spline[ORDER_mu_d_nyc],t,calc->acc[ORDER_mu_d_nyc])-(gsl_vector_get(par,ORDER_v))+X[ORDER_S_nyc]*diffed[ORDER_diff__r0_nyc]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])')
+        self.assertEqual(jac['caches'][jac['jac'][1][1]], '-gsl_spline_eval(calc->spline[ORDER_mu_d_paris],t,calc->acc[ORDER_mu_d_paris])-(gsl_vector_get(par,ORDER_v))+X[ORDER_S_paris]*diffed[ORDER_diff__r0_paris]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_paris],t,calc->acc[ORDER_N_paris])')
+        self.assertEqual(jac['caches'][jac['jac_diff'][1][0]['value']], '0')
+        self.assertEqual(jac['caches'][jac['jac_diff'][0][1]['value']], '0')
         
         # S ode - ((r0/N*v*I)*S) - ((mu_d)*S) + (mu_b*N)
-        self.assertEqual(jac["caches"][jac["jac"][2][2]], "-X[ORDER_I_nyc]*diffed[ORDER_diff__r0_nyc]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])-gsl_spline_eval(calc->spline[ORDER_mu_d_nyc],t,calc->acc[ORDER_mu_d_nyc])")
-        self.assertEqual(jac["caches"][jac["jac"][3][3]], "-X[ORDER_I_paris]*diffed[ORDER_diff__r0_paris]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_paris],t,calc->acc[ORDER_N_paris])-gsl_spline_eval(calc->spline[ORDER_mu_d_paris],t,calc->acc[ORDER_mu_d_paris])")
-        self.assertEqual(jac["caches"][jac["jac"][2][0]], "-X[ORDER_S_nyc]*diffed[ORDER_diff__r0_nyc]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])")
-        self.assertEqual(jac["caches"][jac["jac"][3][1]], "-X[ORDER_S_paris]*diffed[ORDER_diff__r0_paris]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_paris],t,calc->acc[ORDER_N_paris])")
+        self.assertEqual(jac['caches'][jac['jac'][2][2]], '-X[ORDER_I_nyc]*diffed[ORDER_diff__r0_nyc]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])-gsl_spline_eval(calc->spline[ORDER_mu_d_nyc],t,calc->acc[ORDER_mu_d_nyc])')
+        self.assertEqual(jac['caches'][jac['jac'][3][3]], '-X[ORDER_I_paris]*diffed[ORDER_diff__r0_paris]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_paris],t,calc->acc[ORDER_N_paris])-gsl_spline_eval(calc->spline[ORDER_mu_d_paris],t,calc->acc[ORDER_mu_d_paris])')
+        self.assertEqual(jac['caches'][jac['jac'][2][0]], '-X[ORDER_S_nyc]*diffed[ORDER_diff__r0_nyc]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])')
+        self.assertEqual(jac['caches'][jac['jac'][3][1]], '-X[ORDER_S_paris]*diffed[ORDER_diff__r0_paris]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_paris],t,calc->acc[ORDER_N_paris])')
         
         
         # testing jac_obs
         # all_inc
-        self.assertEqual(jac["caches"][jac["jac_obs"][0][0]], "gsl_spline_eval(calc->spline[ORDER_mu_d_nyc],t,calc->acc[ORDER_mu_d_nyc])+(gsl_vector_get(par,ORDER_v))")
-        self.assertEqual(jac["caches"][jac["jac_obs"][0][1]], "gsl_spline_eval(calc->spline[ORDER_mu_d_paris],t,calc->acc[ORDER_mu_d_paris])+(gsl_vector_get(par,ORDER_v))")
-        self.assertEqual(jac["caches"][jac["jac_obs_diff"][0][0]["value"]], "0")
-        self.assertEqual(jac["caches"][jac["jac_obs_diff"][0][1]["value"]], "0")
+        self.assertEqual(jac['caches'][jac['jac_obs'][0][0]], 'gsl_spline_eval(calc->spline[ORDER_mu_d_nyc],t,calc->acc[ORDER_mu_d_nyc])+(gsl_vector_get(par,ORDER_v))')
+        self.assertEqual(jac['caches'][jac['jac_obs'][0][1]], 'gsl_spline_eval(calc->spline[ORDER_mu_d_paris],t,calc->acc[ORDER_mu_d_paris])+(gsl_vector_get(par,ORDER_v))')
+        self.assertEqual(jac['caches'][jac['jac_obs_diff'][0][0]['value']], '0')
+        self.assertEqual(jac['caches'][jac['jac_obs_diff'][0][1]['value']], '0')
         # nyc_inc
-        self.assertEqual(jac["caches"][jac["jac_obs"][1][0]], "X[ORDER_S_nyc]*diffed[ORDER_diff__r0_nyc]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])")
-        self.assertEqual(jac["caches"][jac["jac_obs"][1][1]], "0")
-        self.assertEqual(jac["caches"][jac["jac_obs_diff"][1][0]["value"]], "X[ORDER_I_nyc]*X[ORDER_S_nyc]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])")
-        self.assertEqual(jac["caches"][jac["jac_obs_diff"][1][1]["value"]], "0")
+        self.assertEqual(jac['caches'][jac['jac_obs'][1][0]], 'X[ORDER_S_nyc]*diffed[ORDER_diff__r0_nyc]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])')
+        self.assertEqual(jac['caches'][jac['jac_obs'][1][1]], '0')
+        self.assertEqual(jac['caches'][jac['jac_obs_diff'][1][0]['value']], 'X[ORDER_I_nyc]*X[ORDER_S_nyc]*gsl_vector_get(par,ORDER_v)/gsl_spline_eval(calc->spline[ORDER_N_nyc],t,calc->acc[ORDER_N_nyc])')
+        self.assertEqual(jac['caches'][jac['jac_obs_diff'][1][1]['value']], '0')
         
 
     def test_cache_special_function_C(self):

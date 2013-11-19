@@ -1,0 +1,59 @@
+#!/usr/bin/env node
+
+var program = require('commander')
+  , fs = require('fs')
+  , path = require('path')
+  , spawn = require('child_process').spawn
+  , resolvePath = require('../lib/util').resolvePath
+  , install = require('../lib/install')
+  , EventEmitter = require('events').EventEmitter;
+
+program
+  .option('-o, --output [path]', 'the directory for the builds', resolvePath, path.resolve('ssm_model'))
+  .option('-v, --verbose', 'verbose mode')
+  .parse(process.argv);
+
+//logging
+var emitter = new EventEmitter();
+if(program.verbose){
+  emitter.on('log', function(msg){
+    console.log(msg);
+  });
+  emitter.on('logEol', function(msg){
+    process.stdout.write(msg);
+  });
+}
+emitter.on('error', function(msg){
+  console.error('\033[91mFAIL\033[0m: ' + msg);
+});
+emitter.on('errorEol', function(msg){
+  process.stderr.write('\033[91mFAIL\033[0m: ' + msg);
+});
+
+emitter.emit('log', 'Building the model locally...');
+
+var pathDpkg;
+
+if(!program.args[0]){
+  emitter.emit('error', 'invalid usage, path to datapackage.json is missing (ssm build <path> [options])');
+  process.exit(1);
+} else {
+  pathDpkg = resolvePath(program.args[0]);
+}
+
+var dpkgRoot = path.dirname(pathDpkg);
+var dpkg;
+try {
+  dpkg = JSON.parse(fs.readFileSync(pathDpkg));
+} catch (e){
+  emitter.emit('error', e.message);
+  process.exit(1);  
+}
+
+
+install(dpkgRoot, dpkg, program.output, emitter, function(err){
+  if(err){
+    emitter.emit('error', err.message);
+    process.exit(1);
+  }
+});

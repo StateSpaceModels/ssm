@@ -17,7 +17,7 @@ mathematics.
 Installation
 ============
 
-##Installing the required dependencies
+## Installing the required dependencies
 
 C:
 - [gsl](http://www.gnu.org/software/gsl/) (>= 1.15)
@@ -43,22 +43,37 @@ On Ubuntu:
     apt-get update
     apt-get install -y libzmq-dev libjansson-dev python-sympy python-jinja2 python-dateutil libgsl0-dev
  
-##Installing S|S|M itself
+## Installing S|S|M itself
 
     npm install -g ssm
 
 Note: requires that all the C and python dependencies have been
-installed _before_. It will build the standalone C libraries _and_
-install them in ```/usr/local```. Edit the variable ```PREFIX``` of
-the ```Makefile``` (in ```src/C```) to change this destination.
+installed _before_ as this will also build the standalone C libraries.
 
 Pull requests are welcome for a .gyp file and windows support!
 
-# Building models from a data package
+Usage
+=====
 
-From the command line:
+On first use, it is helpfull to run the following commands with ```--verbose```.
 
-    ssm build <package.json> [options]
+## Installing a model from a data package
+
+    ssm build package.json [options]
+
+## Boostrapping an inference pipeline
+
+    ssm bootstrap [options]
+
+This will produce a data package. Open it and customize it for your
+analysis.
+
+## Running an inference pipeline
+
+At the root of the directory containing an inference pipeline data
+package (typically ```ssm_model```) run:
+
+    ssm run package.json [options]
 
 
 Tests

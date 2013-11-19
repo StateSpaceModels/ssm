@@ -20,7 +20,6 @@ import copy
 import sys
 import os
 import os.path
-import json
 from sympy import diff, Symbol, sympify, simplify
 from sympy.solvers import solve
 from sympy.printing import ccode
@@ -37,19 +36,10 @@ class Cmodel:
     parse a JSON model description
     """
 
-    def __init__(self, path_dpkg, model_name, **kwargs):
-
-        self.path = os.path.abspath(path_dpkg)
-        self.root = os.path.dirname(self.path)
-        try:        
-            self.dpkg = json.load(open(self.path))
-        except ValueError, IOError :
-            raise ModelError('could not process package.json')            
-
-        try:
-            self.model = [x for x in self.dpkg['models'] if x['name'] == model_name][0]
-        except IndexError:
-            raise ModelError('invalid model name')
+    def __init__(self, dpkgRoot, dpkg, **kwargs):
+        self.dpkgRoot = os.path.abspath(dpkgRoot)
+        self.dpkg = copy.deepcopy(dpkg)
+        self.model = self.dpkg['model']
 
         self.op = set(['+', '-', '*', '/', ',', '(', ')']) ##!!!CAN'T contain square bracket '[' ']'
         self.reserved = set(['U', 'x', 't', 'E', 'LN2', 'LN10','LOG2E', 'LOG10E', 'PI', 'SQRT1_2', 'SQRT2']) #JS Math Global Object
@@ -71,7 +61,7 @@ class Cmodel:
                 if isinstance(p['data'], dict):
                     if 'datapackage' in p['data']:
                         if p['data']['datapackage'] not in deps:
-                            root = os.path.join(root, 'node_modules', p['data']['datapackage'])
+                            root = os.path.join(self.dpkgRoot, 'node_modules', p['data']['datapackage'])
                             try:
                                 deps[p['data']['datapackage']] = json.load(open(os.path.join(root, 'package.json')))
                             except:
@@ -441,5 +431,8 @@ class Cmodel:
 
 
 if __name__=="__main__":
+    import json
 
-    m = Cmodel(os.path.join('..' ,'examples', 'foo', 'package.json'), "sir")
+    dpkgRoot = os.path.join('..' ,'examples', 'foo')
+    dpkg = json.load(open(os.path.join(dpkgRoot, 'package.json')))
+    m = Cmodel(dpkgRoot, dpkg)

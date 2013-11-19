@@ -4,28 +4,12 @@ var program = require('commander')
   , os = require('os')
   , fs = require('fs')
   , path = require('path')
-  , util = require('util')
-  , async = require('async')
-  , minimatch = require("minimatch")
-  , glob = require('glob')
-  , clone = require('clone')
-  , spawn = require('child_process').spawn
-  , mkdirp = require('mkdirp')
   , Squirrel = require('dpkg-squirrel')
   , resolvePath = require('../lib/util').resolvePath;
 
-program
-  .option('-w, --walltime <w>', 'walltime in the format hh:mm:ss', function(x){
-    if(! (/^[0-9][0-9]:[0-9][0-9]:[0-9][0-9]$/.test(x))){
-      console.error('\033[91mFAIL\033[0m: Invalid walltime format, has to be hh:mm:ss');
-      process.exit(1);  
-    };
-    x = x.split(':');
-    return (parseFloat(x[0], 10)*60*60 + parseFloat(x[1], 10)*60 + parseFloat(x[2], 10))*1000;
-  })
+program  
   .option('-c, --threads <threads>', 'run the design locally using an async queue to process independent tasks in parallel (up to the concurrency limit which default to the number of cpus).', parseInt)
-  .option('-d, --cwd <cwd>', 'current working directory of the child processes.', resolvePath)
-  .option('-f, --force', 'just do it.')
+  .option('-v, --verbose', 'verbose mode')
   .parse(process.argv);
 
 if (!program.args[0]) {
@@ -39,27 +23,33 @@ if (!program.args[0]) {
 var dpkg = JSON.parse(fs.readFileSync(path.normalize(program.args[0])));
 var dpkgRoot = path.dirname(program.args[0]);
 
+
+function fail(err){
+  console.error('\033[91mFAIL\033[0m: ' + err.message);
+  process.exit(1);  
+};
+
+
 //make tasks
 var concurrency = (!program.threads) ? os.cpus().length : program.threads;
 
-//overwrite cwd and walltime in case the user specified them as options
-if(program.cwd || program.walltime){
-  dpkg.analysis.forEach(function(an){
-    an.data.forEach(function(step){
-      if(program.cwd) step.cwd = program.cwd;
-      if(program.walltime) step.walltime = program.walltime;
-    });
-  });
+var squirrel = new Squirrel(dpkg);
+
+if(program.verbose){
+  console.log('starting an async queue (concurrency: %d)...', concurrency);
+  squirrel.on('step', function(msg){console.log('\033[94mINFO\033[0m: pipeline step completed (%s)', msg)});
+  squirrel.on('wrn', function(msg){console.log('\033[93mWARNING\033[0m: (%s)', msg)});
 }
 
-console.log('starting an async queue (concurrency: %d)...', concurrency);
 
-var squirrel = new Squirrel();
-squirrel.on('step', function(msg){console.log('\033[94mINFO\033[0m: pipeline step completed (%s)', msg)});
-squirrel.on('wrn', function(msg){console.log('\033[93mWARNING\033[0m: (%s)', msg)});
-squirrel.runMap(dpkg, {concurrency: concurrency, root: dpkgRoot}, function(err, dpkg){
-  fs.writeFile(path.join(dpkgRoot, 'datapackage.json'), JSON.stringify(dpkg, null, 2), function(err){
-    if(err) throw err;
-    console.log('\033[92mSUCCESS\033[0m: analysis succeeded, %s has been appended.', path.join(dpkgRoot, 'datapackage.json'));
+squirrel.runMap(dpkg.pipeline[0].name, {concurrency: concurrency, root: dpkgRoot}, function(err, dpkg){
+  if(err){ return fail(err); }
+
+  fs.writeFile(path.join(dpkgRoot, 'package.json'), JSON.stringify(dpkg, null, 2), function(err){
+    if(err){ return fail(err); }
+
+    if(program.verbose){
+      console.log('\033[92mSUCCESS\033[0m: analysis succeeded, %s has been appended.', path.join(dpkgRoot, 'package.json'));
+    }
   });
 });

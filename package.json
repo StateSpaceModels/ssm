@@ -1,12 +1,12 @@
 {
   "name": "ssm",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Command line interface for S|S|M",
   "bin": {
     "ssm": "bin/ssm",
-    "ssm-build": "bin/ssm-build",
+    "ssm-install": "bin/ssm-install",
     "ssm-run": "bin/ssm-run",
-    "ssm-lhs": "bin/ssm-lhs"
+    "ssm-bootstrap": "bin/ssm-bootstrap"
   },
   "repository": {
     "type": "git",
@@ -39,9 +39,10 @@
     "minimatch": "~0.2.12",
     "mkdirp": "~0.3.5",
     "clone": "~0.1.11",
-    "dpkg-squirrel": "0.0.0",
+    "dpkg-squirrel": "0.1.1",
     "lhs": "0.0.0",
     "rmath.js": "0.0.0",
-    "datapackage": "standard-analytics/datapackage.js"
+    "datapackage": "0.3.0",
+    "seed-random": "~2.2.0"
   }
 }

@@ -1,0 +1,115 @@
+#!/usr/bin/env node
+
+var program = require('commander')
+  , fs = require('fs')
+  , path = require('path')
+  , util = require('util')
+  , mkdirp = require('mkdirp')
+  , clone = require('clone')
+  , seed = require('seed-random')
+  , makeLhs = require('../lib/lhs')
+  , resolvePath = require('../lib/util').resolvePath;
+
+program
+  .option('-o, --output [path]', 'path to the datapackage container', resolvePath, path.resolve('ssm_model'))
+  .option('-v, --verbose', 'verbose mode')
+  .option('m, --pmin [pmin]', 'lower probability for the quantile function of the prior distribution', parseFloat, 0.05)
+  .option('m, --pmax [pmax]', 'upper probability for the quantile function of the prior distribution', parseFloat, 0.95)
+  .option('n, --samples [samples]', 'number of samples of the random Latin Hyper Square', parseInt, 10)
+  .option('t, --trials [trials]', 'max number of trials before giving up in case there are constraints on the initial conditions', parseInt, 10)
+  .option('s, --seed [seed]', 'a string to seed the random number generator')
+  .parse(process.argv);
+
+//patch Math.random to use a seed
+if(program.seed){
+  seed(program.seed, {global: true});
+}
+
+if (!program.args[0]) {
+  console.error('\033[91mFAIL\033[0m: Invalid usage, ssm lhs <package.json>');
+  process.exit(1);
+} else { //resolve ~ (if any)
+  program.args[0] = resolvePath(program.args[0]);
+}
+
+var dpkg = JSON.parse(fs.readFileSync(path.normalize(program.args[0])));
+var dpkgRoot = path.dirname(program.args[0]);
+
+var covariance = dpkg.resources.filter(function(x){return x.name === 'covariance'})[0];
+if(!covariance){
+  console.error('\033[91mFAIL\033[0m: no covariance resource in data package');
+  process.exit(1);  
+}
+
+function fail(err){
+  console.error('\033[91mFAIL\033[0m: ' + err.message);
+  process.exit(1);  
+};
+
+makeLhs(dpkgRoot, dpkg, program, function(err, rlhs){
+  if(err) console.log(err);
+
+  mkdirp(path.join(program.output, 'data'), function(err){
+    if(err){ return fail(err); }
+    
+    var dep = {};
+    dep[dpkg.name] = dpkg.version;
+
+    var d = {
+      name: "lhs",
+      version: "0.0.0",
+      dataDependencies: dep,
+      pipeline: [
+        {
+          name: "lhs-simplex",
+          type: "map",
+          data: [
+            {
+              command: "simplex",
+              args: ["--path", "$ROOT/data" , "-M", 10000, "--next", "mle_", "--id", "*", '--trace'],
+              cwd: ".",
+              walltime: "00:01:00",
+              inputs: [
+                { resource: "lhs", collection: true}
+              ],
+              outputs: [
+                { path: "data/mle_*.json" },
+                { path: "data/trace_*.csv", save: { "resource": "trace_*" } }
+              ]
+            }
+          ]
+        }
+      ],
+      resources:[
+        {
+          name: "lhs",
+          path: "data/lhs.json",
+          format: "json"
+        }
+      ]
+    };
+    
+    rlhs = rlhs.map(function(row){
+      var resources = [
+        { name: "values", data: row },
+        covariance,
+      ];
+      return {resources:resources};
+    });
+    
+    fs.writeFile(path.join(program.output, 'package.json'), JSON.stringify(d, null, 2), function(err){
+      if(err){ return fail(err); }
+
+      fs.writeFile(path.join(program.output, 'data', 'lhs.json'), JSON.stringify(rlhs, null, 2), function(err){
+        if(err){ return fail(err); }
+
+        if(program.verbose){
+          console.log('\033[92mSUCCESS\033[0m: boostrapped in %s', program.output);
+        }
+      });
+
+    });
+
+  });
+
+});
