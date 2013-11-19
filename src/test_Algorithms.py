@@ -17,26 +17,30 @@ class TestNoiseResults(unittest.TestCase):
             print("Testing classic numerical results on noise example")
 
             os.chdir(Root)
-            os.system(Root + '/../bin/ssm-build  ' + Root + '/../examples/noise/package.json')
+            os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise/package.json')
             
       def setUp(self):
       # Things that need to be done before tests
-            os.chdir(Root + '/ssm_models/noise')
+            os.chdir(Root + '/ssm_model')
 
       @classmethod
       def tearDownClass(cls):
-            #os.chdir(Root + '/ssm_models')
-            shutil.rmtree(Root + '/ssm_models')
+            #os.chdir(Root + '/ssm_model')
+            shutil.rmtree(Root + '/ssm_model')
 
-      def test_simplex_map(self):
-            os.system('cat ' + Root + '/../examples/noise/package.json | ./simplex --prior -M 10000 | ./smc sde -J 10000 -N 8 --trace ')
+      def test_ode(self):
+            os.system('./simplex -M 10000 < ../../examples/noise/package.json | ./simplex -M 10000 | ./simplex -M 100000 > theta.json')
+            os.system('./smc ode -J 1  --trace < theta.json')
             tab = genfromtxt('trace_0.csv',delimiter=',',names=True).tolist()
-            self.assertAlmostEqual(tab[5],-965.005)
+            self.assertAlmostEqual(tab[5],-824.653)
+            os.system('./smc ode -J 10  --trace < theta.json')
+            tab = genfromtxt('trace_0.csv',delimiter=',',names=True).tolist()
+            self.assertAlmostEqual(tab[5],-824.653)
 
       def test_kalman_map(self):
-            os.system('./ksimplex --prior -M 1000 --trace < ' + Root + '/../examples/noise/package.json')
+            os.system('./ksimplex -M 1000 --trace < ' + Root + '/../examples/noise/package.json')
             tab = genfromtxt('trace_0.csv',delimiter=',',names=True)
-            self.assertAlmostEqual(tab[214][5],-336.683)
+            self.assertAlmostEqual(tab[214][5],-464.806)
 
 class TestTransfsAndPMCMC(unittest.TestCase):
       @classmethod
@@ -69,13 +73,13 @@ class TestTransfsAndPMCMC(unittest.TestCase):
                   json.dump(j,outfile)
 
             os.chdir(Root)
-            os.system(Root + '/../bin/ssm-build  ' + Root + '/../examples/noise_test/package.json')
+            os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
 
-            os.chdir(Root + '/ssm_models/noise')            
+            os.chdir(Root + '/ssm_model')            
             os.system('./pmcmc ode  -C 5000 -W 5000 -O 0 -M 20000 -c -a < ' + Root + '/../examples/noise_test/package.json')
             
             test = self.call_test_unif('r0_paris')
-            shutil.rmtree(Root + '/ssm_models')
+            shutil.rmtree(Root + '/ssm_model')
             shutil.rmtree(Root + '/../examples/noise_test')
 
             self.assertEqual(test,'1')
@@ -102,13 +106,13 @@ class TestTransfsAndPMCMC(unittest.TestCase):
                   json.dump(j,outfile)
 
             os.chdir(Root)
-            os.system(Root + '/../bin/ssm-build  ' + Root + '/../examples/noise_test/package.json')
+            os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
 
-            os.chdir(Root + '/ssm_models/noise')            
+            os.chdir(Root + '/ssm_model')            
             os.system('./pmcmc ode  -C 5000 -W 5000 -O 0 -M 20000 -c -a < '+ Root + '/../examples/noise_test/package.json')
 
             test = self.call_test_normal('r0_paris')
-            shutil.rmtree(Root + '/ssm_models')
+            shutil.rmtree(Root + '/ssm_model')
             shutil.rmtree(Root + '/../examples/noise_test')
 
             self.assertEqual(test,'1')
@@ -140,15 +144,15 @@ class TestTransfsAndPMCMC(unittest.TestCase):
                   json.dump(j,outfile)            
 
             os.chdir(Root)
-            os.system(Root + '/../bin/ssm-build  ' + Root + '/../examples/noise_test/package.json')
+            os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
 
-            os.chdir(Root + '/ssm_models/noise')            
+            os.chdir(Root + '/ssm_model')            
             
             os.system('./pmcmc ode  -C 1000 -W 100000 -O 0 -M 100000 -c -a < ' + Root + '/../examples/noise_test/package.json')
 
             test1 = self.call_test_normal('r0_paris')
             test2 = self.call_test_unif('r0_nyc')
-            shutil.rmtree(Root + '/ssm_models')
+            shutil.rmtree(Root + '/ssm_model')
             shutil.rmtree(Root + '/../examples/noise_test')
 
             self.assertEqual(int(test1)*int(test2),1)
@@ -174,14 +178,14 @@ class TestTransfsAndPMCMC(unittest.TestCase):
                   json.dump(j,outfile)   
 
             os.chdir(Root)
-            os.system(Root + '/../bin/ssm-build  ' + Root + '/../examples/noise_test/package.json')
+            os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
 
-            os.chdir(Root + '/ssm_models/noise')            
+            os.chdir(Root + '/ssm_model')            
             
             os.system('./pmcmc ode  -C 5000 -W 5000 -O 0 -M 20000 -c -a < ' + Root + '/../examples/noise_test/package.json')
 
             test = self.call_test_normal('r0_paris')
-            shutil.rmtree(Root + '/ssm_models')
+            shutil.rmtree(Root + '/ssm_model')
             shutil.rmtree(Root + '/../examples/noise_test')
 
             self.assertEqual(test,'1') 
@@ -207,28 +211,28 @@ class TestTransfsAndPMCMC(unittest.TestCase):
                   json.dump(j,outfile)
 
             os.chdir(Root)
-            os.system(Root + '/../bin/ssm-build  ' + Root + '/../examples/noise_test/package.json')
-            os.chdir(Root + '/ssm_models/noise')
+            os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
+            os.chdir(Root + '/ssm_model')
             
             os.system('./pmcmc ode  -C 5000 -W 5000 -O 0 -M 20000 -c -a < ' + Root + '/../examples/noise_test/package.json')
 
             test = self.call_test_normal('r0_paris')
-            shutil.rmtree(Root + '/ssm_models/noise')
+            shutil.rmtree(Root + '/ssm_model')
             shutil.rmtree(Root + '/../examples/noise_test')
 
             self.assertEqual(test,'1') 
 
       def call_test_unif(self, varname):
-            shutil.copyfile(Root+'/TestsR/test_unif.r',Root + '/ssm_models/noise/test_unif.r')
-            os.chdir(Root + '/ssm_models/noise/')
+            shutil.copyfile(Root+'/TestsR/test_unif.r',Root + '/ssm_model/test_unif.r')
+            os.chdir(Root + '/ssm_model')
             os.system('R --vanilla < test_unif.r ' + varname  + '> /dev/null 2>&1')
             f = open("outfile.txt","r")
             x = f.readlines()
             return x[0]
 
       def call_test_normal(self,varname):
-            shutil.copyfile(Root+'/TestsR/test_normal.r',Root + '/ssm_models/noise/test_normal.r')
-            os.chdir(Root + '/ssm_models/noise/')
+            shutil.copyfile(Root+'/TestsR/test_normal.r',Root + '/ssm_model/test_normal.r')
+            os.chdir(Root + '/ssm_model')
             os.system('R --vanilla < test_normal.r ' + varname  + '> /dev/null 2>&1')
             f = open("outfile.txt","r")
             x = f.readlines()
@@ -246,14 +250,14 @@ class TestKalmanOnDiffusions(unittest.TestCase):
             shutil.copytree('noise','noise_test')
             f = open(Root + '/../examples/noise_test/package.json')
             j = json.load(f)
-            j['models'][0]['inputs'].insert(0,{})
-            j['models'][0]['inputs'].insert(0,{})
-            j['models'][0]['inputs'][0]['name'] = 'test_par'
-            j['models'][0]['inputs'][0]['description'] = ''
-            j['models'][0]['inputs'][0]['data'] = { "resource": "test_par"}
-            j['models'][0]['inputs'][1]['name'] = 'test_vol'
-            j['models'][0]['inputs'][1]['description'] = ''
-            j['models'][0]['inputs'][1]['data'] = { "resource": "test_vol"}
+            j['model']['inputs'].insert(0,{})
+            j['model']['inputs'].insert(0,{})
+            j['model']['inputs'][0]['name'] = 'test_par'
+            j['model']['inputs'][0]['description'] = ''
+            j['model']['inputs'][0]['data'] = { "resource": "test_par"}
+            j['model']['inputs'][1]['name'] = 'test_vol'
+            j['model']['inputs'][1]['description'] = ''
+            j['model']['inputs'][1]['data'] = { "resource": "test_vol"}
             j['resources'].insert(0,{}) 
             j['resources'].insert(0,{})
             j['resources'][0]['name'] = 'test_par'
@@ -262,29 +266,29 @@ class TestKalmanOnDiffusions(unittest.TestCase):
             j['resources'][1]['name'] = 'test_vol'
             j['resources'][1]['description'] = ''
             j['resources'][1]['data'] = { "distribution":"fixed", "value" : 0.1428571}            
-            j['models'][0]['sde'] = {}
-            j['models'][0]['sde']['drift']=[]
-            j['models'][0]['sde']['drift'].append({})
-            j['models'][0]['sde']['drift'][0]['name']='test_par'
-            j['models'][0]['sde']['drift'][0]['f']=0.0
-            j['models'][0]['sde']['dispersion']=[['test_vol']]
+            j['model']['sde'] = {}
+            j['model']['sde']['drift']=[]
+            j['model']['sde']['drift'].append({})
+            j['model']['sde']['drift'][0]['name']='test_par'
+            j['model']['sde']['drift'][0]['f']=0.0
+            j['model']['sde']['dispersion']=[['test_vol']]
 
             with open(Root + '/../examples/noise_test/package.json','w') as outfile:
                   json.dump(j,outfile)
 
             os.chdir(Root)
-            os.system(Root + '/../bin/ssm-build  ' + Root + '/../examples/noise_test/package.json')
+            os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
             
-            os.chdir(Root + '/ssm_models/noise')
+            os.chdir(Root + '/ssm_model')
             
       
       def setUp(self):
       # Things that need to be done before tests
-            os.chdir(Root + '/ssm_models/noise/')
+            os.chdir(Root + '/ssm_model')
 
       @classmethod
       def tearDownClass(cls):
-            os.chdir(Root + '/ssm_models/')
+            os.chdir(Root + '/ssm_model/')
             shutil.rmtree(Root + '/../examples/noise_test')
             
       def test_1step(self):
@@ -308,53 +312,53 @@ class TestSMCSDEagainstKalman(unittest.TestCase):
             shutil.copytree('noise','noise_test')
             f = open(Root + '/../examples/noise_test/package.json')
             j = json.load(f)
-            j["models"][0]["populations"] = []
-            j["models"][0]["populations"].append({"name":"paris","composition":["S","I","I2","E1","E2"]})
-            j["models"][0]["reactions"] = []
-            j["models"][0]["reactions"].append({"from":"S", "to":"I", "rate":"1000/S", "white_noise": {"name":"noise_SI", "sd": "vol"}})
-            j["models"][0]["reactions"].append({"from":"I", "to":"I2", "rate":"1000/I", "white_noise": {"name":"noise_SI", "sd": "vol"}})
-            j["models"][0]["reactions"].append({"from":"I2", "to":"S", "rate":"1000/I2", "white_noise": {"name":"noise_SI2", "sd": "vol2"}})
-            j["models"][0]["reactions"].append({"from":"E1", "to":"E2", "rate":"3/N", "tracked": ["all_inc_out"]})
+            j["model"]["populations"] = []
+            j["model"]["populations"].append({"name":"paris","composition":["S","I","I2","E1","E2"]})
+            j["model"]["reactions"] = []
+            j["model"]["reactions"].append({"from":"S", "to":"I", "rate":"1000/S", "white_noise": {"name":"noise_SI", "sd": "vol"}})
+            j["model"]["reactions"].append({"from":"I", "to":"I2", "rate":"1000/I", "white_noise": {"name":"noise_SI", "sd": "vol"}})
+            j["model"]["reactions"].append({"from":"I2", "to":"S", "rate":"1000/I2", "white_noise": {"name":"noise_SI2", "sd": "vol2"}})
+            j["model"]["reactions"].append({"from":"E1", "to":"E2", "rate":"3/N", "tracked": ["all_inc_out"]})
 
-            j["models"][0]["observations"] = [j["models"][0]["observations"][0]]
+            j["model"]["observations"] = [j["model"]["observations"][0]]
 
-            j["models"][0]["inputs"] = []
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'r0'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'r0'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'S'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'S'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'I'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'I'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'I2'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'I2'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'E1'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'E1'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'vol'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'vol'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'vol2'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'vol2'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'rep_all_CDC_inc'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'rep_all_CDC_inc'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'prop_all_CDC_inc'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'prop_all_CDC_inc'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'phi'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'phi'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'E2'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'E2'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'N'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'N'}
+            j["model"]["inputs"] = []
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'r0'
+            j["model"]["inputs"][0]['data'] = {'resource':'r0'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'S'
+            j["model"]["inputs"][0]['data'] = {'resource':'S'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'I'
+            j["model"]["inputs"][0]['data'] = {'resource':'I'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'I2'
+            j["model"]["inputs"][0]['data'] = {'resource':'I2'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'E1'
+            j["model"]["inputs"][0]['data'] = {'resource':'E1'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'vol'
+            j["model"]["inputs"][0]['data'] = {'resource':'vol'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'vol2'
+            j["model"]["inputs"][0]['data'] = {'resource':'vol2'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'rep_all_CDC_inc'
+            j["model"]["inputs"][0]['data'] = {'resource':'rep_all_CDC_inc'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'prop_all_CDC_inc'
+            j["model"]["inputs"][0]['data'] = {'resource':'prop_all_CDC_inc'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'phi'
+            j["model"]["inputs"][0]['data'] = {'resource':'phi'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'E2'
+            j["model"]["inputs"][0]['data'] = {'resource':'E2'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'N'
+            j["model"]["inputs"][0]['data'] = {'resource':'N'}
 
             j["resources"]=[]
             j["resources"].insert(0,{})
@@ -427,26 +431,26 @@ class TestSMCSDEagainstKalman(unittest.TestCase):
             j["resources"][0]['name'] = 'covariance'
             j["resources"][0]['data'] = { "r0": { "r0": 0.02 }}
 
-            j["models"][0]["sde"] = {}
-            j["models"][0]["sde"]["drift"] = []
-            j["models"][0]["sde"]["drift"].append({ "name": "r0", "f": 0.0})
-            j["models"][0]["sde"]["dispersion"] = [['vol']]
+            j["model"]["sde"] = {}
+            j["model"]["sde"]["drift"] = []
+            j["model"]["sde"]["drift"].append({ "name": "r0", "f": 0.0})
+            j["model"]["sde"]["dispersion"] = [['vol']]
             
             with open(Root + '/../examples/noise_test/package.json','w') as outfile:
                   json.dump(j,outfile)
 
             os.chdir(Root)
-            os.system(Root + '/../bin/ssm-build  ' + Root + '/../examples/noise_test/package.json')
+            os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
 
-            os.chdir(Root + '/ssm_models/noise')
+            os.chdir(Root + '/ssm_model')
 
       def setUp(self):
       # Things that need to be done before tests
-            os.chdir(Root + '/ssm_models/noise')
+            os.chdir(Root + '/ssm_model')
 
       @classmethod
       def tearDownClass(cls):
-            os.chdir(Root + '/ssm_models/')
+            os.chdir(Root + '/ssm_model/')
             shutil.rmtree(Root + '/../examples/noise_test')
                         
       def test_only_env_sto(self):
@@ -486,53 +490,53 @@ class TestpMCMCsmoothing(unittest.TestCase):
             shutil.copytree('noise','noise_test')
             f = open(Root + '/../examples/noise_test/package.json')
             j = json.load(f)
-            j["models"][0]["populations"] = []
-            j["models"][0]["populations"].append({"name":"paris","composition":["S","I","I2","E1","E2"]})
-            j["models"][0]["reactions"] = []
-            j["models"][0]["reactions"].append({"from":"S", "to":"I", "rate":"1000/S", "white_noise": {"name":"noise_SI", "sd": "vol"}})
-            j["models"][0]["reactions"].append({"from":"I", "to":"I2", "rate":"1000/I", "white_noise": {"name":"noise_SI", "sd": "vol"}})
-            j["models"][0]["reactions"].append({"from":"I2", "to":"S", "rate":"1000/I2", "white_noise": {"name":"noise_SI2", "sd": "vol2"}})
-            j["models"][0]["reactions"].append({"from":"E1", "to":"E2", "rate":"3/N", "tracked": ["all_inc_out"]})
+            j["model"]["populations"] = []
+            j["model"]["populations"].append({"name":"paris","composition":["S","I","I2","E1","E2"]})
+            j["model"]["reactions"] = []
+            j["model"]["reactions"].append({"from":"S", "to":"I", "rate":"1000/S", "white_noise": {"name":"noise_SI", "sd": "vol"}})
+            j["model"]["reactions"].append({"from":"I", "to":"I2", "rate":"1000/I", "white_noise": {"name":"noise_SI", "sd": "vol"}})
+            j["model"]["reactions"].append({"from":"I2", "to":"S", "rate":"1000/I2", "white_noise": {"name":"noise_SI2", "sd": "vol2"}})
+            j["model"]["reactions"].append({"from":"E1", "to":"E2", "rate":"3/N", "tracked": ["all_inc_out"]})
 
-            j["models"][0]["observations"] = [j["models"][0]["observations"][0]]
+            j["model"]["observations"] = [j["model"]["observations"][0]]
 
-            j["models"][0]["inputs"] = []
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'r0'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'r0'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'S'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'S'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'I'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'I'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'I2'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'I2'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'E1'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'E1'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'vol'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'vol'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'vol2'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'vol2'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'rep_all_CDC_inc'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'rep_all_CDC_inc'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'prop_all_CDC_inc'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'prop_all_CDC_inc'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'phi'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'phi'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'E2'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'E2'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'N'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'N'}
+            j["model"]["inputs"] = []
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'r0'
+            j["model"]["inputs"][0]['data'] = {'resource':'r0'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'S'
+            j["model"]["inputs"][0]['data'] = {'resource':'S'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'I'
+            j["model"]["inputs"][0]['data'] = {'resource':'I'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'I2'
+            j["model"]["inputs"][0]['data'] = {'resource':'I2'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'E1'
+            j["model"]["inputs"][0]['data'] = {'resource':'E1'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'vol'
+            j["model"]["inputs"][0]['data'] = {'resource':'vol'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'vol2'
+            j["model"]["inputs"][0]['data'] = {'resource':'vol2'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'rep_all_CDC_inc'
+            j["model"]["inputs"][0]['data'] = {'resource':'rep_all_CDC_inc'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'prop_all_CDC_inc'
+            j["model"]["inputs"][0]['data'] = {'resource':'prop_all_CDC_inc'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'phi'
+            j["model"]["inputs"][0]['data'] = {'resource':'phi'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'E2'
+            j["model"]["inputs"][0]['data'] = {'resource':'E2'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'N'
+            j["model"]["inputs"][0]['data'] = {'resource':'N'}
 
             j["resources"]=[]
             j["resources"].insert(0,{})
@@ -605,23 +609,23 @@ class TestpMCMCsmoothing(unittest.TestCase):
             j["resources"][0]['name'] = 'covariance'
             j["resources"][0]['data'] = { "E2": { "E2": 0.02 }}
 
-            j["models"][0]["sde"] = {}
-            j["models"][0]["sde"]["drift"] = []
-            j["models"][0]["sde"]["drift"].append({ "name": "r0", "f": 0.0})
-            j["models"][0]["sde"]["dispersion"] = [['vol']]
+            j["model"]["sde"] = {}
+            j["model"]["sde"]["drift"] = []
+            j["model"]["sde"]["drift"].append({ "name": "r0", "f": 0.0})
+            j["model"]["sde"]["dispersion"] = [['vol']]
 
             with open(Root + '/../examples/noise_test/package.json','w') as outfile:
                   json.dump(j,outfile)
 
 
             os.chdir(Root)
-            os.system(Root + '/../bin/ssm-build  ' + Root + '/../examples/noise_test/package.json')
+            os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
 
-            os.chdir(Root + '/ssm_models/noise')
+            os.chdir(Root + '/ssm_model')
             
       def setUp(self):
       # Things that need to be done before tests            
-            os.chdir(Root + '/ssm_models/noise')
+            os.chdir(Root + '/ssm_model')
 
       @classmethod
       def tearDownClass(cls):
@@ -696,53 +700,53 @@ class TestpMCMCsmoothingWithNaNs(unittest.TestCase):
             shutil.copytree('noise','noise_test')
             f = open(Root + '/../examples/noise_test/package.json')
             j = json.load(f)
-            j["models"][0]["populations"] = []
-            j["models"][0]["populations"].append({"name":"paris","composition":["S","I","I2","E1","E2"]})
-            j["models"][0]["reactions"] = []
-            j["models"][0]["reactions"].append({"from":"S", "to":"I", "rate":"1000/S", "white_noise": {"name":"noise_SI", "sd": "vol"}})
-            j["models"][0]["reactions"].append({"from":"I", "to":"I2", "rate":"1000/I", "white_noise": {"name":"noise_SI", "sd": "vol"}})
-            j["models"][0]["reactions"].append({"from":"I2", "to":"S", "rate":"1000/I2", "white_noise": {"name":"noise_SI2", "sd": "vol2"}})
-            j["models"][0]["reactions"].append({"from":"E1", "to":"E2", "rate":"3/N", "tracked": ["all_inc_out"]})
+            j["model"]["populations"] = []
+            j["model"]["populations"].append({"name":"paris","composition":["S","I","I2","E1","E2"]})
+            j["model"]["reactions"] = []
+            j["model"]["reactions"].append({"from":"S", "to":"I", "rate":"1000/S", "white_noise": {"name":"noise_SI", "sd": "vol"}})
+            j["model"]["reactions"].append({"from":"I", "to":"I2", "rate":"1000/I", "white_noise": {"name":"noise_SI", "sd": "vol"}})
+            j["model"]["reactions"].append({"from":"I2", "to":"S", "rate":"1000/I2", "white_noise": {"name":"noise_SI2", "sd": "vol2"}})
+            j["model"]["reactions"].append({"from":"E1", "to":"E2", "rate":"3/N", "tracked": ["all_inc_out"]})
 
-            j["models"][0]["observations"] = [j["models"][0]["observations"][0]]
+            j["model"]["observations"] = [j["model"]["observations"][0]]
 
-            j["models"][0]["inputs"] = []
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'r0'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'r0'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'S'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'S'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'I'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'I'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'I2'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'I2'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'E1'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'E1'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'vol'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'vol'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'vol2'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'vol2'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'rep_all_CDC_inc'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'rep_all_CDC_inc'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'prop_all_CDC_inc'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'prop_all_CDC_inc'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'phi'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'phi'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'E2'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'E2'}
-            j["models"][0]["inputs"].insert(0,{})
-            j["models"][0]["inputs"][0]['name'] = 'N'
-            j["models"][0]["inputs"][0]['data'] = {'resource':'N'}
+            j["model"]["inputs"] = []
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'r0'
+            j["model"]["inputs"][0]['data'] = {'resource':'r0'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'S'
+            j["model"]["inputs"][0]['data'] = {'resource':'S'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'I'
+            j["model"]["inputs"][0]['data'] = {'resource':'I'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'I2'
+            j["model"]["inputs"][0]['data'] = {'resource':'I2'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'E1'
+            j["model"]["inputs"][0]['data'] = {'resource':'E1'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'vol'
+            j["model"]["inputs"][0]['data'] = {'resource':'vol'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'vol2'
+            j["model"]["inputs"][0]['data'] = {'resource':'vol2'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'rep_all_CDC_inc'
+            j["model"]["inputs"][0]['data'] = {'resource':'rep_all_CDC_inc'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'prop_all_CDC_inc'
+            j["model"]["inputs"][0]['data'] = {'resource':'prop_all_CDC_inc'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'phi'
+            j["model"]["inputs"][0]['data'] = {'resource':'phi'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'E2'
+            j["model"]["inputs"][0]['data'] = {'resource':'E2'}
+            j["model"]["inputs"].insert(0,{})
+            j["model"]["inputs"][0]['name'] = 'N'
+            j["model"]["inputs"][0]['data'] = {'resource':'N'}
 
             j["resources"]=[]
             j["resources"].insert(0,{})
@@ -815,10 +819,10 @@ class TestpMCMCsmoothingWithNaNs(unittest.TestCase):
             j["resources"][0]['name'] = 'covariance'
             j["resources"][0]['data'] = { "E2": { "E2": 0.02 }}
 
-            j["models"][0]["sde"] = {}
-            j["models"][0]["sde"]["drift"] = []
-            j["models"][0]["sde"]["drift"].append({ "name": "r0", "f": 0.0})
-            j["models"][0]["sde"]["dispersion"] = [['vol']]
+            j["model"]["sde"] = {}
+            j["model"]["sde"]["drift"] = []
+            j["model"]["sde"]["drift"].append({ "name": "r0", "f": 0.0})
+            j["model"]["sde"]["dispersion"] = [['vol']]
             
             with open(Root + '/../examples/noise_test/package.json','w') as outfile:
                   json.dump(j,outfile)
@@ -856,18 +860,18 @@ class TestpMCMCsmoothingWithNaNs(unittest.TestCase):
                               ind = ind + 1
 
             os.chdir(Root)
-            os.system(Root + '/../bin/ssm-build  ' + Root + '/../examples/noise_test/package.json')
+            os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
 
-            os.chdir(Root + '/ssm_models/noise')
+            os.chdir(Root + '/ssm_model')
 
 
       def setUp(self):
             # Things that need to be done before tests            
-            os.chdir(Root + '/ssm_models/noise')
+            os.chdir(Root + '/ssm_model')
 
       @classmethod
       def tearDownClass(cls):
-            os.chdir(Root + '/ssm_models/noise')
+            os.chdir(Root + '/ssm_model')
             #            shutil.rmtree(Root + '/../examples/noise_test')
 
       def test_particle_genealogy(self):
@@ -879,8 +883,8 @@ class TestpMCMCsmoothingWithNaNs(unittest.TestCase):
             nparts = 100
             nbiters = 2
             
-            os.system('./pmcmc sde -t -x --no_dem_sto -J ' + str(nparts) + ' -M ' + str(nbiters) + ' -I 1 -N 4 -T '  + str(nbiters) + '  < ' + Root + '/../examples/noise_test/package.json')          
-            tab1 = genfromtxt('X_1.csv',delimiter=',',names=True)
+            os.system('./pmcmc sde -t -x --no_dem_sto -J ' + str(nparts) + ' -M ' + str(nbiters) + ' -I 2 -N 4 -T '  + str(nbiters) + '  < ' + Root + '/../examples/noise_test/package.json')          
+            tab1 = genfromtxt('X_2.csv',delimiter=',',names=True)
 
             x = []
             for i in range(1,53):
@@ -896,8 +900,8 @@ class TestpMCMCsmoothingWithNaNs(unittest.TestCase):
             tab0 = genfromtxt('hat_0.csv',delimiter=',',names=True)
             nparts = 2
             nbiters = 500
-            os.system('./pmcmc sde -t -x --no_dem_sto -O 4 -J ' + str(nparts) + ' -M ' + str(nbiters) + ' -I 2 -N 4 -T '  + str(nbiters) + '  < ' + Root + '/../examples/noise_test/package.json')          
-            tab1 = genfromtxt('X_2.csv',delimiter=',',names=True)
+            os.system('./pmcmc sde -t -x --no_dem_sto -O 4 -J ' + str(nparts) + ' -M ' + str(nbiters) + ' -I 3 -N 4 -T '  + str(nbiters) + '  < ' + Root + '/../examples/noise_test/package.json')          
+            tab1 = genfromtxt('X_3.csv',delimiter=',',names=True)
 
             ### t = 1 (first obs)
             x = []
@@ -958,11 +962,11 @@ def suite_pMCMCsmoothing():
 if __name__ == '__main__' :
 
       run_NoiseResults = 1
-      run_TransfsAndPMCMC = 0
-      run_KalmanOnDiffusions = 0
-      run_SMCSDEagainstKalman = 0
-      run_pMCMCsmoothing = 0
-      run_pMCMCsmoothingWithNaNs = 0
+      run_TransfsAndPMCMC = 1
+      run_KalmanOnDiffusions = 1
+      run_SMCSDEagainstKalman = 1
+      run_pMCMCsmoothing = 1
+      run_pMCMCsmoothingWithNaNs = 1
 
       Root = os.getcwd()
 
