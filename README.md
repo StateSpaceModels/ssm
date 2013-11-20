@@ -63,7 +63,7 @@ On first use, it is helpfull to run the following commands with ```--verbose```.
 
 ## Boostrapping an inference pipeline
 
-    ssm bootstrap [options]
+    ssm bootstrap package.json [options]
 
 This will produce a data package. Open it and customize it for your
 analysis.

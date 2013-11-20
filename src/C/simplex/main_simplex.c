@@ -130,22 +130,28 @@ int main(int argc, char *argv[])
     ssm_theta_t *theta = ssm_theta_new(input, nav);
     ssm_var_t *var = ssm_var_new(jparameters, nav);
 
-    int n_iter = opts->n_iter;
-    double size_stop = opts->size_stop;
-
     struct s_simplex params = {data, nav, calc, input, par, X, fitness, opts->flag_prior, opts->flag_least_squares};
 
-    if (n_iter == 0 && (nav->print & SSM_PRINT_TRACE)) {
+    double maximized_fitness;
+
+    if (opts->n_iter == 0 && (nav->print & SSM_PRINT_TRACE)) {
         //simply return the sum of square or the log likelihood (can be used to do slices especially with least square where smc can't be used'...)
-	fitness->log_like = f_simplex(theta, &params);
-        ssm_print_trace(nav->trace, theta, nav, fitness->log_like, 0);
+	maximized_fitness = f_simplex(theta, &params);
+        ssm_print_trace(nav->trace, theta, nav, maximized_fitness, 0);
     } else {
-        fitness->log_like = ssm_simplex(theta, var, &params, &f_simplex, nav, size_stop, n_iter);
+        maximized_fitness = ssm_simplex(theta, var, &params, &f_simplex, nav, opts);
     }
 
     if (!(nav->print & SSM_PRINT_LOG)) {
-	if(!opts->flag_least_squares && !opts->flag_prior){
-	    ssm_aic(fitness, nav, fitness->log_like);
+	if(opts->flag_least_squares){
+	    fitness->summary_sum_squares = maximized_fitness;
+	} else {
+	    if(opts->flag_prior){
+		fitness->summary_log_ltp = maximized_fitness;
+	    } else {
+		fitness->log_like = maximized_fitness;
+		ssm_aic(fitness, nav, fitness->log_like);
+	    }
 	}
 	ssm_pipe_theta(stdout, jparameters, theta, NULL, fitness, nav, opts);
     }

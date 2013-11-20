@@ -19,6 +19,9 @@ if(program.verbose){
   emitter.on('log', function(msg){
     console.log(msg);
   });
+  emitter.on('success', function(msg){
+    console.log('\033[92mSUCCESS\033[0m: %s', msg);
+  });
   emitter.on('logEol', function(msg){
     process.stdout.write(msg);
   });
@@ -35,7 +38,7 @@ emitter.emit('log', 'Building the model locally...');
 var pathDpkg;
 
 if(!program.args[0]){
-  emitter.emit('error', 'invalid usage, path to datapackage.json is missing (ssm build <path> [options])');
+  emitter.emit('error', 'invalid usage, path to package.json is missing (ssm build <path> [options])');
   process.exit(1);
 } else {
   pathDpkg = resolvePath(program.args[0]);

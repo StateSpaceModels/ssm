@@ -1,12 +1,13 @@
 {
   "name": "ssm",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Command line interface for S|S|M",
   "bin": {
     "ssm": "bin/ssm",
     "ssm-install": "bin/ssm-install",
     "ssm-run": "bin/ssm-run",
-    "ssm-bootstrap": "bin/ssm-bootstrap"
+    "ssm-bootstrap": "bin/ssm-bootstrap",
+    "ssm-predict": "bin/ssm-predict"
   },
   "repository": {
     "type": "git",
@@ -19,7 +20,7 @@
   "preferGlobal": true,
   "scripts": {
     "install": "(cd src/C && make && make install && make clean)",
-    "test": "(cd src && python test_Cmodel.py && python test_Ccoder.py) && (cd tests && make test && make clean)"
+    "test": "(cd src && python test_Cmodel.py && python test_Ccoder.py) && (cd tests && make test && make clean) && ./node_modules/.bin/mocha"
   },
   "keywords": [
     "State",
@@ -43,6 +44,10 @@
     "lhs": "0.0.0",
     "rmath.js": "0.0.0",
     "datapackage": "0.3.0",
-    "seed-random": "~2.2.0"
+    "seed-random": "~2.2.0",
+    "csv-streamify": "~0.8.0"
+  },
+  "devDependencies": {
+    "mocha": "~1.14.0"
   }
 }

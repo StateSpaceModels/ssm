@@ -76,18 +76,22 @@ void ssm_aic(ssm_fitness_t *fitness, ssm_nav_t *nav, double log_like)
 }
 
 
-void ssm_dic_init(ssm_fitness_t *fitness, double log_like)
+void ssm_dic_init(ssm_fitness_t *fitness, double log_like, double log_prior)
 {
     fitness->summary_log_likelihood = log_like;
+    fitness->summary_log_ltp = log_like + log_prior;
     fitness->_min_deviance = -2*log_like;
     fitness->_deviance_cum = -2*log_like;
 }
 
 
-void ssm_dic_update(ssm_fitness_t *fitness, double log_like)
+void ssm_dic_update(ssm_fitness_t *fitness, double log_like, double log_prior)
 {
     if( log_like > fitness->summary_log_likelihood){
 	fitness->summary_log_likelihood = log_like;
+    }
+    if( (log_like+log_prior) > fitness->summary_log_ltp){
+	fitness->summary_log_ltp = (log_like+log_prior);
     }
 
     double deviance = -2*log_like;

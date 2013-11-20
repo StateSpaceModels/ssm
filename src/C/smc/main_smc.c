@@ -143,20 +143,20 @@ int main(int argc, char *argv[])
         if(rc != SSM_SUCCESS && (nav->print & SSM_PRINT_WARNING)){
             ssm_print_warning("error log_prob_prior computation");
         }
-        fitness->log_like += log_prob_prior_value;
+	fitness->summary_log_ltp = fitness->log_like + log_prob_prior_value;
     } else {
 	ssm_aic(fitness, nav, fitness->log_like);
     }
 
     if (nav->print & SSM_PRINT_TRACE) {
-        ssm_print_trace(nav->trace, theta, nav, fitness->log_like, 0);
+        ssm_print_trace(nav->trace, theta, nav, (flag_prior)? fitness->summary_log_ltp : fitness->log_like, 0);
     }
 
     if (!(nav->print & SSM_PRINT_LOG)) {
 	ssm_pipe_theta(stdout, jparameters, theta, NULL, fitness, nav, opts);
     } else {
 	char str[SSM_STR_BUFFSIZE];
-	snprintf(str, SSM_STR_BUFFSIZE, "logLike.: %g", fitness->log_like);
+	snprintf(str, SSM_STR_BUFFSIZE, "log(like%s).: %g", (flag_prior)? "*prior": "", fitness->log_like);
 	ssm_print_log(str);
     }
 

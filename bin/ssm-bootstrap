@@ -25,14 +25,20 @@ if(program.seed){
   seed(program.seed, {global: true});
 }
 
-if (!program.args[0]) {
-  console.error('\033[91mFAIL\033[0m: Invalid usage, ssm lhs <package.json>');
+if(!program.args[0]) {
+  console.error('\033[91mFAIL\033[0m: Invalid usage, ssm bootstrap <package.json>');
   process.exit(1);
 } else { //resolve ~ (if any)
   program.args[0] = resolvePath(program.args[0]);
 }
 
-var dpkg = JSON.parse(fs.readFileSync(path.normalize(program.args[0])));
+try {
+  var dpkg = JSON.parse(fs.readFileSync(program.args[0]));
+} catch (e){
+  emitter.emit('error', e.message);
+  process.exit(1);  
+}
+
 var dpkgRoot = path.dirname(program.args[0]);
 
 var covariance = dpkg.resources.filter(function(x){return x.name === 'covariance'})[0];

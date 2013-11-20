@@ -29,20 +29,19 @@ int main(int argc, char *argv[])
     json_t *jparameters = ssm_load_json_stream(stdin);
     json_t *jdata = ssm_load_data(opts);
 
-    json_t *jresource = json_object_get(jparameters, "jresource");
-    json_t *jvalues = NULL;
-    for(i=0; i< json_array_size(jresource); i++){
-        json_t *el = json_array_get(jresource, i);
+    json_t *jresources = json_object_get(jparameters, "resources");
+    json_t *jprediction = NULL;
+    for(i=0; i< json_array_size(jresources); i++){
+        json_t *el = json_array_get(jresources, i);
         const char* name = json_string_value(json_object_get(el, "name"));
-        if (strcmp(name, "values") == 0) {
-            jvalues = json_object_get(el, "data");
+        if (strcmp(name, "prediction") == 0) {
+            jprediction = json_object_get(el, "data");
             break;
         }
     }
 
-    int is_predict_from_traces = json_is_array(jvalues);
-    if(is_predict_from_traces){
-	opts->J = json_array_size(jvalues);
+    if(jprediction){
+	opts->J = json_array_size(jprediction);
     }
 
     ssm_nav_t *nav = ssm_nav_new(jparameters, opts);
@@ -54,7 +53,7 @@ int main(int argc, char *argv[])
 
     json_decref(jdata);
 
-    ssm_input_t *input = ssm_input_new((is_predict_from_traces) ? NULL: jparameters, nav);
+    ssm_input_t *input = ssm_input_new(jparameters, nav);
     ssm_par_t **J_par = malloc(fitness->J * sizeof (ssm_par_t *));
     if(J_par == NULL) {
         ssm_print_err("Allocation impossible for ssm_par_t *");
@@ -62,11 +61,19 @@ int main(int argc, char *argv[])
     }
 
     for(j=0; j<fitness->J; j++) {
-	if(is_predict_from_traces){
-	    ssm_jforced(input, json_array_get(jvalues, j), nav);
-	}
-	J_par[j] = ssm_par_new(input, calc[0], nav);
-	ssm_par2X(J_X[j], J_par[j], calc[0], nav);
+	if(jprediction){
+	    //all we need is par and X (comming from the MCMC algo)
+	    json_t *jprediction_j = json_array_get(jprediction, j);
+
+	    ssm_input_t *input_from_trace_j = ssm_input_new(jprediction_j, nav); //just used to create par
+	    J_par[j] = ssm_par_new(input_from_trace_j, calc[0], nav);
+	    ssm_input_free(input_from_trace_j);
+
+	    ssm_mcmc_results2X(J_X[j], jprediction_j, calc[0], nav);
+	} else {
+	    J_par[j] = ssm_par_new(input, calc[0], nav);
+	    ssm_par2X(J_X[j], J_par[j], calc[0], nav);
+	}	
     }
    
     ssm_f_pred_t f_pred = ssm_get_f_pred(nav);
@@ -77,10 +84,23 @@ int main(int argc, char *argv[])
         fitness->cum_status[j] = SSM_SUCCESS;
     }
 
-    for(n=0; n<data->n_obs; n++) {
+    int n_start = 0;
+    if(strcmp(opts->start, "") != 0){ //opts->start has been specified
+	for(n=0; n< data->n_obs; n++){
+	    if(strcmp(opts->start, data->rows[n]->date) == 0){
+		n_start = n;
+		break;
+	    }
+	}
+	if (n == data->n_obs){ //n_obs has been adjsted to opts->end already
+	    ssm_print_err("invalid starting date");
+	    exit(EXIT_FAILURE);	
+	}
+    }
+
+    for(n=n_start; n < data->n_obs; n++) {
 	t0 = (n) ? data->rows[n-1]->time: 0;
 	t1 = data->rows[n]->time;
-
 
 	if(workers->flag_tcp){
 	    //send work
@@ -136,7 +156,7 @@ int main(int argc, char *argv[])
 	}
     }
 
-    if(!(nav->print & SSM_PRINT_LOG) &&!is_predict_from_traces){
+    if(!(nav->print & SSM_PRINT_LOG) && !jprediction){
 	if (!(nav->print & SSM_PRINT_HAT)) { //hat was not computed
 	    ssm_hat_eval(hat, J_X, J_par, nav, calc[0], NULL, t1, 0);	
 	}
@@ -160,6 +180,6 @@ int main(int argc, char *argv[])
     ssm_hat_free(hat);
 
     ssm_input_free(input);
-
+    
     return 0;
 }

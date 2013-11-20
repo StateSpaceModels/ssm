@@ -1,0 +1,42 @@
+#!/usr/bin/env node
+
+var program = require('commander')
+  , fs = require('fs')
+  , path = require('path')
+  , resolvePath = require('../lib/util').resolvePath
+  , predict = require('../lib/predict');
+
+program
+  .parse(process.argv);
+
+if(program.args.length !== 4){
+  console.error('\033[91mFAIL\033[0m: Invalid usage run: ssm predict <path/to/package.json> <path/to/X_.csv> <path/to/trace_.csv> <date>');
+  process.exit(1);
+}
+
+try {
+  var dpkg = JSON.parse(fs.readFileSync(resolvePath(program.args[0])));
+} catch (e){
+  console.error('\033[91mFAIL\033[0m: ' + e.message);
+  process.exit(1);  
+}
+
+var xPath = resolvePath(program.args[1])
+  , tracePath = resolvePath(program.args[2])
+  , date = program.args[3];
+
+predict(date, xPath, tracePath, function(err, data){
+  if(err){
+    console.error('\033[91mFAIL\033[0m: ' + err.message);
+    process.exit(1);  
+  }
+
+  var prediction = dpkg.resources.filter(function(x){return x.name === 'prediction'})[0];
+  if(!prediction){
+    dpkg.resources.push({name: "prediction", data: data});
+  } else {
+    prediction.data = data;
+  }
+
+  console.log(JSON.stringify(dpkg, null, 2));
+});

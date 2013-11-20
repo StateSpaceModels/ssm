@@ -1176,6 +1176,8 @@ ssm_fitness_t *ssm_fitness_new(ssm_data_t *data, ssm_options_t *opts)
     fitness->AICc = NAN;
     fitness->DIC = NAN;
     fitness->summary_log_likelihood = NAN;
+    fitness->summary_log_ltp = NAN;
+    fitness->summary_sum_squares = NAN;
     fitness->_min_deviance = NAN;
     fitness->_deviance_cum = 0;
 
@@ -1433,4 +1435,3 @@ void ssm_adapt_free(ssm_adapt_t *adapt)
 
     free(adapt);
 }
-

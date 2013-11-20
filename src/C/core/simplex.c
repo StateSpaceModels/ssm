@@ -22,9 +22,12 @@
  * simplex algo using GSL. Straightforward adaptation of the GSL doc
  * example
  */
-double ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_simplex)(const gsl_vector *x, void *params), ssm_nav_t *nav, double size_stop, int n_iter)
+double ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_simplex)(const gsl_vector *x, void *params), ssm_nav_t *nav, ssm_options_t *opts)
 {
     char str[SSM_STR_BUFFSIZE];
+
+    double size_stop = opts->size_stop;
+    int n_iter = opts->n_iter;
 
     double fitness = 0.0;
 
@@ -53,6 +56,7 @@ double ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_
 
     gsl_multimin_fminimizer_set(simp, &minex_func, x, jump_sizes);
 
+    char *caption = (opts->flag_prior) ? "*prior": "";
 
     do {
 	iter++;
@@ -67,7 +71,7 @@ double ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_
 	    if (status == GSL_SUCCESS) {
 		ssm_print_log ("converged to maximum !");
 	    }
-	    sprintf(str, "%d\t logLike.: %12.5f\t size: %.14f", iter, fitness, size);
+	    sprintf(str, "%d\t log(like%s).: %12.5f\t size: %.14f", iter, caption, fitness, size);
 	    ssm_print_log(str);
 	}
 

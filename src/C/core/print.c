@@ -98,6 +98,8 @@ void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_v
     json_object_set_new(jsummarydata, "AICc", isnan(fitness->AICc) ? json_null(): json_real(fitness->AICc));
     json_object_set_new(jsummarydata, "DIC", isnan(fitness->DIC) ? json_null(): json_real(fitness->DIC));
     json_object_set_new(jsummarydata, "log_likelihood", isnan(fitness->summary_log_likelihood) ? json_null(): json_real(fitness->summary_log_likelihood));
+    json_object_set_new(jsummarydata, "log_ltp", isnan(fitness->summary_log_ltp) ? json_null(): json_real(fitness->summary_log_ltp));
+    json_object_set_new(jsummarydata, "sum_squares", isnan(fitness->summary_sum_squares) ? json_null(): json_real(fitness->summary_sum_squares));
     json_object_set_new(jsummarydata, "n_parameters", json_integer(nav->theta_all->length));
     json_object_set_new(jsummarydata, "n_data", json_integer(fitness->n));
 

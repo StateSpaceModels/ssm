@@ -67,25 +67,6 @@ void ssm_theta2input(ssm_input_t *input, ssm_theta_t *theta, ssm_nav_t *nav)
     }
 }
 
-void ssm_jforced(ssm_input_t *input, json_t *jforced, ssm_nav_t *nav)
-{
-    char str[SSM_STR_BUFFSIZE];
-    int i;
-    ssm_it_parameters_t *it = nav->par_all;
-    json_t *jval;
-
-    for(i=0; i< it->length; i++){
-        jval = json_array_get(jforced, i);
-        if(json_is_number(jval)){
-            gsl_vector_set(input, it->p[i]->offset, json_real_value(jval));
-        } else {
-            snprintf(str, SSM_STR_BUFFSIZE, "error: forced: %s is not a number\n", it->p[i]->name);
-            ssm_print_err(str);
-            exit(EXIT_FAILURE);
-        }
-    }
-}
-
 
 void ssm_input2par(ssm_par_t *par, ssm_input_t *input, ssm_calc_t *calc, ssm_nav_t *nav)
 {
@@ -121,6 +102,79 @@ void ssm_par2X(ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav)
         X->proj[ diff->p[i]->offset ] = diff->p[i]->f(gsl_vector_get(par, diff->p[i]->ic->offset));
     }
 }
+
+
+/**
+ * Used for prediction 
+ *
+ * jprediction_j is an object mimating a resources
+ * list with object with name "values" (coming from trace_*.csv) and
+ * "states" (comming from X_*.csv) 
+ * { resources : [{name:"values", "data": ..}, {name:"states", "data": ..}] }
+ */ 
+void ssm_mcmc_results2X(ssm_X_t *X, json_t *jprediction_j, ssm_calc_t *calc, ssm_nav_t *nav)
+{
+    int i;
+
+    ssm_it_states_t *sv = nav->states_sv;
+    ssm_it_states_t *inc = nav->states_inc;
+    ssm_it_states_t *diff = nav->states_diff;
+
+    //get states resource
+    json_t *jstates = NULL;
+    json_t *jresources = json_object_get(jprediction_j, "resources");
+    int index;
+    for(index=0; index< json_array_size(jresources); index++){
+        json_t *el = json_array_get(jresources, index);
+        const char* name = json_string_value(json_object_get(el, "name"));
+        if (strcmp(name, "states") == 0) {
+            jstates = json_object_get(el, "data");
+	    break;
+        }
+    }
+
+    if(!jstates){
+	ssm_print_err("error: no states object in prediction resource");
+	exit(EXIT_FAILURE);
+    }
+
+    for(i=0; i<sv->length; i++){
+	json_t *jval = json_object_get(jstates, sv->p[i]->name);
+	if(json_is_number(jval)) {
+	    X->proj[ sv->p[i]->offset ] = sv->p[i]->f(json_number_value(jval));
+	} else {
+	    char str[SSM_STR_BUFFSIZE];
+	    sprintf(str, "error: prediction.states.%s is not a number\n", sv->p[i]->name);
+	    ssm_print_err(str);
+	    exit(EXIT_FAILURE);
+	}
+	if(nav->implementation == SSM_PSR){
+	    X->proj[ sv->p[i]->offset ] = round(X->proj[ sv->p[i]->offset ]);
+	}
+    }
+
+
+    for(i=0; i<inc->length; i++){
+        X->proj[ inc->p[i]->offset ] = 0.0;
+    }
+
+
+    for(i=0; i<diff->length; i++){
+	json_t *jval = json_object_get(jstates, diff->p[i]->name);
+	if(json_is_number(jval)) {
+	    X->proj[ diff->p[i]->offset ] = diff->p[i]->f(json_number_value(jval));	    
+	} else {
+	    char str[SSM_STR_BUFFSIZE];
+	    sprintf(str, "error: prediction.states.%s is not a number\n", diff->p[i]->name);
+	    ssm_print_err(str);
+	    exit(EXIT_FAILURE);
+	}
+    }
+
+}
+
+
+
 
 
 unsigned int *ssm_load_ju1_new(json_t *container, char *name)

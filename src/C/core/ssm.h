@@ -237,7 +237,7 @@ typedef struct
 
     double (*f_user2par) (double x_input, ssm_input_t *, ssm_calc_t *); /**< from original user scale to par */
 
-    double (*f_2prior) (double x_input, ssm_hat_t *hat, ssm_par_t *par, ssm_calc_t *calc, double t); /**< transform x_input (theta or f_inv(theta)) into an input in user unit (prior). This is usefull when the transformation depends on states (X) and we want to pipe the end of a simulation. In this case, x_input will be ignored and reconstructed from hat and par using the to_prior function provided by the user */
+    double (*f_2prior) (double x_input, ssm_hat_t *hat, ssm_par_t *par, ssm_calc_t *calc, double t); /**< Transform X coming from hat into in input in the user unit (prior (resource)). This is usefull when we want to pipe the end of a simulation. In this case, x_input will be ignored and reconstructed from hat and par using the to_resource function provided by the user. x_input is provided for parameters different from states initial condition. In this case x_input is simply returned */
 
 } ssm_parameter_t;
 
@@ -379,6 +379,8 @@ typedef struct
     double AICc;
     double DIC;
     double summary_log_likelihood; /**< ALWAYS without prior! the final log likelihood for non MCMC methods and the best likelihood found during the trace for MCMC methods*/
+    double summary_log_ltp; /**< log of likelifhood times prior (same as above, for MCMC methods this is the best value found during the trace) */
+    double summary_sum_squares;
     int n; /**< number of data point non NA consumed */
 
     double _min_deviance; /**< min(deviance)*/
@@ -637,9 +639,9 @@ json_t *ssm_load_json_stream(FILE *stream);
 json_t *ssm_load_json_file(const char *path);
 json_t *ssm_load_data(ssm_options_t *opts);
 void ssm_theta2input(ssm_input_t *input, ssm_theta_t *theta, ssm_nav_t *nav);
-void ssm_jforced(ssm_input_t *input, json_t *jforced, ssm_nav_t *nav);
 void ssm_input2par(ssm_par_t *par, ssm_input_t *input, ssm_calc_t *calc, ssm_nav_t *nav);
 void ssm_par2X(ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav);
+void ssm_mcmc_results2X(ssm_X_t *X, json_t *jprediction_j, ssm_calc_t *calc, ssm_nav_t *nav);
 unsigned int *ssm_load_ju1_new(json_t *container, char *name);
 double *ssm_load_jd1_new(json_t *container, char *name);
 char **ssm_load_jc1_new(json_t *container, const char *name);
@@ -653,8 +655,8 @@ double ssm_sanitize_log_likelihood(double log_like, ssm_row_t *row, ssm_fitness_
 double ssm_log_likelihood(ssm_row_t *row, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness);
 double ssm_sum_square(ssm_row_t *row, ssm_X_t *X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_fitness_t *fitness);
 void ssm_aic(ssm_fitness_t *fitness, ssm_nav_t *nav, double log_like);
-void ssm_dic_init(ssm_fitness_t *fitness, double log_like);
-void ssm_dic_update(ssm_fitness_t *fitness, double log_like);
+void ssm_dic_init(ssm_fitness_t *fitness, double log_like, double log_prior);
+void ssm_dic_update(ssm_fitness_t *fitness, double log_like, double log_prior);
 void ssm_dic_end(ssm_fitness_t *fitness, ssm_nav_t *nav, int m);
 
 /* mvn.c */
@@ -750,7 +752,7 @@ int ssm_par_copy(ssm_par_t *dest, ssm_par_t *src);
 void ssm_sample_traj(ssm_X_t **D_X, ssm_X_t ***D_J_X, ssm_calc_t *calc, ssm_data_t *data, ssm_fitness_t *fitness);
 
 /* simplex.c */
-double ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_simplex)(const gsl_vector *x, void *params), ssm_nav_t *nav, double size_stop, int n_iter);
+double ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_simplex)(const gsl_vector *x, void *params), ssm_nav_t *nav, ssm_options_t *opts);
 
 /* workers.c */
 void *ssm_worker_inproc(void *params);

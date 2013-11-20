@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
     if(nav->print & SSM_PRINT_TRACE){
         ssm_print_trace(nav->trace, theta, nav, fitness->log_like_prev + fitness->log_prior_prev, m);
     }
-    ssm_dic_init(fitness, fitness->log_like_prev);
+    ssm_dic_init(fitness, fitness->log_like_prev, fitness->log_prior_prev);
 
     if (nav->print & SSM_PRINT_LOG) {
 	snprintf(str, SSM_STR_BUFFSIZE, "%d\t logLike.: %g\t accepted: %d\t acc. rate: %g", m, fitness->log_like_prev + fitness->log_prior_prev, !(success & SSM_MH_REJECT), adapt->ar);
@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
         if (nav->print & SSM_PRINT_TRACE){
             ssm_print_trace(nav->trace, theta, nav, fitness->log_like_prev + fitness->log_prior_prev, m);
         }
-	ssm_dic_update(fitness, fitness->log_like_prev);
+	ssm_dic_update(fitness, fitness->log_like_prev, fitness->log_prior_prev);
 
         if (nav->print & SSM_PRINT_DIAG) {
             ssm_print_ar(nav->diag, adapt, m);
