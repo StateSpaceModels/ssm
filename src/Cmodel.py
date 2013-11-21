@@ -75,7 +75,7 @@ class Cmodel:
                         try:                
                             resource = [x for x in self.dpkg['resources'] if x['name'] == p['data']['resource']][0]
                         except IndexError:
-                            raise ModelError('invalid model name')
+                            raise ModelError('Resource ' + p['data']['resource'] + ' of ' + p['name'] + ' is missing.')
 
 
                     imported_resource = copy.deepcopy(resource)

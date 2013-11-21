@@ -1,0 +1,10 @@
+{
+  "name": "ssm-schema-validation",
+  "version": "0.0.0",
+  "description": "Validation of ssm model JSON descriptions",
+  "author": "Joseph Dureau",
+  "license": "MIT",
+  "dependencies": {
+    "tv4": "*"
+  }
+}

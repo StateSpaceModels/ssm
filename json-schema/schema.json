@@ -1,0 +1,287 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+
+  "definitions": {
+  
+    "data": {
+      "type": "object",
+      "properties": {
+        "datapackage": {
+	  "type": "string"	 
+	},
+	"resource": {
+	  "type": "string"	 
+	},
+	"field": {
+	  "type": "string"	 
+	}
+      },
+      "required": ["resource"]
+    },
+
+    "time-series": {
+      "type": "object",
+      "properties": {
+        "name": {
+	  "type": "string"
+	},
+	"data": {
+	  "type": "array",
+	  "items": {"$ref": "#/definitions/data"},
+	  "minItems": 2,
+	  "maxItems": 2
+	}
+      }
+    }
+
+  },
+	
+  "type": "object",
+  
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "datadependencies": {
+      "type": "object",
+      "patternProperties": {
+        "": { "type": "string" }
+      }
+    },
+    "licenses": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "version": {
+      "type": "string"
+    },
+    "model": {
+      "type": "object",
+      "properties": {
+
+        "populations": {
+	  "type": "array",
+	  "items": {
+	    "type": "object",
+	    "properties": {
+	      "name": {
+	        "type": "string"
+	      },
+	      "composition": {
+	        "type": "array",
+	      	"items": {
+	      	  "type": "string"
+	    	}
+	      },
+	      "remainder": {
+	        "type": "object",
+	    	"properties": {
+	      	  "name": {
+	            "type": "string"
+	      	  },
+	      	  "pop_size": {
+	            "type": "string"
+	      	  }
+	    	},
+	    	"required": ["name", "pop_size"]
+	      }
+	    },
+	    "required": ["name", "composition"]		
+      	  }  
+	},
+
+	"reactions": {
+	  "type": "array",
+	  "items": {
+	    "type": "object",
+	    "properties": {
+	      "from": {
+	        "type": "string"
+	      },
+	      "to": {
+	        "type": "string"
+	      },
+	      "rate": {
+	        "type": "string"
+	      },
+	      "description": {
+	        "type": "string"
+	      },
+	      "white_noise": {
+	        "type": "object",
+		"properties": {
+		  "name": {
+		    "type": "string"
+		  },
+		  "sd": {
+		    "type": "string"
+		  }
+		},
+		"required": ["name","sd"]
+	      },
+	      "tracked": {
+	      	"type": "array",
+		"items": {
+		  "type": "string"
+		}
+	      },
+    	      "keywords": {
+      	        "type": "array",
+     	      	"items": {
+       	          "type": "string"
+	        }
+	      }
+    	    },
+	    "required": ["from", "to","rate"]	
+	  }
+	},
+
+	"observations": {
+	  "type": "array",
+	  "items": {
+	    "type": "object",
+	    "properties": {
+	      "name": {
+	        "type": "string"
+	      },
+	      "start": {
+	        "type": "string",
+		"format": "date-time"
+	      },
+	      "distribution": {
+	        "type": "string"
+	      },
+	      "mean": {
+	        "type": "string"
+	      },
+	      "sd": {
+	        "type": "string"
+	      }
+	    },
+	    "required": ["name", "start","distribution","mean","sd"]
+	  }
+	},
+
+	"data": {
+	  "type": "array",
+	  "items": {
+	    "type": "object",
+	    "oneOf": [ 
+   	      {"$ref": "#/definitions/time-series"}
+	    ]
+	  }
+	},
+
+	"inputs": {
+	  "type": "array",
+	  "items": {
+	    "type": "object",
+	    "anyOf": [ 
+   	      {"$ref": "#/definitions/time-series"},
+	      {
+	        "type": "object",
+		"properties": {
+		  "name": {
+		    "type": "string"
+		  },
+		  "description": {
+		    "type": "string"
+		  },
+		  "data": {"$ref": "#/definitions/data"},
+		  "transformation": {
+		    "type": "string"
+		  },
+		  "to-resource": {
+		    "type": "string"
+		  }
+		},
+		"required": ["name"]
+	      }
+	    ]
+	  }
+	}	
+      },
+
+      "resource": {
+       "type": "array",
+       "items": {
+         "type": "object",
+	 "properties": {
+	   "name": { "type": "string" },
+	   "description": { "type": "string" },
+	   "data": {
+	     "type": "object",
+	     "anyOf": [
+	       {     
+	         "type": "object",
+		 "properties": {
+		   "distribution": { "type": "string",  "enum": ["fixed"] },
+		   "value": { "type": "number" },
+		   "unit": { "type": "string" }
+		 },
+		 "required": ["distribution", "value"]
+	       },
+	       {     
+	         "type": "object",
+		 "properties": {
+		   "distribution": { "type": "string",  "enum": ["uniform"] },
+		   "lower": { "type": "number" },
+		   "upper": { "type": "number" },
+		   "unit": { "type": "string" }
+		 },
+		 "required": ["distribution", "lower", "upper"]
+	       },
+	       {     
+	         "type": "object",
+		 "properties": {
+		   "distribution": { "type": "string",  "enum": ["normal"] },
+		   "mean": { "type": "number" },
+		   "sd": { "type": "number" },
+		   "lower": { "type": "number" },
+		   "upper": { "type": "number" },
+		   "unit": { "type": "string" }
+		 },
+		 "required": ["distribution", "mean", "sd"]
+	       },
+	       {
+	         "type": "object",
+		 "patternProperties": {
+        	   "": { "type": "number" }
+      		 }
+	       },
+	       {
+	         "type": "object",
+		 "patternProperties": {
+        	   "": { 
+		     "type": "object",
+		     "patternProperties": {
+        	       "": { "type": "number" }
+      		     }
+		   }
+      		 }
+	       }	       
+	     ]
+	   }	    
+	 }
+       }
+      }
+    }    
+  },
+  "required":["name"]
+}
+
+
+
+
+
