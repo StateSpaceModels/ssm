@@ -62,35 +62,72 @@ makeLhs(dpkgRoot, dpkg, program, function(err, rlhs){
     dep[dpkg.name] = dpkg.version;
 
     var d = {
-      name: "lhs",
-      version: "0.0.0",
+      name: 'lhs',
+      version: '0.0.0',
       dataDependencies: dep,
       pipeline: [
         {
-          name: "lhs-simplex",
-          type: "map",
-          data: [
+          name: 'lhs-simplex',
+          map: [
             {
-              command: "simplex",
-              args: ["--root", "$ROOT/data" , "-M", 10000, "--next", "mle_", "--id", "*", '--trace'],
-              cwd: ".",
-              walltime: "00:01:00",
+              command: 'simplex',
+              args: ['--root', '$ROOT/data' , '-M', 10000, '--next', 'mle_', '--id', '*', '--prior'],
+              cwd: '.',
+              walltime: '00:01:00',
               inputs: [
-                { resource: "lhs", collection: true}
+                { resource: 'lhs', collection: true, sdtin: true }
               ],
               outputs: [
-                { path: "data/mle_*.json" },
-                { path: "data/trace_*.csv", save: { "resource": "trace_*" } }
+                { path: 'data/mle_*.json' }
               ]
             }
+          ],
+          reduce: [
+            command: 'ssm',
+            args: ['reduce', '*', '--log_ltp', '-o', '$ROOT/data/start_pmcmc.json'],
+            walltime: '00:01:00',
+            inputs: [ { 'path': 'data/mle_*.json' } ],
+            outputs: [
+              { path: 'data/start_pmcmc.json', save: { resource: 'start_pmcmc' } }
+            ]
           ]
-        }
+        },
+        {
+          name: 'pmcmc',
+          map: [
+            {
+              command: 'pmcmc',
+              args: ['--root', '$ROOT/data' , '-M', 100000, '--next', 'mle_', '--id', '*', '--trace', '--traj'],
+              cwd: '.',
+              walltime: '00:01:00',
+              inputs: [
+                { resource: 'start_pmcmc', replicate: 2, sdtin: true }
+              ],
+              outputs: [
+                { path: 'data/mle_*.json' },
+                { path: 'data/trace_*.csv', save: { resource: 'trace_*' } },
+                { path: 'data/X_*.csv', save: { resource: 'X_*' } }
+              ]
+            }
+          ],
+          reduce: [
+            command: 'ssm',
+            args: ['reduce', '*', '--DIC', '-o', '$ROOT/data/map_pmcmc.json'],
+            walltime: '00:01:00',
+            inputs: [ { 'path': 'data/mle_*.json' } ],
+            outputs: [
+              { path: 'data/map_pmcmc.json', save: { resource: 'map_pmcmc' } }
+            ]
+          ]
+        },
+
+        
       ],
       resources:[
         {
-          name: "lhs",
-          path: "data/lhs.json",
-          format: "json"
+          name: 'lhs',
+          path: 'data/lhs.json',
+          format: 'json'
         }
       ]
     };
