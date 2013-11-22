@@ -80,7 +80,7 @@ class Data(Ccoder):
 
             date_name = linked_data['data'][0]['field']
             x_name = linked_data['data'][1]['field']
-            
+
             oobs = copy.deepcopy(x)
             data[x['name']] = x
             data[x['name']]['order'] = i

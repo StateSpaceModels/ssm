@@ -4,20 +4,13 @@ var program = require('commander')
   , fs = require('fs')
   , path = require('path')
   , util = require('util')
+  , links = require('../lib/links')
   , mkdirp = require('mkdirp')
-  , clone = require('clone')
-  , seed = require('seed-random')
-  , makeLhs = require('../lib/lhs')
   , resolvePath = require('../lib/util').resolvePath;
 
 program
   .option('-o, --output [path]', 'path to the datapackage container', resolvePath, path.resolve('ssm_model'))
   .option('-v, --verbose', 'verbose mode')
-  .option('m, --pmin [pmin]', 'lower probability for the quantile function of the prior distribution', parseFloat, 0.05)
-  .option('m, --pmax [pmax]', 'upper probability for the quantile function of the prior distribution', parseFloat, 0.95)
-  .option('n, --samples [samples]', 'number of samples of the random Latin Hyper Square', parseInt, 10)
-  .option('t, --trials [trials]', 'max number of trials before giving up in case there are constraints on the initial conditions', parseInt, 10)
-  .option('s, --seed [seed]', 'a string to seed the random number generator')
   .parse(process.argv);
 
 //patch Math.random to use a seed
@@ -52,103 +45,125 @@ function fail(err){
   process.exit(1);  
 };
 
-makeLhs(dpkgRoot, dpkg, program, function(err, rlhs){
-  if(err) console.log(err);
+//TODO get date end and date end +1
+links.resolve(dpkgRoot, dpkg, dpkg.model.data, function(err, data){
 
-  mkdirp(path.join(program.output, 'data'), function(err){
-    if(err){ return fail(err); }
-    
-    var dep = {};
-    dep[dpkg.name] = dpkg.version;
+  //begining of prediction (date of last data point)
+  var start = data
+    .map(function(x, i){
+      var dateKey = dpkg.model.data[i].data[0].field;
+      return x.data[x.data.length-1][dateKey]; 
+    })
+    .sort(function(a,b){
+      return a<b?1:a>b?-1:0;
+    })[0];
 
-    var d = {
-      name: 'lhs',
-      version: '0.0.0',
-      dataDependencies: dep,
-      pipeline: [
-        {
-          name: 'lhs-simplex',
-          map: [
-            {
-              command: 'simplex',
-              args: ['--root', '$ROOT/data' , '-M', 10000, '--next', 'mle_', '--id', '*', '--prior'],
-              cwd: '.',
-              walltime: '00:01:00',
-              inputs: [
-                { resource: 'lhs', collection: true, sdtin: true }
-              ],
-              outputs: [
-                { path: 'data/mle_*.json' }
-              ]
-            }
-          ],
-          reduce: [
-            command: 'ssm',
-            args: ['reduce', '*', '--log_ltp', '-o', '$ROOT/data/start_pmcmc.json'],
-            walltime: '00:01:00',
-            inputs: [ { 'path': 'data/mle_*.json' } ],
-            outputs: [
-              { path: 'data/start_pmcmc.json', save: { resource: 'start_pmcmc' } }
+  var end = new Date(start.getTime());
+  end.setFullYear(end.getFullYear()+1); //prediction for 1 year
+
+  //convert to ISO8601 date (so in UTC (JS date are in local time))
+  start = start.toISOString().split('T')[0];
+  end = end.toISOString().split('T')[0];
+
+  mkdirp(path.join(program.output, 'node_modules'), function(err){
+    if(err) return fail(err);
+
+    mkdirp(path.join(program.output, 'data'), function(err){
+      if(err) return fail(err);
+      
+      var dep = {};
+      dep[dpkg.name] = dpkg.version;
+
+      var d = {
+        name: 'lhs',
+        version: '0.0.0',
+        dataDependencies: dep,
+        pipeline: [
+          {
+            name: 'random-lhs',
+            run: [
+              {
+                command: 'ssm', args: ['lhs', '$IN.dpkg', '-o', '$OUT.out'], cwd: '.', timeout: '00:01:00',
+                inputs: [ { path: util.format('node_modules/%s/package.json', dpkg.name), name: 'dpkg' } ],
+                outputs: [ { path: 'data/lhs.json', save: { resource: 'lhs' }, name: 'out' } ]
+              }
             ]
-          ]
-        },
-        {
-          name: 'pmcmc',
-          map: [
-            {
-              command: 'pmcmc',
-              args: ['--root', '$ROOT/data' , '-M', 100000, '--next', 'mle_', '--id', '*', '--trace', '--traj'],
-              cwd: '.',
-              walltime: '00:01:00',
-              inputs: [
-                { resource: 'start_pmcmc', replicate: 2, sdtin: true }
-              ],
-              outputs: [
-                { path: 'data/mle_*.json' },
-                { path: 'data/trace_*.csv', save: { resource: 'trace_*' } },
-                { path: 'data/X_*.csv', save: { resource: 'X_*' } }
-              ]
-            }
-          ],
-          reduce: [
-            command: 'ssm',
-            args: ['reduce', '*', '--DIC', '-o', '$ROOT/data/map_pmcmc.json'],
-            walltime: '00:01:00',
-            inputs: [ { 'path': 'data/mle_*.json' } ],
-            outputs: [
-              { path: 'data/map_pmcmc.json', save: { resource: 'map_pmcmc' } }
+          },
+          {
+            name: 'lhs-simplex',
+            map: [
+              {
+                command: 'simplex', args: ['--root', '$ROOT/results/lhs_simplex' , '-M', 10000, '--next', 'mle_', '--id', '$ID', '--prior'], cwd: '.', timeout: '00:01:00',
+                inputs: [ { resource: 'lhs', collection: true, sdtin: true } ],
+                outputs: [ { path: 'results/lhs_simplex/mle_*.json' } ]
+              },
+              {
+                repeat: 3,
+                command: 'simplex', args: ['--root', '$ROOT/results/lhs_simplex' , '-M', 10000, '--next', 'mle_', '--id', '$ID', '--prior'], cwd: '.', timeout: '00:01:00',
+                inputs: [ { path: 'results/lhs_simplex/mle_*.json', sdtin: true } ],
+                outputs: [ { path: 'results/lhs_simplex/mle_*.json' } ]
+              }
+            ],
+            reduce: [
+              {
+                command: 'ssm', args: ['reduce', '$ROOT/results/lhs_simplex', '--log_ltp', '--summary', '$OUT.out'], cwd: '.', timeout: '00:01:00',
+                inputs: [ { path: 'results/lhs_simplex/mle_*.json' } ],
+                outputs: [ { path: 'data/start_pmcmc.json', save: { resource: 'start_pmcmc' }, name: 'out' } ]
+              }
             ]
-          ]
-        },
+          },
+          {
+            name: 'pmcmc',
+            map: [
+              {
+                command: 'pmcmc',
+                args: ['--root', '$ROOT/results/pmcmc' , '-M', 100000, '--next', 'map_', '--id', '$ID', '--trace', '--traj'], cwd: '.', timeout: '01:00:00',
+                inputs: [ { resource: 'start_pmcmc', replicate: 2, sdtin: true } ],
+                outputs: [
+                  { path: 'results/pmcmc/map_*.json', save: { resource: 'pmcmc_map_*' } },
+                  { path: 'results/pmcmc/trace_*.csv' },
+                  { path: 'results/pmcmc/X_*.csv' }
+                ]
+              }
+            ],
+            reduce: [
+              {
+                command: 'ssm', args: ['reduce', '$ROOT/results/pmcmc', '--DIC', '--trace', '$OUT.trace', '--traj', '$OUT.traj'], cwd: '.', timeout: '01:00:00',
+                inputs: [ { resource: 'pmcmc_map_*' } ],
+                outputs: [
+                  { path: 'results/pmcmc/trace.csv', save: { resource: 'pmcmc_trace' }, name: 'trace' },
+                  { path: 'results/pmcmc/X.csv', save: { resource: 'pmcmc_traj' }, name: 'traj' }
+                ]
+              }
+            ]
+          },
+          {
+            name: 'predict',
+            run: [
+              {
+                command: util.format('ssm simul $IN.traj $IN.trace %s | ./simul --root $ROOT/results/predict --traj --start %s --end %s', start, start, end), cwd: '.', timeout: '00:01:00',
+                inputs: [ 
+                  { resource: 'pmcmc_traj', name: 'traj' }, 
+                  { resource: 'pmcmc_trace', name: 'trace' }
+                ],
+                outputs: [ { path: 'results/predict/X_0.csv', save: { resource: 'predict' } } ]
+              }
+            ]
+          }
+        ]
+      };
+      
+      fs.writeFile(path.join(program.output, 'package.json'), JSON.stringify(d, null, 2), function(err){
+        if(err) return fail(err);
 
-        
-      ],
-      resources:[
-        {
-          name: 'lhs',
-          path: 'data/lhs.json',
-          format: 'json'
-        }
-      ]
-    };
-    
-    rlhs = rlhs.map(function(row){
-      var resources = [
-        { name: "values", data: row },
-        covariance,
-      ];
-      return {resources:resources};
-    });
-    
-    fs.writeFile(path.join(program.output, 'package.json'), JSON.stringify(d, null, 2), function(err){
-      if(err){ return fail(err); }
+        fs.writeFile(path.join(program.output, 'node_modules', 'package.json'), JSON.stringify(dpkg, null, 2), function(err){
+          if(err) return fail(err);
 
-      fs.writeFile(path.join(program.output, 'data', 'lhs.json'), JSON.stringify(rlhs, null, 2), function(err){
-        if(err){ return fail(err); }
+          if(program.verbose){
+            console.log('\033[92mSUCCESS\033[0m: boostrapped in %s', program.output);
+          }
+        });
 
-        if(program.verbose){
-          console.log('\033[92mSUCCESS\033[0m: boostrapped in %s', program.output);
-        }
       });
 
     });

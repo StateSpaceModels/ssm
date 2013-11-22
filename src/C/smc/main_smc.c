@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
 	ssm_pipe_theta(stdout, jparameters, theta, NULL, fitness, nav, opts);
     } else {
 	char str[SSM_STR_BUFFSIZE];
-	snprintf(str, SSM_STR_BUFFSIZE, "log(like%s).: %g", (flag_prior)? "*prior": "", fitness->log_like);
+	snprintf(str, SSM_STR_BUFFSIZE, "log(like%s): %g", (flag_prior)? "*prior": "", fitness->log_like);
 	ssm_print_log(str);
     }
 

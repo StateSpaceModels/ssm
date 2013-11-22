@@ -52,29 +52,8 @@ installed _before_ as this will also build the standalone C libraries.
 
 Pull requests are welcome for a .gyp file and windows support!
 
-Usage
-=====
-
-On first use, it is helpfull to run the following commands with ```--verbose```.
-
-## Installing a model from a data package
-
-    ssm install package.json [options]
-
-## Boostrapping an inference pipeline
-
-    ssm bootstrap package.json [options]
-
-This will produce a data package. Open it and customize it for your
-analysis.
-
-## Running an inference pipeline
-
-At the root of the directory containing an inference pipeline data
-package (typically ```ssm_model```) run:
-
-    ssm run package.json [options]
-
+Note, we also recomend that you install [jsontool](http://trentm.com/json/)
+    npm install -g jsontool
 
 Tests
 =====
@@ -83,6 +62,294 @@ Tests
 
 Notes:
 The C code is tested with [clar](https://github.com/vmg/clar)
+
+Usage
+=====
+
+## Data and parameters
+
+Data have to be in [SDF](http://dataprotocols.org/simple-data-format/)
+and wrapped in a
+[datapackage](http://dataprotocols.org/data-packages/).
+
+For instance a [CSV](http://tools.ietf.org/html/rfc4180) file
+
+    $ head data/data.csv
+    
+    "date","cases"
+    "2012-08-02",5
+    "2012-08-09",5
+    "2012-08-16",6
+    "2012-08-23",12
+    "2012-08-30",null
+
+will be wrapped as follows:
+
+    $ cat package.json | json resources
+    
+    "resources": [
+      {
+        "name": "data",
+        "path": "data/data.csv",
+        "format": "csv",
+        "schema": {
+          "fields": [
+            {"name": "date", "type": "date"},
+            {"name": "cases", "type": "number"}
+          ]
+        }
+      },
+      ...
+    ]
+
+Parameters also have to be specified as resources of a datapackage
+(the same or another one).
+For instance the following resource defines a prior.
+
+    $ cat package.json | json resources
+
+    "resources": [
+      {
+        "name": "pr_v",
+        "description": "duration of infection",
+        "format": "json",
+        "data": { 
+          "distribution": "normal", 
+          "mean": 12.5,
+          "sd": 3.8265, 
+          "lower": 0.0, 
+          "unit": "days"
+        }
+      },
+      ...
+    ]
+
+The initial values of the parameters and the covariance matrix between
+them need also to be defined as resources of a datapackage.
+
+    $ cat package.json | json resources
+
+    "resources": [
+      {
+        "name": "values",
+        "description": "initial values for the parameters",
+        "format": "json",
+        "data": {
+          "r0": 25.0,
+          "pr_v": 11.0
+        }
+      },
+      {
+        "name": "covariance",
+        "description": "covariance matrix (only the diagonal terms are mandatory)",
+        "format": "json",
+        "data": {
+          "r0": {"r0": 0.04, "pr_v": 0.01},
+          "pr_v": {"pr_v": 0.02, "r0": 0.01}
+        }
+      },
+      ...
+    ]
+
+## Model
+
+A model is described in [JSON](http://www.json.org/) and typicaly
+lives as a metadata of a datapackage. S|S|M support any State Space
+Model.  A model is defined in a model object (```"model":{}```).
+
+Let's take the example of a compartmental model for population
+dynamics. Model contains:
+
+the populations (required only for population dynamics)
+
+    $ cat package.json | json model.populations
+
+    "populations": [
+      {"name": "NYC", "composition": ["S", "I", "R"]}
+    ]
+
+the reactions, defining the process model
+
+    $ cat package.json | json model.reactions
+
+    "reactions": [
+      {"from": "S", "to": "I", "rate": "r0/(S+I+R)*v*I", "description": "infection", "tracked": ["Inc"]},
+      {"from": "I", "to": "R", "rate": "v", "description":"recovery"}
+    ]
+
+You can also defined SDE and ODE.
+
+the observation model
+
+    "observations": [
+      {
+        "name": "cases",
+        "start": "2012-07-26",
+        "distribution": "discretized_normal",
+        "mean": "rep * Inc",
+        "sd": "sqrt(rep * ( 1.0 - rep ) * Inc )"
+      }
+    ]
+
+Some link to the data
+
+    $ cat package.json | json model.data
+    
+    "data": [
+      { 
+        "name": "cases", 
+        "data": [ {"resource": "data", "field": "date"}, {"resource": "data", "field": "cases"} ] 
+      }
+    ]
+
+and the parameters.
+
+    $ cat package.json | json model.inputs
+    
+    "inputs": [
+      { "name": "r0", "description": "basic reproduction number", "data": {"resource": "r0"} },
+      { "name": "v",  "description": "recovery rate", "data": {"resource":  "pr_v"}, "transformation": "1/pr_v", "to_resource": "1/v" },
+      { "name": "S", "description": "Number of susceptible", "data": {"resource": "S"} },
+      { "name": "I", "description": "Number of infectious", "data": {"resource": "I"} },
+      { "name": "R", "description": "Number of recovered", "data": {"resource": "R"} },
+      { "name": "rep", "description": "reporting rate", "data": {"resource": "rep"} }
+    ]
+
+Note that this linking stage also allow to include some _transformations_.
+
+Full examples are available in the examples directory (```examples/sir/package.json``` for this example).
+
+On first use, it is helpfull to run the following commands with ```--verbose```.
+
+
+## Installing a model from a data package
+
+    $ ssm install package.json [options]
+
+This will build several inference and simulation methods (MIF, pMCMC,
+simplex, SMC, Kalman filters, ...) customized to different
+implementation of you model (ode, sde and poisson process with
+stochastic rates).  All the methods are ready for parallel computing
+(using multiple core of a machine _and_ leveraging a cluster of
+machines).
+
+Run ```method --help``` to get help and see the different
+implementations and options supported by the method.
+
+## Inference like playing with duplo blocks
+
+Let's plot the data
+
+with R:
+
+     data <- read.csv('../data/data.csv', na.strings='null')
+     plot(as.Date(data$date), data$cases, type='s')
+
+Let's run a first simulation:
+
+     $ cat ../package.json | ./simul --traj
+
+And add the simulated trajectory to our first plot
+
+     traj <- read.csv('X_0.csv')
+     lines(as.Date(traj$date), traj$cases, type='s', col='red')
+
+Let's infer the parameters to get a better fit
+
+     $ cat ../package.json | ./simplex -M 10000 --trace > mle.json
+
+let's read the values found:
+
+     $ cat mle.json | json resources | json -c "this.name=='values'"
+     [
+       {
+         "format": "json",
+         "name": "values",
+         "data": {
+           "pr_v": 19.379285906561037,
+           "r0": 29.528755614881494
+         }
+       }
+     ]
+
+Let's plot the evolution of the parameters:
+
+     trace <- read.csv('trace_0.csv')
+     layout(matrix(1:3,1,3))
+     plot(trace$index, trace$r0, type='l')
+     plot(trace$index, trace$pr_v, type='l')
+     plot(trace$index, trace$fitness, type='l')
+
+
+Now let's redo a simulation with these values (```mle.json```):
+
+     $ cat mle.json | ./simul --traj --v
+
+and replot the results:
+
+     plot(as.Date(data$date), data$cases, type='s')
+     traj <- read.csv('X_0.csv')
+     lines(as.Date(traj$date), traj$cases, type='s', col='red')
+
+much better.
+
+And now in one line:
+
+    $ cat ../package.json | ./simplex -M 10000 --trace | ./simul --traj | json resources | json -c "this.name=='values'"
+    [
+      {
+        "name": "values",
+        "format": "json",
+        "data": {
+          "r0": 29.528755614881494,
+          "pr_v": 19.379285906561037
+        }
+      }
+    ]
+    
+
+Let's get some posterios by adding a pmcmc at the end of our pipeline (we actualy add 2 of them to skip some transiant).
+
+     $ cat ../package.json | ./simplex -M 10000 | ./pmcmc -M 10000 | ./pmcmc -M 100000 --trace  | json resources | json -c 'this.name=="summary"'
+     
+     [
+       {
+         "format": "json",
+         "name": "summary",
+         "data": {
+           "log_ltp": -186.70579009197556,
+           "AICc": 363.94320971360844,
+           "n_parameters": 2,
+           "AIC": 363.6765430469418,
+           "DIC": 363.6802334782078,
+           "log_likelihood": -179.8382715234709,
+           "sum_squares": null,
+           "n_data": 48
+         }
+       }
+     ]
+
+Some posteriors plots (still with R)
+
+     trace <- read.csv('trace_0.csv')
+     layout(matrix(1:2,1,2))
+     hist(trace$r0)
+     hist(trace$pr_v)
+
+
+## Inference pipelines
+
+For more advanced cases (like running in parallel a lot of runs, each
+starting from different initial conditions, selecting the best of this
+runs and restarting from that with another algorithm...) inference
+pipelines are here to help:
+
+    $ ssm bootstrap package.json [options]
+
+This will produce a data package (```ssm_model/package.json```). Open it and customize it for your
+analysis. When ready just fire:
+
+    ssm run ssm_model/package.json [options]
 
 
 License

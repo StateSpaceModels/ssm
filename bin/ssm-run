@@ -8,7 +8,7 @@ var program = require('commander')
   , resolvePath = require('../lib/util').resolvePath;
 
 program  
-  .option('-c, --threads <threads>', 'run the design locally using an async queue to process independent tasks in parallel (up to the concurrency limit which default to the number of cpus).', parseInt)
+  .option('-c, --concurrency <concurrency>', 'run the design locally using an async queue to process independent tasks in parallel (up to the concurrency limit which default to the number of cpus).', parseInt)
   .option('-v, --verbose', 'verbose mode')
   .parse(process.argv);
 
@@ -31,9 +31,9 @@ function fail(err){
 
 
 //make tasks
-var concurrency = (!program.threads) ? os.cpus().length : program.threads;
+var concurrency = (!program.concurrency) ? os.cpus().length : program.concurrency;
 
-var squirrel = new Squirrel(dpkg);
+var squirrel = new Squirrel(dpkg, {concurrency: concurrency, root: dpkgRoot});
 
 if(program.verbose){
   console.log('starting an async queue (concurrency: %d)...', concurrency);
@@ -41,8 +41,7 @@ if(program.verbose){
   squirrel.on('wrn', function(msg){console.log('\033[93mWARNING\033[0m: (%s)', msg)});
 }
 
-
-squirrel.runMap(dpkg.pipeline[0].name, {concurrency: concurrency, root: dpkgRoot}, function(err, dpkg){
+squirrel.start(function(err, dpkg){
   if(err){ return fail(err); }
 
   fs.writeFile(path.join(dpkgRoot, 'package.json'), JSON.stringify(dpkg, null, 2), function(err){

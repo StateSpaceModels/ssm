@@ -1,0 +1,116 @@
+{
+  "name": "sir",
+  "description": "SIR model",
+  "keywords": ["SIR", "epidemiology"],
+  "licenses": [
+    {
+      "type": "cc0",
+      "url": "http://creativecommons.org/publicdomain/zero/1.0/"
+    }
+  ],
+
+  "version": "0.0.0",
+
+  "model": {
+    "populations": [
+      {"name": "NYC", "composition": ["S", "I", "R"]}
+    ],
+
+    "reactions": [
+      {"from": "S", "to": "I", "rate": "r0/(S+I+R)*v*I", "description": "infection", "tracked": ["Inc"]},
+      {"from": "I", "to": "R", "rate": "v", "description":"recovery"}
+    ],
+
+    "observations": [
+      {
+        "name": "cases",
+        "start": "2012-07-26",
+        "distribution": "discretized_normal",
+        "mean": "rep * Inc",
+        "sd": "sqrt(rep * ( 1.0 - rep ) * Inc )"
+      }
+    ],
+
+    "data": [
+      { 
+        "name": "cases", 
+        "data": [ {"resource": "data", "field": "date"}, {"resource": "data", "field": "cases"} ] 
+      }
+    ],
+    
+    "inputs": [
+      { "name": "r0", "description": "basic reproduction number", "data": {"resource": "r0"} },
+      { "name": "v",  "description": "recovery rate", "data": {"resource":  "pr_v"}, "transformation": "1/pr_v", "to_resource": "1/v" },
+      { "name": "S", "description": "Number of susceptible", "data": {"resource": "S"} },
+      { "name": "I", "description": "Number of infectious", "data": {"resource": "I"} },
+      { "name": "R", "description": "Number of recovered", "data": {"resource": "R"} },
+      { "name": "rep", "description": "reporting rate", "data": {"resource": "rep"} }
+    ]
+  },
+
+  "resources": [
+    {
+      "name": "data",
+      "path": "data/data.csv",
+      "format": "csv",
+      "schema": {
+        "fields": [
+          {"name": "date", "type": "date"},
+          {"name": "cases", "type": "number"}
+        ]
+      }
+    },
+    {
+      "name": "S",
+      "description": "Number of susceptible",
+      "data": { "distribution": "fixed", "value": 70000 }
+    },
+    {
+      "name": "I",
+      "description": "Number of infectious",
+      "data": { "distribution": "fixed", "value": 10 }
+    },
+    {
+      "name": "R",
+      "description": "Number of recovered",
+      "data": { "distribution": "fixed", "value": 929990 }
+    },
+    {
+      "name": "r0",
+      "description": "basic reproduction number",
+      "data": { "distribution": "uniform", "lower": 15.0, "upper": 35.0 }
+    },
+    {
+      "name": "pr_v",
+      "description": "duration of infection",
+      "data": { 
+        "distribution": "normal", 
+        "mean": 12.5,
+        "sd": 3.8265, 
+        "lower": 0.0, 
+        "unit": "days"
+      }
+    },
+    {
+      "name": "rep",
+      "description": "reporting rate",
+      "data": { "distribution": "fixed", "value":0.5 }
+    },
+    {
+      "name": "values",
+      "format": "json",
+      "data": {
+        "r0": 25.0,
+        "pr_v": 11.0
+      }
+    },
+    {
+      "name": "covariance",
+      "format": "json",
+      "data": {
+        "r0": {"r0": 0.04, "pr_v": 0.01},
+        "pr_v": {"pr_v": 0.02, "r0": 0.01}
+      }
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "name": "ssm",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Command line interface for S|S|M",
   "bin": {
     "ssm": "bin/ssm",
@@ -40,10 +40,10 @@
     "minimatch": "~0.2.12",
     "mkdirp": "~0.3.5",
     "clone": "~0.1.11",
-    "dpkg-squirrel": "0.1.1",
-    "lhs": "0.0.0",
-    "rmath.js": "0.0.0",
-    "datapackage": "0.3.0",
+    "dpkg-squirrel": "~0.4.0",
+    "lhs": "~0.0.0",
+    "rmath.js": "~0.0.0",
+    "datapackage": "~0.3.0",
     "seed-random": "~2.2.0",
     "binary-csv": "~0.1.3"
   },
