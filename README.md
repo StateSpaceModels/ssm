@@ -188,6 +188,8 @@ you can also defined SDE and ODE in addition / in place of reactions.
 
 the observation model
 
+    $ cat package.json | json model.observations
+
     "observations": [
       {
         "name": "cases",
@@ -322,9 +324,11 @@ And now in one line:
     ]
     
 
-Let's get some posterios by adding a pmcmc at the end of our pipeline (we actualy add 2 of them to skip some transiant).
+Let's get some posteriors and sample some trajectories by adding a
+pmcmc at the end of our pipeline (we actualy add 2 of them to skip
+some transiant).
 
-     $ cat ../package.json | ./simplex -M 10000 | ./pmcmc -M 10000 | ./pmcmc -M 100000 --trace  | json resources | json -c 'this.name=="summary"'
+     $ cat ../package.json | ./simplex -M 10000 | ./pmcmc -M 10000 | ./pmcmc -M 100000 --trace --traj  | json resources | json -c 'this.name=="summary"'
      
      [
        {
@@ -350,6 +354,20 @@ Some posteriors plots (still with R)
      hist(trace$r0)
      hist(trace$pr_v)
 
+The sampled trajectories
+
+     traj <- read.csv('X_0.csv')
+     plot(as.Date(data$date), data$cases, type='s')
+     samples <- unique(traj$index)
+     for(i in samples){
+       lines(as.Date(traj$date[traj$index == i]), traj$cases[traj$index == i], type='s', col='red')
+     }
+
+## Be cautious
+
+Always validate your results blah blah blah... Package like
+[CODA](http://cran.r-project.org/web/packages/coda/index.html) are
+here to help.
 
 ## Inference pipelines
 
@@ -364,6 +382,36 @@ This will produce a data package (```ssm_model/package.json```). Open it and cus
 analysis. When ready just fire:
 
     $ ssm run ssm_model/package.json [options]
+
+## Parallel computing
+
+Let's say that you want to run a particle filter of a stochastic
+version of our previous model with 1000 particles in you 4 cores
+machines (```--n_thread```). Also instead of plotting 1000
+trajectories you jusst want a summary of the empirical confindence
+envelop (```--hat```).
+
+    $ cat ../package.json | ./smc psr -J 1000 --n_thread 4 --hat
+
+Let's plot the trajectories
+
+    hat <- read.csv('hat_0.csv')
+    plot(as.Date(hat$date), hat$mean_cases, type='s')
+    lines(as.Date(hat$date), hat$lower_cases, type='s', lty=2)
+    lines(as.Date(hat$date), hat$upper_cases, type='s', lty=2)
+
+Your machine is not enough ? Let's use several.  First let's fire a
+server that will dispatch some work to several workers (living in
+different machines).
+
+    $ cat ../package.json | ./smc psr -J 1000 --tcp
+
+Now let's start some workers giving them the adress of the server.
+
+    $ cat ../package.json | ./worker psr smc --server 127.0.0.1 &
+    $ cat ../package.json | ./worker psr smc --server 127.0.0.1 &
+
+Note that you can add workers at any time during a run.
 
 
 License
