@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+        
+  "type": "object",
+  
+  "properties": {
+    "name": {
+      "type": "string",
+      "required": true,
+      "description": "The unique name of your package. This will also indicate the name of the package in the NPM global repository (if you choose to publish it). In SSM, this property will represent the name of your model."
+    },
+
+    "description": {
+      "type": "string",
+      "description": "The description of the project. Try to keep it short and concise."
+    },
+
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "An array of keywords which describe your package. This is useful for users who search for packages on search.npmjs.org"
+    },
+
+    "dependencies": {
+      "type": "object",
+      "patternProperties": {
+        "": { "type": "string" }
+      },
+      "description": "A hash containing key/pair mappings of packages and versions. This is used to specify the node package dependencies for your model."
+    },
+
+    "dataDependencies": {
+      "type": "object",
+      "patternProperties": {
+        "": { "type": "string" }
+      },
+      "description": "A hash containing key/pair mappings of datapackages and versions. This is used to specify the data dependencies for your model."
+    },
+
+    "licenses": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "The license which you prefer to release your model under."
+    },
+
+    "version": {
+      "type": "string",
+      "description": "Version of the package as specified by Semantic Versioning. It is important to keep track of your package version in a smart way. If you don't follow standard versioning techniques, it will be difficult for users to keep track of your model."
+    },
+
+
+    "resources": {
+      "type": "array",
+      "required": true,
+      "description": "Shareable data resources."
+    }
+  }    
+}
