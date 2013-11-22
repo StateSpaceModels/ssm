@@ -16,8 +16,8 @@ Installation
 All the methods are implemented in C. The C code contain generic part
 (working with any models) and model specific part.  The specific parts
 are templated using Python and [SymPy](http://sympy.org/) for symbolic
-mathematics. JavaScript is used to glue things together and add
-features on top of the C core.
+mathematics. [JavaScript](https://brendaneich.com/brendaneich_content/uploads/CapitolJS.021.png)
+is used to glue things together and add features on top of the C core.
 
 ## Installing the required dependencies
 
@@ -48,6 +48,8 @@ On Ubuntu:
 
 ## Installing S|S|M itself
 
+with [npm](http://nodejs.org/)
+
     npm install -g ssm
 
 Note: requires that all the C and python dependencies have been
@@ -55,8 +57,10 @@ installed _before_ as this will also build the standalone C libraries.
 
 Pull requests are welcome for a .gyp file and windows support!
 
-Note, we also recomend that you install [jsontool](http://trentm.com/json/)
+We also recomend that you install [jsontool](http://trentm.com/json/)
+
     npm install -g jsontool
+
 
 Tests
 =====
@@ -158,10 +162,10 @@ them need also to be defined as resources of a datapackage.
 
 A model is described in [JSON](http://www.json.org/) and typicaly
 lives as a metadata of a datapackage. S|S|M support any State Space
-Model.  A model is defined in a model object (```"model":{}```).
+Model.  A model is defined in a model object (```"model": {}```).
 
 Let's take the example of a compartmental model for population
-dynamics. Model contains:
+dynamics. the ```model`` object contains the following properties:
 
 the populations (required only for population dynamics)
 
@@ -180,7 +184,7 @@ the reactions, defining the process model
       {"from": "I", "to": "R", "rate": "v", "description":"recovery"}
     ]
 
-You can also defined SDE and ODE.
+you can also defined SDE and ODE in addition / in place of reactions.
 
 the observation model
 
@@ -194,7 +198,7 @@ the observation model
       }
     ]
 
-Some link to the data
+some link to the data (that can live in another datapackage)
 
     $ cat package.json | json model.data
     
@@ -205,7 +209,7 @@ Some link to the data
       }
     ]
 
-and the parameters.
+some link to the parameters (that can alse live in another datapackage).
 
     $ cat package.json | json model.inputs
     
@@ -220,28 +224,37 @@ and the parameters.
 
 Note that this linking stage also allow to include some _transformations_.
 
-Full examples are available in the examples directory (```examples/sir/package.json``` for this example).
+Full examples are available in the examples directory (```examples/sir/package.json``` for this one).
 
 
 ## Installing a model from a data package
 
     $ ssm install package.json [options]
 
-This will build several inference and simulation methods (MIF, pMCMC,
-simplex, SMC, Kalman filters, ...) customized to different
-implementation of you model (ode, sde and poisson process with
-stochastic rates).  All the methods are ready for parallel computing
-(using multiple core of a machine _and_ leveraging a cluster of
-machines).
+This will build several inference and simulation methods
+([MIF](http://www.pnas.org/content/103/49/18438),
+[pMCMC](http://onlinelibrary.wiley.com/doi/10.1111/j.1467-9868.2009.00736.x/abstract),
+[simplex](http://en.wikipedia.org/wiki/Nelder%E2%80%93Mead_method),
+[SMC](http://en.wikipedia.org/wiki/Particle_filter),
+[Kalman filters](http://en.wikipedia.org/wiki/Kalman_filter), ...)
+customized to different implementation of you model
+([ode](http://en.wikipedia.org/wiki/Ordinary_differential_equation),
+[sde](http://en.wikipedia.org/wiki/Stochastic_differential_equation),
+[poisson process with stochastic rates](http://arxiv.org/pdf/0802.0021.pdf),
+...).
+
+All the methods are ready as is for *parallel computing* (using
+multiple core of a machine _and_ leveraging a cluster of machines).
 
 Run ```method --help``` to get help and see the different
 implementations and options supported by the method.
+
 
 ## Inference like playing with duplo blocks
 
 Let's plot the data
 
-with R:
+with [R](http://www.r-project.org/):
 
      data <- read.csv('../data/data.csv', na.strings='null')
      plot(as.Date(data$date), data$cases, type='s')
