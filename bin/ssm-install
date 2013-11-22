@@ -6,6 +6,7 @@ var program = require('commander')
   , spawn = require('child_process').spawn
   , resolvePath = require('../lib/util').resolvePath
   , install = require('../lib/install')
+  , validate = require('../lib/validate')
   , EventEmitter = require('events').EventEmitter;
 
 program
@@ -46,12 +47,15 @@ if(!program.args[0]){
 
 var dpkgRoot = path.dirname(pathDpkg);
 var dpkg;
-try {
-  dpkg = JSON.parse(fs.readFileSync(pathDpkg));
-} catch (e){
-  emitter.emit('error', e.message);
-  process.exit(1);  
-}
+
+dpkg = validate(pathDpkg, emitter, function(err){
+  if(err){
+    emitter.emit('error', err.message);
+    process.exit(1);
+  }
+});
+
+
 
 
 install(dpkgRoot, dpkg, program.output, emitter, function(err){
