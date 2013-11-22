@@ -48,12 +48,13 @@ if(!program.args[0]){
 var dpkgRoot = path.dirname(pathDpkg);
 var dpkg;
 
-dpkg = validate(pathDpkg, emitter, function(err){
-  if(err){
-    emitter.emit('error', err.message);
-    process.exit(1);
-  }
-});
+try {
+    dpkg = JSON.parse(fs.readFileSync(pathDpkg));
+} catch (e) {
+  emitter.emit("Please check package.json, it does not follow JSON standards.")
+}
+
+validate(dpkg, emitter);
 
 
 

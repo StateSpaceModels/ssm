@@ -322,6 +322,8 @@ class TestSMCSDEagainstKalman(unittest.TestCase):
 
             j["model"]["observations"] = [j["model"]["observations"][0]]
 
+            j["model"]["data"] = [j["model"]["data"][0]]
+
             j["model"]["inputs"] = []
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'r0'
@@ -440,6 +442,7 @@ class TestSMCSDEagainstKalman(unittest.TestCase):
                   json.dump(j,outfile)
 
             os.chdir(Root)
+
             os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
 
             os.chdir(Root + '/ssm_model')
@@ -499,6 +502,8 @@ class TestpMCMCsmoothing(unittest.TestCase):
             j["model"]["reactions"].append({"from":"E1", "to":"E2", "rate":"3/N", "tracked": ["all_inc_out"]})
 
             j["model"]["observations"] = [j["model"]["observations"][0]]
+
+            j["model"]["data"] = [j["model"]["data"][0]]
 
             j["model"]["inputs"] = []
             j["model"]["inputs"].insert(0,{})
@@ -709,6 +714,8 @@ class TestpMCMCsmoothingWithNaNs(unittest.TestCase):
             j["model"]["reactions"].append({"from":"E1", "to":"E2", "rate":"3/N", "tracked": ["all_inc_out"]})
 
             j["model"]["observations"] = [j["model"]["observations"][0]]
+
+            j["model"]["data"] = [j["model"]["data"][0]]
 
             j["model"]["inputs"] = []
             j["model"]["inputs"].insert(0,{})
@@ -961,11 +968,11 @@ def suite_pMCMCsmoothing():
 
 if __name__ == '__main__' :
 
-      run_NoiseResults = 1
-      run_TransfsAndPMCMC = 1
-      run_KalmanOnDiffusions = 1
-      run_SMCSDEagainstKalman = 1
-      run_pMCMCsmoothing = 1
+      run_NoiseResults = 0
+      run_TransfsAndPMCMC = 0
+      run_KalmanOnDiffusions = 0
+      run_SMCSDEagainstKalman = 0
+      run_pMCMCsmoothing = 0
       run_pMCMCsmoothingWithNaNs = 1
 
       Root = os.getcwd()
