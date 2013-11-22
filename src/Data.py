@@ -21,6 +21,7 @@ import os
 import os.path
 import json
 import dateutil.parser
+import dateutil.tz
 import datetime
 import sys
 import csv
@@ -30,8 +31,14 @@ def parse_date(x):
     """
     parse a ISO8601 string into a datetime and convert it into a date
     TODO support for datetime (necessitate work on C side)...
+
+    Assumes that dates arrive from JS in local timezone -> convert it to UTC
     """
-    return dateutil.parser.parse(x).replace(tzinfo=None).date()
+
+    utc_zone = dateutil.tz.tzutc()
+    local_zone = dateutil.tz.tzlocal()
+    
+    return dateutil.parser.parse(x).replace(tzinfo=local_zone).astimezone(utc_zone).date()
 
 class DataError(Exception):
     def __init__(self, value):
