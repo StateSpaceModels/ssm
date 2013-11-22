@@ -2,20 +2,22 @@ S|S|M
 =====
 
 _Pipable_ plug-and-play inference methods for time series analysis
-with *S*tate *S*pace *M*odels.
+with *S*tate *S*pace *M*odels or Inference like playing with duplo
+blocks.
 
-    cat theta.json | ./simplex -M 10000 | ./ksimplex -M 10000 > mle.json
-    cat mle.json | ./kmcmc -M 100000 | ./pmcmc -J 1000 -M 500000
+    cat guess.json | ./simplex -M 10000 | ./ksimplex -M 10000 > best_fit.json
+    cat best_fit.json | ./kmcmc -M 100000 | ./pmcmc -J 1000 -M 500000 | yeah_i_am_done.json
 
 [![NPM](https://nodei.co/npm/ssm.png)](https://nodei.co/npm/ssm/)
+
+Installation
+============
 
 All the methods are implemented in C. The C code contain generic part
 (working with any models) and model specific part.  The specific parts
 are templated using Python and [SymPy](http://sympy.org/) for symbolic
-mathematics.
-
-Installation
-============
+mathematics. JavaScript is used to glue things together and add
+features on top of the C core.
 
 ## Installing the required dependencies
 
@@ -43,6 +45,7 @@ On Ubuntu:
     apt-get update
     apt-get install -y libzmq-dev libjansson-dev python-sympy python-jinja2 python-dateutil libgsl0-dev
  
+
 ## Installing S|S|M itself
 
     npm install -g ssm
@@ -219,8 +222,6 @@ Note that this linking stage also allow to include some _transformations_.
 
 Full examples are available in the examples directory (```examples/sir/package.json``` for this example).
 
-On first use, it is helpfull to run the following commands with ```--verbose```.
-
 
 ## Installing a model from a data package
 
@@ -349,7 +350,7 @@ pipelines are here to help:
 This will produce a data package (```ssm_model/package.json```). Open it and customize it for your
 analysis. When ready just fire:
 
-    ssm run ssm_model/package.json [options]
+    $ ssm run ssm_model/package.json [options]
 
 
 License
