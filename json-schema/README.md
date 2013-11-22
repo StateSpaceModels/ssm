@@ -1,2 +1,0 @@
-
-SSM models JSON validation
