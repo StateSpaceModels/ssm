@@ -6,7 +6,7 @@ with *S*tate *S*pace *M*odels or Inference like playing with duplo
 blocks.
 
     cat guess.json | ./simplex -M 10000 | ./ksimplex -M 10000 > best_fit.json
-    cat best_fit.json | ./kmcmc -M 100000 | ./pmcmc -J 1000 -M 500000 | yeah_i_am_done.json
+    cat best_fit.json | ./kmcmc -M 100000 | ./pmcmc -J 1000 -M 500000 --trace > yeah_i_am_done.json
 
 [![NPM](https://nodei.co/npm/ssm.png)](https://nodei.co/npm/ssm/)
 
@@ -165,7 +165,7 @@ lives as a metadata of a datapackage. S|S|M support any State Space
 Model.  A model is defined in a model object (```"model": {}```).
 
 Let's take the example of a compartmental model for population
-dynamics. the ```model`` object contains the following properties:
+dynamics. the ```model``` object contains the following properties:
 
 the populations (required only for population dynamics)
 
