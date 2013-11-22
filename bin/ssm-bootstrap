@@ -77,6 +77,7 @@ links.resolve(dpkgRoot, dpkg, dpkg.model.data, function(err, data){
       var d = {
         name: 'lhs',
         version: '0.0.0',
+        'private': true,
         dataDependencies: dep,
         pipeline: [
           {
@@ -106,7 +107,7 @@ links.resolve(dpkgRoot, dpkg, dpkg.model.data, function(err, data){
             ],
             reduce: [
               {
-                command: 'ssm', args: ['reduce', '$ROOT/results/lhs_simplex', '--log_ltp', '--summary', '$OUT.out'], cwd: '.', timeout: '00:01:00',
+                command: 'ssm', args: ['reduce', '$ROOT/results/lhs_simplex', '--by', 'log_ltp', '--summary', '$OUT.out'], cwd: '.', timeout: '00:01:00',
                 inputs: [ { path: 'results/lhs_simplex/mle_*.json' } ],
                 outputs: [ { path: 'data/start_pmcmc.json', save: { resource: 'start_pmcmc' }, name: 'out' } ]
               }
@@ -128,7 +129,7 @@ links.resolve(dpkgRoot, dpkg, dpkg.model.data, function(err, data){
             ],
             reduce: [
               {
-                command: 'ssm', args: ['reduce', '$ROOT/results/pmcmc', '--DIC', '--trace', '$OUT.trace', '--traj', '$OUT.traj'], cwd: '.', timeout: '01:00:00',
+                command: 'ssm', args: ['reduce', '$ROOT/results/pmcmc', '--by', 'DIC', '--trace', '$OUT.trace', '--traj', '$OUT.traj'], cwd: '.', timeout: '01:00:00',
                 inputs: [ { resource: 'pmcmc_map_*' } ],
                 outputs: [
                   { path: 'results/pmcmc/trace.csv', save: { resource: 'pmcmc_trace' }, name: 'trace' },

@@ -46,17 +46,21 @@ if(!program.args[0]){
 }
 
 var dpkgRoot = path.dirname(pathDpkg);
-var dpkg;
 
 try {
-    dpkg = JSON.parse(fs.readFileSync(pathDpkg));
+  var dpkg = JSON.parse(fs.readFileSync(pathDpkg));
 } catch (e) {
-  emitter.emit("Please check package.json, it does not follow JSON standards.")
+  console.error('\033[91mFAIL\033[0m: ' + e.message);
+  process.exit(1);
 }
 
-validate(dpkg, emitter);
 
-
+try {
+  validate(dpkg, emitter);
+} catch(e){
+  console.error('\033[91mFAIL\033[0m: ' + e.message);
+  process.exit(1);
+}
 
 
 install(dpkgRoot, dpkg, program.output, emitter, function(err){

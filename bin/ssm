@@ -9,6 +9,7 @@ program
   .command('install', 'install a model from a datapackage')
   .command('bootstrap', 'bootstrap a datapackage for an inference pipeline')
   .command('run', 'run a pipeline from a datapackage')
+  .command('reduce', 'find the best run of a batch according to an information criteria')
   .command('lhs', 'generate a random latin hypersquare within the boundary of the model priors')
   .command('predict', 'add a prediction resource to a datapackage')
   .parse(process.argv);

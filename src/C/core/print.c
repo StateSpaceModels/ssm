@@ -94,6 +94,7 @@ void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_v
     }
 
     json_t *jsummarydata = json_object();
+    json_object_set_new(jsummarydata, "id", json_integer(opts->id));
     json_object_set_new(jsummarydata, "AIC", isnan(fitness->AIC) ? json_null(): json_real(fitness->AIC));
     json_object_set_new(jsummarydata, "AICc", isnan(fitness->AICc) ? json_null(): json_real(fitness->AICc));
     json_object_set_new(jsummarydata, "DIC", isnan(fitness->DIC) ? json_null(): json_real(fitness->DIC));

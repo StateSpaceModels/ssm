@@ -1,9 +1,8 @@
 S|S|M
 =====
 
-_Pipable_ plug-and-play inference methods for time series analysis
-with *S*tate *S*pace *M*odels or Inference like playing with duplo
-blocks.
+Inference for time series analysis with *S*tate *S*pace *M*odels like
+playing with duplo blocks.
 
     cat guess.json | ./simplex -M 10000 | ./ksimplex -M 10000 > best_fit.json
     cat best_fit.json | ./kmcmc -M 100000 | ./pmcmc -J 1000 -M 500000 --trace > yeah_i_am_done.json
@@ -299,7 +298,7 @@ Let's plot the evolution of the parameters:
 
 Now let's redo a simulation with these values (```mle.json```):
 
-     $ cat mle.json | ./simul --traj --v
+     $ cat mle.json | ./simul --traj -v
 
 and replot the results:
 
@@ -388,7 +387,7 @@ analysis. When ready just fire:
 Let's say that you want to run a particle filter of a stochastic
 version of our previous model with 1000 particles in you 4 cores
 machines (```--n_thread```). Also instead of plotting 1000
-trajectories you jusst want a summary of the empirical confindence
+trajectories you just want a summary of the empirical confindence
 envelop (```--hat```).
 
     $ cat ../package.json | ./smc psr -J 1000 --n_thread 4 --hat
@@ -400,11 +399,14 @@ Let's plot the trajectories
     lines(as.Date(hat$date), hat$lower_cases, type='s', lty=2)
     lines(as.Date(hat$date), hat$upper_cases, type='s', lty=2)
 
-Your machine is not enough ? Let's use several.  First let's fire a
-server that will dispatch some work to several workers (living in
-different machines).
+Your machine is not enough ? Let's use several.  First let's transform
+our ```smc``` into a server that will dispatch some work to several
+workers (living in different machines).
 
     $ cat ../package.json | ./smc psr -J 1000 --tcp
+
+All the algorithm shipped with S|S|M can be transformed into servers
+with the ```--tcp``` option.
 
 Now let's start some workers giving them the adress of the server.
 
@@ -412,7 +414,6 @@ Now let's start some workers giving them the adress of the server.
     $ cat ../package.json | ./worker psr smc --server 127.0.0.1 &
 
 Note that you can add workers at any time during a run.
-
 
 License
 =======

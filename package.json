@@ -7,7 +7,8 @@
     "ssm-install": "bin/ssm-install",
     "ssm-run": "bin/ssm-run",
     "ssm-bootstrap": "bin/ssm-bootstrap",
-    "ssm-predict": "bin/ssm-predict"
+    "ssm-predict": "bin/ssm-predict",
+    "ssm-lhs": "bin/ssm-lhs"
   },
   "repository": {
     "type": "git",
@@ -41,7 +42,7 @@
     "minimatch": "~0.2.12",
     "mkdirp": "~0.3.5",
     "clone": "~0.1.11",
-    "dpkg-squirrel": "~0.1.1",
+    "dpkg-squirrel": "~0.3.0",
     "lhs": "~0.0.0",
     "rmath.js": "~0.0.0",
     "datapackage": "~0.3.0",
