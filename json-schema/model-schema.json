@@ -126,6 +126,44 @@
       }
     },
 
+    "sde": {
+      "type": "object",
+      "description": "System of differential equations, defined by their drift vector and dispersion matrix",
+      "properties":{
+        "drift": {
+	  "type": "array",
+	  "items": {	
+	    "type": "object",
+	    "properties": {
+	      "name": {
+	        "type": "string",
+		"description": "State variable which dynamic is determined by this line of the system."
+	      },
+	      "f": {
+	        "type": ["number", "string"],
+		"description": "Deterministic component of the equation."
+	      },
+	      "transformation": {
+	        "type": "string",
+		"description": "In case you want to express the equation in terms of a function of X and avoid applying the Ito formula."
+	      }
+	    }
+	  }
+	},
+	"dispersion": {
+	  "type": "array",
+	  "description": "Dispersion matrix L. It needs to have as many rows as objects in drifts, and as many rows as independent sources of noise.",
+	  "items": {
+	    "type": "array",
+	    "items": {
+	      "type": ["number", "string"]
+	    }
+	  }
+	}
+      },
+      "required": ["drift", "dispersion"]
+    },
+
     "observations": {
       "type": "array",
       "description": "Name each of the observed time series, determine when observations started to be collected and what is the distribution of the observation process.",
