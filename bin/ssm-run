@@ -9,8 +9,9 @@ var program = require('commander')
   , resolvePath = require('../lib/util').resolvePath;
 
 program  
+  .usage('[package.json] [options]')
   .option('-c, --concurrency <concurrency>', 'run the analytics pipeline processing independent tasks in parallel (up to the concurrency limit which default to the number of cpus).', parseInt, os.cpus().length)
-  .option('-v, --verbose', 'verbose mode')
+  .option('-q, --quiet', 'silence')
   .parse(process.argv);
 
 var pathDpkg = (program.args[0]) ? resolvePath(program.args[0]): path.resolve('package.json');
@@ -33,7 +34,7 @@ var reDpkgRoot = new RegExp(dpkgRoot, 'g');
 //make tasks
 var squirrel = new Squirrel(dpkg, {concurrency: program.concurrency, root: dpkgRoot});
 
-if(program.verbose){
+if(!program.quiet){
   console.log('starting an async queue (concurrency: %d)...', program.concurrency);
   squirrel.on('stage', function(msg){console.log('\033[94mINFO\033[0m: %s', msg)});
   squirrel.on('step', function(msg){
@@ -48,7 +49,7 @@ squirrel.start(function(err, newDpkg){
   if(err) return fail(err);
   fs.writeFile(pathDpkg, JSON.stringify(newDpkg, null, 2), function(err){
     if(err) return fail(err);
-    if(program.verbose){
+    if(!program.quiet){
       console.log('\033[92mSUCCESS\033[0m: Pipeline completed, %s has been appended.', pathDpkg);
     }
   });

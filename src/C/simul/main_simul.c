@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
 	}
     }
 
-    for(n=n_start; n < data->n_obs; n++) {
+    for(n=(n_start+1); n < data->n_obs; n++) {
 	t0 = (n) ? data->rows[n-1]->time: 0;
 	t1 = data->rows[n]->time;
 

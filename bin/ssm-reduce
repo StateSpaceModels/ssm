@@ -12,7 +12,7 @@ program
   .option('-s, --summary <path>', 'cp the best summary to the provided path', resolvePath)
   .option('-t, --trace <path>', 'cp the best trace to the provided path', resolvePath)
   .option('-x, --traj <path>',  'cp the best traj to the provided path', resolvePath)
-  .option('-v, --verbose', 'verbose mode')
+  .option('-q, --quiet', 'silence')
   .parse(process.argv);
 
 if(!program.args[0]) {
@@ -71,7 +71,7 @@ bestDpkg(root, program, function(err, dpkg, dpkgPath){
     function(cb){ 
       if(program.summary){
         copyFile(dpkgPath, program.summary, cb);
-      } else if (!program.verbose){
+      } else if (program.quiet){
         console.log(dpkg); //for pipes to S|S|M C algo
         cb(null);
       } else {

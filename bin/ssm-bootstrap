@@ -8,7 +8,8 @@ var program = require('commander')
   , resolvePath = require('../lib/util').resolvePath;
 
 program
-  .option('-v, --verbose', 'verbose mode')
+  .usage('[package.json] [options]')
+  .option('-q, --quiet', 'silence')
   .option('-f, --force', 'overwrite pre-existing analytics')
   .parse(process.argv);
 
@@ -149,7 +150,7 @@ links.resolve(dpkgRoot, dpkg, dpkg.model.data, function(err, data){
 
   fs.writeFile(pathDpkg, JSON.stringify(dpkg, null, 2), function(err){
     if(err) return fail(err);
-    if(program.verbose){
+    if(!program.quiet){
       console.log('\033[92mSUCCESS\033[0m: analytics has been added to %s', pathDpkg);
     }
   });

@@ -7,10 +7,11 @@ var program = require('commander')
   , predict = require('../lib/predict');
 
 program
+  .usage('<path/to/package.json> <path/to/X_.csv> <path/to/trace_.csv> <ISO 8601 date> [options]')
   .parse(process.argv);
 
 if(program.args.length !== 4){
-  console.error('\033[91mFAIL\033[0m: Invalid usage run: ssm predict <path/to/package.json> <path/to/X_.csv> <path/to/trace_.csv> <date>');
+  console.error('\033[91mFAIL\033[0m: Invalid usage run: ssm predict <path/to/package.json> <path/to/X_.csv> <path/to/trace_.csv> <ISO 8601 date>');
   process.exit(1);
 }
 

@@ -31,23 +31,26 @@ Python:
 - [SymPy](http://sympy.org/)
 - [dateutil](http://labix.org/python-dateutil)
 
+[Node.js](http://nodejs.org/)
+
 On OSX with [homebrew](http://mxcl.github.io/homebrew/) and [pip](https://pypi.python.org/pypi/pip):
 
-    brew install jansson zmq gsl
+    brew install jansson zmq gsl node
     sudo pip install jinja2 sympy python-dateutil
 
 On Ubuntu:
 
     apt-get update
     apt-get install -y python-software-properties python g++ make build-essential
+    add-apt-repository -y ppa:chris-lea/node.js
     add-apt-repository -y ppa:chris-lea/zeromq
     apt-get update
-    apt-get install -y libzmq-dev libjansson-dev python-sympy python-jinja2 python-dateutil libgsl0-dev
+    apt-get install -y nodejs libzmq-dev libjansson-dev python-sympy python-jinja2 python-dateutil libgsl0-dev
  
 
 ## Installing S|S|M itself
 
-with [npm](http://nodejs.org/)
+with [npm](https://npmjs.org/)
 
     npm install -g ssm
 
@@ -68,6 +71,7 @@ Tests
 
 Notes:
 The C code is tested with [clar](https://github.com/vmg/clar)
+
 
 Usage
 =====
@@ -137,10 +141,23 @@ The full [schema](http://json-schema.org/) for a prior is described
 ## Model
 
 A model is described in [JSON](http://www.json.org/) and typicaly
-lives as a metadata of a datapackage. S|S|M support any State Space
-Model.  A model is defined in a model object (```"model": {}```) whose
+lives as a metadata of a datapackage.
+
+The model datapackage needs to list as ```dataDependencies``` all the
+data dependencies it depends on (for data, priors, covariates).
+
+    $ cat package.json | json dataDependencies
+
+    {
+      "ssm-tutorial-data": "0.0.0"
+    }
+
+
+S|S|M support any State Space Model.  A model is defined by adding a
+model property (```"model": {}```) whose
 [schema](http://json-schema.org/) is fully described
-[here](https://raw.github.com/standard-analytics/ssm/master/json-schema/model-schema.json).
+[here](https://raw.github.com/standard-analytics/ssm/master/json-schema/model-schema.json)
+to a datapacakge.
 
 ### Link to the data
 
@@ -163,8 +180,8 @@ The ```model.data.data``` property is a list of 2 links representing a
 time-series. The first link has to be the dates of the timeseries and
 the second one the values.  A link is an object with 3 properties:
 - ```datapackage``` (optional) specifying the name of the datapackage where the resource can be find. It has to be omitted if the the resource is in the same datapackage.
-- ```resource```
-- ```field``` is necessary only in case of resources containing data in [SDF](http://dataprotocols.org/simple-data-format/).
+- ```resource``` (mandatory)
+- ```field``` necessary only in case of resources containing data in [SDF](http://dataprotocols.org/simple-data-format/).
 
 Note that ```model.data``` itself can be a list so that multiple
 time-series can be handled.
@@ -211,7 +228,7 @@ used as priors or covariate of the model.
       }
     ]
 
-Note that this linking stage also allow to include some
+Note that this linking stage also allows to include some
 _transformations_ so that a relation can be established between your
 model requirement and existing priors or covariates living in other
 datapackages (for instance ```v``` (a rate) is linkied to a prior
@@ -220,9 +237,10 @@ expressed in duration: ```pr_v```.
 
 ### Process Model
 
-Process model can be expressed as an ODE, an SDE or a compartmental
-model.  Let's take the example of a compartmental model for population
-dynamics. the ```model``` object contains the following properties:
+Process model can be expressed as an ODE, an SDE or a Poisson system
+(potentialy with stochastic rates).  Let's take the example of a
+compartmental model for population dynamics. the ```model``` object
+contains the following properties:
 
 the populations (required only for population dynamics)
 
@@ -306,7 +324,11 @@ At the root of a directory with a datapacakge (package.json) run
 
     $ ssm install [options]
 
-This will build (in ```bin/``) several inference and simulation methods
+This will:
+
+- install all the data dependencies
+- build executables (in
+```bin/```) for several inference and simulation methods
 ([MIF](http://www.pnas.org/content/103/49/18438),
 [pMCMC](http://onlinelibrary.wiley.com/doi/10.1111/j.1467-9868.2009.00736.x/abstract),
 [simplex](http://en.wikipedia.org/wiki/Nelder%E2%80%93Mead_method),
@@ -318,22 +340,24 @@ customized to different implementation of you model
 [poisson process with stochastic rates](http://arxiv.org/pdf/0802.0021.pdf),
 ...).
 
+
 All the methods are ready as is for *parallel computing* (using
 multiple core of a machine _and_ leveraging a cluster of machines).
 
-Run ```method --help``` to get help and see the different
+Run ```bin/method --help``` to get help and see the different
 implementations and options supported by the method.
-
+In the same way help for every ```ssm``` command can be obtained with
+```ssm <command> --help```
 
 ## Inference like playing with duplo blocks
 
-Everything that follows suppose that we are in ```bin/```.
+Everything that follows supposes that we are in ```bin/```.
 
-Let's plot the data
+Let's start by plotting the data
 
 with [R](http://www.r-project.org/):
 
-     data <- read.csv('../data/data.csv', na.strings='null')
+     data <- read.csv('../node_modules/ssm-tutorial-data/data/data.csv', na.strings='null')
      plot(as.Date(data$date), data$cases, type='s')
 
 Let's run a first simulation:
@@ -382,7 +406,7 @@ and replot the results:
      traj <- read.csv('X_0.csv')
      lines(as.Date(traj$date), traj$cases, type='s', col='red')
 
-much better.
+to realize that the fit is now much better.
 
 And now in one line:
 
@@ -444,19 +468,57 @@ The sampled trajectories
 Always validate your results... SSM outputs are fully compatible with
 [CODA](http://cran.r-project.org/web/packages/coda/index.html).
 
+## Piping to the future
+
+S|S|M can also be used to perform predictions.
+
+```ssm predict``` allows to re-create initial conditions adapted to
+the ```simul``` program from the trace and trajectories sampled from
+the posterior distributions obtained after baysian methods
+(```pmcmc```, ```kmcmc```).
+
+
+    $ ssm predict ../package.json X_0.csv trace_0.csv 2012-11-22 | ./simul --start 2012-11-22 --end 2013-12-25 --verbose --hat
+
+
+We can plot the results of this prediction taking care to extend the
+xlim on our first plot. For the prediction we ran ```simul``` with the
+```--hat``` option that will output empirical confidence envelop
+instead of all the projected trajectories (as does ```--traj```).
+
+
+    data <- read.csv('../node_modules/ssm-tutorial-data/data/data.csv', na.strings='null')
+    plot(as.Date(data$date), data$cases, type='s', xlim=c(min(as.Date(data$date)), as.Date('2013-12-25')))
+    
+    traj <- read.csv('X_0.csv') #from the previous run
+    samples <- unique(traj$index)
+    for(i in samples){
+        lines(as.Date(traj$date[traj$index == i]), traj$cases[traj$index == i], type='s', col='red')
+    }
+        
+    hat <- read.csv('hat_0.csv') #from the current run
+    lines(as.Date(hat$date), hat$mean_cases, type='s' , col='blue')
+    lines(as.Date(hat$date), hat$lower_cases, type='s', lty=2, col='blue')
+    lines(as.Date(hat$date), hat$upper_cases, type='s', lty=2, col='blue')
+
+
 ## Inference pipelines
 
 For more advanced cases (like running in parallel a lot of runs, each
 starting from different initial conditions, selecting the best of this
-runs and restarting from that with another algorithm...) inference
-pipelines are here to help:
+runs and restarting from that with another algorithm...) analytics
+pipelines are here to help. Running
 
     $ ssm bootstrap [options]
 
-This will produce a data package (```pipeline.json```). Open it and customize it for your
+Will add an ```analytics``` property to the model datapackage
+containing a powerfull pipeline. Open it and customize it for your
 analysis. When ready just fire:
 
     $ ssm run [options]
+
+to run the analytics pipeline in parallel and adding the results to
+your model datapackage ```resources```.
 
 
 ## Parallel computing
@@ -478,8 +540,8 @@ Let's plot the trajectories
 
 
 Your machine is not enough ? You can use several.  First let's
-transform our ```smc``` into a server that will dispatch some work to
-several workers (living on different machines).
+transform our ```smc``` into a _server_ that will dispatch some work to
+several _workers_ (living on different machines).
 
     $ cat ../package.json | ./smc psr -J 1000 --tcp
 

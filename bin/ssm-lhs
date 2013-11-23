@@ -10,8 +10,9 @@ var program = require('commander')
   , resolvePath = require('../lib/util').resolvePath;
 
 program
+  .usage('[package.json] [options]')
   .option('-o, --output [path]', 'path for lhs.json', resolvePath, path.resolve('results/lhs/lhs.json'))
-  .option('-v, --verbose', 'verbose mode')
+  .option('-q, --quiet', 'silence')
   .option('-f, --force', 'overwrite pre-existing analytics')
   .option('m, --pmin [pmin]', 'lower probability for the quantile function of the prior distribution', parseFloat, 0.05)
   .option('m, --pmax [pmax]', 'upper probability for the quantile function of the prior distribution', parseFloat, 0.95)
@@ -22,7 +23,6 @@ program
 
 var pathDpkg = (program.args[0]) ? resolvePath(program.args[0]): path.resolve('package.json')
   , dpkgRoot = path.dirname(pathDpkg);
-
 
 try {
   var dpkg = JSON.parse(fs.readFileSync(pathDpkg));
@@ -72,7 +72,7 @@ makeLhs(dpkgRoot, dpkg, program, function(err, rlhs){
     fs.writeFile(program.output, JSON.stringify(rlhs, null, 2), function(err){
       if(err){ return fail(err); }
 
-      if(program.verbose){
+      if(!program.quiet){
         console.log('\033[92mSUCCESS\033[0m: boostrapped in %s', program.output);
       }
     });

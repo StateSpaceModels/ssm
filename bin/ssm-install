@@ -12,7 +12,8 @@ var program = require('commander')
   , EventEmitter = require('events').EventEmitter;
 
 program
-  .option('-v, --verbose', 'verbose mode')
+  .usage('[package.json] [options]')
+  .option('-q, --quiet', 'silence')
   .option('-n, --nodeps', 'do not install the dataDependencies')
   .parse(process.argv);
 
@@ -35,7 +36,7 @@ try {
 
 //logging
 var emitter = new EventEmitter();
-if(program.verbose){
+if(!program.quiet){
   emitter.on('log', function(msg){
     console.log(msg);
   });
@@ -62,7 +63,7 @@ npm.load(npm.config, function (err) {
   }
 
   npm.on("log", function (msg) {
-    console.log(msg);
+    emitter.emit('log', msg);
   });
 
   var deps = [];
