@@ -20,6 +20,7 @@ import copy
 import sys
 import os
 import os.path
+import json
 from sympy import diff, Symbol, sympify, simplify
 from sympy.solvers import solve
 from sympy.printing import ccode
@@ -431,7 +432,6 @@ class Cmodel:
 
 
 if __name__=="__main__":
-    import json
 
     dpkgRoot = os.path.join('..' ,'examples', 'foo')
     dpkg = json.load(open(os.path.join(dpkgRoot, 'package.json')))

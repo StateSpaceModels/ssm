@@ -12,6 +12,7 @@ var program = require('commander')
 program
   .option('-o, --output [path]', 'path for lhs.json', resolvePath, path.resolve('results/lhs/lhs.json'))
   .option('-v, --verbose', 'verbose mode')
+  .option('-f, --force', 'overwrite pre-existing analytics')
   .option('m, --pmin [pmin]', 'lower probability for the quantile function of the prior distribution', parseFloat, 0.05)
   .option('m, --pmax [pmax]', 'upper probability for the quantile function of the prior distribution', parseFloat, 0.95)
   .option('n, --samples [samples]', 'number of samples of the random Latin Hyper Square', parseInt, 10)
@@ -49,34 +50,31 @@ function fail(err){
 };
 
 
-fs.exists(program.output, function(exists){
-  if(exists){
-    console.error('\033[91mFAIL\033[0m: ' + program.output + ' already exists');
-    process.exit(1);
-  }
+if (fs.existsSync(program.output) && !program.force){
+  console.error('\033[91mFAIL\033[0m: ' + program.output + ' already exists, run with --force to overwrite');
+  process.exit(1);
+}
 
-  makeLhs(dpkgRoot, dpkg, program, function(err, rlhs){
-    if(err) return fail(err);
+makeLhs(dpkgRoot, dpkg, program, function(err, rlhs){
+  if(err) return fail(err);
 
-    mkdirp(path.dirname(program.output), function(err){
-      if(err)  return fail(err);
-      
-      rlhs = rlhs.map(function(row){
-        var resources = [
-          { name: "values", data: row },
-          covariance,
-        ];
-        return {resources:resources};
-      });
-      
-      fs.writeFile(program.output, JSON.stringify(rlhs, null, 2), function(err){
-        if(err){ return fail(err); }
+  mkdirp(path.dirname(program.output), function(err){
+    if(err)  return fail(err);
+    
+    rlhs = rlhs.map(function(row){
+      var resources = [
+        { name: "values", data: row },
+        covariance,
+      ];
+      return {resources:resources};
+    });
+    
+    fs.writeFile(program.output, JSON.stringify(rlhs, null, 2), function(err){
+      if(err){ return fail(err); }
 
-        if(program.verbose){
-          console.log('\033[92mSUCCESS\033[0m: boostrapped in %s', program.output);
-        }
-      });
-
+      if(program.verbose){
+        console.log('\033[92mSUCCESS\033[0m: boostrapped in %s', program.output);
+      }
     });
 
   });

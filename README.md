@@ -152,7 +152,10 @@ data it explains.
     "data": [
       { 
         "name": "cases", 
-        "data": [ {"resource": "data", "field": "date"}, {"resource": "data", "field": "cases"} ] 
+        "data": [ 
+          {"datapackage": "ssm-tutorial-data", "resource": "data", "field": "date"}, 
+          {"datapackage": "ssm-tutorial-data", "resource": "data", "field": "cases"} 
+        ] 
       }
     ]
 
@@ -161,7 +164,7 @@ time-series. The first link has to be the dates of the timeseries and
 the second one the values.  A link is an object with 3 properties:
 - ```datapackage``` (optional) specifying the name of the datapackage where the resource can be find. It has to be omitted if the the resource is in the same datapackage.
 - ```resource```
-- ```field```
+- ```field``` is necessary only in case of resources containing data in [SDF](http://dataprotocols.org/simple-data-format/).
 
 Note that ```model.data``` itself can be a list so that multiple
 time-series can be handled.
@@ -172,32 +175,47 @@ The same link objects are used to point to the resources that will be
 used as priors or covariate of the model.
 
     $ cat package.json | json model.inputs
-    
+            
     "inputs": [
-      { "name": "r0", "description": "Basic reproduction number", "data": {"resource": "r0"} },
-      { "name": "v", "description": "Recovery rate", "data": {"resource":  "pr_v"}, "transformation": "1/pr_v", "to_resource": "1/v" },
-      { "name": "S", "description": "Number of susceptible", "data": {"resource": "S"} },
-      { "name": "I", "description": "Number of infectious", "data": {"resource": "I"} },
-      { "name": "R", "description": "Number of recovered", "data": {"resource": "R"} },
-      { "name": "rep", "description": "Reporting rate", "data": {"resource": "rep"} }
+      {
+        "name": "r0", 
+        "description": "Basic reproduction number", 
+        "data": { "datapackage": "ssm-tutorial-data", "resource": "r0" } 
+      },
+      { 
+        "name": "v",
+        "description": "Recovery rate",
+        "data": { "datapackage": "ssm-tutorial-data", "resource":  "pr_v" },
+        "transformation": "1/pr_v",
+        "to_resource": "1/v" 
+      },
+      {
+        "name": "S", 
+        "description": "Number of susceptible",
+        "data": { "datapackage": "ssm-tutorial-data", "resource": "S" } 
+      },
+      { 
+        "name": "I",
+        "description": "Number of infectious", 
+        "data": { "datapackage": "ssm-tutorial-data", "resource": "I" } 
+      },
+      { 
+        "name": "R", 
+        "description": "Number of recovered",
+        "data": { "datapackage": "ssm-tutorial-data", "resource": "R" } 
+      },
+      { 
+        "name": "rep",
+        "description": "Reporting rate",
+        "data": { "datapackage": "ssm-tutorial-data", "resource": "rep" } 
+      }
     ]
 
 Note that this linking stage also allow to include some
 _transformations_ so that a relation can be established between your
 model requirement and existing priors or covariates living in other
-datapackages.
-
-For instance
-
-    {
-      "name": "v",
-      "description": "recovery rate",
-      "data": {"resource":  "pr_v"},
-      "transformation": "1/pr_v",
-      "to_resource": "1/v"
-    }
-
-allows to link ```v``` a rate to a prior expressed in duration: ```pr_v```.
+datapackages (for instance ```v``` (a rate) is linkied to a prior
+expressed in duration: ```pr_v```.
 
 
 ### Process Model
@@ -392,6 +410,7 @@ some transiant).
          "format": "json",
          "name": "summary",
          "data": {
+           "id": 0,
            "log_ltp": -186.70579009197556,
            "AICc": 363.94320971360844,
            "n_parameters": 2,

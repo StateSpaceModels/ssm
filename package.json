@@ -47,7 +47,7 @@
     "minimatch": "~0.2.12",
     "mkdirp": "~0.3.5",
     "clone": "~0.1.11",
-    "dpkg-squirrel": "~0.3.1",
+    "dpkg-squirrel": "~0.4.0",
     "lhs": "~0.0.0",
     "rmath.js": "~0.0.0",
     "datapackage": "~0.3.0",
@@ -55,7 +55,8 @@
     "binary-csv": "~0.1.3",
     "tv4": "~1.0.11",
     "underscore": "~1.5.1",
-    "colors": "~0.6.2"
+    "colors": "~0.6.2",
+    "npm": "~1.3.15"
   },
   "devDependencies": {
     "mocha": "~1.14.0"

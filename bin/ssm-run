@@ -9,12 +9,11 @@ var program = require('commander')
   , resolvePath = require('../lib/util').resolvePath;
 
 program  
-  .option('-c, --concurrency <concurrency>', 'run the design locally using an async queue to process independent tasks in parallel (up to the concurrency limit which default to the number of cpus).', parseInt)
+  .option('-c, --concurrency <concurrency>', 'run the analytics pipeline processing independent tasks in parallel (up to the concurrency limit which default to the number of cpus).', parseInt, os.cpus().length)
   .option('-v, --verbose', 'verbose mode')
   .parse(process.argv);
 
-
-var pathDpkg = (program.args[0]) ? resolvePath(program.args[0]): path.resolve('pipeline.json')
+var pathDpkg = (program.args[0]) ? resolvePath(program.args[0]): path.resolve('package.json');
 try {
   var dpkg = JSON.parse(fs.readFileSync(pathDpkg));
 } catch (e) {
@@ -24,6 +23,7 @@ try {
 var dpkgRoot = path.dirname(pathDpkg);
 
 function fail(err){
+  throw err;
   console.error('\033[91mFAIL\033[0m: ' + err.message);
   process.exit(1);
 };
@@ -31,12 +31,10 @@ function fail(err){
 var reDpkgRoot = new RegExp(dpkgRoot, 'g');
 
 //make tasks
-var concurrency = (!program.concurrency) ? os.cpus().length : program.concurrency;
-
-var squirrel = new Squirrel(dpkg, {concurrency: concurrency, root: dpkgRoot});
+var squirrel = new Squirrel(dpkg, {concurrency: program.concurrency, root: dpkgRoot});
 
 if(program.verbose){
-  console.log('starting an async queue (concurrency: %d)...', concurrency);
+  console.log('starting an async queue (concurrency: %d)...', program.concurrency);
   squirrel.on('stage', function(msg){console.log('\033[94mINFO\033[0m: %s', msg)});
   squirrel.on('step', function(msg){
     msg = msg.replace(reDpkgRoot, '$ROOT'); //shorten output
@@ -47,9 +45,9 @@ if(program.verbose){
 squirrel.on('error', function(msg){console.error('\033[91mFAIL\033[0m: ' + err.message);});
 
 squirrel.start(function(err, newDpkg){
-  if(err){ return fail(err); }
+  if(err) return fail(err);
   fs.writeFile(pathDpkg, JSON.stringify(newDpkg, null, 2), function(err){
-    if(err){ return fail(err); }
+    if(err) return fail(err);
     if(program.verbose){
       console.log('\033[92mSUCCESS\033[0m: Pipeline completed, %s has been appended.', pathDpkg);
     }

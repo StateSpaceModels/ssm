@@ -5,12 +5,15 @@ var program = require('commander')
   , path = require('path')
   , spawn = require('child_process').spawn
   , resolvePath = require('../lib/util').resolvePath
-  , install = require('../lib/install')
+  , installModel = require('../lib/install')
   , validate = require('../lib/validate')
+  , colors = require('colors')
+  , npm = require("npm")
   , EventEmitter = require('events').EventEmitter;
 
 program
   .option('-v, --verbose', 'verbose mode')
+  .option('-n, --nodeps', 'do not install the dataDependencies')
   .parse(process.argv);
 
 var pathDpkg = (program.args[0]) ? resolvePath(program.args[0]): path.resolve('package.json')
@@ -50,11 +53,52 @@ emitter.on('errorEol', function(msg){
   process.stderr.write('\033[91mFAIL\033[0m: ' + msg);
 });
 
-emitter.emit('log', 'Building the model locally...');
 
-install(dpkgRoot, dpkg, path.join(dpkgRoot, 'bin'), emitter, function(err){
-  if(err){
+//install dataDependencies
+npm.load(npm.config, function (err) {
+  if(err) {
     console.error('\033[91mFAIL\033[0m: ' + err.message);
     process.exit(1);
   }
+
+  npm.on("log", function (msg) {
+    console.log(msg);
+  });
+
+  var deps = [];
+  if(('dataDependencies' in dpkg) && !program.nodeps){
+    for(var key in dpkg.dataDependencies){
+      deps.push(key+'@'+dpkg.dataDependencies[key]);
+    }
+
+    emitter.emit('log', 'INFO:'.blue + ' Installing data dependencies...');
+    npm.commands.install(deps, function (err, data) {
+      if(err) {
+        console.error('\033[91mFAIL\033[0m: ' + err.message);
+        process.exit(1);
+      }
+
+      emitter.emit('log', 'Building the model...');
+      installModel(dpkgRoot, dpkg, path.join(dpkgRoot, 'bin'), emitter, function(err){
+        if(err){
+          console.error('\033[91mFAIL\033[0m: ' + err.message);
+          process.exit(1);
+        }
+      });
+
+    });
+  } else {
+
+    emitter.emit('log', 'INFO:'.blue + ' Building the model...');
+    installModel(dpkgRoot, dpkg, path.join(dpkgRoot, 'bin'), emitter, function(err){
+      if(err){
+        console.error('\033[91mFAIL\033[0m: ' + err.message);
+        process.exit(1);
+      }
+    });
+
+  }
+
 });
+
+

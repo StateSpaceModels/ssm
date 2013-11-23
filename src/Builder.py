@@ -135,9 +135,9 @@ class Builder(Data, Ccoder):
 if __name__=="__main__":
 
 
-    dpkgRoot = os.path.join('..' ,'examples', 'foo')
+    dpkgRoot = os.path.join('..' ,'examples', 'sir')
     dpkg = json.load(open(os.path.join(dpkgRoot, 'package.json')))
-    b = Builder(os.path.join('..' ,'examples', 'foo', 'bin'), dpkgRoot, dpkg)
+    b = Builder(os.path.join(dpkgRoot, 'bin'), dpkgRoot, dpkg)
 
     b.prepare()
     b.code()

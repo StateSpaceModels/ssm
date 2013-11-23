@@ -5,11 +5,11 @@ var program = require('commander')
   , path = require('path')
   , util = require('util')
   , links = require('../lib/links')
-  , mkdirp = require('mkdirp')
   , resolvePath = require('../lib/util').resolvePath;
 
 program
   .option('-v, --verbose', 'verbose mode')
+  .option('-f, --force', 'overwrite pre-existing analytics')
   .parse(process.argv);
 
 //patch Math.random to use a seed
@@ -59,115 +59,99 @@ links.resolve(dpkgRoot, dpkg, dpkg.model.data, function(err, data){
   //convert to ISO8601 date (so in UTC (JS date are in local time))
   start = start.toISOString().split('T')[0];
   end = end.toISOString().split('T')[0];
-
       
-  var dep = {};
-  dep[dpkg.name] = dpkg.version;
+  var analytics = [
+    {
+      name: 'random-lhs',
+      run: [
+        {
+          command: 'ssm lhs $IN.dpkg -o $OUT.out', timeout: '00:01:00',
+          inputs: [ { path: 'package.json', name: 'dpkg' } ],
+          outputs: [ { path: 'results/lhs/lhs.json', save: { resource: 'lhs' }, name: 'out' } ]
+        }
+      ]
+    },
 
-  var d = {
-    name: 'lhs',
-    version: '0.0.0',
-    'private': true,
-    dataDependencies: dep,
-    pipeline: [
+    {
+      name: 'lhs-simplex',
+      map: [
+        {
+          command: './simplex', args: ['--root', '$ROOT/results/lhs_simplex' , '-M', 10000, '--next', 'mle_', '--id', '$ID', '--prior'], cwd: 'bin', timeout: '00:01:00',
+          inputs: [ { resource: 'lhs', collection: true, stdin: true } ],
+          outputs: [ { path: 'results/lhs_simplex/mle_*.json' } ]
+        },
+        {
+          repeat: 3,
+          command: './simplex', args: ['--root', '$ROOT/results/lhs_simplex' , '-M', 10000, '--next', 'mle_', '--id', '$ID', '--prior'], cwd: 'bin', timeout: '00:01:00',
+          inputs: [ { path: 'results/lhs_simplex/mle_*.json', stdin: true } ],
+          outputs: [ { path: 'results/lhs_simplex/mle_*.json' } ]
+        }
+      ],
+      reduce: [
+        {
+          command: 'ssm reduce $ROOT/results/lhs_simplex --by log_ltp --summary $OUT.out', timeout: '00:01:00',
+          inputs: [ { path: 'results/lhs_simplex/mle_*.json' } ],
+          outputs: [ { path: 'results/lhs_simplex/start_pmcmc.json', save: { resource: 'start_pmcmc' }, name: 'out' } ]
+        }
+      ]
+    },
 
-      {
-        name: 'random-lhs',
-        run: [
-          {
-            command: 'ssm lhs $IN.dpkg -o $OUT.out', timeout: '00:01:00',
-            inputs: [ { path: 'package.json', name: 'dpkg' } ],
-            outputs: [ { path: 'results/lhs/lhs.json', save: { resource: 'lhs' }, name: 'out' } ]
-          }
-        ]
-      },
+    {
+      name: 'pmcmc',
+      map: [
+        {
+          command: './pmcmc', 
+          args: ['--root', '$ROOT/results/pmcmc' , '-M', 100000, '--next', 'map_', '--id', '$ID', '--trace', '--traj'], cwd: 'bin', timeout: '01:00:00',
+          inputs: [ { resource: 'start_pmcmc', replicate: 2, stdin: true } ],
+          outputs: [
+            { path: 'results/pmcmc/map_*.json', save: { resource: 'pmcmc_map_*' } },
+            { path: 'results/pmcmc/trace_*.csv' },
+            { path: 'results/pmcmc/X_*.csv' }
+          ]
+        }
+      ],
+      reduce: [
+        {
+          command: 'ssm reduce $ROOT/results/pmcmc --by DIC --trace $OUT.trace --traj $OUT.traj --summary $OUT.map', timeout: '01:00:00',
+          inputs: [ { resource: 'pmcmc_map_*' } ],
+          outputs: [
+            { path: 'results/pmcmc/trace.csv', save: { resource: 'pmcmc_trace' }, name: 'trace' },
+            { path: 'results/pmcmc/X.csv', save: { resource: 'pmcmc_traj' }, name: 'traj' },
+            { path: 'results/pmcmc/map.json', save: { resource: 'pmcmc_map' }, name: 'map' }
+          ]
+        }
+      ]
+    },
 
-      {
-        name: 'lhs-simplex',
-        map: [
-          {
-            command: './simplex', args: ['--root', '$ROOT/results/lhs_simplex' , '-M', 10000, '--next', 'mle_', '--id', '$ID', '--prior'], cwd: 'bin', timeout: '00:01:00',
-            inputs: [ { resource: 'lhs', collection: true, stdin: true } ],
-            outputs: [ { path: 'results/lhs_simplex/mle_*.json' } ]
-          },
-          {
-            repeat: 3,
-            command: './simplex', args: ['--root', '$ROOT/results/lhs_simplex' , '-M', 10000, '--next', 'mle_', '--id', '$ID', '--prior'], cwd: 'bin', timeout: '00:01:00',
-            inputs: [ { path: 'results/lhs_simplex/mle_*.json', stdin: true } ],
-            outputs: [ { path: 'results/lhs_simplex/mle_*.json' } ]
-          }
-        ],
-        reduce: [
-          {
-            command: 'ssm reduce $ROOT/results/lhs_simplex --by log_ltp --summary $OUT.out', timeout: '00:01:00',
-            inputs: [ { path: 'results/lhs_simplex/mle_*.json' } ],
-            outputs: [ { path: 'results/lhs_simplex/start_pmcmc.json', save: { resource: 'start_pmcmc' }, name: 'out' } ]
-          }
-        ]
-      },
-
-      {
-        name: 'pmcmc',
-        map: [
-          {
-            command: './pmcmc', 
-            args: ['--root', '$ROOT/results/pmcmc' , '-M', 100000, '--next', 'map_', '--id', '$ID', '--trace', '--traj'], cwd: 'bin', timeout: '01:00:00',
-            inputs: [ { resource: 'start_pmcmc', replicate: 2, stdin: true } ],
-            outputs: [
-              { path: 'results/pmcmc/map_*.json', save: { resource: 'pmcmc_map_*' } },
-              { path: 'results/pmcmc/trace_*.csv' },
-              { path: 'results/pmcmc/X_*.csv' }
-            ]
-          }
-        ],
-        reduce: [
-          {
-            command: 'ssm reduce $ROOT/results/pmcmc --by DIC --trace $OUT.trace --traj $OUT.traj --summary $OUT.map', timeout: '01:00:00',
-            inputs: [ { resource: 'pmcmc_map_*' } ],
-            outputs: [
-              { path: 'results/pmcmc/trace.csv', save: { resource: 'pmcmc_trace' }, name: 'trace' },
-              { path: 'results/pmcmc/X.csv', save: { resource: 'pmcmc_traj' }, name: 'traj' },
-              { path: 'results/pmcmc/map.json', save: { resource: 'pmcmc_map' }, name: 'map' }
-            ]
-          }
-        ]
-      },
-
-      {
-        name: 'predict',
-        run: [
-          {
-            command: util.format('ssm predict $IN.dpkg $IN.traj $IN.trace %s | ./simul --root $ROOT/results/predict --traj --start %s --end %s', start, start, end), timeout: '00:00:00', cwd: 'bin',
-            inputs: [ 
-              { path: 'package.json', name: 'dpkg' },
-              { resource: 'pmcmc_traj', name: 'traj' }, 
-              { resource: 'pmcmc_trace', name: 'trace' }
-            ],
-            outputs: [ { path: 'results/predict/X_0.csv', save: { resource: 'predict' } } ]
-          }
-        ]
-      }
-
-    ]
-  };
-
-  
-  var pipelinejson = path.join(dpkgRoot, 'pipeline.json');
-  fs.exists(pipelinejson, function(exists){
-    if(exists){
-      console.error('\033[91mFAIL\033[0m: ' + pipelinejson + ' already exists');
-      process.exit(1);
+    {
+      name: 'predict',
+      run: [
+        {
+          command: util.format('ssm predict $IN.dpkg $IN.traj $IN.trace %s | ./simul --root $ROOT/results/predict --traj --start %s --end %s', start, start, end), cwd: 'bin', timeout: '00:00:00',
+          inputs: [ 
+            { path: 'package.json', name: 'dpkg' },
+            { resource: 'pmcmc_traj', name: 'traj' }, 
+            { resource: 'pmcmc_trace', name: 'trace' }
+          ],
+          outputs: [ { path: 'results/predict/X_0.csv', save: { resource: 'predict' } } ]
+        }
+      ]
     }
 
-    mkdirp(path.dirname(pipelinejson), function(err){
-      if(err) return fail(err);    
-      fs.writeFile(pipelinejson, JSON.stringify(d, null, 2), function(err){
-        if(err) return fail(err);
-        if(program.verbose){
-          console.log('\033[92mSUCCESS\033[0m: boostrapped in %s', pipelinejson);
-        }
-      });
-    });
+  ];
+  
+  if( ('analytics' in dpkg) && !program.force){
+    console.error('\033[91mFAIL\033[0m: analytics already exists in package.json run with --force to overwrite');
+    process.exit(1);
+  } else {
+    dpkg.analytics = analytics;
+  }
+
+  fs.writeFile(pathDpkg, JSON.stringify(dpkg, null, 2), function(err){
+    if(err) return fail(err);
+    if(program.verbose){
+      console.log('\033[92mSUCCESS\033[0m: analytics has been added to %s', pathDpkg);
+    }
   });
 
 });
