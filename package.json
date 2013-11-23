@@ -8,6 +8,7 @@
     "ssm-run": "bin/ssm-run",
     "ssm-bootstrap": "bin/ssm-bootstrap",
     "ssm-predict": "bin/ssm-predict",
+    "ssm-reduce": "bin/ssm-reduce",
     "ssm-lhs": "bin/ssm-lhs"
   },
   "repository": {
@@ -33,7 +34,11 @@
     "Statistics"
   ],
   "author": "Sebastien Ballesteros",
-  "contributors": [{ "name": "Joseph Dureau" }],
+  "contributors": [
+    {
+      "name": "Joseph Dureau"
+    }
+  ],
   "license": "GPLv3",
   "dependencies": {
     "commander": "~2.0.0",
@@ -49,7 +54,8 @@
     "seed-random": "~2.2.0",
     "binary-csv": "~0.1.3",
     "tv4": "~1.0.11",
-    "underscore": "~1.5.1"
+    "underscore": "~1.5.1",
+    "colors": "~0.6.2"
   },
   "devDependencies": {
     "mocha": "~1.14.0"

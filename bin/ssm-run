@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 var program = require('commander')
+  , colors = require('colors')
   , os = require('os')
   , fs = require('fs')
   , path = require('path')
@@ -23,23 +24,31 @@ if (!program.args[0]) {
 var dpkg = JSON.parse(fs.readFileSync(path.normalize(program.args[0])));
 var dpkgRoot = path.dirname(program.args[0]);
 
-
 function fail(err){
   console.error('\033[91mFAIL\033[0m: ' + err.message);
+  throw err;
   process.exit(1);  
 };
 
+var reDpkgRoot = new RegExp(dpkgRoot);
 
 //make tasks
 var concurrency = (!program.concurrency) ? os.cpus().length : program.concurrency;
 
 var squirrel = new Squirrel(dpkg, {concurrency: concurrency, root: dpkgRoot});
 
+
+
 if(program.verbose){
   console.log('starting an async queue (concurrency: %d)...', concurrency);
-  squirrel.on('step', function(msg){console.log('\033[94mINFO\033[0m: pipeline step completed (%s)', msg)});
+  squirrel.on('stage', function(msg){console.log('\033[94mINFO\033[0m: %s', msg)});
+  squirrel.on('step', function(msg){
+    msg = msg.replace(reDpkgRoot, '$ROOT', 'g'); //shorten output
+    console.log('%s'.grey, msg);
+  });
   squirrel.on('wrn', function(msg){console.log('\033[93mWARNING\033[0m: (%s)', msg)});
 }
+squirrel.on('error', function(msg){console.error('\033[91mFAIL\033[0m: ' + err.message);});
 
 squirrel.start(function(err, dpkg){
   if(err){ return fail(err); }

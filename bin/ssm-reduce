@@ -30,8 +30,8 @@ bestDpkg(root, program, function(err, dpkg, dpkgPath){
     process.exit(1);
   }
 
-  var id = dpkg.resources.filter(function(x){return x.name === 'summary';})[0].id;
-  
+  var id = dpkg.resources.filter(function(x){return x.name === 'summary';})[0].data.id;
+   
   if(program.summary){
     try{
       fs.renameSync(dpkgPath, program.summary);
@@ -52,7 +52,7 @@ bestDpkg(root, program, function(err, dpkg, dpkgPath){
 
   if(program.traj){
     try{
-      fs.renameSync(path.join(root, 'traj_' + id +'.csv'), program.traj);
+      fs.renameSync(path.join(root, 'X_' + id +'.csv'), program.traj);
     } catch (e){
       console.error('\033[91mFAIL\033[0m: ' + e.message);
     }
