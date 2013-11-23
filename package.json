@@ -1,6 +1,6 @@
 {
   "name": "ssm",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Command line interface for S|S|M",
   "bin": {
     "ssm": "bin/ssm",

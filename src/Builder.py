@@ -137,7 +137,7 @@ if __name__=="__main__":
 
     dpkgRoot = os.path.join('..' ,'examples', 'foo')
     dpkg = json.load(open(os.path.join(dpkgRoot, 'package.json')))
-    b = Builder(os.path.join('..' ,'examples', 'foo', 'ssm_model'), dpkgRoot, dpkg)
+    b = Builder(os.path.join('..' ,'examples', 'foo', 'bin'), dpkgRoot, dpkg)
 
     b.prepare()
     b.code()

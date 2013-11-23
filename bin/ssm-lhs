@@ -10,7 +10,7 @@ var program = require('commander')
   , resolvePath = require('../lib/util').resolvePath;
 
 program
-  .option('-o, --output [path]', 'path for lhs.json', resolvePath, path.resolve('lhs.json'))
+  .option('-o, --output [path]', 'path for lhs.json', resolvePath, path.resolve('results/lhs/lhs.json'))
   .option('-v, --verbose', 'verbose mode')
   .option('m, --pmin [pmin]', 'lower probability for the quantile function of the prior distribution', parseFloat, 0.05)
   .option('m, --pmax [pmax]', 'upper probability for the quantile function of the prior distribution', parseFloat, 0.95)
@@ -19,20 +19,12 @@ program
   .option('s, --seed [seed]', 'a string to seed the random number generator')
   .parse(process.argv);
 
-//patch Math.random to use a seed
-if(program.seed){
-  seed(program.seed, {global: true});
-}
+var pathDpkg = (program.args[0]) ? resolvePath(program.args[0]): path.resolve('package.json')
+  , dpkgRoot = path.dirname(pathDpkg);
 
-if(!program.args[0]) {
-  console.error('\033[91mFAIL\033[0m: Invalid usage, ssm bootstrap <package.json>');
-  process.exit(1);
-} else { //resolve ~ (if any)
-  program.args[0] = resolvePath(program.args[0]);
-}
 
 try {
-  var dpkg = JSON.parse(fs.readFileSync(program.args[0]));
+  var dpkg = JSON.parse(fs.readFileSync(pathDpkg));
 } catch (e){
   emitter.emit('error', e.message);
   process.exit(1);  
@@ -46,31 +38,45 @@ if(!covariance){
   process.exit(1);  
 }
 
+//patch Math.random to use a seed
+if(program.seed){
+  seed(program.seed, {global: true});
+}
+
 function fail(err){
   console.error('\033[91mFAIL\033[0m: ' + err.message);
   process.exit(1);  
 };
 
-makeLhs(dpkgRoot, dpkg, program, function(err, rlhs){
-  if(err) console.log(err);
 
-  mkdirp(path.dirname(program.output), function(err){
-    if(err){ return fail(err); }
-    
-    rlhs = rlhs.map(function(row){
-      var resources = [
-        { name: "values", data: row },
-        covariance,
-      ];
-      return {resources:resources};
-    });
-    
-    fs.writeFile(program.output, JSON.stringify(rlhs, null, 2), function(err){
-      if(err){ return fail(err); }
+fs.exists(program.output, function(exists){
+  if(exists){
+    console.error('\033[91mFAIL\033[0m: ' + program.output + ' already exists');
+    process.exit(1);
+  }
 
-      if(program.verbose){
-        console.log('\033[92mSUCCESS\033[0m: boostrapped in %s', program.output);
-      }
+  makeLhs(dpkgRoot, dpkg, program, function(err, rlhs){
+    if(err) return fail(err);
+
+    mkdirp(path.dirname(program.output), function(err){
+      if(err)  return fail(err);
+      
+      rlhs = rlhs.map(function(row){
+        var resources = [
+          { name: "values", data: row },
+          covariance,
+        ];
+        return {resources:resources};
+      });
+      
+      fs.writeFile(program.output, JSON.stringify(rlhs, null, 2), function(err){
+        if(err){ return fail(err); }
+
+        if(program.verbose){
+          console.log('\033[92mSUCCESS\033[0m: boostrapped in %s', program.output);
+        }
+      });
+
     });
 
   });

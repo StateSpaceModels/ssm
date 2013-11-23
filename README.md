@@ -284,9 +284,11 @@ containing the model.
 
 ## Installing a model from a data package
 
-    $ ssm install package.json [options]
+At the root of a directory with a datapacakge (package.json) run
 
-This will build several inference and simulation methods
+    $ ssm install [options]
+
+This will build (in ```bin/``) several inference and simulation methods
 ([MIF](http://www.pnas.org/content/103/49/18438),
 [pMCMC](http://onlinelibrary.wiley.com/doi/10.1111/j.1467-9868.2009.00736.x/abstract),
 [simplex](http://en.wikipedia.org/wiki/Nelder%E2%80%93Mead_method),
@@ -306,6 +308,8 @@ implementations and options supported by the method.
 
 
 ## Inference like playing with duplo blocks
+
+Everything that follows suppose that we are in ```bin/```.
 
 Let's plot the data
 
@@ -418,9 +422,8 @@ The sampled trajectories
 
 ## Be cautious
 
-Always validate your results blah blah blah... Package like
-[CODA](http://cran.r-project.org/web/packages/coda/index.html) are
-here to help.
+Always validate your results... SSM outputs are fully compatible with
+[CODA](http://cran.r-project.org/web/packages/coda/index.html).
 
 ## Inference pipelines
 
@@ -429,12 +432,12 @@ starting from different initial conditions, selecting the best of this
 runs and restarting from that with another algorithm...) inference
 pipelines are here to help:
 
-    $ ssm bootstrap package.json [options]
+    $ ssm bootstrap [options]
 
-This will produce a data package (```ssm_model/package.json```). Open it and customize it for your
+This will produce a data package (```pipeline.json```). Open it and customize it for your
 analysis. When ready just fire:
 
-    $ ssm run ssm_model/package.json [options]
+    $ ssm run [options]
 
 
 ## Parallel computing

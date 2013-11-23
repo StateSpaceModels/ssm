@@ -21,12 +21,12 @@ class TestNoiseResults(unittest.TestCase):
             
       def setUp(self):
       # Things that need to be done before tests
-            os.chdir(Root + '/ssm_model')
+            os.chdir(Root + '/bin')
 
       @classmethod
       def tearDownClass(cls):
-            #os.chdir(Root + '/ssm_model')
-            shutil.rmtree(Root + '/ssm_model')
+            #os.chdir(Root + '/bin')
+            shutil.rmtree(Root + '/bin')
 
       def test_ode(self):
             os.system('./simplex -M 10000 < ../../examples/noise/package.json | ./simplex -M 10000 | ./simplex -M 100000 > theta.json')
@@ -75,11 +75,11 @@ class TestTransfsAndPMCMC(unittest.TestCase):
             os.chdir(Root)
             os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
 
-            os.chdir(Root + '/ssm_model')            
+            os.chdir(Root + '/bin')            
             os.system('./pmcmc ode  -C 5000 -W 5000 -O 0 -M 20000 -c -a < ' + Root + '/../examples/noise_test/package.json')
             
             test = self.call_test_unif('r0_paris')
-            shutil.rmtree(Root + '/ssm_model')
+            shutil.rmtree(Root + '/bin')
             shutil.rmtree(Root + '/../examples/noise_test')
 
             self.assertEqual(test,'1')
@@ -108,11 +108,11 @@ class TestTransfsAndPMCMC(unittest.TestCase):
             os.chdir(Root)
             os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
 
-            os.chdir(Root + '/ssm_model')            
+            os.chdir(Root + '/bin')            
             os.system('./pmcmc ode  -C 5000 -W 5000 -O 0 -M 20000 -c -a < '+ Root + '/../examples/noise_test/package.json')
 
             test = self.call_test_normal('r0_paris')
-            shutil.rmtree(Root + '/ssm_model')
+            shutil.rmtree(Root + '/bin')
             shutil.rmtree(Root + '/../examples/noise_test')
 
             self.assertEqual(test,'1')
@@ -146,13 +146,13 @@ class TestTransfsAndPMCMC(unittest.TestCase):
             os.chdir(Root)
             os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
 
-            os.chdir(Root + '/ssm_model')            
+            os.chdir(Root + '/bin')            
             
             os.system('./pmcmc ode  -C 1000 -W 100000 -O 0 -M 100000 -c -a < ' + Root + '/../examples/noise_test/package.json')
 
             test1 = self.call_test_normal('r0_paris')
             test2 = self.call_test_unif('r0_nyc')
-            shutil.rmtree(Root + '/ssm_model')
+            shutil.rmtree(Root + '/bin')
             shutil.rmtree(Root + '/../examples/noise_test')
 
             self.assertEqual(int(test1)*int(test2),1)
@@ -180,12 +180,12 @@ class TestTransfsAndPMCMC(unittest.TestCase):
             os.chdir(Root)
             os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
 
-            os.chdir(Root + '/ssm_model')            
+            os.chdir(Root + '/bin')            
             
             os.system('./pmcmc ode  -C 5000 -W 5000 -O 0 -M 20000 -c -a < ' + Root + '/../examples/noise_test/package.json')
 
             test = self.call_test_normal('r0_paris')
-            shutil.rmtree(Root + '/ssm_model')
+            shutil.rmtree(Root + '/bin')
             shutil.rmtree(Root + '/../examples/noise_test')
 
             self.assertEqual(test,'1') 
@@ -212,27 +212,27 @@ class TestTransfsAndPMCMC(unittest.TestCase):
 
             os.chdir(Root)
             os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
-            os.chdir(Root + '/ssm_model')
+            os.chdir(Root + '/bin')
             
             os.system('./pmcmc ode  -C 5000 -W 5000 -O 0 -M 20000 -c -a < ' + Root + '/../examples/noise_test/package.json')
 
             test = self.call_test_normal('r0_paris')
-            shutil.rmtree(Root + '/ssm_model')
+            shutil.rmtree(Root + '/bin')
             shutil.rmtree(Root + '/../examples/noise_test')
 
             self.assertEqual(test,'1') 
 
       def call_test_unif(self, varname):
-            shutil.copyfile(Root+'/TestsR/test_unif.r',Root + '/ssm_model/test_unif.r')
-            os.chdir(Root + '/ssm_model')
+            shutil.copyfile(Root+'/TestsR/test_unif.r',Root + '/bin/test_unif.r')
+            os.chdir(Root + '/bin')
             os.system('R --vanilla < test_unif.r ' + varname  + '> /dev/null 2>&1')
             f = open("outfile.txt","r")
             x = f.readlines()
             return x[0]
 
       def call_test_normal(self,varname):
-            shutil.copyfile(Root+'/TestsR/test_normal.r',Root + '/ssm_model/test_normal.r')
-            os.chdir(Root + '/ssm_model')
+            shutil.copyfile(Root+'/TestsR/test_normal.r',Root + '/bin/test_normal.r')
+            os.chdir(Root + '/bin')
             os.system('R --vanilla < test_normal.r ' + varname  + '> /dev/null 2>&1')
             f = open("outfile.txt","r")
             x = f.readlines()
@@ -279,16 +279,16 @@ class TestKalmanOnDiffusions(unittest.TestCase):
             os.chdir(Root)
             os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
             
-            os.chdir(Root + '/ssm_model')
+            os.chdir(Root + '/bin')
             
       
       def setUp(self):
       # Things that need to be done before tests
-            os.chdir(Root + '/ssm_model')
+            os.chdir(Root + '/bin')
 
       @classmethod
       def tearDownClass(cls):
-            os.chdir(Root + '/ssm_model/')
+            os.chdir(Root + '/bin/')
             shutil.rmtree(Root + '/../examples/noise_test')
             
       def test_1step(self):
@@ -445,15 +445,15 @@ class TestSMCSDEagainstKalman(unittest.TestCase):
 
             os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
 
-            os.chdir(Root + '/ssm_model')
+            os.chdir(Root + '/bin')
 
       def setUp(self):
       # Things that need to be done before tests
-            os.chdir(Root + '/ssm_model')
+            os.chdir(Root + '/bin')
 
       @classmethod
       def tearDownClass(cls):
-            os.chdir(Root + '/ssm_model/')
+            os.chdir(Root + '/bin/')
             shutil.rmtree(Root + '/../examples/noise_test')
                         
       def test_only_env_sto(self):
@@ -626,11 +626,11 @@ class TestpMCMCsmoothing(unittest.TestCase):
             os.chdir(Root)
             os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
 
-            os.chdir(Root + '/ssm_model')
+            os.chdir(Root + '/bin')
             
       def setUp(self):
       # Things that need to be done before tests            
-            os.chdir(Root + '/ssm_model')
+            os.chdir(Root + '/bin')
 
       @classmethod
       def tearDownClass(cls):
@@ -869,16 +869,16 @@ class TestpMCMCsmoothingWithNaNs(unittest.TestCase):
             os.chdir(Root)
             os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
 
-            os.chdir(Root + '/ssm_model')
+            os.chdir(Root + '/bin')
 
 
       def setUp(self):
             # Things that need to be done before tests            
-            os.chdir(Root + '/ssm_model')
+            os.chdir(Root + '/bin')
 
       @classmethod
       def tearDownClass(cls):
-            os.chdir(Root + '/ssm_model')
+            os.chdir(Root + '/bin')
             #            shutil.rmtree(Root + '/../examples/noise_test')
 
       def test_particle_genealogy(self):

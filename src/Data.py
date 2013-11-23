@@ -162,7 +162,7 @@ if __name__=="__main__":
 
     dpkgRoot = os.path.join('..' ,'examples', 'foo')
     dpkg = json.load(open(os.path.join(dpkgRoot, 'package.json')))
-    d = Data(os.path.join('..' ,'examples', 'foo', 'ssm_model'), dpkgRoot, dpkg)
+    d = Data(os.path.join('..' ,'examples', 'foo', 'bin'), dpkgRoot, dpkg)
     print d.prepare_covariates()
     print d.prepare_data()[29]
     

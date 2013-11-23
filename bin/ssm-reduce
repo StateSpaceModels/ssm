@@ -28,6 +28,10 @@ if(['DIC', 'AICc', 'AIC', 'log_ltp', 'log_likelihood', 'sum_squares'].indexOf(pr
 var root = resolvePath(program.args[0]);
 
 function copyFile(source, target, callback) {
+  if(path.resolve(source) === path.resolve(target)){
+    return callback(null);
+  }
+
   var hasCallbacked = false;
 
   function done(err) {

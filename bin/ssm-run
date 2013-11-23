@@ -13,50 +13,45 @@ program
   .option('-v, --verbose', 'verbose mode')
   .parse(process.argv);
 
-if (!program.args[0]) {
-  console.error('\033[91mFAIL\033[0m: Invalid usage, ssm run <datapackage.json>');
+
+var pathDpkg = (program.args[0]) ? resolvePath(program.args[0]): path.resolve('pipeline.json')
+try {
+  var dpkg = JSON.parse(fs.readFileSync(pathDpkg));
+} catch (e) {
+  console.error('\033[91mFAIL\033[0m: ' + e.message);
   process.exit(1);
-} else { //resolve ~ (if any)
-  program.args[0] = resolvePath(program.args[0]);
 }
-
-
-var dpkg = JSON.parse(fs.readFileSync(path.normalize(program.args[0])));
-var dpkgRoot = path.dirname(program.args[0]);
+var dpkgRoot = path.dirname(pathDpkg);
 
 function fail(err){
   console.error('\033[91mFAIL\033[0m: ' + err.message);
   process.exit(1);
 };
 
-var reDpkgRoot = new RegExp(dpkgRoot);
+var reDpkgRoot = new RegExp(dpkgRoot, 'g');
 
 //make tasks
 var concurrency = (!program.concurrency) ? os.cpus().length : program.concurrency;
 
 var squirrel = new Squirrel(dpkg, {concurrency: concurrency, root: dpkgRoot});
 
-
-
 if(program.verbose){
   console.log('starting an async queue (concurrency: %d)...', concurrency);
   squirrel.on('stage', function(msg){console.log('\033[94mINFO\033[0m: %s', msg)});
   squirrel.on('step', function(msg){
-    msg = msg.replace(reDpkgRoot, '$ROOT', 'g'); //shorten output
+    msg = msg.replace(reDpkgRoot, '$ROOT'); //shorten output
     console.log('%s'.grey, msg);
   });
   squirrel.on('wrn', function(msg){console.log('\033[93mWARNING\033[0m: (%s)', msg)});
 }
 squirrel.on('error', function(msg){console.error('\033[91mFAIL\033[0m: ' + err.message);});
 
-squirrel.start(function(err, dpkg){
+squirrel.start(function(err, newDpkg){
   if(err){ return fail(err); }
-
-  fs.writeFile(path.join(dpkgRoot, 'package.json'), JSON.stringify(dpkg, null, 2), function(err){
+  fs.writeFile(pathDpkg, JSON.stringify(newDpkg, null, 2), function(err){
     if(err){ return fail(err); }
-
     if(program.verbose){
-      console.log('\033[92mSUCCESS\033[0m: Pipeline completed, %s has been appended.', path.join(dpkgRoot, 'package.json'));
+      console.log('\033[92mSUCCESS\033[0m: Pipeline completed, %s has been appended.', pathDpkg);
     }
   });
 });

@@ -9,7 +9,6 @@ var program = require('commander')
   , resolvePath = require('../lib/util').resolvePath;
 
 program
-  .option('-o, --output [path]', 'path to the datapackage container', resolvePath, path.resolve('ssm_model'))
   .option('-v, --verbose', 'verbose mode')
   .parse(process.argv);
 
@@ -18,21 +17,15 @@ if(program.seed){
   seed(program.seed, {global: true});
 }
 
-if(!program.args[0]) {
-  console.error('\033[91mFAIL\033[0m: Invalid usage, ssm bootstrap <package.json>');
-  process.exit(1);
-} else { //resolve ~ (if any)
-  program.args[0] = resolvePath(program.args[0]);
-}
+var pathDpkg = (program.args[0]) ? resolvePath(program.args[0]): path.resolve('package.json')
+  , dpkgRoot = path.dirname(pathDpkg);
 
 try {
-  var dpkg = JSON.parse(fs.readFileSync(program.args[0]));
+  var dpkg = JSON.parse(fs.readFileSync(pathDpkg));
 } catch (e){
   emitter.emit('error', e.message);
   process.exit(1);  
 }
-
-var dpkgRoot = path.dirname(program.args[0]);
 
 var covariance = dpkg.resources.filter(function(x){return x.name === 'covariance'})[0];
 if(!covariance){
@@ -83,8 +76,8 @@ links.resolve(dpkgRoot, dpkg, dpkg.model.data, function(err, data){
         run: [
           {
             command: 'ssm lhs $IN.dpkg -o $OUT.out', timeout: '00:01:00',
-            inputs: [ { path: path.join('node_modules', dpkg.name, 'package.json'), name: 'dpkg' } ],
-            outputs: [ { path: 'data/lhs.json', save: { resource: 'lhs' }, name: 'out' } ]
+            inputs: [ { path: 'package.json', name: 'dpkg' } ],
+            outputs: [ { path: 'results/lhs/lhs.json', save: { resource: 'lhs' }, name: 'out' } ]
           }
         ]
       },
@@ -93,13 +86,13 @@ links.resolve(dpkgRoot, dpkg, dpkg.model.data, function(err, data){
         name: 'lhs-simplex',
         map: [
           {
-            command: './simplex', args: ['--root', '$ROOT/results/lhs_simplex' , '-M', 10000, '--next', 'mle_', '--id', '$ID', '--prior'], timeout: '00:01:00',
+            command: './simplex', args: ['--root', '$ROOT/results/lhs_simplex' , '-M', 10000, '--next', 'mle_', '--id', '$ID', '--prior'], cwd: 'bin', timeout: '00:01:00',
             inputs: [ { resource: 'lhs', collection: true, stdin: true } ],
             outputs: [ { path: 'results/lhs_simplex/mle_*.json' } ]
           },
           {
             repeat: 3,
-            command: './simplex', args: ['--root', '$ROOT/results/lhs_simplex' , '-M', 10000, '--next', 'mle_', '--id', '$ID', '--prior'], timeout: '00:01:00',
+            command: './simplex', args: ['--root', '$ROOT/results/lhs_simplex' , '-M', 10000, '--next', 'mle_', '--id', '$ID', '--prior'], cwd: 'bin', timeout: '00:01:00',
             inputs: [ { path: 'results/lhs_simplex/mle_*.json', stdin: true } ],
             outputs: [ { path: 'results/lhs_simplex/mle_*.json' } ]
           }
@@ -108,7 +101,7 @@ links.resolve(dpkgRoot, dpkg, dpkg.model.data, function(err, data){
           {
             command: 'ssm reduce $ROOT/results/lhs_simplex --by log_ltp --summary $OUT.out', timeout: '00:01:00',
             inputs: [ { path: 'results/lhs_simplex/mle_*.json' } ],
-            outputs: [ { path: 'data/start_pmcmc.json', save: { resource: 'start_pmcmc' }, name: 'out' } ]
+            outputs: [ { path: 'results/lhs_simplex/start_pmcmc.json', save: { resource: 'start_pmcmc' }, name: 'out' } ]
           }
         ]
       },
@@ -117,8 +110,8 @@ links.resolve(dpkgRoot, dpkg, dpkg.model.data, function(err, data){
         name: 'pmcmc',
         map: [
           {
-            command: './pmcmc',
-            args: ['--root', '$ROOT/results/pmcmc' , '-M', 100000, '--next', 'map_', '--id', '$ID', '--trace', '--traj'], timeout: '01:00:00',
+            command: './pmcmc', 
+            args: ['--root', '$ROOT/results/pmcmc' , '-M', 100000, '--next', 'map_', '--id', '$ID', '--trace', '--traj'], cwd: 'bin', timeout: '01:00:00',
             inputs: [ { resource: 'start_pmcmc', replicate: 2, stdin: true } ],
             outputs: [
               { path: 'results/pmcmc/map_*.json', save: { resource: 'pmcmc_map_*' } },
@@ -144,9 +137,9 @@ links.resolve(dpkgRoot, dpkg, dpkg.model.data, function(err, data){
         name: 'predict',
         run: [
           {
-            command: util.format('ssm predict $IN.dpkg $IN.traj $IN.trace %s | ./simul --root $ROOT/results/predict --traj --start %s --end %s', start, start, end), timeout: '00:00:00',
+            command: util.format('ssm predict $IN.dpkg $IN.traj $IN.trace %s | ./simul --root $ROOT/results/predict --traj --start %s --end %s', start, start, end), timeout: '00:00:00', cwd: 'bin',
             inputs: [ 
-              { path: path.join('node_modules', dpkg.name, 'package.json'), name: 'dpkg' },
+              { path: 'package.json', name: 'dpkg' },
               { resource: 'pmcmc_traj', name: 'traj' }, 
               { resource: 'pmcmc_trace', name: 'trace' }
             ],
@@ -158,23 +151,23 @@ links.resolve(dpkgRoot, dpkg, dpkg.model.data, function(err, data){
     ]
   };
 
-  //mimate npm install of the pipeline
-  mkdirp(path.join(program.output, 'node_modules', dpkg.name), function(err){
-    if(err) return fail(err);
+  
+  var pipelinejson = path.join(dpkgRoot, 'pipeline.json');
+  fs.exists(pipelinejson, function(exists){
+    if(exists){
+      console.error('\033[91mFAIL\033[0m: ' + pipelinejson + ' already exists');
+      process.exit(1);
+    }
 
-    fs.writeFile(path.join(program.output, 'node_modules', dpkg.name, 'package.json'), JSON.stringify(dpkg, null, 2), function(err){
-      if(err) return fail(err);
-      
-      fs.writeFile(path.join(program.output, 'package.json'), JSON.stringify(d, null, 2), function(err){
+    mkdirp(path.dirname(pipelinejson), function(err){
+      if(err) return fail(err);    
+      fs.writeFile(pipelinejson, JSON.stringify(d, null, 2), function(err){
         if(err) return fail(err);
-
         if(program.verbose){
-          console.log('\033[92mSUCCESS\033[0m: boostrapped in %s', program.output);
+          console.log('\033[92mSUCCESS\033[0m: boostrapped in %s', pipelinejson);
         }
       });
-
     });
-
   });
 
 });

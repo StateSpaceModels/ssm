@@ -10,9 +10,25 @@ var program = require('commander')
   , EventEmitter = require('events').EventEmitter;
 
 program
-  .option('-o, --output [path]', 'the directory for the builds', resolvePath, path.resolve('ssm_model'))
   .option('-v, --verbose', 'verbose mode')
   .parse(process.argv);
+
+var pathDpkg = (program.args[0]) ? resolvePath(program.args[0]): path.resolve('package.json')
+  , dpkgRoot = path.dirname(pathDpkg);
+
+try {
+  var dpkg = JSON.parse(fs.readFileSync(pathDpkg));
+} catch (e) {
+  console.error('\033[91mFAIL\033[0m: ' + e.message);
+  process.exit(1);
+}
+
+try {
+  validate(dpkg, emitter);
+} catch(e){
+  console.error('\033[91mFAIL\033[0m: ' + e.message);
+  process.exit(1);
+}
 
 //logging
 var emitter = new EventEmitter();
@@ -36,36 +52,9 @@ emitter.on('errorEol', function(msg){
 
 emitter.emit('log', 'Building the model locally...');
 
-var pathDpkg;
-
-if(!program.args[0]){
-  emitter.emit('error', 'invalid usage, path to package.json is missing (ssm build <path> [options])');
-  process.exit(1);
-} else {
-  pathDpkg = resolvePath(program.args[0]);
-}
-
-var dpkgRoot = path.dirname(pathDpkg);
-
-try {
-  var dpkg = JSON.parse(fs.readFileSync(pathDpkg));
-} catch (e) {
-  console.error('\033[91mFAIL\033[0m: ' + e.message);
-  process.exit(1);
-}
-
-
-try {
-  validate(dpkg, emitter);
-} catch(e){
-  console.error('\033[91mFAIL\033[0m: ' + e.message);
-  process.exit(1);
-}
-
-
-install(dpkgRoot, dpkg, program.output, emitter, function(err){
+install(dpkgRoot, dpkg, path.join(dpkgRoot, 'bin'), emitter, function(err){
   if(err){
-    emitter.emit('error', err.message);
+    console.error('\033[91mFAIL\033[0m: ' + err.message);
     process.exit(1);
   }
 });

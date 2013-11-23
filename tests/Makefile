@@ -5,7 +5,7 @@ TESTS_PATH= $(dir $(abspath $(CURRENT_MAKEFILE)))
 CLAR_FIXTURE_PATH= $(TESTS_PATH)resources/
 
 DPKG_ROOT= ../examples/foo/
-MODEL_PATH= ../examples/foo/ssm_model
+MODEL_PATH= ../examples/foo/bin
 
 CFLAGS=-g -I.. -I. -I $(HOME)/.ssm/include -Wall -DCLAR_FIXTURE_PATH=\"$(CLAR_FIXTURE_PATH)\"
 LDFLAGS=-L$(MODEL_PATH)/C/templates -L $(HOME)/.ssm/lib -lssm -lssmtpl -lssm -lm -lgsl -lgslcblas -ljansson -lzmq
@@ -28,13 +28,13 @@ clar.suite:
 
 fixture_data:
 	test -d $(CLAR_FIXTURE_PATH) || mkdir -p $(CLAR_FIXTURE_PATH); \
-	../bin/ssm install ../examples/foo/package.json -o ../examples/foo/ssm_model -v; \
+	../bin/ssm install ../examples/foo/package.json -v; \
 	cp $(MODEL_PATH)/.data.json $(CLAR_FIXTURE_PATH); \
 	cp $(DPKG_ROOT)/package.json $(CLAR_FIXTURE_PATH)
 
 # remove all generated files
 clean:
-	$(RM) -rf *.o clar.suite .clarcache ssmtest ssmtest.dSYM $(CLAR_FIXTURE_PATH)*.json
+	$(RM) -rf *.o clar.suite .clarcache ssmtest ssmtest.dSYM $(CLAR_FIXTURE_PATH)*.json $(MODEL_PATH)
 
 test: ssmtest
 	./ssmtest
