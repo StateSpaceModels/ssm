@@ -147,7 +147,8 @@
 	        "type": "string",
 		"description": "In case you want to express the equation in terms of a function of X and avoid applying the Ito formula."
 	      }
-	    }
+	    },
+	    "required": ["name","f"]
 	  }
 	},
 	"dispersion": {
