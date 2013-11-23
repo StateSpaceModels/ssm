@@ -82,7 +82,7 @@ links.resolve(dpkgRoot, dpkg, dpkg.model.data, function(err, data){
         name: 'random-lhs',
         run: [
           {
-            command: 'ssm', args: ['lhs', '$IN.dpkg', '-o', '$OUT.out'], timeout: '00:01:00',
+            command: 'ssm lhs $IN.dpkg -o $OUT.out', timeout: '00:01:00',
             inputs: [ { path: path.join('node_modules', dpkg.name, 'package.json'), name: 'dpkg' } ],
             outputs: [ { path: 'data/lhs.json', save: { resource: 'lhs' }, name: 'out' } ]
           }
@@ -106,7 +106,7 @@ links.resolve(dpkgRoot, dpkg, dpkg.model.data, function(err, data){
         ],
         reduce: [
           {
-            command: 'ssm', args: ['reduce', '$ROOT/results/lhs_simplex', '--by', 'log_ltp', '--summary', '$OUT.out'], timeout: '00:01:00',
+            command: 'ssm reduce $ROOT/results/lhs_simplex --by log_ltp --summary $OUT.out', timeout: '00:01:00',
             inputs: [ { path: 'results/lhs_simplex/mle_*.json' } ],
             outputs: [ { path: 'data/start_pmcmc.json', save: { resource: 'start_pmcmc' }, name: 'out' } ]
           }
@@ -129,11 +129,12 @@ links.resolve(dpkgRoot, dpkg, dpkg.model.data, function(err, data){
         ],
         reduce: [
           {
-            command: 'ssm', args: ['reduce', '$ROOT/results/pmcmc', '--by', 'DIC', '--trace', '$OUT.trace', '--traj', '$OUT.traj'], timeout: '01:00:00',
+            command: 'ssm reduce $ROOT/results/pmcmc --by DIC --trace $OUT.trace --traj $OUT.traj --summary $OUT.map', timeout: '01:00:00',
             inputs: [ { resource: 'pmcmc_map_*' } ],
             outputs: [
               { path: 'results/pmcmc/trace.csv', save: { resource: 'pmcmc_trace' }, name: 'trace' },
-              { path: 'results/pmcmc/X.csv', save: { resource: 'pmcmc_traj' }, name: 'traj' }
+              { path: 'results/pmcmc/X.csv', save: { resource: 'pmcmc_traj' }, name: 'traj' },
+              { path: 'results/pmcmc/map.json', save: { resource: 'pmcmc_map' }, name: 'map' }
             ]
           }
         ]
@@ -143,7 +144,7 @@ links.resolve(dpkgRoot, dpkg, dpkg.model.data, function(err, data){
         name: 'predict',
         run: [
           {
-            command: util.format('ssm predict $IN.dpkg $IN.traj $IN.trace %s | ./simul --root $ROOT/results/predict --traj --start %s --end %s', start, start, end), timeout: '00:01:00',
+            command: util.format('ssm predict $IN.dpkg $IN.traj $IN.trace %s | ./simul --root $ROOT/results/predict --traj --start %s --end %s', start, start, end), timeout: '00:00:00',
             inputs: [ 
               { path: path.join('node_modules', dpkg.name, 'package.json'), name: 'dpkg' },
               { resource: 'pmcmc_traj', name: 'traj' }, 

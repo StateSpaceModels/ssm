@@ -47,7 +47,7 @@
     "minimatch": "~0.2.12",
     "mkdirp": "~0.3.5",
     "clone": "~0.1.11",
-    "dpkg-squirrel": "~0.3.0",
+    "dpkg-squirrel": "~0.3.1",
     "lhs": "~0.0.0",
     "rmath.js": "~0.0.0",
     "datapackage": "~0.3.0",

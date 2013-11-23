@@ -26,8 +26,7 @@ var dpkgRoot = path.dirname(program.args[0]);
 
 function fail(err){
   console.error('\033[91mFAIL\033[0m: ' + err.message);
-  throw err;
-  process.exit(1);  
+  process.exit(1);
 };
 
 var reDpkgRoot = new RegExp(dpkgRoot);
@@ -57,7 +56,7 @@ squirrel.start(function(err, dpkg){
     if(err){ return fail(err); }
 
     if(program.verbose){
-      console.log('\033[92mSUCCESS\033[0m: analysis succeeded, %s has been appended.', path.join(dpkgRoot, 'package.json'));
+      console.log('\033[92mSUCCESS\033[0m: Pipeline completed, %s has been appended.', path.join(dpkgRoot, 'package.json'));
     }
   });
 });

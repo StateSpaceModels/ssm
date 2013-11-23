@@ -133,32 +133,6 @@ defines a prior.
 The full [schema](http://json-schema.org/) for a prior is described
 [here](https://raw.github.com/standard-analytics/ssm/master/json-schema/prior-schema.json).
 
-The initial values of the parameters and the covariance matrix between
-them need also to be defined as resources of a datapackage.
-
-    $ cat package.json | json resources
-
-    "resources": [
-      {
-        "name": "values",
-        "description": "initial values for the parameters",
-        "format": "json",
-        "data": {
-          "r0": 25.0,
-          "pr_v": 11.0
-        }
-      },
-      {
-        "name": "covariance",
-        "description": "covariance matrix (only the diagonal terms are mandatory)",
-        "format": "json",
-        "data": {
-          "r0": {"r0": 0.04, "pr_v": 0.01},
-          "pr_v": {"pr_v": 0.02, "r0": 0.01}
-        }
-      },
-      ...
-    ]
 
 ## Model
 
@@ -168,7 +142,7 @@ Model.  A model is defined in a model object (```"model": {}```) whose
 [schema](http://json-schema.org/) is fully described
 [here](https://raw.github.com/standard-analytics/ssm/master/json-schema/model-schema.json).
 
-### Data
+### Link to the data
 
 The first thing to do when writting a model is to _link_ it to the
 data it explains.
@@ -192,7 +166,7 @@ the second one the values.  A link is an object with 3 properties:
 Note that ```model.data``` itself can be a list so that multiple
 time-series can be handled.
 
-### Parameters
+### Link to the priors and covariates
 
 The same link objects are used to point to the resources that will be
 used as priors or covariate of the model.
@@ -277,6 +251,35 @@ One observation model has to be defined per observed time-series.
 
 Full examples are available in the examples directory
 (```examples/sir/package.json``` for this one).
+
+### Initial conditions
+
+Finaly, the initial values of the parameters and the covariance matrix
+between them need need to be defined as resources of the datapackage
+containing the model.
+
+    $ cat package.json | json resources
+
+    "resources": [
+      {
+        "name": "values",
+        "description": "initial values for the parameters",
+        "format": "json",
+        "data": {
+          "r0": 25.0,
+          "pr_v": 11.0
+        }
+      },
+      {
+        "name": "covariance",
+        "description": "covariance matrix (only the diagonal terms are mandatory)",
+        "format": "json",
+        "data": {
+          "r0": {"r0": 0.04, "pr_v": 0.01},
+          "pr_v": {"pr_v": 0.02, "r0": 0.01}
+        }
+      },
+      ...
 
 
 ## Installing a model from a data package
