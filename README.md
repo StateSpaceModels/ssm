@@ -109,8 +109,8 @@ will be wrapped as follows:
     ]
 
 Parameters also have to be specified as resources of a datapackage
-(the same or another one).
-For instance the following resource defines a prior.
+(the same or another one).  For instance the following resource
+defines a prior.
 
     $ cat package.json | json resources
 
@@ -129,6 +129,9 @@ For instance the following resource defines a prior.
       },
       ...
     ]
+
+The full [schema](http://json-schema.org/) for a prior is described
+[here](https://raw.github.com/standard-analytics/ssm/master/json-schema/prior-schema.json).
 
 The initial values of the parameters and the covariance matrix between
 them need also to be defined as resources of a datapackage.
@@ -161,9 +164,72 @@ them need also to be defined as resources of a datapackage.
 
 A model is described in [JSON](http://www.json.org/) and typicaly
 lives as a metadata of a datapackage. S|S|M support any State Space
-Model.  A model is defined in a model object (```"model": {}```).
+Model.  A model is defined in a model object (```"model": {}```) whose
+[schema](http://json-schema.org/) is fully described
+[here](https://raw.github.com/standard-analytics/ssm/master/json-schema/model-schema.json).
 
-Let's take the example of a compartmental model for population
+### Data
+
+The first thing to do when writting a model is to _link_ it to the
+data it explains.
+
+    $ cat package.json | json model.data
+    
+    "data": [
+      { 
+        "name": "cases", 
+        "data": [ {"resource": "data", "field": "date"}, {"resource": "data", "field": "cases"} ] 
+      }
+    ]
+
+The ```model.data.data``` property is a list of 2 links representing a
+time-series. The first link has to be the dates of the timeseries and
+the second one the values.  A link is an object with 3 properties:
+- ```datapackage``` (optional) specifying the name of the datapackage where the resource can be find. It has to be omitted if the the resource is in the same datapackage.
+- ```resource```
+- ```field```
+
+Note that ```model.data``` itself can be a list so that multiple
+time-series can be handled.
+
+### Parameters
+
+The same link objects are used to point to the resources that will be
+used as priors or covariate of the model.
+
+    $ cat package.json | json model.inputs
+    
+    "inputs": [
+      { "name": "r0", "description": "Basic reproduction number", "data": {"resource": "r0"} },
+      { "name": "v", "description": "Recovery rate", "data": {"resource":  "pr_v"}, "transformation": "1/pr_v", "to_resource": "1/v" },
+      { "name": "S", "description": "Number of susceptible", "data": {"resource": "S"} },
+      { "name": "I", "description": "Number of infectious", "data": {"resource": "I"} },
+      { "name": "R", "description": "Number of recovered", "data": {"resource": "R"} },
+      { "name": "rep", "description": "Reporting rate", "data": {"resource": "rep"} }
+    ]
+
+Note that this linking stage also allow to include some
+_transformations_ so that a relation can be established between your
+model requirement and existing priors or covariates living in other
+datapackages.
+
+For instance
+
+    {
+      "name": "v",
+      "description": "recovery rate",
+      "data": {"resource":  "pr_v"},
+      "transformation": "1/pr_v",
+      "to_resource": "1/v"
+    }
+
+allows to link ```v``` a rate to a prior expressed in duration: ```pr_v```.
+
+
+### Process Model
+
+Process model can be expressed as an ODE, an SDE or a compartmental
+model.  Let's take the example of a compartmental model for population
 dynamics. the ```model``` object contains the following properties:
 
 the populations (required only for population dynamics)
@@ -174,7 +240,7 @@ the populations (required only for population dynamics)
       {"name": "NYC", "composition": ["S", "I", "R"]}
     ]
 
-the reactions, defining the process model
+and the reactions, defining the process model
 
     $ cat package.json | json model.reactions
 
@@ -183,9 +249,19 @@ the reactions, defining the process model
       {"from": "I", "to": "R", "rate": "v", "description":"recovery"}
     ]
 
-you can also defined SDE and ODE in addition / in place of reactions.
 
-the observation model
+An ```sde``` property can be added in case you want that some
+parameters follow diffusions (see
+[here](https://github.com/standard-analytics/ssm/blob/master/examples/foo/package.json)
+for an example). Noise can also be added to the reaction as in this
+[example](https://raw.github.com/standard-analytics/ssm/master/examples/noise/package.json).
+
+The ```tracked``` variable (here ```Inc```) will be accumulated and
+reset to 0 for each data point related to the tracked variable.
+
+### Observation model
+
+One observation model has to be defined per observed time-series.
 
     $ cat package.json | json model.observations
 
@@ -199,33 +275,8 @@ the observation model
       }
     ]
 
-some link to the data (that can live in another datapackage)
-
-    $ cat package.json | json model.data
-    
-    "data": [
-      { 
-        "name": "cases", 
-        "data": [ {"resource": "data", "field": "date"}, {"resource": "data", "field": "cases"} ] 
-      }
-    ]
-
-some link to the parameters (that can alse live in another datapackage).
-
-    $ cat package.json | json model.inputs
-    
-    "inputs": [
-      { "name": "r0", "description": "basic reproduction number", "data": {"resource": "r0"} },
-      { "name": "v",  "description": "recovery rate", "data": {"resource":  "pr_v"}, "transformation": "1/pr_v", "to_resource": "1/v" },
-      { "name": "S", "description": "Number of susceptible", "data": {"resource": "S"} },
-      { "name": "I", "description": "Number of infectious", "data": {"resource": "I"} },
-      { "name": "R", "description": "Number of recovered", "data": {"resource": "R"} },
-      { "name": "rep", "description": "reporting rate", "data": {"resource": "rep"} }
-    ]
-
-Note that this linking stage also allow to include some _transformations_.
-
-Full examples are available in the examples directory (```examples/sir/package.json``` for this one).
+Full examples are available in the examples directory
+(```examples/sir/package.json``` for this one).
 
 
 ## Installing a model from a data package
@@ -382,13 +433,14 @@ analysis. When ready just fire:
 
     $ ssm run ssm_model/package.json [options]
 
+
 ## Parallel computing
 
 Let's say that you want to run a particle filter of a stochastic
-version of our previous model with 1000 particles in you 4 cores
+version of our previous model with 1000 particles on your 4 cores
 machines (```--n_thread```). Also instead of plotting 1000
 trajectories you just want a summary of the empirical confindence
-envelop (```--hat```).
+envelopes (```--hat```).
 
     $ cat ../package.json | ./smc psr -J 1000 --n_thread 4 --hat
 
@@ -399,9 +451,10 @@ Let's plot the trajectories
     lines(as.Date(hat$date), hat$lower_cases, type='s', lty=2)
     lines(as.Date(hat$date), hat$upper_cases, type='s', lty=2)
 
-Your machine is not enough ? Let's use several.  First let's transform
-our ```smc``` into a server that will dispatch some work to several
-workers (living in different machines).
+
+Your machine is not enough ? You can use several.  First let's
+transform our ```smc``` into a server that will dispatch some work to
+several workers (living on different machines).
 
     $ cat ../package.json | ./smc psr -J 1000 --tcp
 
@@ -414,6 +467,7 @@ Now let's start some workers giving them the adress of the server.
     $ cat ../package.json | ./worker psr smc --server 127.0.0.1 &
 
 Note that you can add workers at any time during a run.
+
 
 License
 =======
