@@ -353,6 +353,9 @@ In the same way help for every ```ssm``` command can be obtained with
 
 Everything that follows supposes that we are in ```bin/```.
 
+The datapackage used it available to download <a href="https://raw.github.com/standard-analytics/ssm/master/examples/tutorial/package.json" download="package.json">here</a>. Put it in a
+directory of your choice and run ```ssm install``` to install it
+
 Let's start by plotting the data
 
 with [R](http://www.r-project.org/):
