@@ -30,7 +30,7 @@ void *ssm_worker_inproc(void *params)
     ssm_data_t *data = p->data;
     ssm_par_t **J_par = p->J_par;
     ssm_X_t ***D_J_X = p->D_J_X;
-    ssm_calc_t *calc = p->calc;
+    ssm_calc_t **calc = p->calc;
     ssm_nav_t *nav = p->nav;
     ssm_fitness_t *fitness = p->fitness;
     ssm_f_pred_t f_pred = p->f_pred;
@@ -52,7 +52,7 @@ void *ssm_worker_inproc(void *params)
     zmq_connect (sender, str);
 
     // ready !
-    zmq_send(sender, &calc->thread_id, sizeof (int), 0);
+    zmq_send(sender, &id, sizeof (int), 0);
 
     zmq_pollitem_t items [] = {
         { receiver, 0, ZMQ_POLLIN, 0 },
@@ -72,27 +72,27 @@ void *ssm_worker_inproc(void *params)
         if (items [0].revents & ZMQ_POLLIN) {
 
             zmq_recv(receiver, &the_id, sizeof (int), 0);
-            zmq_recv(receiver, &n, sizeof (int), 0);
+            zmq_recv(receiver, &n, sizeof (int), 0);	    
 
 	    np1 = n + 1;
             t0 = (n) ? data->rows[n-1]->time: 0;
             t1 = data->rows[n]->time;
 
             int J_start = the_id * J_chunk;
-            int J_end = (the_id+1 == calc->threads_length) ? fitness->J : (the_id+1)*J_chunk;
+            int J_end = (the_id+1 == calc[the_id]->threads_length) ? fitness->J : (the_id+1)*J_chunk;
 
             for(j=J_start; j<J_end; j++ ){
                 ssm_X_reset_inc(D_J_X[*n_X][j], data->rows[n], nav);
-		fitness->cum_status[j] |= (*f_pred)(D_J_X[*n_X][j], t0, t1, J_par[*j_par], nav, calc);
+		fitness->cum_status[j] |= (*f_pred)(D_J_X[*n_X][j], t0, t1, J_par[*j_par], nav, calc[the_id]);
 		
                 if((SSM_WORKER_FITNESS & wopts) && data->rows[n]->ts_nonan_length) {
-                    fitness->weights[j] = (fitness->cum_status[j] == SSM_SUCCESS) ?  exp(ssm_log_likelihood(data->rows[n], D_J_X[*n_X][j], J_par[*j_par], calc, nav, fitness)) : 0.0;
+                    fitness->weights[j] = (fitness->cum_status[j] == SSM_SUCCESS) ?  exp(ssm_log_likelihood(data->rows[n], D_J_X[*n_X][j], J_par[*j_par], calc[the_id], nav, fitness)) : 0.0;
                     fitness->cum_status[j] = SSM_SUCCESS;
                 }
             }
 
             //send back id of the batch of particles now integrated
-            zmq_send(sender, &calc->thread_id, sizeof (int), 0);
+            zmq_send(sender, &id, sizeof (int), 0);
         }
 
         //controller commands:
@@ -191,7 +191,7 @@ ssm_workers_t *ssm_workers_start(ssm_X_t ***D_J_X, ssm_par_t **J_par, ssm_data_t
 	    w->params[i].data = data;
 	    w->params[i].J_par = J_par;
 	    w->params[i].D_J_X = D_J_X;
-	    w->params[i].calc = calc[i];
+	    w->params[i].calc = calc;
 	    w->params[i].nav = nav;
 	    w->params[i].fitness = fitness;
 	    w->params[i].f_pred = f_pred;

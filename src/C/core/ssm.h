@@ -521,7 +521,7 @@ typedef struct
     ssm_data_t *data;
     ssm_par_t **J_par;
     ssm_X_t ***D_J_X;
-    ssm_calc_t *calc;
+    ssm_calc_t **calc;
     ssm_nav_t *nav;
     ssm_fitness_t *fitness;
     ssm_f_pred_t f_pred;
