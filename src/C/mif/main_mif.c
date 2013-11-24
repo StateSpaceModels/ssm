@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
             } while(ssm_check_ic(J_par[j], calc[0]) != SSM_SUCCESS);
 
             ssm_par2X(J_X[j], J_par[j], calc[0], nav);
-            J_X[j]->dt = J_X[0]->dt0;
+            J_X[j]->dt = J_X[j]->dt0;
             fitness->cum_status[j] = SSM_SUCCESS;
         }
 
