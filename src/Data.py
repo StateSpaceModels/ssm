@@ -33,6 +33,7 @@ def parse_date(x):
     TODO support for datetime (necessitate work on C side)...
 
     """
+
     return dateutil.parser.parse(x).date()
 
 class DataError(Exception):

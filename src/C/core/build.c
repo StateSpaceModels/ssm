@@ -588,12 +588,12 @@ void ssm_data_adapt_to_simul(ssm_data_t *data, json_t *jdata, ssm_nav_t *nav, ss
     memset(&tm_start_date_t0, 0, sizeof(struct tm));
 
     strptime(data->date_t0, "%Y-%m-%d", &tm_start_date_t0);
-    time_t t_start_date_t0 = mktime(&tm_start_date_t0);
+    time_t t_start_date_t0 = timegm(&tm_start_date_t0);
 
     struct tm tm_end;
     memset(&tm_end, 0, sizeof(struct tm));
     strptime(opts->end, "%Y-%m-%d", &tm_end);
-    time_t t_end = mktime(&tm_end);
+    time_t t_end = timegm(&tm_end);
 
     double delta_date_t0 = difftime(t_end, t_start_date_t0)/(24.0*60.0*60.0);
     if(delta_date_t0 < 0.0){
@@ -608,7 +608,7 @@ void ssm_data_adapt_to_simul(ssm_data_t *data, json_t *jdata, ssm_nav_t *nav, ss
     if(data->length){
         strptime(data->rows[data->length-1]->date, "%Y-%m-%d", &tm_start);
         time_start = data->rows[data->length-1]->time;
-	t_start = mktime(&tm_start);
+	t_start = timegm(&tm_start);
     } else {
         t_start = t_start_date_t0;
     }
@@ -878,13 +878,13 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fi
         struct tm tm_start;
         memset(&tm_start, 0, sizeof(struct tm));
         strptime(data->date_t0, "%Y-%m-%d", &tm_start);
-        time_t t_start = mktime(&tm_start);
+        time_t t_start = timegm(&tm_start);
 
         if(strcmp("", opts->end)!=0){
             struct tm tm_freeze;
             memset(&tm_freeze, 0, sizeof(struct tm));
             strptime(opts->freeze_forcing, "%Y-%m-%d", &tm_freeze);
-            time_t t_freeze = mktime(&tm_freeze);
+            time_t t_freeze = timegm(&tm_freeze);
             freeze_forcing = difftime(t_freeze, t_start)/(24.0*60.0*60.0);
         } else {
             freeze_forcing = -1.0;
@@ -894,7 +894,7 @@ ssm_calc_t *ssm_calc_new(json_t *jdata, ssm_nav_t *nav, ssm_data_t *data, ssm_fi
             struct tm tm_end;
             memset(&tm_end, 0, sizeof(struct tm));
             strptime(opts->end, "%Y-%m-%d", &tm_end);
-            time_t t_end = mktime(&tm_end);
+            time_t t_end = timegm(&tm_end);
             t_max = difftime(t_end, t_start)/(24.0*60.0*60.0);
         } else {
             t_max = -1.0;
