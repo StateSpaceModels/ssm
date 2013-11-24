@@ -32,13 +32,8 @@ def parse_date(x):
     parse a ISO8601 string into a datetime and convert it into a date
     TODO support for datetime (necessitate work on C side)...
 
-    Assumes that dates arrive from JS in local timezone -> convert it to UTC
     """
-
-    utc_zone = dateutil.tz.tzutc()
-    local_zone = dateutil.tz.tzlocal()
-    
-    return dateutil.parser.parse(x).replace(tzinfo=local_zone).astimezone(utc_zone).date()
+    return dateutil.parser.parse(x).date()
 
 class DataError(Exception):
     def __init__(self, value):

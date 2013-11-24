@@ -54,10 +54,10 @@ links.resolve(dpkgRoot, dpkg, dpkg.model.data, function(err, data){
       return a<b?1:a>b?-1:0;
     })[0];
 
-  var end = new Date(start.getTime());
+  var end = new Date(start.getTime()); //copy dateObject
   end.setFullYear(end.getFullYear()+1); //prediction for 1 year
 
-  //convert to ISO8601 date (so in UTC (JS date are in local time))
+  //get ISO8601 date (YYYY-MM-DD (SSM does not support datetime yet))
   start = start.toISOString().split('T')[0];
   end = end.toISOString().split('T')[0];
       

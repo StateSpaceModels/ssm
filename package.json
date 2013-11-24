@@ -50,7 +50,7 @@
     "dpkg-squirrel": "~0.4.0",
     "lhs": "~0.0.0",
     "rmath.js": "~0.0.0",
-    "datapackage": "~0.3.0",
+    "datapackage": "git://github.com/standard-analytics/datapackage.js.git#utc",
     "seed-random": "~2.2.0",
     "binary-csv": "~0.1.3",
     "tv4": "~1.0.11",

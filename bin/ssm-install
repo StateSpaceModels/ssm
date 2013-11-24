@@ -14,6 +14,7 @@ var program = require('commander')
 program
   .usage('[package.json] [options]')
   .option('-q, --quiet', 'silence')
+  .option('-s, --src', 'keep the source of the templated code')
   .option('-n, --nodeps', 'do not install the dataDependencies')
   .parse(process.argv);
 
@@ -80,7 +81,7 @@ npm.load(npm.config, function (err) {
       }
 
       emitter.emit('log', 'Building the model...');
-      installModel(dpkgRoot, dpkg, path.join(dpkgRoot, 'bin'), emitter, function(err){
+      installModel(dpkgRoot, dpkg, path.join(dpkgRoot, 'bin'), program.src, emitter, function(err){
         if(err){
           console.error('\033[91mFAIL\033[0m: ' + err.message);
           process.exit(1);
@@ -91,7 +92,7 @@ npm.load(npm.config, function (err) {
   } else {
 
     emitter.emit('log', 'INFO:'.blue + ' Building the model...');
-    installModel(dpkgRoot, dpkg, path.join(dpkgRoot, 'bin'), emitter, function(err){
+    installModel(dpkgRoot, dpkg, path.join(dpkgRoot, 'bin'), program.src, emitter, function(err){
       if(err){
         console.error('\033[91mFAIL\033[0m: ' + err.message);
         process.exit(1);
