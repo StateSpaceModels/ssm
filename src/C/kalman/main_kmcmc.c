@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 
     ssm_par2X(D_X[0], par, calc, nav);
 
-    ssm_err_code_t success = run_kalman_and_store_traj(D_X, par, fitness, data, calc, nav);
+    ssm_err_code_t success = run_kalman_and_store_traj(D_X, par_proposed, fitness, data, calc, nav);
     success |= ssm_log_prob_prior(&fitness->log_prior, proposed, nav, fitness);
     if(success != SSM_SUCCESS){
         ssm_print_err("epic fail, initialization step failed");
