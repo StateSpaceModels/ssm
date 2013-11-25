@@ -66,7 +66,7 @@ typedef enum {SSM_SUCCESS = 1 << 0 , SSM_ERR_LIKE= 1 << 1, SSM_ERR_REM_SV = 1 <<
 
 typedef enum {SSM_WORKER_J_PAR = 1 << 0, SSM_WORKER_D_X = 1 << 1, SSM_WORKER_FITNESS = 1 << 2 } ssm_worker_opt_t;
 
-#define SSM_BUFFER_SIZE (2 * 1024)  /**< 1000 KB buffer size */
+#define SSM_BUFFER_SIZE (10 * 1024)  /**< 1000 KB buffer size */
 #define SSM_STR_BUFFSIZE 255 /**< buffer for log and error strings */
 
 
