@@ -71,7 +71,7 @@ void ssm_options_load(ssm_options_t *opts, ssm_algo_t algo, int argc, char *argv
         {"r", 'r', "no_filter",      "do not filter", no_argument,  SSM_SMC },
         {"c", 'c', "trace",          "print the traces", no_argument,  SSM_SMC | SSM_KALMAN | SSM_KMCMC | SSM_PMCMC | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF },
         {"x", 'x', "hat",            "print the state estimates", no_argument,  SSM_SMC | SSM_KALMAN | SSM_SIMUL | SSM_PMCMC | SSM_KMCMC  },
-        {"e", 'e', "diag",           "print the diagnostics outputs (prediction residuals...)", no_argument,  SSM_SMC | SSM_KALMAN },
+        {"e", 'e', "diag",           "print the diagnostics outputs (prediction residuals...)", no_argument,  SSM_SMC | SSM_KALMAN | SSM_MIF },
         {"p", 'p', "prior",          "add log(prior) to the estimated loglikelihood", no_argument,  SSM_SMC | SSM_KALMAN | SSM_KSIMPLEX | SSM_SIMPLEX | SSM_MIF },
         {"s", 's', "smooth",         "tune epsilon with the value of the acceptance rate obtained with exponential smoothing", no_argument,  SSM_KMCMC | SSM_PMCMC },
         {"a", 'a', "acc",            "print the acceptance rate", no_argument,  SSM_KMCMC | SSM_PMCMC },
