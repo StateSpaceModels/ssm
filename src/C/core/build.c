@@ -1149,7 +1149,7 @@ ssm_fitness_t *ssm_fitness_new(ssm_data_t *data, ssm_options_t *opts)
     fitness->like_min = opts->like_min;
     fitness->log_like_min = log(fitness->like_min);
 
-    fitness->ess_n = 0.0;
+    fitness->ess_n = NAN;
     fitness->log_like_n = 0.0;
     fitness->log_like = 0.0;
 

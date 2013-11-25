@@ -375,6 +375,7 @@ void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *
     json_t *jout = json_object();
     json_object_set_new(jout, "date", json_string(row->date));
 #else
+    fprintf(stream, "%s,", row->date);
     double tmp_pred[data->ts_length];
     double tmp_res[data->ts_length];
     for(ts=0; ts<data->ts_length; ts++){
@@ -408,7 +409,12 @@ void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *
                 var_obs += observed->f_obs_var(J_X[j], par, calc, t);
             }
 
-            var_state = M2/(kn - 1.0);
+	    if(fitness->J > 1){
+		var_state = M2/(kn - 1.0);
+	    } else {
+		var_state = 0;
+	    }
+
             var_obs /= ((double) fitness->J);
 
             res = (y - pred)/sqrt(var_state + var_obs);
@@ -427,7 +433,7 @@ void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *
     }
 
 #if SSM_JSON
-    json_object_set_new(jout, "ess", json_real(fitness->ess_n));
+    json_object_set_new(jout, "ess", (isnan(fitness->ess_n)==1)? json_null(): json_real(fitness->ess_n));
     ssm_json_dumpf(stream, "predres", jout);
 #else
     for(ts=0; ts<data->ts_length; ts++){

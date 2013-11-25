@@ -55,10 +55,6 @@ int main(int argc, char *argv[])
         fitness->cum_status[j] = SSM_SUCCESS;
     }
 
-    for(i=0; i<nav->par_all->length; i++){
-	printf("%s %g\n", nav->par_all->p[i]->name, gsl_vector_get(input, nav->par_all->p[i]->offset));
-    }
-
     ssm_f_pred_t f_pred = ssm_get_f_pred(nav);
 
     ssm_workers_t *workers = ssm_workers_start(&J_X, &par, data, calc, fitness, f_pred, nav, opts, SSM_WORKER_FITNESS);

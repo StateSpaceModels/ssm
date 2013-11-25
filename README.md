@@ -293,8 +293,6 @@ One observation model has to be defined per observed time-series.
       }
     ]
 
-Full examples are available in the examples directory
-(```examples/sir/package.json``` for this one).
 
 ### Initial conditions
 
@@ -317,7 +315,7 @@ inference algorithms:
       },
       {
         "name": "covariance",
-        "description": "covariance matrix (only the diagonal terms are mandatory)",
+        "description": "covariance matrix",
         "format": "json",
         "data": {
           "r0": {"r0": 0.04, "pr_v": 0.01},
@@ -326,6 +324,9 @@ inference algorithms:
       },
       ...
       ]
+
+
+Only the diagonal terms are mandatory for the covariance matrix.
 
 
 ## Installing a model from a data package
@@ -480,6 +481,32 @@ The sampled trajectories
 
 Always validate your results... SSM outputs are fully compatible with
 [CODA](http://cran.r-project.org/web/packages/coda/index.html).
+
+In addition to the diagnostic provided by
+[CODA](http://cran.r-project.org/web/packages/coda/index.html), you
+can run S|S|M algorithn with the ```--diag``` option to add some
+diagnostic outputs.
+For instance let's run a particle filter with a stochastic version of our model after a simplex:
+
+    $ cat ../package.json | ./simplex -M 10000 | ./smc psr -J 1000 --diag  --verbose
+
+the ```--diag``` option give us access to the prediction residuals and
+the effective sample size. Let's plot these quantities
+
+    diag <- read.csv('diag_0.csv')
+    layout(matrix(1:3,3,1))
+
+    #data vs prediction
+    plot(as.Date(data$date), data$cases, type='p')
+    lines(as.Date(diag$date), diag$pred_cases, type='p', col='red')
+
+    #prediction residuals
+    plot(as.Date(diag$date), diag$res_cases, type='p')
+    abline(h=0, lty=2)
+
+    #effective sample size
+    plot(as.Date(diag$date), diag$ess, type='s')
+
 
 ## Piping to the future
 
