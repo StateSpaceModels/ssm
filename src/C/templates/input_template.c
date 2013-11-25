@@ -38,7 +38,7 @@ ssm_input_t *ssm_input_new(json_t *jparameters, ssm_nav_t *nav)
     }
 
     int i, index;
-    ssm_it_parameters_t *it = nav->theta_all;
+    ssm_it_parameters_t *it = nav->par_all;
 
     json_t *jresources = json_object_get(jparameters, "resources");
 
@@ -52,14 +52,17 @@ ssm_input_t *ssm_input_new(json_t *jparameters, ssm_nav_t *nav)
 
             for(i=0; i<it->length; i++){
                 json_t *jval = json_object_get(jvalues, it->p[i]->name);
-                if(json_is_number(jval)) {
-                    gsl_vector_set(input, it->p[i]->offset, json_number_value(jval));
-                } else {
-                    char str[SSM_STR_BUFFSIZE];
-                    sprintf(str, "error: parameters.values.%s is not a number\n", it->p[i]->name);
-                    ssm_print_err(str);
-                    exit(EXIT_FAILURE);
-                }
+
+		if(jval){
+		    if(json_is_number(jval)) {
+			gsl_vector_set(input, it->p[i]->offset, json_number_value(jval));
+		    } else {
+			char str[SSM_STR_BUFFSIZE];
+			sprintf(str, "error: parameters.values.%s is not a number\n", it->p[i]->name);
+			ssm_print_err(str);
+			exit(EXIT_FAILURE);
+		    }
+		}
             }
             break;
         }
