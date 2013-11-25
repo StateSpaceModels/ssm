@@ -1,7 +1,7 @@
 S|S|M
 =====
 
-Inference for time series analysis with *S*tate *S*pace *M*odels like
+Inference for time series analysis with *S*tate *S*pace *M*odels, like
 playing with duplo blocks.
 
     cat guess.json | ./simplex -M 10000 | ./ksimplex -M 10000 > best_fit.json
@@ -12,10 +12,10 @@ playing with duplo blocks.
 Installation
 ============
 
-All the methods are implemented in C. The C code contain generic part
-(working with any models) and model specific part.  The specific parts
+All the methods are implemented in C. The C code contains generic parts
+(working with any models) and model specific parts.  The specific parts
 are templated using Python and [SymPy](http://sympy.org/) for symbolic
-mathematics. [JavaScript](https://brendaneich.com/brendaneich_content/uploads/CapitolJS.021.png)
+calculations. [JavaScript](https://brendaneich.com/brendaneich_content/uploads/CapitolJS.021.png)
 is used to glue things together and add features on top of the C core.
 
 ## Installing the required dependencies
@@ -33,11 +33,6 @@ Python:
 
 [Node.js](http://nodejs.org/)
 
-On OSX with [homebrew](http://mxcl.github.io/homebrew/) and [pip](https://pypi.python.org/pypi/pip):
-
-    brew install jansson zmq gsl node
-    sudo pip install jinja2 sympy python-dateutil
-
 On Ubuntu:
 
     apt-get update
@@ -46,11 +41,27 @@ On Ubuntu:
     add-apt-repository -y ppa:chris-lea/zeromq
     apt-get update
     apt-get install -y nodejs libzmq-dev libjansson-dev python-sympy python-jinja2 python-dateutil libgsl0-dev
+
+On OSX with [homebrew](http://mxcl.github.io/homebrew/) and [pip](https://pypi.python.org/pypi/pip):
+
+    brew install jansson zmq gsl node
+    sudo pip install jinja2 sympy python-dateutil
+    
+OSX users also need to install [xcode](https://itunes.apple.com/us/app/xcode/id497799835?ls=1&mt=12).
+
  
+In addition, Maverick users need to get the command line tools
+by running the following in their terminal after installing 
+xcode: 
+
+    xcode-select --install 
+
+
+
 
 ## Installing S|S|M itself
 
-with [npm](https://npmjs.org/)
+With [npm](https://npmjs.org/)
 
     npm install -g ssm
 
@@ -79,7 +90,7 @@ Usage
 ## Data and parameters
 
 Data have to be in [SDF](http://dataprotocols.org/simple-data-format/)
-and wrapped in a
+format, and wrapped in a
 [datapackage](http://dataprotocols.org/data-packages/).
 
 For instance a [CSV](http://tools.ietf.org/html/rfc4180) file
@@ -153,11 +164,11 @@ data dependencies it depends on (for data, priors, covariates).
     }
 
 
-S|S|M support any State Space Model.  A model is defined by adding a
-model property (```"model": {}```) whose
-[schema](http://json-schema.org/) is fully described
-[here](https://raw.github.com/standard-analytics/ssm/master/json-schema/model-schema.json)
-to a datapacakge.
+S|S|M support any State Space Model built as system of ordinary or 
+stochastic differential equations, a compartmental model, or a 
+combination thereof.  A model is defined by adding to a datapacakge
+a model property (```"model": {}```) whose [schema](http://json-schema.org/)
+is fully described [here](https://raw.github.com/standard-analytics/ssm/master/json-schema/model-schema.json).
 
 ### Link to the data
 
@@ -179,7 +190,8 @@ data it explains.
 The ```model.data.data``` property is a list of 2 links representing a
 time-series. The first link has to be the dates of the timeseries and
 the second one the values.  A link is an object with 3 properties:
-- ```datapackage``` (optional) specifying the name of the datapackage where the resource can be find. It has to be omitted if the the resource is in the same datapackage.
+- ```datapackage``` (optional) specifying the name of the datapackage where the 
+resource can be found. It must be omitted if the the resource is in the same datapackage.
 - ```resource``` (mandatory)
 - ```field``` necessary only in case of resources containing data in [SDF](http://dataprotocols.org/simple-data-format/).
 
@@ -231,18 +243,19 @@ used as priors or covariate of the model.
 Note that this linking stage also allows to include some
 _transformations_ so that a relation can be established between your
 model requirement and existing priors or covariates living in other
-datapackages (for instance ```v``` (a rate) is linkied to a prior
-expressed in duration: ```pr_v```.
+datapackages. For example ```v``` (a rate) is linked to a prior
+expressed in duration: ```pr_v``` through an inverse transformation. 
 
 
 ### Process Model
 
-Process model can be expressed as an ODE, an SDE or a Poisson system
-(potentialy with stochastic rates).  Let's take the example of a
-compartmental model for population dynamics. the ```model``` object
+The process model can be expressed as an ODE, an SDE or a compartmental
+model defining a Poisson process (potentialy with stochastic rates).  
+Let's take the example of a simple Susceptible-Infected-Recovered 
+compartmental model for population dynamics. The ```model``` object 
 contains the following properties:
 
-the populations (required only for population dynamics)
+the populations 
 
     $ cat package.json | json model.populations
 
@@ -259,15 +272,21 @@ and the reactions, defining the process model
       {"from": "I", "to": "R", "rate": "v", "description":"recovery"}
     ]
 
+Note that the populations object is a list. Structured populatiols can be
+defined by appending terms to the list.
+
 
 An ```sde``` property can be added in case you want that some
 parameters follow diffusions (see
 [here](https://github.com/standard-analytics/ssm/blob/master/examples/foo/package.json)
-for an example). Noise can also be added to the reaction as in this
-[example](https://raw.github.com/standard-analytics/ssm/master/examples/noise/package.json).
+for an example, and [here](http://arxiv.org/abs/1203.5950) for 
+references). White environmental noise can also be added to the reaction
+as in this [example](https://raw.github.com/standard-analytics/ssm/master/examples/noise/package.json)
+(references [here](http://arxiv.org/abs/0802.0021)).
 
-The ```tracked``` variable (here ```Inc```) will be accumulated and
-reset to 0 for each data point related to the tracked variable.
+The ```tracked``` variable (here ```Inc```) will monitor the accumulated
+flow of this reaction, and reset to 0 for each data point related to the 
+tracked variable.
 
 ### Observation model
 
@@ -290,9 +309,10 @@ Full examples are available in the examples directory
 
 ### Initial conditions
 
-Finaly, the initial values of the parameters and the covariance matrix
+Finally, values of the parameters and the covariance matrix
 between them need need to be defined as resources of the datapackage
-containing the model.
+containing the model. They willl be used as initial values for 
+inference algorithms:
 
     $ cat package.json | json resources
 
@@ -316,11 +336,12 @@ containing the model.
         }
       },
       ...
+      ]
 
 
 ## Installing a model from a data package
 
-At the root of a directory with a datapacakge (package.json) run
+At the root of a directory with a datapacakge (package.json), run
 
     $ ssm install [options]
 
@@ -341,20 +362,20 @@ customized to different implementation of you model
 ...).
 
 
-All the methods are ready as is for *parallel computing* (using
-multiple core of a machine _and_ leveraging a cluster of machines).
+All the methods are directly ready for *parallel computing* (using
+multiple cores of a machine _and_ leveraging a cluster of machines).
 
-Run ```bin/method --help``` to get help and see the different
+Run ```./method --help``` in ```bin/``` to get help and see the different
 implementations and options supported by the method.
-In the same way help for every ```ssm``` command can be obtained with
+In the same way, help for every ```ssm``` command can be obtained with
 ```ssm <command> --help```
 
 ## Inference like playing with duplo blocks
 
 Everything that follows supposes that we are in ```bin/```.
 
-The datapackage used it available to download <a href="https://raw.github.com/standard-analytics/ssm/master/examples/tutorial/package.json" download="package.json">here</a>. Put it in a
-directory of your choice and run ```ssm install``` to install it
+The datapackage used is available to download <a href="https://raw.github.com/standard-analytics/ssm/master/examples/tutorial/package.json" download="package.json">here</a>. 
+Put it in a directory of your choice and run ```ssm install``` to install it
 
 Let's start by plotting the data
 
@@ -428,7 +449,7 @@ And now in one line:
 
 Let's get some posteriors and sample some trajectories by adding a
 pmcmc at the end of our pipeline (we actualy add 2 of them to skip
-some transiant).
+the convergence of the mcmc algorithm).
 
      $ cat ../package.json | ./simplex -M 10000 | ./pmcmc -M 10000 | ./pmcmc -M 100000 --trace --traj  | json resources | json -c 'this.name=="summary"'
      
@@ -486,7 +507,7 @@ the posterior distributions obtained after baysian methods
 
 We can plot the results of this prediction taking care to extend the
 xlim on our first plot. For the prediction we ran ```simul``` with the
-```--hat``` option that will output empirical confidence envelop
+```--hat``` option that will output empirical credible envelop
 instead of all the projected trajectories (as does ```--traj```).
 
 
@@ -507,9 +528,9 @@ instead of all the projected trajectories (as does ```--traj```).
 
 ## Inference pipelines
 
-For more advanced cases (like running in parallel a lot of runs, each
+For more advanced cases like running in parallel a series of runs each
 starting from different initial conditions, selecting the best of this
-runs and restarting from that with another algorithm...) analytics
+runs and restarting from that with another algorithm, *analytics*
 pipelines are here to help. Running
 
     $ ssm bootstrap [options]
