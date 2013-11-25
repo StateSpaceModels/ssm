@@ -485,8 +485,9 @@ Always validate your results... SSM outputs are fully compatible with
 In addition to the diagnostic provided by
 [CODA](http://cran.r-project.org/web/packages/coda/index.html), you
 can run S|S|M algorithn with the ```--diag``` option to add some
-diagnostic outputs.
-For instance let's run a particle filter with a stochastic version of our model after a simplex:
+diagnostic outputs.  For instance let's run a particle filter with
+1000 particles (```--J```) with a stochastic version of our model
+(```psr```) after a simplex:
 
     $ cat ../package.json | ./simplex -M 10000 | ./smc psr -J 1000 --diag  --verbose
 
