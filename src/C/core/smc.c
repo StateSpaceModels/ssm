@@ -36,7 +36,7 @@ int ssm_weight(ssm_fitness_t *fitness, ssm_row_t *row, ssm_nav_t *nav, int n)
     fitness->ess_n = 0.0;
 
     for(j=0; j < fitness->J ; j++) {
-        /*compute first part of weights (non divided by sum likelihood)*/
+        /*compute first part of weights (non divided by sum likelihood)*/      
         if (fitness->weights[j] <= pow(fitness->like_min, row->ts_nonan_length)) {
             fitness->weights[j] = 0.0;
             nfailure_n += 1;

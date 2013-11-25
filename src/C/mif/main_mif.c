@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 
     ssm_workers_t *workers = ssm_workers_start(&J_X, J_par, data, calc, fitness, f_pred, nav, opts, SSM_WORKER_J_PAR | SSM_WORKER_FITNESS);
 
-    for(m=1; m<n_iter; m++){
+    for(m=1; m <= n_iter; m++){
 
         fitness->log_like = 0.0;
         fitness->n_all_fail = 0;
@@ -164,7 +164,6 @@ int main(int argc, char *argv[])
                 }
 
                 int some_particle_succeeded = ssm_weight(fitness, data->rows[n], nav, n);
-
                 ssm_mif_mean_var_theta_theoretical(D_theta_bart[np1], D_theta_Vt[np1], J_theta, var, fitness, nav, delta*pow(cooling, 2));
                 if (nav->print & SSM_PRINT_DIAG) {
                     ssm_mif_print_mean_var_theoretical_ess(nav->diag, D_theta_bart[np1], D_theta_Vt[np1], fitness, nav , data->rows[n], m);

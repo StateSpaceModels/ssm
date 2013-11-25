@@ -81,7 +81,7 @@ double ssm_f_inv_logit_ab(double x, double a, double b)
             return (b*exp(x)+a)/(1.0+exp(x));
         } else {
             return (b+a*exp(-x))/(1.0+exp(-x));
-        };
+        }
     }
 }
 

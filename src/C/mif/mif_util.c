@@ -278,7 +278,7 @@ void ssm_mif_update_ionides(ssm_theta_t *mle, ssm_var_t *var, double **D_theta_b
 void ssm_mif_print_header_mean_var_theoretical_ess(FILE *stream, ssm_nav_t *nav)
 {
     int i;
-    fprintf(stream, "date\n");
+    fprintf(stream, "date,");
     for(i=0; i < nav->theta_all->length; i++) {
 	fprintf(stream, "%s,var_%s,", nav->theta_all->p[i]->name, nav->theta_all->p[i]->name);
     }
