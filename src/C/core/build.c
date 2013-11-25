@@ -1098,7 +1098,7 @@ ssm_options_t *ssm_options_new(void)
     opts->n_obs = -1;
     opts->n_iter = 10;
     opts->a = 0.98;
-    opts->b = 2;
+    opts->b = 2.0;
     opts->L = 0.75;
     opts->m_switch = -1;
     opts->flag_ic_only = 0;
