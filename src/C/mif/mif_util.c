@@ -24,10 +24,14 @@ double ssm_mif_cooling(ssm_options_t *opts, int m)
 }
 
 /**
- * if x is a prameter and y an initial condition and n the number of data points:
+ * if x is a prameter and y an initial condition and n the cumulated time since t0:
  *  rescale cov(x,y) by 1/sqrt(n)
  *  rescale cov(x,x) by (1/sqrt(n))*(1/sqrt(n))
  *  do not rescale cov(y,y)
+ *
+ * NOTE: we normalize by cumulated time as the mutation in MIF have
+ * variance of delta_t * cooling *sqrt(var), with delta_t being the
+ * time in between 2 non NA observations
  */
 void ssm_mif_scale_var(ssm_var_t *var, ssm_data_t *data, ssm_nav_t *nav)
 {
@@ -37,8 +41,9 @@ void ssm_mif_scale_var(ssm_var_t *var, ssm_data_t *data, ssm_nav_t *nav)
     ssm_it_parameters_t *mif = nav->theta_no_icsv_no_icdiff; //parameters fitted with MIF (as opposed to fixed lag smoothing)
     ssm_it_parameters_t *fls = nav->theta_icsv_icdiff;       //parameters fitted with fixed lag smoothing (fls)
 
-    double inv = 1.0/((double) data->n_obs);
-    double sqrt_inv = 1.0/sqrt((double) data->n_obs);
+    double total_time = (data->n_obs>0) ? (double) data->rows[data->n_obs-1]->time : data->rows[0]->time;
+    double inv = 1.0/total_time;
+    double sqrt_inv = 1.0/sqrt(total_time);
 
     //mif, mif terms: rescale by inv
     for(i=0; i<mif->length; i++){

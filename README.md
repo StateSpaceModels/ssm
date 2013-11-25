@@ -42,22 +42,11 @@ On Ubuntu:
     apt-get update
     apt-get install -y nodejs libzmq-dev libjansson-dev python-sympy python-jinja2 python-dateutil libgsl0-dev
 
-On OSX with [homebrew](http://mxcl.github.io/homebrew/) and [pip](https://pypi.python.org/pypi/pip):
+On OSX with [homebrew](http://brew.sh/) and [pip](https://pypi.python.org/pypi/pip):
 
     brew install jansson zmq gsl node
     sudo pip install jinja2 sympy python-dateutil
     
-OSX users also need to install [xcode](https://itunes.apple.com/us/app/xcode/id497799835?ls=1&mt=12).
-
- 
-In addition, Maverick users need to get the command line tools
-by running the following in their terminal after installing 
-xcode: 
-
-    xcode-select --install 
-
-
-
 
 ## Installing S|S|M itself
 
