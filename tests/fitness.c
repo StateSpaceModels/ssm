@@ -38,7 +38,7 @@ void test_fitness__fitness_new(void)
     cl_check(fitness->like_min == 1e-17);
     cl_check(fitness->log_like_min == log(1e-17));
 
-    cl_check(fitness->ess_n == 0.0);
+    cl_check(isnan(fitness->ess_n));
     cl_check(fitness->log_like_n == 0.0);
     cl_check(fitness->log_like == 0.0);
 

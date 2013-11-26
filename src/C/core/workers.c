@@ -82,6 +82,7 @@ void *ssm_worker_inproc(void *params)
             int J_end = (the_id+1 == calc[the_id]->threads_length) ? fitness->J : (the_id+1)*J_chunk;
 
             for(j=J_start; j<J_end; j++ ){
+
                 ssm_X_reset_inc(D_J_X[*n_X][j], data->rows[n], nav);
 		fitness->cum_status[j] |= (*f_pred)(D_J_X[*n_X][j], t0, t1, J_par[*j_par], nav, calc[the_id]);
 		

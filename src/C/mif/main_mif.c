@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
     ssm_calc_t **calc = ssm_N_calc_new(jdata, nav, data, fitness, opts);
     ssm_X_t **J_X = ssm_J_X_new(fitness, nav, opts);
     ssm_X_t **J_X_tmp = ssm_J_X_new(fitness, nav, opts);
-
+    
     json_decref(jdata);
 
     ssm_input_t *input = ssm_input_new(jparameters, nav);
@@ -147,6 +147,7 @@ int main(int argc, char *argv[])
 	    } else {
 
 		for(j=0;j<fitness->J;j++) {
+
 		    ssm_X_reset_inc(J_X[j], data->rows[n], nav);
 		    fitness->cum_status[j] |= (*f_pred)(J_X[j], t0, t1, J_par[j], nav, calc[0]);
 

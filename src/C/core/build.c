@@ -1091,7 +1091,7 @@ ssm_options_t *ssm_options_new(void)
     strncpy(opts->root, ".", SSM_STR_BUFFSIZE);
     strncpy(opts->next, "", SSM_STR_BUFFSIZE);
     opts->n_thread = 1;
-    opts->like_min = 1e-17;
+    opts->like_min = 1.0e-17;
     opts->J = 1;
     opts->n_obs = -1;
     strncpy(opts->interpolator, "linear", SSM_STR_BUFFSIZE);
