@@ -509,6 +509,10 @@ the effective sample size. Let's plot these quantities
     plot(as.Date(diag$date), diag$ess, type='s')
 
 
+For more details on the modeling framework and on the algorithms 
+available in SSM, see the [documentation](https://github.com/standard-analytics/ssm/blob/master/doc/doc.pdf).
+
+
 ## Piping to the future
 
 S|S|M can also be used to perform predictions.
