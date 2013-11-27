@@ -9,6 +9,13 @@ playing with duplo blocks.
 
 [![NPM](https://nodei.co/npm/ssm.png)](https://nodei.co/npm/ssm/)
 
+Maths, methods and algorithms
+=============================
+
+For more details on the modeling framework and on the algorithms 
+available in SSM, see the [documentation](https://github.com/standard-analytics/ssm/raw/master/doc/doc.pdf).
+
+
 Installation
 ============
 
@@ -508,9 +515,6 @@ the effective sample size. Let's plot these quantities
     #effective sample size
     plot(as.Date(diag$date), diag$ess, type='s')
 
-
-For more details on the modeling framework and on the algorithms 
-available in SSM, see the [documentation](https://github.com/standard-analytics/ssm/blob/master/doc/doc.pdf).
 
 
 ## Piping to the future
