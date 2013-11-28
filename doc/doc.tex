@@ -49,7 +49,7 @@
 
 
 \vspace{2 cm} 
-\title{S|S|M:\\ Bayesian inference for state space models,\\ with a Unix flavour\\ \vspace{1 cm} {\large \texttt{ cat theta.json | ./ksimplex | ./kmcmc | ./pmcmc}}}
+\title{S|S|M:\\ Inference for state space models,\\ with a Unix flavour\\ \vspace{1 cm} {\large \texttt{ cat theta.json | ./ksimplex | ./kmcmc | ./pmcmc}}}
 
 
 \author{Joseph Dureau, S\'ebastien Ballesteros, Tiffany Bogich}
@@ -761,7 +761,7 @@ Even when the Markov Chain is initialised close from the global model of the pos
 The following examples have been obtained by routine application of the following sequence of algorithms:
 
 \begin{align}
-\texttt{cat pipe theta.json | ./ksimplex | ./kmcmc | ./pmcmc}\nonumber
+\texttt{cat theta.json | ./ksimplex | ./kmcmc | ./pmcmc}\nonumber
 \end{align}
 
 They illustrate how the results presented in \cite{Dureau2013a} can be easily reproduced using \emph{SSM} to capture the time-varying drivers of epidemics. They also introduce two novel applications of epidemic modeling to increase our understanding of past epidemics and predict their future evolution and serve decision-making.
