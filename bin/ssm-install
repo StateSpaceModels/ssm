@@ -28,13 +28,6 @@ try {
   process.exit(1);
 }
 
-try {
-  validate(dpkg, emitter);
-} catch(e){
-  console.error('\033[91mFAIL\033[0m: ' + e.message);
-  process.exit(1);
-}
-
 //logging
 var emitter = new EventEmitter();
 if(!program.quiet){
@@ -79,6 +72,14 @@ npm.load(npm.config, function (err) {
         console.error('\033[91mFAIL\033[0m: ' + err.message);
         process.exit(1);
       }
+
+      try {
+        validate(dpkg, dpkgRoot, emitter);
+      } catch(e){
+        console.error('\033[91mFAIL\033[0m: ' + e.message);
+  	process.exit(1);
+      }
+
 
       emitter.emit('log', 'Building the model...');
       installModel(dpkgRoot, dpkg, path.join(dpkgRoot, 'bin'), program.src, emitter, function(err){
