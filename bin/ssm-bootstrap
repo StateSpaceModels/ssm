@@ -66,7 +66,7 @@ links.resolve(dpkgRoot, dpkg, dpkg.model.data, function(err, data){
       name: 'random-lhs',
       run: [
         {
-          command: 'ssm lhs $IN.dpkg -o $OUT.out', timeout: '00:01:00',
+          command: 'ssm lhs $IN.dpkg -o $OUT.out --samples 50', timeout: '00:01:00',
           inputs: [ { path: 'package.json', name: 'dpkg' } ],
           outputs: [ { path: 'results/lhs/lhs.json', save: { resource: 'lhs' }, name: 'out' } ]
         }
@@ -102,11 +102,19 @@ links.resolve(dpkgRoot, dpkg, dpkg.model.data, function(err, data){
       map: [
         {
           command: './pmcmc', 
-          args: ['--root', '$ROOT/results/pmcmc' , '-M', 100000, '--next', 'map_', '--id', '$ID', '--trace', '--traj'], cwd: 'bin', timeout: '01:00:00',
+          args: ['--root', '$ROOT/results/pmcmc' , '-M', 100000, '--next', 'map_', '--id', '$ID'], cwd: 'bin', timeout: '01:00:00',
           inputs: [ { resource: 'start_pmcmc', replicate: 2, stdin: true } ],
           outputs: [
+            { path: 'results/pmcmc/map_*.json' }
+          ]
+        },
+	{
+          command: './pmcmc', 
+          args: ['--root', '$ROOT/results/pmcmc' , '-M', 100000, '--next', 'map_', '--id', '$ID', '--trace', '--traj'], cwd: 'bin', timeout: '01:00:00',
+          inputs: [ { path: 'results/pmcmc/map_*.json', stdin: true } ],
+          outputs: [
             { path: 'results/pmcmc/map_*.json', save: { resource: 'pmcmc_map_*' } },
-            { path: 'results/pmcmc/trace_*.csv' },
+	    { path: 'results/pmcmc/trace_*.csv' },
             { path: 'results/pmcmc/X_*.csv' }
           ]
         }

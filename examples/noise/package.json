@@ -2,9 +2,14 @@
   "name": "noise",
   "version": "0.0.0",
   "private": true,
-
   "description": "SIR model with birth and death processes, white noise on the transmission term and overdispersed binomial observation process",
-  "keywords": ["SIR", "overdispersed binomial", "2 cities", "paris", "new york"],
+  "keywords": [
+    "SIR",
+    "overdispersed binomial",
+    "2 cities",
+    "paris",
+    "new york"
+  ],
   "datadependencies": {
     "noise-data": "*"
   },
@@ -14,117 +19,226 @@
       "url": "http://creativecommons.org/publicdomain/zero/1.0/"
     }
   ],
-
-
   "model": {
-
     "data": [
       {
         "name": "all_CDC_inc_out",
         "data": [
-          {"datapackage": "noise-data", "resource": "data", "field": "date"},
-          {"datapackage": "noise-data", "resource": "data", "field": "all_CDC_inc_out"}
+          {
+            "datapackage": "noise-data",
+            "resource": "data",
+            "field": "date"
+          },
+          {
+            "datapackage": "noise-data",
+            "resource": "data",
+            "field": "all_CDC_inc_out"
+          }
         ]
       },
       {
         "name": "all_google_inc_out",
         "data": [
-          {"datapackage": "noise-data", "resource": "data", "field": "date"},
-          {"datapackage": "noise-data", "resource": "data", "field": "all_google_inc_out"}
+          {
+            "datapackage": "noise-data",
+            "resource": "data",
+            "field": "date"
+          },
+          {
+            "datapackage": "noise-data",
+            "resource": "data",
+            "field": "all_google_inc_out"
+          }
         ]
       },
       {
         "name": "paris_CDC_prev",
         "data": [
-          {"datapackage": "noise-data", "resource": "data", "field": "date"},
-          {"datapackage": "noise-data", "resource": "data", "field": "paris_CDC_prev"}
+          {
+            "datapackage": "noise-data",
+            "resource": "data",
+            "field": "date"
+          },
+          {
+            "datapackage": "noise-data",
+            "resource": "data",
+            "field": "paris_CDC_prev"
+          }
         ]
       },
       {
         "name": "nyc_CDC_inc",
         "data": [
-          {"datapackage": "noise-data", "resource": "data", "field": "date"},
-          {"datapackage": "noise-data", "resource": "data", "field": "nyc_CDC_inc"}
+          {
+            "datapackage": "noise-data",
+            "resource": "data",
+            "field": "date"
+          },
+          {
+            "datapackage": "noise-data",
+            "resource": "data",
+            "field": "nyc_CDC_inc"
+          }
         ]
       }
     ],
-
     "inputs": [
       {
         "name": "N_nyc",
         "data": [
-          {"datapackage": "noise-data", "resource": "N", "field": "date"},
-          {"datapackage": "noise-data", "resource": "N", "field": "nyc"}
+          {
+            "datapackage": "noise-data",
+            "resource": "N",
+            "field": "date"
+          },
+          {
+            "datapackage": "noise-data",
+            "resource": "N",
+            "field": "nyc"
+          }
         ]
       },
       {
         "name": "N_paris",
         "data": [
-          {"datapackage": "noise-data", "resource": "N", "field": "date"},
-          {"datapackage": "noise-data", "resource": "N", "field": "paris"}
+          {
+            "datapackage": "noise-data",
+            "resource": "N",
+            "field": "date"
+          },
+          {
+            "datapackage": "noise-data",
+            "resource": "N",
+            "field": "paris"
+          }
         ]
       },
       {
         "name": "mu_b_paris",
         "data": [
-          {"datapackage": "noise-data", "resource": "mu_b", "field": "date"},
-          {"datapackage": "noise-data", "resource": "mu_b", "field": "paris"}
+          {
+            "datapackage": "noise-data",
+            "resource": "mu_b",
+            "field": "date"
+          },
+          {
+            "datapackage": "noise-data",
+            "resource": "mu_b",
+            "field": "paris"
+          }
         ]
       },
       {
         "name": "mu_b_nyc",
         "data": [
-          {"datapackage": "noise-data", "resource": "mu_b", "field": "date"},
-          {"datapackage": "noise-data", "resource": "mu_b", "field": "nyc"}
+          {
+            "datapackage": "noise-data",
+            "resource": "mu_b",
+            "field": "date"
+          },
+          {
+            "datapackage": "noise-data",
+            "resource": "mu_b",
+            "field": "nyc"
+          }
         ]
       },
       {
         "name": "mu_d_paris",
-        "data": [ 
-          {"datapackage": "noise-data", "resource": "mu_d", "field": "date"},
-          {"datapackage": "noise-data", "resource": "mu_d", "field": "paris"}
+        "data": [
+          {
+            "datapackage": "noise-data",
+            "resource": "mu_d",
+            "field": "date"
+          },
+          {
+            "datapackage": "noise-data",
+            "resource": "mu_d",
+            "field": "paris"
+          }
         ]
       },
       {
         "name": "mu_d_nyc",
         "data": [
-          {"datapackage": "noise-data", "resource": "mu_d", "field": "date"},
-          {"datapackage": "noise-data", "resource": "mu_d", "field": "nyc"}
+          {
+            "datapackage": "noise-data",
+            "resource": "mu_d",
+            "field": "date"
+          },
+          {
+            "datapackage": "noise-data",
+            "resource": "mu_d",
+            "field": "nyc"
+          }
         ]
       },
       {
         "name": "prop_all_CDC_inc",
         "data": [
-          {"datapackage": "noise-data", "resource": "prop", "field": "date"},
-          {"datapackage": "noise-data", "resource": "prop", "field": "all_CDC_inc"}
+          {
+            "datapackage": "noise-data",
+            "resource": "prop",
+            "field": "date"
+          },
+          {
+            "datapackage": "noise-data",
+            "resource": "prop",
+            "field": "all_CDC_inc"
+          }
         ]
       },
       {
         "name": "prop_paris_CDC_prev",
         "data": [
-          {"datapackage": "noise-data", "resource": "prop", "field": "date"},
-          {"datapackage": "noise-data", "resource": "prop", "field": "paris_CDC_prev"}
+          {
+            "datapackage": "noise-data",
+            "resource": "prop",
+            "field": "date"
+          },
+          {
+            "datapackage": "noise-data",
+            "resource": "prop",
+            "field": "paris_CDC_prev"
+          }
         ]
       },
       {
         "name": "prop_all_google_inc",
         "data": [
-          {"datapackage": "noise-data", "resource": "prop", "field": "date"},
-          {"datapackage": "noise-data", "resource": "prop", "field": "all_google_inc"}
+          {
+            "datapackage": "noise-data",
+            "resource": "prop",
+            "field": "date"
+          },
+          {
+            "datapackage": "noise-data",
+            "resource": "prop",
+            "field": "all_google_inc"
+          }
         ]
       },
       {
         "name": "prop_nyc_CDC_inc",
         "data": [
-          {"datapackage": "noise-data", "resource": "prop", "field": "date"},
-          {"datapackage": "noise-data", "resource": "prop", "field": "nyc_CDC_inc"}
+          {
+            "datapackage": "noise-data",
+            "resource": "prop",
+            "field": "date"
+          },
+          {
+            "datapackage": "noise-data",
+            "resource": "prop",
+            "field": "nyc_CDC_inc"
+          }
         ]
       },
-
       {
         "name": "S_paris",
         "description": "Number of susceptible",
-        "data": {"resource": "pr_S_paris"},
+        "data": {
+          "resource": "pr_S_paris"
+        },
         "transformation": "pr_S_paris*N_paris",
         "to_resource": "S_paris/N_paris"
       },
@@ -136,8 +250,12 @@
       {
         "name": "I_paris",
         "description": "Number of infectious",
-        "keywords": ["infectious"],
-        "data": {"resource": "pr_I_paris"},
+        "keywords": [
+          "infectious"
+        ],
+        "data": {
+          "resource": "pr_I_paris"
+        },
         "transformation": "pr_I_paris*N_paris",
         "to_resource": "I_paris/N_paris"
       },
@@ -149,34 +267,44 @@
       {
         "name": "r0_paris",
         "description": "basic reproduction number",
-        "data": {"resource": "r0_paris"}
+        "data": {
+          "resource": "r0_paris"
+        }
       },
       {
         "name": "r0_nyc",
         "description": "basic reproduction number",
-        "data": {"resource": "r0_nyc"}
+        "data": {
+          "resource": "r0_nyc"
+        }
       },
       {
         "name": "v",
         "description": "recovery rate",
-        "data": {"resource": "pr_v"},
+        "data": {
+          "resource": "pr_v"
+        },
         "transformation": "1/pr_v",
         "to_resource": "1/v"
       },
       {
         "name": "sto",
         "description": "noise intensity",
-        "data": {"resource": "sto"}
+        "data": {
+          "resource": "sto"
+        }
       },
       {
         "name": "rep_all_CDC_inc",
         "description": "reporting rate",
-        "data": {"resource": "rep_all_CDC_inc"}
+        "data": {
+          "resource": "rep_all_CDC_inc"
+        }
       },
       {
         "name": "rep_all_google_inc",
         "description": "reporting rate",
-        "transformation": "rep_all_CDC_inc"       
+        "transformation": "rep_all_CDC_inc"
       },
       {
         "name": "rep_nyc_CDC_inc",
@@ -191,34 +319,140 @@
       {
         "name": "phi",
         "description": "over-dispertion",
-	"data": {"resource": "phi"}
+        "data": {
+          "resource": "phi"
+        }
       }
     ],
-
     "populations": [
-      {"name": "paris", "composition": ["S_paris", "I_paris", "R_paris"], "remainder": {"name": "R_paris", "pop_size": "N_paris"}},
-      {"name": "nyc",   "composition": ["S_nyc", "I_nyc", "R_nyc"],       "remainder": {"name": "R_nyc",   "pop_size": "N_nyc"}}
+      {
+        "name": "paris",
+        "composition": [
+          "S_paris",
+          "I_paris",
+          "R_paris"
+        ],
+        "remainder": {
+          "name": "R_paris",
+          "pop_size": "N_paris"
+        }
+      },
+      {
+        "name": "nyc",
+        "composition": [
+          "S_nyc",
+          "I_nyc",
+          "R_nyc"
+        ],
+        "remainder": {
+          "name": "R_nyc",
+          "pop_size": "N_nyc"
+        }
+      }
     ],
-    
     "reactions": [
-      {"from": "U",       "to": "S_paris", "rate": "mu_b_paris*N_paris",         "description":"birth"},
-      {"from": "U",       "to": "S_nyc",   "rate": "mu_b_nyc*N_nyc",             "description":"birth"},
-
-      {"from": "S_paris", "to": "I_paris", "rate": "r0_paris/N_paris*v*I_paris", "description":"infection", "keywords": ["transmission"], "white_noise": {"name":"noise_SI", "sd": "sto"}},
-      {"from": "S_nyc",   "to": "I_nyc",   "rate": "r0_nyc/N_nyc*v*I_nyc",       "description":"infection", "keywords": ["transmission"], "tracked": ["nyc_inc"], "white_noise": {"name":"noise_SI2", "sd": "sto"}},
-
-      {"from": "I_paris", "to": "R_paris", "rate": "correct_rate(v)",            "description":"recovery", "tracked": ["all_inc_out"]},
-      {"from": "I_nyc",   "to": "R_nyc",   "rate": "correct_rate(v)",            "description":"recovery", "tracked": ["all_inc_out"]},
-
-      {"from": "S_paris", "to": "U",       "rate": "mu_d_paris",                 "description":"death"},
-      {"from": "S_nyc",   "to": "U",       "rate": "mu_d_nyc",                   "description":"death"},
-
-      {"from": "I_paris", "to": "U",       "rate": "mu_d_paris",                 "description":"death", "tracked": ["all_inc_out"]},
-      {"from": "I_nyc",   "to": "U",       "rate": "mu_d_nyc",                   "description":"death", "tracked": ["all_inc_out"]},
-      {"from": "R_paris", "to": "U",       "rate": "mu_d_paris",                 "description":"death"},
-      {"from": "R_nyc",   "to": "U",       "rate": "mu_d_nyc",                   "description":"death"}
+      {
+        "from": "U",
+        "to": "S_paris",
+        "rate": "mu_b_paris*N_paris",
+        "description": "birth"
+      },
+      {
+        "from": "U",
+        "to": "S_nyc",
+        "rate": "mu_b_nyc*N_nyc",
+        "description": "birth"
+      },
+      {
+        "from": "S_paris",
+        "to": "I_paris",
+        "rate": "r0_paris/N_paris*v*I_paris",
+        "description": "infection",
+        "keywords": [
+          "transmission"
+        ],
+        "white_noise": {
+          "name": "noise_SI",
+          "sd": "sto"
+        }
+      },
+      {
+        "from": "S_nyc",
+        "to": "I_nyc",
+        "rate": "r0_nyc/N_nyc*v*I_nyc",
+        "description": "infection",
+        "keywords": [
+          "transmission"
+        ],
+        "tracked": [
+          "nyc_inc"
+        ],
+        "white_noise": {
+          "name": "noise_SI2",
+          "sd": "sto"
+        }
+      },
+      {
+        "from": "I_paris",
+        "to": "R_paris",
+        "rate": "correct_rate(v)",
+        "description": "recovery",
+        "tracked": [
+          "all_inc_out"
+        ]
+      },
+      {
+        "from": "I_nyc",
+        "to": "R_nyc",
+        "rate": "correct_rate(v)",
+        "description": "recovery",
+        "tracked": [
+          "all_inc_out"
+        ]
+      },
+      {
+        "from": "S_paris",
+        "to": "U",
+        "rate": "mu_d_paris",
+        "description": "death"
+      },
+      {
+        "from": "S_nyc",
+        "to": "U",
+        "rate": "mu_d_nyc",
+        "description": "death"
+      },
+      {
+        "from": "I_paris",
+        "to": "U",
+        "rate": "mu_d_paris",
+        "description": "death",
+        "tracked": [
+          "all_inc_out"
+        ]
+      },
+      {
+        "from": "I_nyc",
+        "to": "U",
+        "rate": "mu_d_nyc",
+        "description": "death",
+        "tracked": [
+          "all_inc_out"
+        ]
+      },
+      {
+        "from": "R_paris",
+        "to": "U",
+        "rate": "mu_d_paris",
+        "description": "death"
+      },
+      {
+        "from": "R_nyc",
+        "to": "U",
+        "rate": "mu_d_nyc",
+        "description": "death"
+      }
     ],
-
     "observations": [
       {
         "name": "all_CDC_inc_out",
@@ -229,36 +463,34 @@
       },
       {
         "name": "all_google_inc_out",
-	"start": "2012-07-26",
+        "start": "2012-07-26",
         "distribution": "discretized_normal",
         "mean": "rep_all_google_inc * prop_all_google_inc * all_inc_out",
         "sd": "sqrt(rep_all_google_inc * ( 1.0 - rep_all_google_inc ) * prop_all_google_inc * all_inc_out + pow(rep_all_google_inc * phi * prop_all_google_inc * all_inc_out, 2) )"
       },
       {
         "name": "paris_CDC_prev",
-	"start": "2012-07-26",
+        "start": "2012-07-26",
         "distribution": "discretized_normal",
         "mean": "rep_paris_CDC_prev * prop_paris_CDC_prev * I_paris",
         "sd": "sqrt(rep_paris_CDC_prev * ( 1.0 - rep_paris_CDC_prev ) * prop_paris_CDC_prev * I_paris + pow(rep_paris_CDC_prev * phi * prop_paris_CDC_prev * I_paris, 2) )"
       },
-
       {
         "name": "nyc_CDC_inc",
         "start": "2012-07-26",
-	"distribution": "discretized_normal",
+        "distribution": "discretized_normal",
         "mean": "rep_nyc_CDC_inc * prop_nyc_CDC_inc * nyc_inc",
         "sd": "sqrt(rep_nyc_CDC_inc * ( 1.0 - rep_nyc_CDC_inc ) * prop_nyc_CDC_inc * nyc_inc + pow(rep_nyc_CDC_inc * phi * prop_nyc_CDC_inc * nyc_inc, 2) )"
       }
     ]
   },
-
   "resources": [
     {
       "name": "pr_S_paris",
       "description": "Proportion of susceptible",
       "data": {
         "distribution": "fixed",
-        "value":0.07
+        "value": 0.07
       }
     },
     {
@@ -266,8 +498,8 @@
       "description": "Proportion of infectious",
       "data": {
         "distribution": "uniform",
-        "lower": 1e-6,
-        "upper": 1e-4
+        "lower": 0.000001,
+        "upper": 0.0001
       }
     },
     {
@@ -275,8 +507,8 @@
       "description": "basic reproduction number",
       "data": {
         "distribution": "uniform",
-        "lower": 15.0,
-        "upper": 35.0
+        "lower": 15,
+        "upper": 35
       }
     },
     {
@@ -284,8 +516,8 @@
       "description": "basic reproduction number",
       "data": {
         "distribution": "uniform",
-        "lower": 15.0,
-        "upper": 35.0
+        "lower": 15,
+        "upper": 35
       }
     },
     {
@@ -295,7 +527,7 @@
         "distribution": "normal",
         "mean": 12.5,
         "sd": 3.8265,
-        "lower": 0.0,
+        "lower": 0,
         "unit": "days"
       }
     },
@@ -324,31 +556,255 @@
         "value": 0.1
       }
     },
-
-
     {
       "name": "values",
       "format": "json",
       "data": {
-        "pr_I_paris": 1e-05,
-        "r0_nyc": 20.0,
-        "r0_paris": 20.0,
-        "pr_v": 11.0,
-        "rep_all_CDC_inc":0.6
+        "pr_I_paris": 0.00001,
+        "r0_nyc": 20,
+        "r0_paris": 20,
+        "pr_v": 11,
+        "rep_all_CDC_inc": 0.6
       }
     },
-
     {
       "name": "covariance",
       "format": "json",
       "data": {
-        "pr_I_paris": {"pr_I_paris": 0.03},
-        "r0_nyc": {"r0_nyc": 0.04, "pr_v": 0.01},
-        "r0_paris": {"r0_paris": 0.02},
-        "pr_v": {"pr_v": 0.02, "r0_nyc": 0.01},
-        "rep_all_CDC_inc": {"rep_all_CDC_inc": 0.02}
+        "pr_I_paris": {
+          "pr_I_paris": 0.03
+        },
+        "r0_nyc": {
+          "r0_nyc": 0.04,
+          "pr_v": 0.01
+        },
+        "r0_paris": {
+          "r0_paris": 0.02
+        },
+        "pr_v": {
+          "pr_v": 0.02,
+          "r0_nyc": 0.01
+        },
+        "rep_all_CDC_inc": {
+          "rep_all_CDC_inc": 0.02
+        }
       }
+    }
+  ],
+  "analytics": [
+    {
+      "name": "random-lhs",
+      "run": [
+        {
+          "command": "ssm lhs $IN.dpkg -o $OUT.out",
+          "timeout": "00:01:00",
+          "inputs": [
+            {
+              "path": "package.json",
+              "name": "dpkg"
+            }
+          ],
+          "outputs": [
+            {
+              "path": "results/lhs/lhs.json",
+              "save": {
+                "resource": "lhs"
+              },
+              "name": "out"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "lhs-simplex",
+      "map": [
+        {
+          "command": "./simplex",
+          "args": [
+            "--root",
+            "$ROOT/results/lhs_simplex",
+            "-M",
+            10000,
+            "--next",
+            "mle_",
+            "--id",
+            "$ID",
+            "--prior"
+          ],
+          "cwd": "bin",
+          "timeout": "00:01:00",
+          "inputs": [
+            {
+              "resource": "lhs",
+              "collection": true,
+              "stdin": true
+            }
+          ],
+          "outputs": [
+            {
+              "path": "results/lhs_simplex/mle_*.json"
+            }
+          ]
+        },
+        {
+          "repeat": 3,
+          "command": "./simplex",
+          "args": [
+            "--root",
+            "$ROOT/results/lhs_simplex",
+            "-M",
+            10000,
+            "--next",
+            "mle_",
+            "--id",
+            "$ID",
+            "--prior"
+          ],
+          "cwd": "bin",
+          "timeout": "00:01:00",
+          "inputs": [
+            {
+              "path": "results/lhs_simplex/mle_*.json",
+              "stdin": true
+            }
+          ],
+          "outputs": [
+            {
+              "path": "results/lhs_simplex/mle_*.json"
+            }
+          ]
+        }
+      ],
+      "reduce": [
+        {
+          "command": "ssm reduce $ROOT/results/lhs_simplex --by log_ltp --summary $OUT.out",
+          "timeout": "00:01:00",
+          "inputs": [
+            {
+              "path": "results/lhs_simplex/mle_*.json"
+            }
+          ],
+          "outputs": [
+            {
+              "path": "results/lhs_simplex/start_pmcmc.json",
+              "save": {
+                "resource": "start_pmcmc"
+              },
+              "name": "out"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "pmcmc",
+      "map": [
+        {
+          "command": "./pmcmc",
+          "args": [
+            "--root",
+            "$ROOT/results/pmcmc",
+            "-M",
+            100000,
+            "--next",
+            "map_",
+            "--id",
+            "$ID",
+            "--trace",
+            "--traj"
+          ],
+          "cwd": "bin",
+          "timeout": "01:00:00",
+          "inputs": [
+            {
+              "resource": "start_pmcmc",
+              "replicate": 2,
+              "stdin": true
+            }
+          ],
+          "outputs": [
+            {
+              "path": "results/pmcmc/map_*.json",
+              "save": {
+                "resource": "pmcmc_map_*"
+              }
+            },
+            {
+              "path": "results/pmcmc/trace_*.csv"
+            },
+            {
+              "path": "results/pmcmc/X_*.csv"
+            }
+          ]
+        }
+      ],
+      "reduce": [
+        {
+          "command": "ssm reduce $ROOT/results/pmcmc --by DIC --trace $OUT.trace --traj $OUT.traj --summary $OUT.map",
+          "timeout": "01:00:00",
+          "inputs": [
+            {
+              "resource": "pmcmc_map_*"
+            }
+          ],
+          "outputs": [
+            {
+              "path": "results/pmcmc/trace.csv",
+              "save": {
+                "resource": "pmcmc_trace"
+              },
+              "name": "trace"
+            },
+            {
+              "path": "results/pmcmc/X.csv",
+              "save": {
+                "resource": "pmcmc_traj"
+              },
+              "name": "traj"
+            },
+            {
+              "path": "results/pmcmc/map.json",
+              "save": {
+                "resource": "pmcmc_map"
+              },
+              "name": "map"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "predict",
+      "run": [
+        {
+          "command": "ssm predict $IN.dpkg $IN.traj $IN.trace 2013-07-25 | ./simul --root $ROOT/results/predict --traj --start 2013-07-25 --end 2014-07-25",
+          "cwd": "bin",
+          "timeout": "00:00:00",
+          "inputs": [
+            {
+              "path": "package.json",
+              "name": "dpkg"
+            },
+            {
+              "resource": "pmcmc_traj",
+              "name": "traj"
+            },
+            {
+              "resource": "pmcmc_trace",
+              "name": "trace"
+            }
+          ],
+          "outputs": [
+            {
+              "path": "results/predict/X_0.csv",
+              "save": {
+                "resource": "predict"
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }
-
