@@ -10,7 +10,7 @@
   "keywords": [
     "SSM",
     "tutorial"
-  ],
+  ], 
   "author": "Sebastien Ballesteros",
   "license": "MIT",
   "bugs": {
@@ -20,103 +20,62 @@
   "dataDependencies": {
     "ssm-tutorial-data": "0.0.0"
   },
+
   "model": {
     "data": [
-      {
-        "name": "cases",
-        "data": [
-          {
-            "datapackage": "ssm-tutorial-data",
-            "resource": "data",
-            "field": "date"
-          },
-          {
-            "datapackage": "ssm-tutorial-data",
-            "resource": "data",
-            "field": "cases"
-          }
-        ]
+      { 
+        "name": "cases", 
+        "data": [ 
+          { "datapackage": "ssm-tutorial-data", "resource": "data", "field": "date" }, 
+          { "datapackage": "ssm-tutorial-data", "resource": "data", "field": "cases" } 
+        ] 
       }
     ],
+    
     "inputs": [
       {
-        "name": "r0",
-        "description": "Basic reproduction number",
-        "data": {
-          "datapackage": "ssm-tutorial-data",
-          "resource": "r0"
-        }
+        "name": "r0", 
+        "description": "Basic reproduction number", 
+        "data": { "datapackage": "ssm-tutorial-data", "resource": "r0" } 
       },
-      {
+      { 
         "name": "v",
         "description": "Recovery rate",
-        "data": {
-          "datapackage": "ssm-tutorial-data",
-          "resource": "pr_v"
-        },
+        "data": { "datapackage": "ssm-tutorial-data", "resource":  "pr_v" },
         "transformation": "1/pr_v",
-        "to_resource": "1/v"
+        "to_resource": "1/v" 
       },
       {
-        "name": "S",
+        "name": "S", 
         "description": "Number of susceptible",
-        "data": {
-          "datapackage": "ssm-tutorial-data",
-          "resource": "S"
-        }
+        "data": { "datapackage": "ssm-tutorial-data", "resource": "S" } 
       },
-      {
+      { 
         "name": "I",
-        "description": "Number of infectious",
-        "data": {
-          "datapackage": "ssm-tutorial-data",
-          "resource": "I"
-        }
+        "description": "Number of infectious", 
+        "data": { "datapackage": "ssm-tutorial-data", "resource": "I" } 
       },
-      {
-        "name": "R",
+      { 
+        "name": "R", 
         "description": "Number of recovered",
-        "data": {
-          "datapackage": "ssm-tutorial-data",
-          "resource": "R"
-        }
+        "data": { "datapackage": "ssm-tutorial-data", "resource": "R" } 
       },
-      {
+      { 
         "name": "rep",
         "description": "Reporting rate",
-        "data": {
-          "datapackage": "ssm-tutorial-data",
-          "resource": "rep"
-        }
+        "data": { "datapackage": "ssm-tutorial-data", "resource": "rep" } 
       }
     ],
+
     "populations": [
-      {
-        "name": "NYC",
-        "composition": [
-          "S",
-          "I",
-          "R"
-        ]
-      }
+      {"name": "NYC", "composition": ["S", "I", "R"]}
     ],
+
     "reactions": [
-      {
-        "from": "S",
-        "to": "I",
-        "rate": "r0/(S+I+R)*v*I",
-        "description": "infection",
-        "tracked": [
-          "Inc"
-        ]
-      },
-      {
-        "from": "I",
-        "to": "R",
-        "rate": "v",
-        "description": "recovery"
-      }
+      {"from": "S", "to": "I", "rate": "r0/(S+I+R)*v*I", "description": "infection", "tracked": ["Inc"]},
+      {"from": "I", "to": "R", "rate": "v", "description":"recovery"}
     ],
+
     "observations": [
       {
         "name": "cases",
@@ -127,284 +86,23 @@
       }
     ]
   },
+
   "resources": [
     {
       "name": "values",
       "format": "json",
       "data": {
-        "r0": 25,
-        "pr_v": 11
+        "r0": 25.0,
+        "pr_v": 11.0
       }
     },
     {
       "name": "covariance",
       "format": "json",
       "data": {
-        "r0": {
-          "r0": 0.04,
-          "pr_v": 0.01
-        },
-        "pr_v": {
-          "pr_v": 0.02,
-          "r0": 0.01
-        }
+        "r0": {"r0": 0.04, "pr_v": 0.01},
+        "pr_v": {"pr_v": 0.02, "r0": 0.01}
       }
-    },
-    {
-      "name": "lhs",
-      "path": "./results/lhs/lhs.json",
-      "format": "json"
-    },
-    {
-      "name": "start_pmcmc",
-      "path": "./results/lhs_simplex/start_pmcmc.json",
-      "format": "json"
-    },
-    {
-      "name": "pmcmc_map_0",
-      "path": "./results/pmcmc/map_0.json",
-      "format": "json"
-    },
-    {
-      "name": "pmcmc_map_1",
-      "path": "./results/pmcmc/map_1.json",
-      "format": "json"
-    },
-    {
-      "name": "pmcmc_trace",
-      "path": "./results/pmcmc/trace.csv",
-      "format": "csv"
-    },
-    {
-      "name": "pmcmc_traj",
-      "path": "./results/pmcmc/X.csv",
-      "format": "csv"
-    },
-    {
-      "name": "pmcmc_map",
-      "path": "./results/pmcmc/map.json",
-      "format": "json"
-    },
-    {
-      "name": "predict",
-      "path": "./results/predict/X_0.csv",
-      "format": "csv"
-    }
-  ],
-  "analytics": [
-    {
-      "name": "random-lhs",
-      "run": [
-        {
-          "command": "ssm lhs $IN.dpkg -o $OUT.out",
-          "timeout": "00:01:00",
-          "inputs": [
-            {
-              "path": "package.json",
-              "name": "dpkg"
-            }
-          ],
-          "outputs": [
-            {
-              "path": "results/lhs/lhs.json",
-              "save": {
-                "resource": "lhs"
-              },
-              "name": "out"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "lhs-simplex",
-      "map": [
-        {
-          "command": "./simplex",
-          "args": [
-            "--root",
-            "$ROOT/results/lhs_simplex",
-            "-M",
-            10000,
-            "--next",
-            "mle_",
-            "--id",
-            "$ID",
-            "--prior"
-          ],
-          "cwd": "bin",
-          "timeout": "00:01:00",
-          "inputs": [
-            {
-              "resource": "lhs",
-              "collection": true,
-              "stdin": true
-            }
-          ],
-          "outputs": [
-            {
-              "path": "results/lhs_simplex/mle_*.json"
-            }
-          ]
-        },
-        {
-          "repeat": 3,
-          "command": "./simplex",
-          "args": [
-            "--root",
-            "$ROOT/results/lhs_simplex",
-            "-M",
-            10000,
-            "--next",
-            "mle_",
-            "--id",
-            "$ID",
-            "--prior"
-          ],
-          "cwd": "bin",
-          "timeout": "00:01:00",
-          "inputs": [
-            {
-              "path": "results/lhs_simplex/mle_*.json",
-              "stdin": true
-            }
-          ],
-          "outputs": [
-            {
-              "path": "results/lhs_simplex/mle_*.json"
-            }
-          ]
-        }
-      ],
-      "reduce": [
-        {
-          "command": "ssm reduce $ROOT/results/lhs_simplex --by log_ltp --summary $OUT.out",
-          "timeout": "00:01:00",
-          "inputs": [
-            {
-              "path": "results/lhs_simplex/mle_*.json"
-            }
-          ],
-          "outputs": [
-            {
-              "path": "results/lhs_simplex/start_pmcmc.json",
-              "save": {
-                "resource": "start_pmcmc"
-              },
-              "name": "out"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "pmcmc",
-      "map": [
-        {
-          "command": "./pmcmc",
-          "args": [
-            "--root",
-            "$ROOT/results/pmcmc",
-            "-M",
-            100000,
-            "--next",
-            "map_",
-            "--id",
-            "$ID",
-            "--trace",
-            "--traj"
-          ],
-          "cwd": "bin",
-          "timeout": "01:00:00",
-          "inputs": [
-            {
-              "resource": "start_pmcmc",
-              "replicate": 2,
-              "stdin": true
-            }
-          ],
-          "outputs": [
-            {
-              "path": "results/pmcmc/map_*.json",
-              "save": {
-                "resource": "pmcmc_map_*"
-              }
-            },
-            {
-              "path": "results/pmcmc/trace_*.csv"
-            },
-            {
-              "path": "results/pmcmc/X_*.csv"
-            }
-          ]
-        }
-      ],
-      "reduce": [
-        {
-          "command": "ssm reduce $ROOT/results/pmcmc --by DIC --trace $OUT.trace --traj $OUT.traj --summary $OUT.map",
-          "timeout": "01:00:00",
-          "inputs": [
-            {
-              "resource": "pmcmc_map_*"
-            }
-          ],
-          "outputs": [
-            {
-              "path": "results/pmcmc/trace.csv",
-              "save": {
-                "resource": "pmcmc_trace"
-              },
-              "name": "trace"
-            },
-            {
-              "path": "results/pmcmc/X.csv",
-              "save": {
-                "resource": "pmcmc_traj"
-              },
-              "name": "traj"
-            },
-            {
-              "path": "results/pmcmc/map.json",
-              "save": {
-                "resource": "pmcmc_map"
-              },
-              "name": "map"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "predict",
-      "run": [
-        {
-          "command": "ssm predict $IN.dpkg $IN.traj $IN.trace 2013-07-25 | ./simul --root $ROOT/results/predict --traj --start 2013-07-25 --end 2014-07-25",
-          "cwd": "bin",
-          "timeout": "00:00:00",
-          "inputs": [
-            {
-              "path": "package.json",
-              "name": "dpkg"
-            },
-            {
-              "resource": "pmcmc_traj",
-              "name": "traj"
-            },
-            {
-              "resource": "pmcmc_trace",
-              "name": "trace"
-            }
-          ],
-          "outputs": [
-            {
-              "path": "results/predict/X_0.csv",
-              "save": {
-                "resource": "predict"
-              }
-            }
-          ]
-        }
-      ]
     }
   ]
 }
