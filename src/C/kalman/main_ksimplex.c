@@ -125,6 +125,8 @@ int main(int argc, char *argv[])
 
     struct s_ksimplex params = {data, nav, calc, input, par, X, fitness, opts->flag_prior};
 
+    gsl_set_error_handler_off();
+
     double maximized_fitness = ssm_simplex(theta, var, &params, &f_ksimplex, nav, opts);
 
     if (!(nav->print & SSM_PRINT_LOG)) {	

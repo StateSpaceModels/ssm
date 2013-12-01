@@ -61,7 +61,19 @@ double ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_
     do {
 	iter++;
 	status = gsl_multimin_fminimizer_iterate(simp);
-	if (status) break;
+
+	if (status == GSL_ENOPROG){
+	    if (nav->print & SSM_PRINT_WARNING) {
+		ssm_print_warning("the minimizer is unable to improve on its current estimate, either due to numerical difficulty or because a genuine local minimum has been reached.");
+	    }
+	    //break; ?
+	} else if (status != GSL_SUCCESS) {	    
+	    if (nav->print & SSM_PRINT_WARNING) {
+		ssm_print_warning("fatal simplex error exiting now");
+	    }	   
+	    exit(EX_SOFTWARE);
+	}
+
 	size = gsl_multimin_fminimizer_size(simp);
 	status = gsl_multimin_test_size(size, size_stop);
 

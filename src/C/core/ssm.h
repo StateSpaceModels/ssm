@@ -28,6 +28,7 @@
 #include <time.h>
 #include <assert.h>
 #include <sys/time.h>
+#include <sysexits.h>
 
 #include <getopt.h>
 #include <unistd.h>

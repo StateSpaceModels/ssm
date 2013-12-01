@@ -134,6 +134,8 @@ int main(int argc, char *argv[])
 
     double maximized_fitness;
 
+    gsl_set_error_handler_off();
+
     if (opts->n_iter == 0 && (nav->print & SSM_PRINT_TRACE)) {
         //simply return the sum of square or the log likelihood (can be used to do slices especially with least square where smc can't be used'...)
 	maximized_fitness = f_simplex(theta, &params);

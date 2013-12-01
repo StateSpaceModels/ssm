@@ -43,7 +43,10 @@ if(!program.quiet){
   });
   squirrel.on('wrn', function(msg){console.log('\033[93mWARNING\033[0m: (%s)', msg)});
 }
-squirrel.on('error', function(msg){console.error('\033[91mFAIL\033[0m: ' + err.message);});
+squirrel.on('error', function(msg){
+  msg = msg.replace(reDpkgRoot, '$ROOT'); //shorten output
+  console.error('\033[91mFAIL:\033[0m ' + msg.grey);
+});
 
 squirrel.start(function(err, newDpkg){
   if(err) return fail(err);
