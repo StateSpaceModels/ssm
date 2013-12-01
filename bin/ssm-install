@@ -2,6 +2,7 @@
 
 var program = require('commander')
   , fs = require('fs')
+  , tv4 = require("tv4")
   , path = require('path')
   , spawn = require('child_process').spawn
   , resolvePath = require('../lib/util').resolvePath
@@ -10,6 +11,8 @@ var program = require('commander')
   , colors = require('colors')
   , npm = require("npm")
   , EventEmitter = require('events').EventEmitter;
+
+var pkgSchema = require('../json-schema/package-schema.json');
 
 program
   .usage('[package.json] [options]')
@@ -25,6 +28,12 @@ try {
   var dpkg = JSON.parse(fs.readFileSync(pathDpkg));
 } catch (e) {
   console.error('\033[91mFAIL\033[0m: ' + e.message);
+  process.exit(1);
+}
+
+// check that package.json complies with standard package.json requirements
+if( !tv4.validate(dpkg, pkgSchema) ){
+  console.error('\033[91mFAIL\033[0m: ' + tv4.error.message);
   process.exit(1);
 }
 
