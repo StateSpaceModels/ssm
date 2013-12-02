@@ -10,6 +10,8 @@ var program = require('commander')
   , validate = require('../lib/validate')
   , colors = require('colors')
   , npm = require("npm")
+  , async = require('async')
+  , links = require('../lib/links')
   , EventEmitter = require('events').EventEmitter;
 
 var pkgSchema = require('../json-schema/package-schema.json');
@@ -69,48 +71,43 @@ npm.load(npm.config, function (err) {
     emitter.emit('log', msg);
   });
 
-  var deps = [];
-  if(('dataDependencies' in dpkg) && !program.nodeps){
-    for(var key in dpkg.dataDependencies){
-      deps.push(key+'@'+dpkg.dataDependencies[key]);
+  async.series([
+
+    function(callback){
+      if(('dataDependencies' in dpkg) && !program.nodeps){
+        var deps = [];
+        for(var key in dpkg.dataDependencies){
+          deps.push(key+'@'+dpkg.dataDependencies[key]);
+        }
+
+        emitter.emit('log', 'INFO:'.blue + ' Installing data dependencies...');
+        npm.commands.install(deps, callback);       
+      } else {
+        callback(null);
+      }
+    },
+
+    function(callback){
+      links.resolve(dpkgRoot, dpkg, dpkg.model.data.concat(dpkg.model.inputs).filter(function(x){ return ('data' in x) && (!Array.isArray(x.data));}), function(err, rlinks){
+        if(err) return callback(err);
+
+        try {
+          validate(dpkg, rlinks, emitter);
+        } catch(e){
+          return callback(e);
+        }
+
+        emitter.emit('log', 'Building the model...');
+        installModel(dpkgRoot, dpkg, path.join(dpkgRoot, 'bin'), program.src, emitter, callback);
+        
+      });
     }
 
-    emitter.emit('log', 'INFO:'.blue + ' Installing data dependencies...');
-    npm.commands.install(deps, function (err, data) {
-      if(err) {
-        console.error('\033[91mFAIL\033[0m: ' + err.message);
-        process.exit(1);
-      }
-
-      try {
-        validate(dpkg, dpkgRoot, emitter);
-      } catch(e){
-        console.error('\033[91mFAIL\033[0m: ' + e.message);
-  	process.exit(1);
-      }
-
-
-      emitter.emit('log', 'Building the model...');
-      installModel(dpkgRoot, dpkg, path.join(dpkgRoot, 'bin'), program.src, emitter, function(err){
-        if(err){
-          console.error('\033[91mFAIL\033[0m: ' + err.message);
-          process.exit(1);
-        }
-      });
-
-    });
-  } else {
-
-    emitter.emit('log', 'INFO:'.blue + ' Building the model...');
-    installModel(dpkgRoot, dpkg, path.join(dpkgRoot, 'bin'), program.src, emitter, function(err){
-      if(err){
-        console.error('\033[91mFAIL\033[0m: ' + err.message);
-        process.exit(1);
-      }
-    });
-
-  }
+  ], function(err){
+    if(err){
+      console.error('\033[91mFAIL\033[0m: ' + err.message);
+      process.exit(1);
+    }
+  });
 
 });
-
-
