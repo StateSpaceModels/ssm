@@ -47,7 +47,7 @@ On Ubuntu:
     add-apt-repository -y ppa:chris-lea/node.js
     add-apt-repository -y ppa:chris-lea/zeromq
     apt-get update
-    apt-get install -y nodejs libzmq-dev libjansson-dev python-sympy python-jinja2 python-dateutil libgsl0-dev
+    apt-get install -y nodejs libzmq3-dev libjansson-dev python-sympy python-jinja2 python-dateutil libgsl0-dev
 
 On OSX with [homebrew](http://brew.sh/) and [pip](https://pypi.python.org/pypi/pip):
 
@@ -63,6 +63,7 @@ With [npm](https://npmjs.org/)
 
 Note: requires that all the C and python dependencies have been
 installed _before_ as this will also build the standalone C libraries.
+We recomend _not_ to use ```sudo``` for this command.
 
 Pull requests are welcome for a .gyp file and windows support!
 

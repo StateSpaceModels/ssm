@@ -34,7 +34,7 @@ class Builder(Data, Ccoder):
         Ccoder.__init__(self, dpkgRoot, dpkg, **kwargs)
         Data.__init__(self, path_rendered, dpkgRoot, dpkg,  **kwargs)
 
-        self.path_rendered = os.path.abspath(path_rendered)
+        self.path_rendered = os.path.abspath(unicode(path_rendered, 'utf8'))
         self.env = Environment(loader=FileSystemLoader(os.path.join(self.path_rendered, 'C', 'templates')))
         self.env.filters.update({
             'is_prior': lambda x: ('data' in x) and isinstance(x['data'], dict) and ('data' in x['data']) and ('distribution' in x['data']['data'])
@@ -118,7 +118,7 @@ class Builder(Data, Ccoder):
 
         self.render('step_ekf', {'is_diff': is_diff, 'step': step_ode_sde, 'orders': orders})
 
-        self.render('check_ic', parameters)
+        self.render('check_IC', parameters)
 
     def write_data(self):
 

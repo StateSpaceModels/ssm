@@ -45,6 +45,7 @@ class DataError(Exception):
 class Data(Ccoder):
 
     def __init__(self, path_rendered, dpkgRoot, dpkg, **kwargs):
+        path_rendered = unicode(path_rendered, 'utf8')
         Ccoder.__init__(self, dpkgRoot, dpkg, **kwargs)
 
         self.starts = [parse_date(x['start']) for x in self.obs_model]

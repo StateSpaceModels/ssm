@@ -38,7 +38,7 @@ class Cmodel:
     """
 
     def __init__(self, dpkgRoot, dpkg, **kwargs):
-        self.dpkgRoot = os.path.abspath(dpkgRoot)
+        self.dpkgRoot = os.path.abspath(unicode(dpkgRoot, 'utf8'))
         self.dpkg = copy.deepcopy(dpkg)
         self.model = self.dpkg['model']
 
