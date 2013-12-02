@@ -96,7 +96,7 @@ npm.load(npm.config, function (err) {
         } catch(e){
           return callback(e);
         }
-o
+
         emitter.emit('log', 'Building the model...');
         installModel(dpkgRoot, dpkg, path.join(dpkgRoot, 'bin'), program.src, emitter, callback);
         
