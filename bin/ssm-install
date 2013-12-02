@@ -88,7 +88,7 @@ npm.load(npm.config, function (err) {
     },
 
     function(callback){
-      links.resolve(dpkgRoot, dpkg, dpkg.model.data.concat(dpkg.model.inputs).filter(function(x){ return ('data' in x) && (!Array.isArray(x.data));}), function(err, rlinks){
+      links.resolve(dpkgRoot, dpkg, dpkg.model.inputs.filter(function(x){ return ('data' in x) && (!Array.isArray(x.data));}), function(err, rlinks){
         if(err) return callback(err);
 
         try {
