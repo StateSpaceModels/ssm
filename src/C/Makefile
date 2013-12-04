@@ -8,7 +8,11 @@ INCLUDES=$(wildcard */*.h)
 OBJ= $(SRC:.c=.o)
 ALL_OBJ= $(ALL_SRC_NO_TEMPLATE:.c=.o)
 
-PREFIX=$(HOME)/.ssm
+#http://stackoverflow.com/questions/7358611/bash-get-users-home-directory-when-they-run-a-script-as-root
+MY_SAFE_USER = $(shell logname)
+#http://stackoverflow.com/questions/7358611/bash-get-users-home-directory-when-they-run-a-script-as-root
+USER_HOME=$(shell eval echo ~$${MY_SAFE_USER})
+PREFIX=$(USER_HOME)/.ssm
 
 all: $(LIB)
 
