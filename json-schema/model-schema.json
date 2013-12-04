@@ -248,7 +248,7 @@
 	        "description": "When the parameters used in the model are functions of the data resources, specify the relation here.",
 		"type": "string"
 	      },
-	      "to-resource": {
+	      "to_resource": {
 		"description": "In order to make predictions after fitting your data, specify how to invert the transformation relation at a later time than t0.",
 		  "type": "string"
 	      }
