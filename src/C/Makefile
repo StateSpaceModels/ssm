@@ -8,7 +8,7 @@ INCLUDES=$(wildcard */*.h)
 OBJ= $(SRC:.c=.o)
 ALL_OBJ= $(ALL_SRC_NO_TEMPLATE:.c=.o)
 
-#http://stackoverflow.com/questions/7358611/bash-get-users-home-directory-when-they-run-a-script-as-root
+#http://stackoverflow.com/questions/4598001/how-do-you-find-the-original-user-through-multiple-sudo-and-su-commands
 MY_SAFE_USER = $(shell logname)
 #http://stackoverflow.com/questions/7358611/bash-get-users-home-directory-when-they-run-a-script-as-root
 USER_HOME=$(shell eval echo ~$${MY_SAFE_USER})
