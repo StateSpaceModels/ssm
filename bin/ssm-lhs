@@ -16,7 +16,7 @@ program
   .option('-f, --force', 'overwrite pre-existing analytics')
   .option('m, --pmin [pmin]', 'lower probability for the quantile function of the prior distribution', parseFloat, 0.05)
   .option('m, --pmax [pmax]', 'upper probability for the quantile function of the prior distribution', parseFloat, 0.95)
-  .option('n, --samples [samples]', 'number of samples of the random Latin Hyper Square', parseInt, 10)
+  .option('n, --samples [samples]', "number of samples of the random Latin Hyper Square. This option is like violence: if it doesn't work, you just need more of it.", parseInt, 10)
   .option('t, --trials [trials]', 'max number of trials before giving up in case there are constraints on the initial conditions', parseInt, 10)
   .option('s, --seed [seed]', 'a string to seed the random number generator')
   .parse(process.argv);
