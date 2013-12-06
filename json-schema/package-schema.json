@@ -6,7 +6,6 @@
   "properties": {
     "name": {
       "type": "string",
-      "required": true,
       "description": "The unique name of your package. This will also indicate the name of the package in the NPM global repository (if you choose to publish it). In SSM, this property will represent the name of your model."
     },
 
@@ -55,8 +54,8 @@
 
     "resources": {
       "type": "array",
-      "required": true,
       "description": "Shareable data resources."
     }
-  }    
+  },
+  required = ["name","resources"]    
 }
