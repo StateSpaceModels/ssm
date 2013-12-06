@@ -57,5 +57,5 @@
       "description": "Shareable data resources."
     }
   },
-  required = ["name","resources"]    
+  "required" : ["name","resources"]    
 }
