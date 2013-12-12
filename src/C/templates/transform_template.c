@@ -34,44 +34,44 @@ static double f_der2_inv_tpl_skl_{{ p.name }}(double x)
 
 {% for p in parameters %}
 {% if p|is_prior %}
-{% if p.data.data.distribution == 'uniform' %}
+{% if p.data.distribution == 'uniform' %}
 static double f_prior_tpl_{{ p.name }}(double x)
 {
-    return gsl_ran_flat_pdf(x, {{ p.data.data.lower }}, {{ p.data.data.upper }});
+    return gsl_ran_flat_pdf(x, {{ p.data.lower }}, {{ p.data.upper }});
 }
-{% elif p.data.data.distribution == 'normal' %}
+{% elif p.data.distribution == 'normal' %}
 static double f_prior_tpl_{{ p.name }}(double x)
 {
-    return gsl_ran_gaussian_pdf( (x - {{ p.data.data.mean }}), {{ p.data.data.sd }} );
+    return gsl_ran_gaussian_pdf( (x - {{ p.data.mean }}), {{ p.data.sd }} );
 }
 {% endif %}
 {% endif %}
 
 {# we create custom functions for logit_ab transformation (to enclose a and b). This is the case only for logit_ab #}
-{% if p|is_prior and 'lower' in p.data.data and 'upper' in p.data.data and (p.data.data.lower !=0 or p.data.data.upper !=1) %}
+{% if p|is_prior and 'lower' in p.data and 'upper' in p.data and (p.data.lower !=0 or p.data.upper !=1) %}
 static double f_tpl_{{ p.name }}(double x)
 {
-    return ssm_f_logit_ab(x, {{ p.data.data.lower }}, {{ p.data.data.upper }});
+    return ssm_f_logit_ab(x, {{ p.data.lower }}, {{ p.data.upper }});
 }
 
 static double f_inv_tpl_{{ p.name }}(double x)
 {
-    return ssm_f_inv_logit_ab(x, {{ p.data.data.lower }}, {{ p.data.data.upper }});
+    return ssm_f_inv_logit_ab(x, {{ p.data.lower }}, {{ p.data.upper }});
 }
 
 static double f_der_tpl_{{ p.name }}(double x)
 {
-    return ssm_f_der_logit_ab(x, {{ p.data.data.lower }}, {{ p.data.data.upper }});
+    return ssm_f_der_logit_ab(x, {{ p.data.lower }}, {{ p.data.upper }});
 }
 
 static double f_der_inv_tpl_{{ p.name }}(double x)
 {
-    return ssm_f_der_inv_logit_ab(x, {{ p.data.data.lower }}, {{ p.data.data.upper }});
+    return ssm_f_der_inv_logit_ab(x, {{ p.data.lower }}, {{ p.data.upper }});
 }
 
 static double f_der2_inv_tpl_{{ p.name }}(double x)
 {
-    return ssm_f_der_inv_logit_ab(x, {{ p.data.data.lower }}, {{ p.data.data.upper }});
+    return ssm_f_der_inv_logit_ab(x, {{ p.data.lower }}, {{ p.data.upper }});
 }
 {% endif %}
 
@@ -90,11 +90,11 @@ static double f_2prior_tpl_{{ p.name }}(double x, ssm_hat_t *hat, ssm_par_t *par
 
     //sanitize
     {% if p|is_prior %}
-    {% if  'lower' in p.data.data %}
-    res = GSL_MAX({{ p.data.data.lower }},  res);
+    {% if  'lower' in p.data %}
+    res = GSL_MAX({{ p.data.lower }},  res);
     {% endif %}
-    {% if  'upper' in p.data.data %}
-    res = GSL_MIN({{ p.data.data.upper }},  res);
+    {% if  'upper' in p.data %}
+    res = GSL_MIN({{ p.data.upper }},  res);
     {% endif %}
     {% endif %}
 
@@ -148,19 +148,19 @@ ssm_parameter_t **_ssm_parameters_new(int *parameters_length)
     parameters[{{ order_parameters[p.name] }}]->offset = {{ order_parameters[p.name] }};
     parameters[{{ order_parameters[p.name] }}]->offset_theta = -1;
 
-    {% if p|is_prior and 'lower' in p.data.data and 'upper' in p.data.data and (p.data.data.lower !=0 or p.data.data.upper !=1) %}
+    {% if p|is_prior and 'lower' in p.data and 'upper' in p.data and (p.data.lower !=0 or p.data.upper !=1) %}
     parameters[{{ order_parameters[p.name] }}]->f = &f_tpl_{{ p.name }};
     parameters[{{ order_parameters[p.name] }}]->f_inv = &f_inv_tpl_{{ p.name }};
     parameters[{{ order_parameters[p.name] }}]->f_der = &f_der_tpl_{{ p.name }};
     parameters[{{ order_parameters[p.name] }}]->f_der_inv = &f_der_inv_tpl_{{ p.name }};
     parameters[{{ order_parameters[p.name] }}]->f_der2_inv = &f_der2_inv_tpl_{{ p.name }};
-    {% elif p|is_prior and 'lower' in p.data.data and p.data.data.lower ==0 and 'upper' not in p.data.data %}
+    {% elif p|is_prior and 'lower' in p.data and p.data.lower ==0 and 'upper' not in p.data %}
     parameters[{{ order_parameters[p.name] }}]->f = &ssm_f_log;
     parameters[{{ order_parameters[p.name] }}]->f_inv = &ssm_f_inv_log;
     parameters[{{ order_parameters[p.name] }}]->f_der = &ssm_f_der_log;
     parameters[{{ order_parameters[p.name] }}]->f_der_inv = &ssm_f_der_inv_log;
     parameters[{{ order_parameters[p.name] }}]->f_der2_inv = &ssm_f_der2_inv_log;
-    {% elif p|is_prior and 'lower' in p.data.data and 'upper' in p.data.data and p.data.data.lower == 0 and p.data.data.upper == 1 %}
+    {% elif p|is_prior and 'lower' in p.data and 'upper' in p.data and p.data.lower == 0 and p.data.upper == 1 %}
     parameters[{{ order_parameters[p.name] }}]->f = &ssm_f_logit;
     parameters[{{ order_parameters[p.name] }}]->f_inv = &ssm_f_inv_logit;
     parameters[{{ order_parameters[p.name] }}]->f_der = &ssm_f_der_logit;
@@ -174,7 +174,7 @@ ssm_parameter_t **_ssm_parameters_new(int *parameters_length)
     parameters[{{ order_parameters[p.name] }}]->f_der2_inv = &ssm_f_der2_inv_id;
     {% endif %}
 
-    {% if p|is_prior and p.data.data.distribution != 'fixed' %}
+    {% if p|is_prior and p.data.distribution != 'fixed' %}
     parameters[{{ order_parameters[p.name] }}]->f_prior = &f_prior_tpl_{{ p.name }};
     {# TODO: fixed case #}
     {% else %}

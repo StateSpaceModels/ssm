@@ -7,7 +7,7 @@
 
   "definitions": {
   
-    "data": {
+    "require": {
       "type": "object",
       "properties": {
         "datapackage": {
@@ -16,26 +16,11 @@
 	"resource": {
 	  "type": "string"	 
 	},
-	"field": {
+	"fields": {
 	  "type": "string"	 
 	}
       },
       "required": ["resource"]
-    },
-
-    "time-series": {
-      "type": "object",
-      "properties": {
-        "name": {
-	  "type": "string"
-	},
-	"data": {
-	  "type": "array",
-	  "items": {"$ref": "#/definitions/data"},
-	  "minItems": 2,
-	  "maxItems": 2
-	}
-      }
     }
 
   },
@@ -220,11 +205,28 @@
       "type": "array",
       "description": "Link each of the observed variables to a data resource.",
       "items": {
-        "type": "object",
-	"oneOf": [ 
-   	  {"$ref": "#/definitions/time-series"}
+	"type": "object",
+	"anyOf": [
+	    {
+	      "type": "object",
+	      "properties": {
+	        "name": {
+		  "type": "string"
+	        },
+	        "description": {
+		  "type": "string"
+	        },
+	        "require": {"$ref": "#/definitions/require"},
+	        "transformation": {
+	          "description": "When the parameters used in the model are functions of the data resources, specify the relation here.",
+		  "type": "string"
+	        }
+	      },
+	      "required": ["name"]
+	    }
         ]
-      }
+      },
+      "required": ["name", "require"]
     },
 
     "inputs": {
@@ -233,7 +235,6 @@
       "items": {
 	"type": "object",
 	"anyOf": [ 
-   	  {"$ref": "#/definitions/time-series"},
 	  {
 	    "type": "object",
 	    "properties": {
@@ -243,14 +244,14 @@
 	      "description": {
 		"type": "string"
 	      },
-	      "data": {"$ref": "#/definitions/data"},
+	      "require": {"$ref": "#/definitions/require"},
 	      "transformation": {
 	        "description": "When the parameters used in the model are functions of the data resources, specify the relation here.",
 		"type": "string"
 	      },
 	      "to_resource": {
 		"description": "In order to make predictions after fitting your data, specify how to invert the transformation relation at a later time than t0.",
-		  "type": "string"
+		"type": "string"
 	      }
 	    },
 	    "required": ["name"]

@@ -68,16 +68,13 @@ class Cmodel:
 
                     else:
                         try:                
-                            resource = [x for x in self.dpkg['resources'] if x['name'] == p['require']['resource']][0]
+                            resource = [x for x in self.dpkg['resources'] if x['name'] == p['require']['resource']][0]['data']
                         except IndexError:
                             raise ModelError('resource ' + p['require']['resource'] + ' of ' + p['name'] + ' is missing.')
 
-
-                    imported_resource = copy.deepcopy(resource)
-                    if 'name' in p['require']:
-                        imported_resource['name'] = p['require']['name']
-
-                    self.model['inputs'][i]['data'] = imported_resource
+                    if 'name' not in p['require']:
+                        p['require']['name'] = p['require']['resource']
+                    self.model['inputs'][i]['data'] = copy.deepcopy(resource)
 
 
         parameters = self.model['inputs']
