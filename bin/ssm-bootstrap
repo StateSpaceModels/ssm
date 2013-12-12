@@ -24,7 +24,7 @@ var pathDpkg = (program.args[0]) ? resolvePath(program.args[0]): path.resolve('p
 try {
   var dpkg = JSON.parse(fs.readFileSync(pathDpkg));
 } catch (e){
-  emitter.emit('error', e.message);
+  console.error(e.message);
   process.exit(1);  
 }
 

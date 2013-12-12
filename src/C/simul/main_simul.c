@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
         fitness->cum_status[j] = SSM_SUCCESS;
     }
 
-    int n_start = 0;
+    int n_start = -1;
     if(strcmp(opts->start, "") != 0){ //opts->start has been specified
 	for(n=0; n< data->n_obs; n++){
 	    if(strcmp(opts->start, data->rows[n]->date) == 0){
