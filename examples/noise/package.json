@@ -81,7 +81,7 @@
       {
         "name": "S_paris",
         "description": "Number of susceptible",
-        "data": {"resource": "pr_S_paris"},
+        "require": {"resource": "pr_S_paris"},
         "transformation": "pr_S_paris*N_paris",
         "to_resource": "S_paris/N_paris"
       },
@@ -94,7 +94,7 @@
         "name": "I_paris",
         "description": "Number of infectious",
         "keywords": ["infectious"],
-        "data": {"resource": "pr_I_paris"},
+        "require": {"resource": "pr_I_paris"},
         "transformation": "pr_I_paris*N_paris",
         "to_resource": "I_paris/N_paris"
       },
@@ -106,29 +106,29 @@
       {
         "name": "r0_paris",
         "description": "basic reproduction number",
-        "data": {"resource": "r0_paris"}
+        "require": {"resource": "r0_paris"}
       },
       {
         "name": "r0_nyc",
         "description": "basic reproduction number",
-        "data": {"resource": "r0_nyc"}
+        "require": {"resource": "r0_nyc"}
       },
       {
         "name": "v",
         "description": "recovery rate",
-        "data": {"resource": "pr_v"},
+        "require": {"resource": "pr_v"},
         "transformation": "1/pr_v",
         "to_resource": "1/v"
       },
       {
         "name": "sto",
         "description": "noise intensity",
-        "data": {"resource": "sto"}
+        "require": {"resource": "sto"}
       },
       {
         "name": "rep_all_CDC_inc",
         "description": "reporting rate",
-        "data": {"resource": "rep_all_CDC_inc"}
+        "require": {"resource": "rep_all_CDC_inc"}
       },
       {
         "name": "rep_all_google_inc",
@@ -148,7 +148,7 @@
       {
         "name": "phi",
         "description": "over-dispertion",
-	"data": {"resource": "phi"}
+	"require": {"resource": "phi"}
       }
     ],
 

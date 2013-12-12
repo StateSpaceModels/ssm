@@ -59,7 +59,7 @@ class Ccoder(Cmodel):
                     xify = p['require']['name']
                 else:
                     xify = p['name']
-                    
+
                 p['f_user2par'] = self.make_C_term(p['transformation'], True, force_par=True, xify=xify, set_t0=True)
 
                 ## inverse of the transformation function
