@@ -5,7 +5,27 @@
 
   "description": "Description of an state space model following the grammar of the SSM inference package",
 
-	
+  "definitions": {
+    "require": {
+      "type": "object",
+      "properties": {
+        "datapackage": {
+          "type": "string"
+        },
+	"resource": {
+	  "type": "string"
+	},
+	"fields": {
+	  "type": "array",
+	  "items": {
+	    "type": "string"
+	  }
+	}
+      }
+    }
+  },  	
+
+
   "type": "object",
   
   "properties": {
@@ -197,23 +217,7 @@
 	        "description": {
 		  "type": "string"
 	        },
-	        "require": {
-		  "type": "object",
-		  "properties": {
-		    "datapackage": {
-		      "type": "string"
-		    },
-		    "resource": {
-		      "type": "string"
-		    },
-		    "fields": {
-		      "type": "array",
-		      "items": {
-		        "type": "string"
-		      }
-		    }
-		  }
-		},
+		"require": {"$ref": "#/definitions/require"},
 	        "transformation": {
 	          "description": "When the parameters used in the model are functions of the data resources, specify the relation here.",
 		  "type": "string"
