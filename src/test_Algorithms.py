@@ -16,8 +16,8 @@ class TestNoiseResults(unittest.TestCase):
             print("")
             print("Testing classic numerical results on noise example")
 
-            os.chdir(Root)
-            os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise/package.json')
+            os.system('cp ' + Root + '/../examples/noise/package.json .')
+            os.system(Root + '/../bin/ssm install package.json')
             
       def setUp(self):
       # Things that need to be done before tests
@@ -73,7 +73,8 @@ class TestTransfsAndPMCMC(unittest.TestCase):
                   json.dump(j,outfile)
 
             os.chdir(Root)
-            os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
+            os.system('cp ' + Root + '/../examples/noise_test/package.json .')
+            os.system(Root + '/../bin/ssm install package.json')
 
             os.chdir(Root + '/bin')            
             os.system('./pmcmc ode  -C 5000 -W 5000 -O 0 -M 20000 -c -a < ' + Root + '/../examples/noise_test/package.json')
@@ -106,7 +107,8 @@ class TestTransfsAndPMCMC(unittest.TestCase):
                   json.dump(j,outfile)
 
             os.chdir(Root)
-            os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
+            os.system('cp ' + Root + '/../examples/noise_test/package.json .')
+            os.system(Root + '/../bin/ssm install package.json')
 
             os.chdir(Root + '/bin')            
             os.system('./pmcmc ode  -C 5000 -W 5000 -O 0 -M 20000 -c -a < '+ Root + '/../examples/noise_test/package.json')
@@ -144,7 +146,8 @@ class TestTransfsAndPMCMC(unittest.TestCase):
                   json.dump(j,outfile)            
 
             os.chdir(Root)
-            os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
+            os.system('cp ' + Root + '/../examples/noise_test/package.json .')
+            os.system(Root + '/../bin/ssm install package.json')
 
             os.chdir(Root + '/bin')            
             
@@ -178,7 +181,8 @@ class TestTransfsAndPMCMC(unittest.TestCase):
                   json.dump(j,outfile)   
 
             os.chdir(Root)
-            os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
+            os.system('cp ' + Root + '/../examples/noise_test/package.json .')
+            os.system(Root + '/../bin/ssm install package.json')
 
             os.chdir(Root + '/bin')            
             
@@ -211,8 +215,10 @@ class TestTransfsAndPMCMC(unittest.TestCase):
                   json.dump(j,outfile)
 
             os.chdir(Root)
-            os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
-            os.chdir(Root + '/bin')
+            os.system('cp ' + Root + '/../examples/noise_test/package.json .')
+            os.system(Root + '/../bin/ssm install package.json')
+
+            os.chdir(Root + '/bin')  
             
             os.system('./pmcmc ode  -C 5000 -W 5000 -O 0 -M 20000 -c -a < ' + Root + '/../examples/noise_test/package.json')
 
@@ -254,10 +260,10 @@ class TestKalmanOnDiffusions(unittest.TestCase):
             j['model']['inputs'].insert(0,{})
             j['model']['inputs'][0]['name'] = 'test_par'
             j['model']['inputs'][0]['description'] = ''
-            j['model']['inputs'][0]['data'] = { "resource": "test_par"}
+            j['model']['inputs'][0]['require'] = { "resource": "test_par"}
             j['model']['inputs'][1]['name'] = 'test_vol'
             j['model']['inputs'][1]['description'] = ''
-            j['model']['inputs'][1]['data'] = { "resource": "test_vol"}
+            j['model']['inputs'][1]['require'] = { "resource": "test_vol"}
             j['resources'].insert(0,{}) 
             j['resources'].insert(0,{})
             j['resources'][0]['name'] = 'test_par'
@@ -277,7 +283,8 @@ class TestKalmanOnDiffusions(unittest.TestCase):
                   json.dump(j,outfile)
 
             os.chdir(Root)
-            os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
+            os.system('cp ' + Root + '/../examples/noise_test/package.json .')
+            os.system(Root + '/../bin/ssm install package.json')
             
             os.chdir(Root + '/bin')
             
@@ -327,40 +334,40 @@ class TestSMCSDEagainstKalman(unittest.TestCase):
             j["model"]["inputs"] = []
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'r0'
-            j["model"]["inputs"][0]['data'] = {'resource':'r0'}
+            j["model"]["inputs"][0]['require'] = {'resource':'r0'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'S'
-            j["model"]["inputs"][0]['data'] = {'resource':'S'}
+            j["model"]["inputs"][0]['require'] = {'resource':'S'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'I'
-            j["model"]["inputs"][0]['data'] = {'resource':'I'}
+            j["model"]["inputs"][0]['require'] = {'resource':'I'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'I2'
-            j["model"]["inputs"][0]['data'] = {'resource':'I2'}
+            j["model"]["inputs"][0]['require'] = {'resource':'I2'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'E1'
-            j["model"]["inputs"][0]['data'] = {'resource':'E1'}
+            j["model"]["inputs"][0]['require'] = {'resource':'E1'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'vol'
-            j["model"]["inputs"][0]['data'] = {'resource':'vol'}
+            j["model"]["inputs"][0]['require'] = {'resource':'vol'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'vol2'
-            j["model"]["inputs"][0]['data'] = {'resource':'vol2'}
+            j["model"]["inputs"][0]['require'] = {'resource':'vol2'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'rep_all_CDC_inc'
-            j["model"]["inputs"][0]['data'] = {'resource':'rep_all_CDC_inc'}
+            j["model"]["inputs"][0]['require'] = {'resource':'rep_all_CDC_inc'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'prop_all_CDC_inc'
-            j["model"]["inputs"][0]['data'] = {'resource':'prop_all_CDC_inc'}
+            j["model"]["inputs"][0]['require'] = {'resource':'prop_all_CDC_inc'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'phi'
-            j["model"]["inputs"][0]['data'] = {'resource':'phi'}
+            j["model"]["inputs"][0]['require'] = {'resource':'phi'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'E2'
-            j["model"]["inputs"][0]['data'] = {'resource':'E2'}
+            j["model"]["inputs"][0]['require'] = {'resource':'E2'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'N'
-            j["model"]["inputs"][0]['data'] = {'resource':'N'}
+            j["model"]["inputs"][0]['require'] = {'resource':'N'}
 
             j["resources"]=[]
             j["resources"].insert(0,{})
@@ -441,9 +448,9 @@ class TestSMCSDEagainstKalman(unittest.TestCase):
             with open(Root + '/../examples/noise_test/package.json','w') as outfile:
                   json.dump(j,outfile)
 
-            os.chdir(Root)
-
-            os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
+            os.chdir(Root)            
+            os.system('cp ' + Root + '/../examples/noise_test/package.json .')
+            os.system(Root + '/../bin/ssm install package.json')
 
             os.chdir(Root + '/bin')
 
@@ -508,40 +515,40 @@ class TestpMCMCsmoothing(unittest.TestCase):
             j["model"]["inputs"] = []
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'r0'
-            j["model"]["inputs"][0]['data'] = {'resource':'r0'}
+            j["model"]["inputs"][0]['require'] = {'resource':'r0'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'S'
-            j["model"]["inputs"][0]['data'] = {'resource':'S'}
+            j["model"]["inputs"][0]['require'] = {'resource':'S'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'I'
-            j["model"]["inputs"][0]['data'] = {'resource':'I'}
+            j["model"]["inputs"][0]['require'] = {'resource':'I'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'I2'
-            j["model"]["inputs"][0]['data'] = {'resource':'I2'}
+            j["model"]["inputs"][0]['require'] = {'resource':'I2'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'E1'
-            j["model"]["inputs"][0]['data'] = {'resource':'E1'}
+            j["model"]["inputs"][0]['require'] = {'resource':'E1'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'vol'
-            j["model"]["inputs"][0]['data'] = {'resource':'vol'}
+            j["model"]["inputs"][0]['require'] = {'resource':'vol'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'vol2'
-            j["model"]["inputs"][0]['data'] = {'resource':'vol2'}
+            j["model"]["inputs"][0]['require'] = {'resource':'vol2'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'rep_all_CDC_inc'
-            j["model"]["inputs"][0]['data'] = {'resource':'rep_all_CDC_inc'}
+            j["model"]["inputs"][0]['require'] = {'resource':'rep_all_CDC_inc'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'prop_all_CDC_inc'
-            j["model"]["inputs"][0]['data'] = {'resource':'prop_all_CDC_inc'}
+            j["model"]["inputs"][0]['require'] = {'resource':'prop_all_CDC_inc'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'phi'
-            j["model"]["inputs"][0]['data'] = {'resource':'phi'}
+            j["model"]["inputs"][0]['require'] = {'resource':'phi'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'E2'
-            j["model"]["inputs"][0]['data'] = {'resource':'E2'}
+            j["model"]["inputs"][0]['require'] = {'resource':'E2'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'N'
-            j["model"]["inputs"][0]['data'] = {'resource':'N'}
+            j["model"]["inputs"][0]['require'] = {'resource':'N'}
 
             j["resources"]=[]
             j["resources"].insert(0,{})
@@ -624,7 +631,8 @@ class TestpMCMCsmoothing(unittest.TestCase):
 
 
             os.chdir(Root)
-            os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
+            os.system('cp ' + Root + '/../examples/noise_test/package.json .')
+            os.system(Root + '/../bin/ssm install package.json')
 
             os.chdir(Root + '/bin')
             
@@ -720,40 +728,40 @@ class TestpMCMCsmoothingWithNaNs(unittest.TestCase):
             j["model"]["inputs"] = []
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'r0'
-            j["model"]["inputs"][0]['data'] = {'resource':'r0'}
+            j["model"]["inputs"][0]['require'] = {'resource':'r0'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'S'
-            j["model"]["inputs"][0]['data'] = {'resource':'S'}
+            j["model"]["inputs"][0]['require'] = {'resource':'S'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'I'
-            j["model"]["inputs"][0]['data'] = {'resource':'I'}
+            j["model"]["inputs"][0]['require'] = {'resource':'I'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'I2'
-            j["model"]["inputs"][0]['data'] = {'resource':'I2'}
+            j["model"]["inputs"][0]['require'] = {'resource':'I2'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'E1'
-            j["model"]["inputs"][0]['data'] = {'resource':'E1'}
+            j["model"]["inputs"][0]['require'] = {'resource':'E1'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'vol'
-            j["model"]["inputs"][0]['data'] = {'resource':'vol'}
+            j["model"]["inputs"][0]['require'] = {'resource':'vol'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'vol2'
-            j["model"]["inputs"][0]['data'] = {'resource':'vol2'}
+            j["model"]["inputs"][0]['require'] = {'resource':'vol2'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'rep_all_CDC_inc'
-            j["model"]["inputs"][0]['data'] = {'resource':'rep_all_CDC_inc'}
+            j["model"]["inputs"][0]['require'] = {'resource':'rep_all_CDC_inc'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'prop_all_CDC_inc'
-            j["model"]["inputs"][0]['data'] = {'resource':'prop_all_CDC_inc'}
+            j["model"]["inputs"][0]['require'] = {'resource':'prop_all_CDC_inc'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'phi'
-            j["model"]["inputs"][0]['data'] = {'resource':'phi'}
+            j["model"]["inputs"][0]['require'] = {'resource':'phi'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'E2'
-            j["model"]["inputs"][0]['data'] = {'resource':'E2'}
+            j["model"]["inputs"][0]['require'] = {'resource':'E2'}
             j["model"]["inputs"].insert(0,{})
             j["model"]["inputs"][0]['name'] = 'N'
-            j["model"]["inputs"][0]['data'] = {'resource':'N'}
+            j["model"]["inputs"][0]['require'] = {'resource':'N'}
 
             j["resources"]=[]
             j["resources"].insert(0,{})
@@ -867,7 +875,8 @@ class TestpMCMCsmoothingWithNaNs(unittest.TestCase):
                               ind = ind + 1
 
             os.chdir(Root)
-            os.system(Root + '/../bin/ssm install  ' + Root + '/../examples/noise_test/package.json')
+            os.system('cp ' + Root + '/../examples/noise_test/package.json .')
+            os.system(Root + '/../bin/ssm install package.json')
 
             os.chdir(Root + '/bin')
 
