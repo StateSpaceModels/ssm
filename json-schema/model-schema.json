@@ -222,11 +222,10 @@
 		  "type": "string"
 	        }
 	      },
-	      "required": ["name"]
+	      "required": ["name","require"]
 	    }
         ]
-      },
-      "required": ["name", "require"]
+      }
     },
 
     "inputs": {
