@@ -343,7 +343,7 @@ Only the diagonal terms are mandatory for the covariance matrix.
 
 ## Installing a model from a data package
 
-At the root of a directory with a datapacakge (package.json), run
+At the root of a directory with a datapackage (package.json), run
 
     $ ssm install [options]
 
