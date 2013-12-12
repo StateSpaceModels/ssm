@@ -8,7 +8,7 @@ DPKG_ROOT= ../examples/foo/
 MODEL_PATH= ../examples/foo/bin
 
 CFLAGS=-g -I.. -I. -I $(HOME)/.ssm/include -Wall -DCLAR_FIXTURE_PATH=\"$(CLAR_FIXTURE_PATH)\"
-LDFLAGS=-L$(MODEL_PATH)/C/templates -L $(HOME)/.ssm/lib -lssm -lssmtpl -lssm -lm -lgsl -lgslcblas -ljansson -lzmq
+LDFLAGS=-L$(MODEL_PATH)/C/templates -L $(HOME)/.ssm/lib -lssm -lssmtpl -lssm -lssmtpl -lm -lgsl -lgslcblas -ljansson -lzmq
 
 .PHONY: clean test
 

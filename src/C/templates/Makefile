@@ -1,6 +1,6 @@
 CC=gcc #clang -ferror-limit=2
 CFLAGS=-std=gnu99 -O3 -DGSL_RANGE_CHECK_OFF -I $(HOME)/.ssm/include
-LDFLAGS=-lssm -lssmtpl -lssm -lm -lgsl -lgslcblas -ljansson -lzmq -lpthread
+LDFLAGS=-lssm -lssmtpl -lssm -lssmtpl -lm -lgsl -lgslcblas -ljansson -lzmq -lpthread
 LIB=libssmtpl.a
 SRC= $(wildcard *.c)
 OBJ= $(SRC:.c=.o)
