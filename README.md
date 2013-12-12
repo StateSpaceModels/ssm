@@ -185,20 +185,16 @@ data it explains.
     "data": [
       { 
         "name": "cases", 
-        "data": [ 
-          {"datapackage": "ssm-tutorial-data", "resource": "data", "field": "date"}, 
-          {"datapackage": "ssm-tutorial-data", "resource": "data", "field": "cases"} 
-        ] 
+        "require": {"datapackage": "ssm-tutorial-data", "resource": "data", "fields": ["date", "cases"]},
       }
     ]
 
-The ```model.data.data``` property is a list of 2 links representing a
-time-series. The first link has to be the dates of the timeseries and
-the second one the values.  A link is an object with 3 properties:
+The ```model.data.require``` property is link pointing to a
+time-series.  A link is an object with 3 properties:
 - ```datapackage``` (optional) specifying the name of the datapackage where the 
 resource can be found. It must be omitted if the the resource is in the same datapackage.
 - ```resource``` (mandatory)
-- ```field``` necessary only in case of resources containing data in [SDF](http://dataprotocols.org/simple-data-format/).
+- ```fields``` necessary only in case of resources containing data in [SDF](http://dataprotocols.org/simple-data-format/). In this later case, the first field must be the time of the time series.
 
 Note that ```model.data``` itself can be a list so that multiple
 time-series can be handled.
@@ -214,34 +210,34 @@ used as priors or covariate of the model.
       {
         "name": "r0", 
         "description": "Basic reproduction number", 
-        "data": { "datapackage": "ssm-tutorial-data", "resource": "r0" } 
+        "require": { "datapackage": "ssm-tutorial-data", "resource": "r0" } 
       },
       { 
         "name": "v",
         "description": "Recovery rate",
-        "data": { "datapackage": "ssm-tutorial-data", "resource":  "pr_v" },
+        "require": { "datapackage": "ssm-tutorial-data", "resource":  "pr_v" },
         "transformation": "1/pr_v",
         "to_resource": "1/v" 
       },
       {
         "name": "S", 
         "description": "Number of susceptible",
-        "data": { "datapackage": "ssm-tutorial-data", "resource": "S" } 
+        "require": { "datapackage": "ssm-tutorial-data", "resource": "S" } 
       },
       { 
         "name": "I",
         "description": "Number of infectious", 
-        "data": { "datapackage": "ssm-tutorial-data", "resource": "I" } 
+        "require": { "datapackage": "ssm-tutorial-data", "resource": "I" } 
       },
       { 
         "name": "R", 
         "description": "Number of recovered",
-        "data": { "datapackage": "ssm-tutorial-data", "resource": "R" } 
+        "require": { "datapackage": "ssm-tutorial-data", "resource": "R" } 
       },
       { 
         "name": "rep",
         "description": "Reporting rate",
-        "data": { "datapackage": "ssm-tutorial-data", "resource": "rep" } 
+        "require": { "datapackage": "ssm-tutorial-data", "resource": "rep" } 
       }
     ]
 
@@ -387,7 +383,7 @@ Let's start by plotting the data
 
 with [R](http://www.r-project.org/):
 
-     data <- read.csv('../node_modules/ssm-tutorial-data/data/data.csv', na.strings='null')
+     data <- read.csv('../data/cases.csv', na.strings='null')
      plot(as.Date(data$date), data$cases, type='s')
 
 Let's run a first simulation:
@@ -545,7 +541,7 @@ xlim on our first plot. For the prediction we ran ```simul``` with the
 instead of all the projected trajectories (as does ```--traj```).
 
 
-    data <- read.csv('../node_modules/ssm-tutorial-data/data/data.csv', na.strings='null')
+    data <- read.csv('../data/cases.csv', na.strings='null')
     plot(as.Date(data$date), data$cases, type='s', xlim=c(min(as.Date(data$date)), as.Date('2013-12-25')))
     
     traj <- read.csv('X_0.csv') #from the previous run
