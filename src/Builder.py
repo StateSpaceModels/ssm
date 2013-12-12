@@ -37,7 +37,7 @@ class Builder(Data, Ccoder):
         self.path_rendered = os.path.abspath(unicode(path_rendered, 'utf8'))
         self.env = Environment(loader=FileSystemLoader(os.path.join(self.path_rendered, 'C', 'templates')))
         self.env.filters.update({
-            'is_prior': lambda x: ('require' in x) and ('fields' not in x['require']) and ('data' in x['data']) and ('distribution' in x['data'])
+            'is_prior': lambda x: ('require' in x) and ('fields' not in x['require']) and ('data' in x) and ('distribution' in x['data'])
         })
 
     def prepare(self, path_templates=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'C', 'templates'), replace=True):

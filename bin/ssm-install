@@ -123,11 +123,11 @@ async.series([
     links.resolve(dpkgRoot, dpkg, priorsToFetch, function(err, rlinks){
       if(err) return callback(err);
 
-      try {
-        validate(dpkg, rlinks, emitter);
-      } catch(e){
-        return callback(e);
-      }
+//      try {
+//        validate(dpkg, rlinks, emitter);
+//      } catch(e){
+//        return callback(e);
+//      }
 
       emitter.emit('log', 'Building the model...');
       installModel(dpkgRoot, dpkg, path.join(dpkgRoot, 'bin'), program.src, emitter, callback);
