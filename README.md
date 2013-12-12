@@ -27,13 +27,12 @@ is used to glue things together and add features on top of the C core.
 
 ## Installing the required dependencies
 
-C:
+[C](http://en.wikipedia.org/wiki/C_(programming_language)):
 - [gsl](http://www.gnu.org/software/gsl/) (>= 1.15)
 - [zmq](http://www.zeromq.org/) (3.2 release)
 - [jansson](http://www.digip.org/jansson/) (>= 2.4)
 
-Python:
-- [Python 2.7.x](www.python.org/)
+[Python 2.7.x](www.python.org/)
 - [Jinja2](http://jinja.pocoo.org/docs/)
 - [SymPy](http://sympy.org/)
 - [dateutil](http://labix.org/python-dateutil)
@@ -64,6 +63,15 @@ With [npm](https://npmjs.org/)
 Note: requires that all the C and python dependencies have been
 installed _before_ as this will also build the standalone C libraries.
 We recomend _not_ to use ```sudo``` for this command.
+
+If (and only if) you _have to_ use ```sudo``` to install package
+globaly (```-g```) then proceed differently:
+
+    git clone https://github.com/standard-analytics/ssm.git
+    cd ssm
+    npm install
+    sudo npm link
+
 
 Pull requests are welcome for a .gyp file and windows support!
 

@@ -25,10 +25,7 @@
     "data": [
       { 
         "name": "cases", 
-        "data": [ 
-          { "datapackage": "ssm-tutorial-data", "resource": "data", "field": "date" }, 
-          { "datapackage": "ssm-tutorial-data", "resource": "data", "field": "cases" } 
-        ] 
+        "require": { "datapackage": "ssm-tutorial-data", "resource": "data", "fields": ["date", "cases"] }
       }
     ],
     
@@ -36,34 +33,34 @@
       {
         "name": "r0", 
         "description": "Basic reproduction number", 
-        "data": { "datapackage": "ssm-tutorial-data", "resource": "r0" } 
+        "require": { "datapackage": "ssm-tutorial-data", "resource": "r0" } 
       },
       { 
         "name": "v",
         "description": "Recovery rate",
-        "data": { "datapackage": "ssm-tutorial-data", "resource":  "pr_v" },
+        "require": { "datapackage": "ssm-tutorial-data", "resource":  "pr_v" },
         "transformation": "1/pr_v",
         "to_resource": "1/v" 
       },
       {
         "name": "S", 
         "description": "Number of susceptible",
-        "data": { "datapackage": "ssm-tutorial-data", "resource": "S" } 
+        "require": { "datapackage": "ssm-tutorial-data", "resource": "S" } 
       },
       { 
         "name": "I",
         "description": "Number of infectious", 
-        "data": { "datapackage": "ssm-tutorial-data", "resource": "I" } 
+        "require": { "datapackage": "ssm-tutorial-data", "resource": "I" } 
       },
       { 
         "name": "R", 
         "description": "Number of recovered",
-        "data": { "datapackage": "ssm-tutorial-data", "resource": "R" } 
+        "require": { "datapackage": "ssm-tutorial-data", "resource": "R" } 
       },
       { 
         "name": "rep",
         "description": "Reporting rate",
-        "data": { "datapackage": "ssm-tutorial-data", "resource": "rep" } 
+        "require": { "datapackage": "ssm-tutorial-data", "resource": "rep" } 
       }
     ],
 

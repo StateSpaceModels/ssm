@@ -6,7 +6,7 @@
   "description": "SIR model with birth and death processes, white noise on the transmission term and overdispersed binomial observation process",
   "keywords": ["SIR", "overdispersed binomial", "2 cities", "paris", "new york"],
   "datadependencies": {
-    "noise-data": "*"
+    "noise-data": "0.0.0"
   },
   "licenses": [
     {
@@ -15,110 +15,67 @@
     }
   ],
 
-
   "model": {
 
     "data": [
       {
         "name": "all_CDC_inc_out",
-        "data": [
-          {"datapackage": "noise-data", "resource": "data", "field": "date"},
-          {"datapackage": "noise-data", "resource": "data", "field": "all_CDC_inc_out"}
-        ]
+        "require": {"datapackage": "noise-data", "resource": "data", "fields": ["date", "all_CDC_inc_out"]}
       },
       {
         "name": "all_google_inc_out",
-        "data": [
-          {"datapackage": "noise-data", "resource": "data", "field": "date"},
-          {"datapackage": "noise-data", "resource": "data", "field": "all_google_inc_out"}
-        ]
+        "require": {"datapackage": "noise-data", "resource": "data", "fields": ["date", "all_google_inc_out"]}
       },
       {
         "name": "paris_CDC_prev",
-        "data": [
-          {"datapackage": "noise-data", "resource": "data", "field": "date"},
-          {"datapackage": "noise-data", "resource": "data", "field": "paris_CDC_prev"}
-        ]
+        "require": {"datapackage": "noise-data", "resource": "data", "fields": ["date",  "paris_CDC_prev"]}
       },
       {
         "name": "nyc_CDC_inc",
-        "data": [
-          {"datapackage": "noise-data", "resource": "data", "field": "date"},
-          {"datapackage": "noise-data", "resource": "data", "field": "nyc_CDC_inc"}
-        ]
+        "require": {"datapackage": "noise-data", "resource": "data", "fields": ["date", "nyc_CDC_inc"]}
       }
     ],
 
     "inputs": [
       {
         "name": "N_nyc",
-        "data": [
-          {"datapackage": "noise-data", "resource": "N", "field": "date"},
-          {"datapackage": "noise-data", "resource": "N", "field": "nyc"}
-        ]
+        "require": {"datapackage": "noise-data", "resource": "N", "fields": ["date", "nyc"]}
       },
       {
         "name": "N_paris",
-        "data": [
-          {"datapackage": "noise-data", "resource": "N", "field": "date"},
-          {"datapackage": "noise-data", "resource": "N", "field": "paris"}
-        ]
+        "require": {"datapackage": "noise-data", "resource": "N", "fields": ["date", "paris"]}
       },
       {
         "name": "mu_b_paris",
-        "data": [
-          {"datapackage": "noise-data", "resource": "mu_b", "field": "date"},
-          {"datapackage": "noise-data", "resource": "mu_b", "field": "paris"}
-        ]
+        "require": {"datapackage": "noise-data", "resource": "mu_b", "fields": ["date", "paris"]}
       },
       {
         "name": "mu_b_nyc",
-        "data": [
-          {"datapackage": "noise-data", "resource": "mu_b", "field": "date"},
-          {"datapackage": "noise-data", "resource": "mu_b", "field": "nyc"}
-        ]
+        "require": {"datapackage": "noise-data", "resource": "mu_b", "fields": ["date", "nyc"]}
       },
       {
         "name": "mu_d_paris",
-        "data": [ 
-          {"datapackage": "noise-data", "resource": "mu_d", "field": "date"},
-          {"datapackage": "noise-data", "resource": "mu_d", "field": "paris"}
-        ]
+        "require": {"datapackage": "noise-data", "resource": "mu_d", "fields": ["date", "paris"]}
       },
       {
         "name": "mu_d_nyc",
-        "data": [
-          {"datapackage": "noise-data", "resource": "mu_d", "field": "date"},
-          {"datapackage": "noise-data", "resource": "mu_d", "field": "nyc"}
-        ]
+        "require": {"datapackage": "noise-data", "resource": "mu_d", "fields": ["date", "nyc"]}
       },
       {
         "name": "prop_all_CDC_inc",
-        "data": [
-          {"datapackage": "noise-data", "resource": "prop", "field": "date"},
-          {"datapackage": "noise-data", "resource": "prop", "field": "all_CDC_inc"}
-        ]
+        "require": {"datapackage": "noise-data", "resource": "prop", "fields": ["date", "all_CDC_inc"]}
       },
       {
         "name": "prop_paris_CDC_prev",
-        "data": [
-          {"datapackage": "noise-data", "resource": "prop", "field": "date"},
-          {"datapackage": "noise-data", "resource": "prop", "field": "paris_CDC_prev"}
-        ]
+        "require": {"datapackage": "noise-data", "resource": "prop", "fields": ["date", "paris_CDC_prev"]}
       },
       {
         "name": "prop_all_google_inc",
-        "data": [
-          {"datapackage": "noise-data", "resource": "prop", "field": "date"},
-          {"datapackage": "noise-data", "resource": "prop", "field": "all_google_inc"}
-        ]
+        "require": {"datapackage": "noise-data", "resource": "prop", "fields": ["date", "all_google_inc"]}
       },
       {
         "name": "prop_nyc_CDC_inc",
-        "data": [
-          {"datapackage": "noise-data", "resource": "prop", "field": "date"},
-          {"datapackage": "noise-data", "resource": "prop", "field": "nyc_CDC_inc"}
-        ]
+        "require": {"datapackage": "noise-data", "resource": "prop", "fields": ["date", "nyc_CDC_inc"]}
       },
 
       {

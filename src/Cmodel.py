@@ -50,38 +50,32 @@ class Cmodel:
         self.ur = ['U'] + self.remainder
 
         #resolve links for priors (named parameters here) for every
-        #inputs, replace the foreignkey hash ({datapackage: resource:
+        #inputs, replace the require hash ({datapackage: resource:
         #}) by it's corresponding resource. Note that if (and only if)
-        #the foreignkey hash has a name property, the name of the
+        #the require hash has a name property, the name of the
         #imported resource is changed to that. In case this
         #alternative name is present, transformations have to be done
         #in terms of this name.'
-        deps = {} #cache package.json of the dps    
         for i, p in enumerate(self.model['inputs']):
-            if 'data' in p:
-                if isinstance(p['data'], dict):
-                    if 'datapackage' in p['data']:
-                        if p['data']['datapackage'] not in deps:
-                            root = os.path.join(self.dpkgRoot, 'node_modules', p['data']['datapackage'])
-                            try:
-                                deps[p['data']['datapackage']] = json.load(open(os.path.join(root, 'package.json')))
-                            except:
-                                raise ModelError("invalid data for " + p['name'])
+            if 'require' in p:
+                if 'fields' not in p['require']: ##only for priors (in S|S|M priors HAVE TO BE in JSON) and covariates in SDF
+                    if 'datapackage' in p['require']:        
+                        rpath = os.path.join(self.dpkgRoot, 'data', p['name'] + '.json')
+                        try:
+                            resource = json.load(open(rpath))
+                        except:
+                            raise ModelError('invalid data for ' + p['name'])
 
-                        try:                
-                            resource = [x for x in deps[p['data']['datapackage']]['resources'] if x['name'] == p['data']['resource']][0]
-                        except IndexError:
-                            raise ModelError('invalid model name')                    
                     else:
                         try:                
-                            resource = [x for x in self.dpkg['resources'] if x['name'] == p['data']['resource']][0]
+                            resource = [x for x in self.dpkg['resources'] if x['name'] == p['require']['resource']][0]
                         except IndexError:
-                            raise ModelError('Resource ' + p['data']['resource'] + ' of ' + p['name'] + ' is missing.')
+                            raise ModelError('resource ' + p['require']['resource'] + ' of ' + p['name'] + ' is missing.')
 
 
                     imported_resource = copy.deepcopy(resource)
-                    if 'name' in p['data']:
-                        imported_resource['name'] = p['data']['name']
+                    if 'name' in p['require']:
+                        imported_resource['name'] = p['require']['name']
 
                     self.model['inputs'][i]['data'] = imported_resource
 
@@ -93,7 +87,7 @@ class Cmodel:
         observations = self.model['observations']
 
         #par_forced (covariates)
-        par_forced = [x['name'] for x in parameters if 'data' in x and isinstance(x['data'], list) and len(x['data']) == 2]
+        par_forced = [x['name'] for x in parameters if 'require' in x and 'fields' in x]
         self.par_forced = sorted(par_forced)
 
         #par_sv and par_inc (incidence)
@@ -187,9 +181,9 @@ class Cmodel:
         self.map_prior_name2name = {}
         self.map_name2prior_name = {}
         for p in parameters:
-            if 'data' in p and isinstance(p['data'], dict) and 'name' in p['data']:
-                self.map_prior_name2name[p['data']['name']] = p['name']
-                self.map_name2prior_name[p['name']] = p['data']['name']
+            if 'require' in p and 'fields' not in p['require'] and 'name' in p['require']:
+                self.map_prior_name2name[p['require']['name']] = p['name']
+                self.map_name2prior_name[p['name']] = p['require']['name']
             else:
                 self.map_name2prior_name[p['name']] = p['name']
         
