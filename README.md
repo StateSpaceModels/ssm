@@ -62,7 +62,7 @@ With [npm](https://npmjs.org/)
 
 Note: requires that all the C and python dependencies have been
 installed _before_ as this will also build the standalone C libraries.
-We recomend _not_ to use ```sudo``` for this command.
+We recommend _not_ to use ```sudo``` for this command.
 
 If (and only if) you _have to_ use ```sudo``` to install package
 globaly (```-g```) then proceed differently:
@@ -156,7 +156,7 @@ The full [schema](http://json-schema.org/) for a prior is described
 
 ## Model
 
-A model is described in [JSON](http://www.json.org/) and typicaly
+A model is described in [JSON](http://www.json.org/) and typically
 lives as a metadata of a datapackage.
 
 The model datapackage needs to list as ```dataDependencies``` all the
@@ -189,7 +189,7 @@ data it explains.
       }
     ]
 
-The ```model.data.require``` property is link pointing to a
+The ```model.data.require``` property is a link pointing to a
 time-series.  A link is an object with 3 properties:
 - ```datapackage``` (optional) specifying the name of the datapackage where the 
 resource can be found. It must be omitted if the the resource is in the same datapackage.
@@ -528,7 +528,7 @@ S|S|M can also be used to perform predictions.
 
 ```ssm predict``` allows to re-create initial conditions adapted to
 the ```simul``` program from the trace and trajectories sampled from
-the posterior distributions obtained after baysian methods
+the posterior distributions obtained after Bayesian methods
 (```pmcmc```, ```kmcmc```).
 
 
@@ -559,14 +559,14 @@ instead of all the projected trajectories (as does ```--traj```).
 ## Inference pipelines
 
 For more advanced cases like running in parallel a series of runs each
-starting from different initial conditions, selecting the best of this
+starting from different initial conditions, selecting the best of these
 runs and restarting from that with another algorithm, *analytics*
 pipelines are here to help. Running
 
     $ ssm bootstrap [options]
 
 Will add an ```analytics``` property to the model datapackage
-containing a powerfull pipeline. Open it and customize it for your
+containing a powerful pipeline. Open it and customize it for your
 analysis. When ready just fire:
 
     $ ssm run [options]
@@ -602,7 +602,7 @@ several _workers_ (living on different machines).
 All the algorithm shipped with S|S|M can be transformed into servers
 with the ```--tcp``` option.
 
-Now let's start some workers giving them the adress of the server.
+Now let's start some workers giving them the address of the server.
 
     $ cat ../package.json | ./worker psr smc --server 127.0.0.1 &
     $ cat ../package.json | ./worker psr smc --server 127.0.0.1 &
