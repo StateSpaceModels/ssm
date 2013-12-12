@@ -47,7 +47,7 @@ links.resolve(dpkgRoot, dpkg, dpkg.model.data, function(err, data){
   //begining of prediction (date of last data point)
   var start = data
     .map(function(x, i){
-      var dateKey = dpkg.model.data[i].data[0].field;
+      var dateKey = dpkg.model.data[i].require.fields[0];
       return x.data[x.data.length-1][dateKey]; 
     })
     .sort(function(a,b){

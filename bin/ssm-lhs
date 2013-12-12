@@ -45,6 +45,7 @@ if(program.seed){
 }
 
 function fail(err){
+  throw err;
   console.error('\033[91mFAIL\033[0m: ' + err.message);
   process.exit(1);  
 };
