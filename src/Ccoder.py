@@ -50,13 +50,13 @@ class Ccoder(Cmodel):
 
         for p in parameters:
             if 'transformation' in p:
-                if 'data' in p and isinstance(p['data'], list) and len(p['data']) == 2: 
-                    #covariates (still have foreignkey hash as Cmodel only resolve priors): the transformation has to be done in terms of the name of the name property of the foreignkey hash name p['data'][1]['name']
-                    if 'name' not in p['data'][1]:
-                        raise SsmError('the foreignkey hash need a name property (the transformation has to be done in terms of this name)')
-                    xify = p['data'][1]['name'] #!!!! the hash need a name property (in addition to datapackage resource and field)
-                elif 'data' in p and 'name' in p['data']:
-                    xify = p['data']['name']
+                if 'require' in p and 'fields' in p['require']: 
+                    #covariates (still have require hash as Cmodel only resolve priors): the transformation has to be done in terms of the name of the name property of the require hash name p['require']['name']
+                    if 'name' not in p['require']:
+                        raise SsmError('the require hash need a name property (the transformation has to be done in terms of this name)')
+                    xify = p['require']['name'] #!!!! the hash need a name property (in addition to datapackage resource and fields)
+                elif 'require' in p and 'name' in p['require']:
+                    xify = p['require']['name']
                 else:
                     xify = p['name']
                     

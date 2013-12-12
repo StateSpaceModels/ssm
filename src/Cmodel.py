@@ -87,7 +87,7 @@ class Cmodel:
         observations = self.model['observations']
 
         #par_forced (covariates)
-        par_forced = [x['name'] for x in parameters if 'require' in x and 'fields' in x]
+        par_forced = [x['name'] for x in parameters if 'require' in x and 'fields' in x['require']]
         self.par_forced = sorted(par_forced)
 
         #par_sv and par_inc (incidence)

@@ -27,7 +27,7 @@ is used to glue things together and add features on top of the C core.
 
 ## Installing the required dependencies
 
-[C](http://en.wikipedia.org/wiki/C_(programming_language)):
+<a href="http://en.wikipedia.org/wiki/C_(programming_language)">C</a>:
 - [gsl](http://www.gnu.org/software/gsl/) (>= 1.15)
 - [zmq](http://www.zeromq.org/) (3.2 release)
 - [jansson](http://www.digip.org/jansson/) (>= 2.4)

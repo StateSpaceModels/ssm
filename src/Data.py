@@ -82,8 +82,8 @@ class Data(Ccoder):
             except:
                 raise DataError('invalid data link')                          
 
-            date_name = linked_data['data'][0]['field']
-            x_name = linked_data['data'][1]['field']
+            date_name = linked_data['require']['fields'][0]
+            x_name = linked_data['require']['fields'][1]
 
             oobs = copy.deepcopy(x)
             data[x['name']] = x
@@ -92,9 +92,9 @@ class Data(Ccoder):
             data[x['name']]['dict'] = {d[date_name]:d[x_name] for d in self.get_data(x['name'])}
 
             if 'transformation' in x:                
-                if 'name' not in linked_data['data'][1]:
-                    raise DataError('the foreignkey hash need a name property (the transformation has to be done in terms of this name)')
-                on = linked_data['data'][1]['name']
+                if 'name' not in linked_data['require']:
+                    raise DataError('the require hash need a name property (the transformation has to be done in terms of this name)')
+                on = linked_data['require']['name']
                 f = eval('lambda {0}: {1}'.format(on, x['transformation']))
             else:
                 f = lambda v: v
@@ -137,13 +137,13 @@ class Data(Ccoder):
 
         for p in self.par_forced:
             if 'transformation' in parameters[p]:
-                f = eval('lambda {0}: {1}'.format(parameters[p]['data'][1]['name'], parameters[p]['transformation']))
+                f = eval('lambda {0}: {1}'.format(parameters[p]['require']['fields'][1], parameters[p]['transformation']))
             else:
                 f = lambda x: x
 
             data =  self.get_data(p)
-            date_name = parameters[p]['data'][0]['field']
-            name = parameters[p]['data'][1]['field']
+            date_name = parameters[p]['require']['fields'][0]
+            name = parameters[p]['require']['fields'][1]
             x = []; y = []
             for d in data:
                 if d[name] != None:
