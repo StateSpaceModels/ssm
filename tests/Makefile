@@ -28,7 +28,7 @@ clar.suite:
 
 fixture_data:
 	test -d $(CLAR_FIXTURE_PATH) || mkdir -p $(CLAR_FIXTURE_PATH); \
-	../bin/ssm install ../examples/foo/package.json -v -n --src; \
+	../bin/ssm install ../examples/foo/package.json -v --src; \
 	cp $(MODEL_PATH)/.data.json $(CLAR_FIXTURE_PATH); \
 	cp $(DPKG_ROOT)/package.json $(CLAR_FIXTURE_PATH)
 
