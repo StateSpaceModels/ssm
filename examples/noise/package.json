@@ -162,16 +162,16 @@
       {"from": "U",       "to": "S_nyc",   "rate": "mu_b_nyc*N_nyc",             "description":"birth"},
 
       {"from": "S_paris", "to": "I_paris", "rate": "r0_paris/N_paris*v*I_paris", "description":"infection", "keywords": ["transmission"], "white_noise": {"name":"noise_SI", "sd": "sto"}},
-      {"from": "S_nyc",   "to": "I_nyc",   "rate": "r0_nyc/N_nyc*v*I_nyc",       "description":"infection", "keywords": ["transmission"], "tracked": ["nyc_inc"], "white_noise": {"name":"noise_SI2", "sd": "sto"}},
+      {"from": "S_nyc",   "to": "I_nyc",   "rate": "r0_nyc/N_nyc*v*I_nyc",       "description":"infection", "keywords": ["transmission"], "accumulators": ["nyc_inc"], "white_noise": {"name":"noise_SI2", "sd": "sto"}},
 
-      {"from": "I_paris", "to": "R_paris", "rate": "correct_rate(v)",            "description":"recovery", "tracked": ["all_inc_out"]},
-      {"from": "I_nyc",   "to": "R_nyc",   "rate": "correct_rate(v)",            "description":"recovery", "tracked": ["all_inc_out"]},
+      {"from": "I_paris", "to": "R_paris", "rate": "correct_rate(v)",            "description":"recovery", "accumulators": ["all_inc_out"]},
+      {"from": "I_nyc",   "to": "R_nyc",   "rate": "correct_rate(v)",            "description":"recovery", "accumulators": ["all_inc_out"]},
 
       {"from": "S_paris", "to": "U",       "rate": "mu_d_paris",                 "description":"death"},
       {"from": "S_nyc",   "to": "U",       "rate": "mu_d_nyc",                   "description":"death"},
 
-      {"from": "I_paris", "to": "U",       "rate": "mu_d_paris",                 "description":"death", "tracked": ["all_inc_out"]},
-      {"from": "I_nyc",   "to": "U",       "rate": "mu_d_nyc",                   "description":"death", "tracked": ["all_inc_out"]},
+      {"from": "I_paris", "to": "U",       "rate": "mu_d_paris",                 "description":"death", "accumulators": ["all_inc_out"]},
+      {"from": "I_nyc",   "to": "U",       "rate": "mu_d_nyc",                   "description":"death", "accumulators": ["all_inc_out"]},
       {"from": "R_paris", "to": "U",       "rate": "mu_d_paris",                 "description":"death"},
       {"from": "R_nyc",   "to": "U",       "rate": "mu_d_nyc",                   "description":"death"}
     ],

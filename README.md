@@ -269,7 +269,7 @@ and the reactions, defining the process model
     $ cat package.json | json model.reactions
 
     "reactions": [
-      {"from": "S", "to": "I", "rate": "r0/(S+I+R)*v*I", "description": "infection", "tracked": ["Inc"]},
+      {"from": "S", "to": "I", "rate": "r0/(S+I+R)*v*I", "description": "infection", "accumulators": ["Inc"]},
       {"from": "I", "to": "R", "rate": "v", "description":"recovery"}
     ]
 
@@ -285,9 +285,10 @@ references). White environmental noise can also be added to the reaction
 as in this [example](https://raw.github.com/standard-analytics/ssm/master/examples/noise/package.json)
 (references [here](http://arxiv.org/abs/0802.0021)).
 
-The ```tracked``` variable (here ```Inc```) will monitor the accumulated
-flow of this reaction, and reset to 0 for each data point related to the 
-tracked variable.
+The ```accumulators``` property allows to defined new state variable
+(here ```Inc```) that will accumulate the flow of the reaction they
+label.  Accumulators state variables are reset to 0 for each data
+point related to the accumulator state.
 
 ### Observation model
 

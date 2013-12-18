@@ -325,7 +325,7 @@ class TestSMCSDEagainstKalman(unittest.TestCase):
             j["model"]["reactions"].append({"from":"S", "to":"I", "rate":"1000/S", "white_noise": {"name":"noise_SI", "sd": "vol"}})
             j["model"]["reactions"].append({"from":"I", "to":"I2", "rate":"1000/I", "white_noise": {"name":"noise_SI", "sd": "vol"}})
             j["model"]["reactions"].append({"from":"I2", "to":"S", "rate":"1000/I2", "white_noise": {"name":"noise_SI2", "sd": "vol2"}})
-            j["model"]["reactions"].append({"from":"E1", "to":"E2", "rate":"3/N", "tracked": ["all_inc_out"]})
+            j["model"]["reactions"].append({"from":"E1", "to":"E2", "rate":"3/N", "accumulators": ["all_inc_out"]})
 
             j["model"]["observations"] = [j["model"]["observations"][0]]
 
@@ -506,7 +506,7 @@ class TestpMCMCsmoothing(unittest.TestCase):
             j["model"]["reactions"].append({"from":"S", "to":"I", "rate":"1000/S", "white_noise": {"name":"noise_SI", "sd": "vol"}})
             j["model"]["reactions"].append({"from":"I", "to":"I2", "rate":"1000/I", "white_noise": {"name":"noise_SI", "sd": "vol"}})
             j["model"]["reactions"].append({"from":"I2", "to":"S", "rate":"1000/I2", "white_noise": {"name":"noise_SI2", "sd": "vol2"}})
-            j["model"]["reactions"].append({"from":"E1", "to":"E2", "rate":"3/N", "tracked": ["all_inc_out"]})
+            j["model"]["reactions"].append({"from":"E1", "to":"E2", "rate":"3/N", "accumulators": ["all_inc_out"]})
 
             j["model"]["observations"] = [j["model"]["observations"][0]]
 
@@ -719,7 +719,7 @@ class TestpMCMCsmoothingWithNaNs(unittest.TestCase):
             j["model"]["reactions"].append({"from":"S", "to":"I", "rate":"1000/S", "white_noise": {"name":"noise_SI", "sd": "vol"}})
             j["model"]["reactions"].append({"from":"I", "to":"I2", "rate":"1000/I", "white_noise": {"name":"noise_SI", "sd": "vol"}})
             j["model"]["reactions"].append({"from":"I2", "to":"S", "rate":"1000/I2", "white_noise": {"name":"noise_SI2", "sd": "vol2"}})
-            j["model"]["reactions"].append({"from":"E1", "to":"E2", "rate":"3/N", "tracked": ["all_inc_out"]})
+            j["model"]["reactions"].append({"from":"E1", "to":"E2", "rate":"3/N", "accumulators": ["all_inc_out"]})
 
             j["model"]["observations"] = [j["model"]["observations"][0]]
 

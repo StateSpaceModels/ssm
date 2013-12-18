@@ -97,8 +97,8 @@ class Cmodel:
             if r['to'] not in self.ur:
                 par_sv.add(r['to'])
 
-            if "tracked" in r:
-                for inc in r['tracked']:
+            if "accumulators" in r:
+                for inc in r['accumulators']:
                     par_inc.add(inc)
 
         self.par_sv = sorted(list(par_sv))
@@ -222,7 +222,7 @@ class Cmodel:
         ## incidence def
         self.par_inc_def = []
         for inc in self.par_inc:
-            self.par_inc_def.append([x for x in self.proc_model if "tracked" in x and inc in x['tracked'] ])
+            self.par_inc_def.append([x for x in self.proc_model if "accumulators" in x and inc in x['accumulators'] ])
 
 
     def change_user_input(self, term):

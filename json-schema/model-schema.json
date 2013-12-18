@@ -65,7 +65,7 @@
 
     "reactions": {
       "type": "array",
-      "description": "Description of the dynamics of your compartmental model. We only consider density-dependent reactions: each rate will be multiplied by the size of the compartment individuals are leaving. See the tracked and white_noise optional fields for additional options.",
+      "description": "Description of the dynamics of your compartmental model. We only consider density-dependent reactions: each rate will be multiplied by the size of the compartment individuals are leaving. See the accumulators and white_noise optional fields for additional options.",
       "items": {
         "type": "object",
 	"properties": {
@@ -94,7 +94,7 @@
 	    },
 	    "required": ["name","sd"]
 	  },
-	  "tracked": {
+	  "accumulators": {
 	    "type": "array",
 	    "description": "When your are monitoring or fitting the integrated flow of a given reaction, you can store it in one or several variables defined in this list. If a given flow variable is repeated in several reactions, it will correspond of the sum of the flows of these reactions.",
 	    "items": {

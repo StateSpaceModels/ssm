@@ -169,17 +169,17 @@
       {"from": "U",       "to": "S_nyc",   "rate": "mu_b_nyc*N_nyc",             "description":"birth"},
       {"from": "U",       "to": "S_paris", "rate": "mu_b_paris*N_paris",         "description":"birth"},
 
-      {"from": "S_nyc",   "to": "I_nyc",   "rate": "r0_nyc/N_nyc*v*I_nyc",       "description":"infection", "keywords": ["transmission"], "tracked": ["Inc_in_nyc"], "white_noise": {"name": "noise_SI", "sd": "sto"}},
+      {"from": "S_nyc",   "to": "I_nyc",   "rate": "r0_nyc/N_nyc*v*I_nyc",       "description":"infection", "keywords": ["transmission"], "accumulators": ["Inc_in_nyc"], "white_noise": {"name": "noise_SI", "sd": "sto"}},
       {"from": "S_paris", "to": "I_paris", "rate": "r0_paris/N_paris*v*I_paris", "description":"infection", "keywords": ["transmission"]},
 
-      {"from": "I_nyc",   "to": "R_nyc",   "rate": "correct_rate(v)",            "description":"recovery", "tracked": ["Inc_out"]},
-      {"from": "I_paris", "to": "R_paris", "rate": "correct_rate(v)",            "description":"recovery", "tracked": ["Inc_out"]},
+      {"from": "I_nyc",   "to": "R_nyc",   "rate": "correct_rate(v)",            "description":"recovery", "accumulators": ["Inc_out"]},
+      {"from": "I_paris", "to": "R_paris", "rate": "correct_rate(v)",            "description":"recovery", "accumulators": ["Inc_out"]},
 
       {"from": "S_nyc",   "to": "U",       "rate": "mu_d_nyc",                   "description":"death"},
       {"from": "S_paris", "to": "U",       "rate": "mu_d_paris",                 "description":"death"},
 
-      {"from": "I_nyc",   "to": "U",       "rate": "mu_d_nyc",                   "description":"death", "tracked": ["Inc_out"]},
-      {"from": "I_paris", "to": "U",       "rate": "mu_d_paris",                 "description":"death", "tracked": ["Inc_out"]}
+      {"from": "I_nyc",   "to": "U",       "rate": "mu_d_nyc",                   "description":"death", "accumulators": ["Inc_out"]},
+      {"from": "I_paris", "to": "U",       "rate": "mu_d_paris",                 "description":"death", "accumulators": ["Inc_out"]}
     ],
 
     "sde": {

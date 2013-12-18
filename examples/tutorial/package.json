@@ -69,7 +69,7 @@
     ],
 
     "reactions": [
-      {"from": "S", "to": "I", "rate": "r0/(S+I+R)*v*I", "description": "infection", "tracked": ["Inc"]},
+      {"from": "S", "to": "I", "rate": "r0/(S+I+R)*v*I", "description": "infection", "accumulators": ["Inc"]},
       {"from": "I", "to": "R", "rate": "v", "description":"recovery"}
     ],
 
