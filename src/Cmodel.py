@@ -60,7 +60,7 @@ class Cmodel:
             if 'require' in p:
                 if 'fields' not in p['require']: ##only for priors (in S|S|M priors HAVE TO BE in JSON) and covariates in SDF
                     if 'datapackage' in p['require']:        
-                        rpath = os.path.join(self.dpkgRoot, 'data', p['name'] + '.json')
+                        rpath = os.path.join(self.dpkgRoot, 'data_modules', p['require']['datapackage'] ,'data', p['require']['resource'] + '.json')
                         try:
                             resource = json.load(open(rpath))
                         except:

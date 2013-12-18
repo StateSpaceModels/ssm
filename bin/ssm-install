@@ -10,7 +10,7 @@ var program = require('commander')
   , validate = require('../lib/validate')
   , colors = require('colors')
   , request = require('request')
-  , Dpkg = require('data-streams')
+  , Dpm = require('dpm2')
   , mime = require('mime')
   , async = require('async')
   , links = require('../lib/links')
@@ -69,68 +69,38 @@ logHttp = function(methodCode, reqUrl){
 };
 
 
-//cache all the deps
-var toFetch = dpkg.model.inputs.concat(dpkg.model.data).filter(function(x) {return ('require' in x) && ('datapackage' in x.require);});
-
+//cache all the dataDependencies
 async.series([
-  function(callback){
+  function(cb){
     if(('dataDependencies' in dpkg) && !program.nodeps){
       emitter.emit('log', 'INFO:'.blue + ' Installing data dependencies...');
-      var mydpkg = new Dpkg(dpkg, dpkgRoot);
 
-      var dataPath = path.join(dpkgRoot, 'data');
-      fs.mkdir(dataPath, function(err){
-        //ignore error if data exist already
-        
-        async.each(toFetch, function(r, cb){
-          
-          var rurl = mydpkg._url(r.require);
-          logHttp('GET', rurl);
-          var req = request(rurl);
-          req.on('response', function(resp){            
-            var hasCallbacked = false;            
-            logHttp(resp.statusCode, rurl);
-            if(resp.statusCode >= 400){
-              resp.resume();
-              return callback(new Error(resp.statusCode));
-            } 
-
-            var filename =  r.name + '.' +mime.extension(resp.headers['content-type']);
-            resp
-              .on('error', function(err){
-                if(!hasCallbacked){
-                  hasCallbacked = true;
-                  cb(err);
-                }
-              })
-              .pipe(fs.createWriteStream(path.join(dataPath, filename)))
-              .on('finish', function(){
-                if(!hasCallbacked) cb(null);
-              });
-            
-          });
-          
-        }, callback);
+      var dpm = new Dpm({protocol: 'http', port: 80, hostname: 'registry.standardanalytics.io', strictSSL: false, sha:true}, dpkgRoot);
+      dpm.on('log', console.log);
+      dpm.resolveDeps(dpkg.dataDependencies, function(err, dpkgIds){
+        if(err) return cb(err);
+        dpm.install(dpkgIds, {cache: true, force: true}, cb);
       });
+
     } else {
-      callback(null);
+      cb(null);
     }
   },
 
-  function(callback){
-    callback(null);
+  function(cb){
+
     var priorsToFetch = dpkg.model.inputs.filter(function(x) {return ('require' in x) && !('fields' in x.require);});
     links.resolve(dpkgRoot, dpkg, priorsToFetch, function(err, rlinks){
-      if(err) return callback(err);
+      if(err) return cb(err);
 
       try {
         validate(dpkg, rlinks, emitter);
       } catch(e){
-        return callback(e);
+        return cb(e);
       }
 
       emitter.emit('log', 'Building the model...');
-      installModel(dpkgRoot, dpkg, path.join(dpkgRoot, 'bin'), program.src, emitter, callback);
+      installModel(dpkgRoot, dpkg, path.join(dpkgRoot, 'bin'), program.src, emitter, cb);
     });
   }
 
