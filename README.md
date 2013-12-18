@@ -384,7 +384,7 @@ Let's start by plotting the data
 
 with [R](http://www.r-project.org/):
 
-     data <- read.csv('../data/cases.csv', na.strings='null')
+     data <- read.csv('../data_modules/ssm-tutorial-data/data/data.csv', na.strings='null')
      plot(as.Date(data$date), data$cases, type='s')
 
 Let's run a first simulation:
@@ -542,7 +542,7 @@ xlim on our first plot. For the prediction we ran ```simul``` with the
 instead of all the projected trajectories (as does ```--traj```).
 
 
-    data <- read.csv('../data/cases.csv', na.strings='null')
+    data <- read.csv('../data_modules/ssm-tutorial-data/data/data.csv', na.strings='null')
     plot(as.Date(data$date), data$cases, type='s', xlim=c(min(as.Date(data$date)), as.Date('2013-12-25')))
     
     traj <- read.csv('X_0.csv') #from the previous run
