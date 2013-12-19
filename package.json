@@ -1,6 +1,6 @@
 {
   "name": "ssm",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Command line interface for S|S|M",
   "bin": {
     "ssm": "bin/ssm",
@@ -58,8 +58,8 @@
     "binary-csv": "~0.1.6",
     "request": "~2.29.0",
     "mime": "~1.2.11",
-    "dpm2": "~0.2.1",
-    "data-streams": "0.0.4",
+    "dpm2": "~0.2.2",
+    "data-streams": "0.0.5",
     "once": "~1.3.0"
   },
   "devDependencies": {
