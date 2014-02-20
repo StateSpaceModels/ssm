@@ -174,6 +174,7 @@ ssm_var_t *ssm_adapt_eps_var_sd_fac(double *sd_fac, ssm_adapt_t *a, ssm_var_t *v
     }
 
     a->eps = GSL_MIN(a->eps, a->eps_max);
+    a->eps = GSL_MAX(a->eps, 0.001);
 
     // evaluate tuning factor sd_fac = epsilon * 2.38/sqrt(n_to_be_estimated)
     *sd_fac = a->eps * 2.38/sqrt(nav->theta_all->length);

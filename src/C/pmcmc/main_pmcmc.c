@@ -23,6 +23,7 @@ static ssm_err_code_t run_smc(ssm_err_code_t (*f_pred) (ssm_X_t *, double, doubl
     int i, j, n, np1, id, the_j;
     double t0, t1;
 
+
     fitness->log_like = 0.0;
     fitness->log_prior = 0.0;
     fitness->n_all_fail = 0;
@@ -30,6 +31,7 @@ static ssm_err_code_t run_smc(ssm_err_code_t (*f_pred) (ssm_X_t *, double, doubl
     for(j=0; j<fitness->J; j++){
 	fitness->cum_status[j] = SSM_SUCCESS;
     }
+
 
     for(n=0; n<data->n_obs; n++) {
         np1 = n+1;
@@ -42,7 +44,10 @@ static ssm_err_code_t run_smc(ssm_err_code_t (*f_pred) (ssm_X_t *, double, doubl
 	    }
 	}
 
+
 	if(workers->flag_tcp){
+
+	   
 	    //send work
 	    for (j=0;j<fitness->J;j++) {
 		zmq_send(workers->sender, &n, sizeof (int), ZMQ_SNDMORE);
@@ -62,6 +67,8 @@ static ssm_err_code_t run_smc(ssm_err_code_t (*f_pred) (ssm_X_t *, double, doubl
 	    }
 
 	} else if(calc[0]->threads_length > 1){
+
+
 	    //send work
             for (i=0; i<calc[0]->threads_length; i++) {
                 zmq_send(workers->sender, &i, sizeof (int), ZMQ_SNDMORE);
@@ -73,6 +80,7 @@ static ssm_err_code_t run_smc(ssm_err_code_t (*f_pred) (ssm_X_t *, double, doubl
                 zmq_recv(workers->receiver, &id, sizeof (int), 0);
             }
         } else {
+
 
 	    for(j=0;j<fitness->J;j++) {
 		ssm_X_reset_inc(D_J_X[np1][j], data->rows[n], nav);
@@ -96,6 +104,7 @@ static ssm_err_code_t run_smc(ssm_err_code_t (*f_pred) (ssm_X_t *, double, doubl
 
 int main(int argc, char *argv[])
 {
+
     char str[SSM_STR_BUFFSIZE];
 
     ssm_options_t *opts = ssm_options_new();
@@ -133,6 +142,7 @@ int main(int argc, char *argv[])
 
     ssm_workers_t *workers = ssm_workers_start(D_J_X, &par, data, calc, fitness, f_pred, nav, opts, SSM_WORKER_D_X | SSM_WORKER_FITNESS);
 
+
     /////////////////////////
     // initialization step //
     /////////////////////////
@@ -145,6 +155,7 @@ int main(int argc, char *argv[])
     }
 
     ssm_err_code_t success = run_smc(f_pred, D_J_X, D_J_X_tmp, par_proposed, calc, data, fitness, nav, workers);
+
     success |= ssm_log_prob_prior(&fitness->log_prior, proposed, nav, fitness);
 
     if(success != SSM_SUCCESS){
@@ -183,18 +194,20 @@ int main(int argc, char *argv[])
     for(m=1; m<n_iter; m++) {
         var = ssm_adapt_eps_var_sd_fac(&sd_fac, adapt, var_input, nav, m);
         ssm_theta_ran(proposed, theta, var, sd_fac, calc[0], nav, 1);
+
         ssm_theta2input(input, proposed, nav);
         ssm_input2par(par_proposed, input, calc[0], nav);
 
         success = ssm_check_ic(par_proposed, calc[0]);
 
         if(success == SSM_SUCCESS){
+
             ssm_par2X(D_J_X[0][0], par_proposed, calc[0], nav);
             D_J_X[0][0]->dt = D_J_X[0][0]->dt0;
             for(j=1; j<fitness->J; j++){
                 ssm_X_copy(D_J_X[0][j], D_J_X[0][0]);
             }
-
+       
 	    success |= run_smc(f_pred, D_J_X, D_J_X_tmp, par_proposed, calc, data, fitness, nav, workers);
             success |= ssm_metropolis_hastings(fitness, &ratio, proposed, theta, var, sd_fac, nav, calc[0], 1);
         }

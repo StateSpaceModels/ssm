@@ -119,7 +119,6 @@ int main(int argc, char *argv[])
 		    zmq_send(workers->sender, &j, sizeof (int), ZMQ_SNDMORE);                   	       	       
 		    ssm_zmq_send_X(workers->sender, J_X[j], ZMQ_SNDMORE);
 		    zmq_send(workers->sender, &(fitness->cum_status[j]), sizeof (ssm_err_code_t), 0);
-		    //printf("part %d sent %d\n", j, 0);
 		}
 
 		//get results from the workers
@@ -128,7 +127,6 @@ int main(int argc, char *argv[])
 		    ssm_zmq_recv_X(J_X[ the_j ], workers->receiver);
 		    zmq_recv(workers->receiver, &(fitness->weights[the_j]), sizeof (double), 0);
 		    zmq_recv(workers->receiver, &(fitness->cum_status[the_j]), sizeof (ssm_err_code_t), 0);
-		    //printf("part  %d received\n", the_j);
 		}
 
 	    } else if(calc[0]->threads_length > 1){

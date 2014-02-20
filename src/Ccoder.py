@@ -76,7 +76,7 @@ class Ccoder(Cmodel):
 
         states = self.par_sv + self.par_inc
         pars = self.par_sv + self.par_noise + self.par_proc + self.par_disp + self.par_obs + self.par_other
-
+        
         #make C code for f_, f_inv f_der, f_der_inv
         for p in drifts:
             if 'transformation' in p:
@@ -138,14 +138,19 @@ class Ccoder(Cmodel):
 
 
     def observed(self):
-        ##WARNING right now only the discretized normal is supported.
-        ##TODO: generalization for different distribution
+        ##WARNING right now only the discretized normal and binomial are supported.
 
         obs = copy.deepcopy(self.obs_model)
 
         for x in obs:
-            x['mean'] = self.make_C_term(x['mean'], True)
-            x['sd'] = self.make_C_term(x['sd'], True)
+            if x['distribution'] == 'discretized_normal':
+                x['mean'] = self.make_C_term(x['mean'], True)
+                x['sd'] = self.make_C_term(x['sd'], True)
+            elif x['distribution'] == 'binomial':
+                x['mean'] = self.make_C_term(x['mean'], True)
+                x['sd'] = self.make_C_term(x['sd'], True)
+                x['p'] = self.make_C_term(x['p'], True)
+                x['n'] = self.make_C_term(x['n'], True)
 
         return {'observed': obs}
 
@@ -722,6 +727,7 @@ class Ccoder(Cmodel):
         Ht_inc = []
         Ht_diff = []
 
+
         ## Derivatives of observed means against state variables
         for s in range(len(self.par_sv)):
             Ht_sv.append([])
@@ -754,6 +760,7 @@ class Ccoder(Cmodel):
         h_grads = {}
 
         for x in obs:
+            
             term = {}
             term['name'] = x['name']
             term['grads'] = []

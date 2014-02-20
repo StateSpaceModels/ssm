@@ -8,16 +8,28 @@ static double f_likelihood_tpl_{{ x.name }}(double y, ssm_X_t *p_X, ssm_par_t *p
 {
     double like;
     double *X = p_X->proj;
+
+    {% if x.distribution == 'discretized_normal' %}
+    
     double gsl_mu = {{ x.mean }};
     double gsl_sd = {{ x.sd }};
 
-    // printf("mu %f sd %f y %f\n",gsl_mu, gsl_sd,y);
 
     if (y > 0.0) {
         like = gsl_cdf_gaussian_P(y + 0.5 - gsl_mu, gsl_sd) - gsl_cdf_gaussian_P(y - 0.5 - gsl_mu, gsl_sd);
     } else {
         like = gsl_cdf_gaussian_P(y + 0.5 - gsl_mu, gsl_sd);
     }
+
+    {% else %}
+
+    double gsl_p = {{ x.p }};
+    double gsl_n = {{ x.n }};
+
+
+    like = gsl_ran_binomial_pdf(rint(y), gsl_p, gsl_n);
+
+    {% endif %}
 
     return like;
 }

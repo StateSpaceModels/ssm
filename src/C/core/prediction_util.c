@@ -229,6 +229,7 @@ ssm_err_code_t ssm_f_prediction_sde_no_dem_sto(ssm_X_t *p_X, double t0, double t
         ssm_compute_diff(p_X, par, nav, calc);
         t += p_X->dt;
     }
+
     return ssm_check_no_neg_sv_or_remainder(p_X, par, nav, calc, t1);
 }
 

@@ -21,7 +21,6 @@
 int main(int argc, char *argv[])
 {
     int n, t0, t1;
-
     ssm_options_t *opts = ssm_options_new();
     ssm_options_load(opts, SSM_KALMAN, argc, argv);
 

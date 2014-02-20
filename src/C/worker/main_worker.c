@@ -74,7 +74,6 @@ int main(int argc, char *argv[])
 	    zmq_recv(server_receiver, &n, sizeof (int), 0);
 	    ssm_zmq_recv_par(par, server_receiver);
 	    zmq_recv(server_receiver, &j, sizeof (int), 0);
-	    //printf("j: %d j %d\n", j, j);
 	    ssm_zmq_recv_X(X, server_receiver);
 	    zmq_recv(server_receiver, &(fitness->cum_status[0]), sizeof (ssm_err_code_t), 0);
 
@@ -95,7 +94,6 @@ int main(int argc, char *argv[])
 		zmq_send(server_sender, &(fitness->weights[0]), sizeof (double), ZMQ_SNDMORE);
 	    }
 	    zmq_send(server_sender, &(fitness->cum_status[0]), sizeof (ssm_err_code_t), 0);
-	    //printf("j: %d j %d sent back\n", j, j);
 
         }
 

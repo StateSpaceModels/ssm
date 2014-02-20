@@ -496,7 +496,6 @@ ssm_data_t *ssm_data_new(json_t *jdata, ssm_nav_t *nav, ssm_options_t *opts)
                 }
             }
         }
-
         rows[i]->values = ssm_load_jd1_new(jrow, "values");
 
         json_t *jreset = json_object_get(jrow, "reset");
@@ -1222,7 +1221,8 @@ ssm_X_t *ssm_X_new(ssm_nav_t *nav, ssm_options_t *opts)
 
     X->length = _ssm_dim_X(nav);
 
-    X->dt = 1.0/ ((double) round(1.0/opts->dt)); //IMPORTANT: for non adaptive time step methods, we ensure an integer multiple of dt in between 2 data points
+    X->dt = opts->dt;
+    //X->dt = 1.0/ ((double) round(1.0/opts->dt)); //IMPORTANT: for non adaptive time step methods, we ensure an integer multiple of dt in between 2 data points
     X->dt0 = X->dt;
 
     X->proj = ssm_d1_new(X->length);

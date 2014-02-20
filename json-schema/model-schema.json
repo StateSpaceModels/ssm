@@ -196,9 +196,15 @@
 	  },
 	  "sd": {
 	    "type": "string"
+	  },
+	  "p": {
+	    "type": "string"
+	  },
+	  "n": {
+	    "type": "string"
 	  }
 	},
-	"required": ["name", "start","distribution","mean","sd"]
+	"required": ["name", "start","distribution"]
       }
     },
 
