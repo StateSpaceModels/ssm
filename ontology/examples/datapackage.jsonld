@@ -1,0 +1,356 @@
+{
+  "name": "noise-analysis",
+  "version": "0.0.0",
+  "description": "",
+  "isBasedOnUrl": [],
+  "license": "CC0-1.0",
+  "keywords": [
+    "example"
+  ],
+  "author": {
+    "name": "jo",
+    "email": "joseph@standardanalytics.io"
+  },
+
+
+  "code": [
+    {
+      "name": "noiseRun.jsonld",
+      "description": "ssm inference routine.",
+      "programmingLanguage": {
+        "name": "ssm"
+      },
+      "runtime": "ssm",
+      "targetProduct": {
+        "operationSystem": "Unix",
+        "filePath": "noiseRun.jsonld",
+        "requirements": []
+      }
+    }
+  ],
+
+
+  "dataset": [
+    {
+      "name": "noiseModel",
+      "description": "noise model",
+      "distribution": {
+        "contentPath": "noiseModel.jsonld"
+      }
+    },
+    {
+      "name": "prior_prop_S",
+      "distribution": {
+        "contentData": {
+          "@context": { "@vocab": "http://standardanalytics.io/stats/" },
+          "@type": "Prior",
+          "priorDistribution": {
+            "@type": "ProbabilityDistribution",
+            "name" : "dirac",
+            "distributionParameter" : [
+              { "@type": "Parameter", "name" : "support", "value" : "0.07"}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "prior_prop_I",
+      "distribution": {
+        "contentData": {
+          "@context": { "@vocab": "http://standardanalytics.io/stats/" },
+          "@type": "Prior",
+          "priorDistribution": {
+            "@type": "ProbabilityDistribution",
+            "name" : "uniform",
+            "distributionParameter" : [
+              { "@type": "Parameter", "name" : "lower", "value" : "1e-6"},
+              { "@type": "Parameter", "name" : "upper", "value" : "1e-4"}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "prior_r0",
+      "distribution": {
+        "contentData": {
+          "@context": { "@vocab": "http://standardanalytics.io/stats/" },
+          "@type": "Prior",
+          "priorDistribution": {
+            "@type": "ProbabilityDistribution",
+            "name" : "uniform",
+            "distributionParameter" : [
+              { "@type": "Parameter", "name" : "lower", "value" : "15.0"},
+              { "@type": "Parameter", "name" : "upper", "value" : "35.0"}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "prior_v_inv",
+      "distribution": {
+        "contentData": {
+          "@context": { "@vocab": "http://standardanalytics.io/stats/" },
+          "@type": "Prior",
+          "priorDistribution": {
+            "@type": "ProbabilityDistribution",
+            "name" : "normal",
+            "distributionParameter" : [
+              { "@type": "Parameter", "name" : "mean", "value" : "12.5"},
+              { "@type": "Parameter", "name" : "sd", "value" : "3.8265"}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "prior_sto",
+      "distribution": {
+        "contentData": {
+          "@context": { "@vocab": "http://standardanalytics.io/stats/" },
+          "@type": "Prior",
+          "priorDistribution": {
+            "@type": "ProbabilityDistribution",
+            "name" : "dirac",
+            "distributionParameter" : [
+              { "@type": "Parameter", "name" : "support", "value" : "0.1"}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "prior_rep_all",
+      "distribution": {
+        "contentData": {
+          "@context": { "@vocab": "http://standardanalytics.io/stats/" },
+          "@type": "Prior",
+          "priorDistribution": {
+            "@type": "ProbabilityDistribution",
+            "name" : "uniform",
+            "distributionParameter" : [
+              { "@type": "Parameter", "name" : "lower", "value" : "0.5"},
+              { "@type": "Parameter", "name" : "upper", "value" : "0.8"}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "prior_phi",
+      "distribution": {
+        "contentData": {
+          "@context": { "@vocab": "http://standardanalytics.io/stats/" },
+          "@type": "Prior",
+          "priorDistribution": {
+            "@type": "ProbabilityDistribution",
+            "name" : "dirac",
+            "distributionParameter" : [
+              { "@type": "Parameter", "name" : "support", "value" : "0.1"}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "all_CDC_inc_out",
+      "@context" : {
+        "xsd" : "http://www.w3.org/2001/XMLSchema#",
+        "date" : { "@id" : "_:date", "@type" : "xsd:date" },
+        "all_CDC_inc_out" : { "@id" : "_:all_CDC_inc_out", "@type" : "xsd:float" }
+      },
+      "distribution": {
+        "contentPath": "data/all_CDC_inc_out.csv",
+      },
+      "@type": "Dataset"
+    },
+    {
+      "name": "all_google_inc_out",
+      "@context" : {
+        "xsd" : "http://www.w3.org/2001/XMLSchema#",
+        "date" : { "@id" : "_:date", "@type" : "xsd:date" },
+        "all_google_inc_out" : { "@id" : "_:all_google_inc_out", "@type" : "xsd:float" }
+      },
+      "distribution": {
+        "contentPath": "data/all_google_inc_out.csv",
+      },
+      "@type": "Dataset"
+    },
+    {
+      "name": "paris_CDC_prev",
+      "@context" : {
+        "xsd" : "http://www.w3.org/2001/XMLSchema#",
+        "date" : { "@id" : "_:date", "@type" : "xsd:date" },
+        "paris_CDC_prev" : { "@id" : "_:paris_CDC_prev", "@type" : "xsd:float" }
+      },
+      "distribution": {
+        "contentPath": "data/paris_CDC_prev.csv",
+      },
+      "@type": "Dataset"
+    },
+    {
+      "name": "nyc_CDC_inc",
+      "@context" : {
+        "xsd" : "http://www.w3.org/2001/XMLSchema#",
+        "date" : { "@id" : "_:date", "@type" : "xsd:date" },
+        "nyc_CDC_inc" : { "@id" : "_:nyc_CDC_inc", "@type" : "xsd:float" }
+      },
+      "distribution": {
+        "contentPath": "data/nyc_CDC_inc.csv",
+      },
+      "@type": "Dataset"
+    },
+    {
+      "name": "N_nyc",
+      "@context" : {
+        "xsd" : "http://www.w3.org/2001/XMLSchema#",
+        "date" : { "@id" : "_:date", "@type" : "xsd:date" },
+        "N_nyc" : { "@id" : "_:N_nyc", "@type" : "xsd:float" }
+      },
+      "distribution": {
+        "contentPath": "data/N_nyc.csv",
+      },
+      "@type": "Dataset"
+    },
+    {
+      "name": "N_paris",
+      "@context" : {
+        "xsd" : "http://www.w3.org/2001/XMLSchema#",
+        "date" : { "@id" : "_:date", "@type" : "xsd:date" },
+        "N_paris" : { "@id" : "_:N_paris", "@type" : "xsd:float" }
+      },
+      "distribution": {
+        "contentPath": "data/N_paris.csv",
+      },
+      "@type": "Dataset"
+    },
+    {
+      "name": "mu_b_nyc",
+      "@context" : {
+        "xsd" : "http://www.w3.org/2001/XMLSchema#",
+        "date" : { "@id" : "_:date", "@type" : "xsd:date" },
+        "mu_b_nyc" : { "@id" : "_:mu_b_nyc", "@type" : "xsd:float" }
+      },
+      "distribution": {
+        "contentPath": "data/mu_b_nyc.csv",
+      },
+      "@type": "Dataset"
+    },
+    {
+      "name": "mu_b_paris",
+      "@context" : {
+        "xsd" : "http://www.w3.org/2001/XMLSchema#",
+        "date" : { "@id" : "_:date", "@type" : "xsd:date" },
+        "mu_b_paris" : { "@id" : "_:mu_b_paris", "@type" : "xsd:float" }
+      },
+      "distribution": {
+        "contentPath": "data/mu_b_paris.csv",
+      },
+      "@type": "Dataset"
+    },
+    {
+      "name": "mu_d_nyc",
+      "@context" : {
+        "xsd" : "http://www.w3.org/2001/XMLSchema#",
+        "date" : { "@id" : "_:date", "@type" : "xsd:date" },
+        "mu_d_nyc" : { "@id" : "_:mu_d_nyc", "@type" : "xsd:float" }
+      },
+      "distribution": {
+        "contentPath": "data/mu_d_nyc.csv",
+      },
+      "@type": "Dataset"
+    },
+    {
+      "name": "mu_d_paris",
+      "@context" : {
+        "xsd" : "http://www.w3.org/2001/XMLSchema#",
+        "date" : { "@id" : "_:date", "@type" : "xsd:date" },
+        "mu_d_paris" : { "@id" : "_:mu_d_paris", "@type" : "xsd:float" }
+      },
+      "distribution": {
+        "contentPath": "data/mu_d_paris.csv",
+      },
+      "@type": "Dataset"
+    },
+    {
+      "name": "prop_all_cdc_inc",
+      "@context" : {
+        "xsd" : "http://www.w3.org/2001/XMLSchema#",
+        "date" : { "@id" : "_:date", "@type" : "xsd:date" },
+        "prop_all_cdc_inc" : { "@id" : "_:prop_all_cdc_inc", "@type" : "xsd:float" }
+      },
+      "distribution": {
+        "contentPath": "data/prop_all_cdc_inc.csv",
+      },
+      "@type": "Dataset"
+    },
+    {
+      "name": "prop_paris_cdc_prev",
+      "@context" : {
+        "xsd" : "http://www.w3.org/2001/XMLSchema#",
+        "date" : { "@id" : "_:date", "@type" : "xsd:date" },
+        "prop_paris_cdc_prev" : { "@id" : "_:prop_paris_cdc_prev", "@type" : "xsd:float" }
+      },
+      "distribution": {
+        "contentPath": "data/prop_paris_cdc_prev.csv",
+      },
+      "@type": "Dataset"
+    },
+    {
+      "name": "prop_all_google_inc",
+      "@context" : {
+        "xsd" : "http://www.w3.org/2001/XMLSchema#",
+        "date" : { "@id" : "_:date", "@type" : "xsd:date" },
+        "prop_all_google_inc" : { "@id" : "_:prop_all_google_inc", "@type" : "xsd:float" }
+      },
+      "distribution": {
+        "contentPath": "data/prop_all_google_inc.csv",
+      },
+      "@type": "Dataset"
+    },
+    {
+      "name": "prop_nyc_cdc_inc",
+      "@context" : {
+        "xsd" : "http://www.w3.org/2001/XMLSchema#",
+        "date" : { "@id" : "_:date", "@type" : "xsd:date" },
+        "prop_nyc_cdc_inc" : { "@id" : "_:prop_nyc_cdc_inc", "@type" : "xsd:float" }
+      },
+      "distribution": {
+        "contentPath": "data/prop_nyc_cdc_inc.csv",
+      },
+      "@type": "Dataset"
+    },
+    {
+      "name": "TraceChain1",
+      "@context" : {
+        "xsd" : "http://www.w3.org/2001/XMLSchema#",
+        "prop_I" : { "@id" : "_:prop_I", "@type" : "xsd:float" },
+        "r0_nyc" : { "@id" : "_:r0_nyc", "@type" : "xsd:float" },
+        "r0_paris" : { "@id" : "_:r0_paris", "@type" : "xsd:float"},
+        "inv_v" : { "@id" : "_:inv_v", "@type" : "xsd:float"},
+	"rep_all" : { "@id" : "_:rep_all", "@type" : "xsd:float"}
+      },
+      "distribution": {
+        "contentPath": "data/trace1.csv",
+      },
+      "@type": "Dataset"
+    },
+    {
+      "name": "TraceChain2",
+      "@context" : {
+        "xsd" : "http://www.w3.org/2001/XMLSchema#",
+        "prop_I" : { "@id" : "_:prop_I", "@type" : "xsd:float" },
+        "r0_nyc" : { "@id" : "_:r0_nyc", "@type" : "xsd:float" },
+        "r0_paris" : { "@id" : "_:r0_paris", "@type" : "xsd:float"},
+        "inv_v" : { "@id" : "_:inv_v", "@type" : "xsd:float"},
+	"rep_all" : { "@id" : "_:rep_all", "@type" : "xsd:float"}
+      },
+      "distribution": {
+        "contentPath": "data/trace2.csv",
+      },
+      "@type": "Dataset"
+    }
+  ]
+}

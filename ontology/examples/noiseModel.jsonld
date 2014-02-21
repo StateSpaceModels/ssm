@@ -1,0 +1,127 @@
+{
+  "name": "noiseModel",
+  "description": "SSM model example",
+  "distribution": {
+    "encodingFormat": "jsonld",
+    "contentData": {
+      "@context": { "@vocab": "http://standardanalytics.io/stats/" },
+      "@type": "ssmModel",
+
+
+      "modelFormula": {
+
+        "populations": [
+          {"name": "paris", "composition": ["S_paris", "I_paris", "R_paris"], "remainder": {"name": "R_paris", "pop_size": "N_paris"}},
+          {"name": "nyc",   "composition": ["S_nyc", "I_nyc", "R_nyc"],       "remainder": {"name": "R_nyc",   "pop_size": "N_nyc"}}
+        ],
+
+	"reactions": [
+          {"from": "U",           "to": "S_paris",    "rate": "mu_b_paris*N_paris",           "description":"birth"},
+          {"from": "U",           "to": "S_nyc",      "rate": "mu_b_nyc*N_nyc",                "description":"birth"},
+          {"from": "S_paris",  "to": "I_paris",     "rate": "r0_paris/N_paris*v*I_paris", "description":"infection", "keywords": ["transmission"], "white_noise": {"name":"noise_SI", "sd": "sto"}},
+          {"from": "S_nyc",    "to": "I_nyc",        "rate": "r0_nyc/N_nyc*v*I_nyc",       "description":"infection", "keywords": ["transmission"], "accumulators": ["nyc_inc"], "white_noise": {"name":"noise_SI2", "sd": "sto"}},
+          {"from": "I_paris",   "to": "R_paris",    "rate": "correct_rate(v)",                   "description":"recovery", "accumulators": ["all_inc_out"]},
+          {"from": "I_nyc",     "to": "R_nyc",       "rate": "correct_rate(v)",                   "description":"recovery", "accumulators": ["all_inc_out"]},
+          {"from": "S_paris",  "to": "U",              "rate": "mu_d_paris",                       "description":"death"},
+          {"from": "S_nyc",    "to": "U",              "rate": "mu_d_nyc",                          "description":"death"},
+          {"from": "I_paris",   "to": "U",              "rate": "mu_d_paris",                       "description":"death", "accumulators": ["all_inc_out"]},
+          {"from": "I_nyc",     "to": "U",              "rate": "mu_d_nyc",                          "description":"death", "accumulators": ["all_inc_out"]},
+          {"from": "R_paris",  "to": "U",              "rate": "mu_d_paris",                       "description":"death"},
+          {"from": "R_nyc",    "to": "U",              "rate": "mu_d_nyc",                          "description":"death"}
+        ],
+
+        "observations": [
+          {
+            "name": "all_CDC_inc_out",
+            "start": "2012-07-26",
+            "observationDistribution": {
+              "name": "discretized_normal",
+              "distributionParameters": [
+                { "name": "mean", "parameterFormula": "rep_all_CDC_inc * prop_all_CDC_inc * all_inc_out"},
+                { "name": "sd",      "parameterFormula": "sqrt(rep_all_CDC_inc * ( 1.0 - rep_all_CDC_inc ) * prop_all_CDC_inc * all_inc_out + pow(rep_all_CDC_inc * phi * prop_all_CDC_inc * all_inc_out, 2) )" }
+              ]
+            }
+          },
+	  {
+            "name": "all_google_inc_out",
+            "start": "2012-07-26",
+            "observationDistribution": {
+              "name": "discretized_normal",
+              "distributionParameters": [
+                { "name": "mean", "parameterFormula": "rep_all_google_inc * prop_all_google_inc * all_inc_out"},
+                { "name": "sd",      "parameterFormula": "sqrt(rep_all_google_inc * ( 1.0 - rep_all_google_inc ) * prop_all_google_inc * all_inc_out + pow(rep_all_google_inc * phi * prop_all_google_inc * all_inc_out, 2) )" }
+              ]
+            }
+          },
+	  {
+            "name": "paris_CDC_prev",
+            "start": "2012-07-26",
+            "observationDistribution": {
+              "name": "discretized_normal",
+              "distributionParameters": [
+                { "name": "mean", "parameterFormula": "rep_paris_CDC_prev * prop_paris_CDC_prev * I_paris"},
+                { "name": "sd",      "parameterFormula": "sqrt(rep_paris_CDC_prev * ( 1.0 - rep_paris_CDC_prev ) * prop_paris_CDC_prev * I_paris + pow(rep_paris_CDC_prev * phi * prop_paris_CDC_prev * I_paris, 2) )"}
+              ]
+            }
+          },
+	  {
+            "name": "nyc_CDC_inc",
+            "start": "2012-07-26",
+            "observationDistribution": {
+              "name": "discretized_normal",
+              "distributionParameters": [
+                { "name": "mean", "parameterFormula": "rep_nyc_CDC_inc * prop_nyc_CDC_inc * nyc_inc"},
+                { "name": "sd",      "parameterFormula": "sqrt(rep_nyc_CDC_inc * ( 1.0 - rep_nyc_CDC_inc ) * prop_nyc_CDC_inc * nyc_inc + pow(rep_nyc_CDC_inc * phi * prop_nyc_CDC_inc * nyc_inc, 2) )" }
+              ]
+            }
+          }
+        ]
+
+        
+        "modelParameters": [
+
+          { "name": "N_nyc", "forcing": "noise/0.0.0/dataset/N_nyc" },
+          { "name": "N_paris", "forcing": "noise/0.0.0/dataset/N_paris" },
+          { "name": "mu_b_nyc", "forcing": "noise/0.0.0/dataset/mu_b_nyc" },
+          { "name": "mu_b_paris", "forcing": "noise/0.0.0/dataset/mu_b_paris" },
+          { "name": "mu_d_nyc", "forcing": "noise/0.0.0/dataset/mu_d_nyc" },
+          { "name": "mu_d_paris", "forcing": "noise/0.0.0/dataset/mu_d_paris" },
+          { "name": "prop_all_CDC_inc", "forcing": "noise/0.0.0/dataset/prop_all_CDC_inc" },
+          { "name": "prop_paris_CDC_prev", "forcing": "noise/0.0.0/dataset/prop_paris_CDC_prev" },
+          { "name": "prop_all_google_inc", "forcing": "noise/0.0.0/dataset/prop_all_google_inc" },
+          { "name": "prop_nyc_CDC_inc", "forcing": "noise/0.0.0/dataset/prop_nyc_CDC_inc" },
+
+          { "name": "prop_S", "prior": "noise/0.0.0/dataset/prior_prop_S" },
+	  { "name": "prop_I", "prior": "noise/0.0.0/dataset/prior_prop_I" },
+	  { "name": "prop_I", "prior": "noise/0.0.0/dataset/prior_prop_I" },
+	  { "name": "r0_paris", "prior": "noise/0.0.0/dataset/prior_r0" },
+	  { "name": "r0_nyc", "prior": "noise/0.0.0/dataset/prior_r0" },
+	  { "name": "v_inv", "prior": "noise/0.0.0/dataset/prior_v_inv" },
+	  { "name": "sto", "prior": "noise/0.0.0/dataset/prior_sto" },
+	  { "name": "rep_all", "prior": "noise/0.0.0/dataset/prior_rep_all" },
+	  { "name": "phi", "prior": "noise/0.0.0/dataset/phi" }
+ 
+        ]
+
+	"modelNotations": [
+	   { "name": "S_nyc", "parameterFormula": "prop_S*N_nyc" },
+	   { "name": "S_Paris", "parameterFormula": "prop_S*N_paris" },
+	   { "name": "I_nyc", "parameterFormula": "prop_I*N_nyc" },
+	   { "name": "I_Paris", "parameterFormula": "prop_I*N_paris" },
+	   { "name": "v", "parameterFormula": "1/v_inv" },
+	   { "name": "rep_all_CDC_inc", "parameterFormula": "rep_all" },
+	   { "name": "rep_all_google_inc", "parameterFormula": "rep_all" },
+	   { "name": "rep_nyc_CDC_inc", "parameterFormula": "rep_all" },
+	   { "name": "rep_paris_CDC_prev", "parameterFormula": "rep_all" }
+        ]
+
+	"modelData": [
+ 	  { "name": "all_CDC_inc_out", "time-series": "noise/0.0.0/dataset/all_CDC_inc_out" },
+ 	  { "name": "all_google_inc_out", "time-series": "noise/0.0.0/dataset/all_google_inc_out" },
+ 	  { "name": "paris_CDC_prev", "time-series": "noise/0.0.0/dataset/paris_CDC_prev" },
+ 	  { "name": "nyc_CDC_inc", "time-series": "noise/0.0.0/dataset/nyc_CDC_inc" }
+        ]
+
+
+
+

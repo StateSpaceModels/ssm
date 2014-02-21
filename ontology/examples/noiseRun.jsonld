@@ -1,0 +1,238 @@
+{
+  "name": "noiseRun",
+  "description": "SSM run example",
+  "distribution": {
+    "encodingFormat": "jsonld",
+    "contentData": {
+      "@type": "ssmRun",
+      "analytics": [
+        {
+          "name": "random-lhs",
+          "run": [
+            {
+              "command": "ssm lhs $IN.dpkg -o $OUT.out --samples 50",
+              "timeout": "00:01:00",
+              "inputs": [
+                {
+                  "path": "noiseModel.jsonld",
+                  "name": "dpkg"
+                }
+              ],
+              "outputs": [
+                {
+                  "path": "results/lhs/lhs.json",
+                  "save": {
+                    "resource": "lhs"
+                  },
+                  "name": "out"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "lhs-simplex",
+          "map": [
+            {
+              "command": "./ksimplex",
+              "args": [
+                "--root",
+                "$ROOT/results/lhs_simplex",
+                "-M",
+                10000,
+                "--next",
+                "mle_",
+                "--id",
+                "$ID",
+                "--prior",
+                "--dt",
+                10,
+                "--no_dem_sto"
+              ],
+              "cwd": "bin",
+              "timeout": "00:01:00",
+              "inputs": [
+                {
+                  "resource": "lhs",
+                  "collection": true,
+                  "stdin": true
+                }
+              ],
+              "outputs": [
+                {
+                  "path": "results/lhs_simplex/mle_*.json"
+                }
+              ]
+            },
+            {
+              "repeat": 1,
+              "command": "./ksimplex",
+              "args": [
+                "--root",
+                "$ROOT/results/lhs_simplex",
+                "-M",
+                10000,
+                "--next",
+                "mle_",
+                "--id",
+                "$ID",
+                "--prior",
+                "--dt",
+                10,
+                "--no_dem_sto"
+              ],
+              "cwd": "bin",
+               "timeout": "00:01:00",
+              "inputs": [
+                {
+                  "path": "results/lhs_simplex/mle_*.json",
+                  "stdin": true
+                }
+              ],
+              "outputs": [
+                {
+                  "path": "results/lhs_simplex/mle_*.json"
+                }
+              ]
+            }
+          ],
+          "reduce": [
+            {
+              "command": "ssm reduce $ROOT/results/lhs_simplex --by log_ltp --summary $OUT.out",
+              "timeout": "00:01:00",
+              "inputs": [
+                {
+                  "path": "results/lhs_simplex/mle_*.json"
+                }
+              ],
+              "outputs": [
+                {
+                  "path": "results/lhs_simplex/start_pmcmc.json",
+                  "save": {
+                    "resource": "start_pmcmc"
+                  },
+                  "name": "out"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "pmcmc",
+          "map": [
+            {
+              "command": "./pmcmc",
+              "args": [
+                "sde",
+                "--root",
+                "$ROOT/results/pmcmc",
+                "-M",
+                1000,
+                "--next",
+                "map_",
+                "--id",
+                "$ID",
+                "--dt",
+                10,
+                "-J",
+                "200",
+                "--no_dem_sto"
+              ],
+              "cwd": "bin",
+              "timeout": "01:00:00",
+              "inputs": [
+                {
+                  "resource": "start_pmcmc",
+                  "replicate": 2,
+                  "stdin": true
+                }
+              ],
+              "outputs": [
+                {
+                  "path": "results/pmcmc/map_*.json"
+                }
+              ]
+            },
+            {
+              "command": "./pmcmc",
+              "args": [
+                "sde",
+                "--root",
+                "$ROOT/results/pmcmc",
+                "-M",
+                1000,
+                "--next",
+                "map_",
+                "--id",
+                "$ID",
+                "--trace",
+                "--traj",
+                "--dt",
+                10,
+                "-J",
+                "200",
+                "--no_dem_sto"
+              ],
+              "cwd": "bin",
+              "timeout": "01:00:00",
+              "inputs": [
+                {
+                  "path": "results/pmcmc/map_*.json",
+                  "stdin": true
+                }
+              ],
+              "outputs": [
+                {
+                  "path": "results/pmcmc/map_*.json",
+                  "save": {
+                    "resource": "pmcmc_map_*"
+                  }
+                },
+                {
+                  "path": "results/pmcmc/trace_*.csv"
+                },
+                {
+                  "path": "results/pmcmc/X_*.csv"
+                }
+              ]
+            }
+          ],
+          "reduce": [
+            {
+              "command": "ssm reduce $ROOT/results/pmcmc --by DIC --trace $OUT.trace --traj $OUT.traj --summary $OUT.map",
+              "timeout": "01:00:00",
+              "inputs": [
+                {
+                  "resource": "pmcmc_map_*"
+                }
+              ],
+              "outputs": [
+                {
+                  "path": "results/pmcmc/trace.csv",
+                  "save": {
+                    "resource": "pmcmc_trace"
+                  },
+                  "name": "trace"
+                },
+                {
+                  "path": "results/pmcmc/X.csv",
+                  "save": {
+                    "resource": "pmcmc_traj"
+                  },
+                  "name": "traj"
+                },
+                {
+                  "path": "results/pmcmc/map.json",
+                  "save": {
+                    "resource": "pmcmc_map"
+                  },
+                  "name": "map"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
