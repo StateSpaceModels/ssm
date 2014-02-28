@@ -1,0 +1,6 @@
+{
+  "distributionType" : "dirac",
+  "distributionParameter" : [
+    { "value" : 0.07 }
+  ]
+}

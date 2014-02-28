@@ -1,0 +1,215 @@
+{
+  "data": [
+    {
+      "name": "all_CDC_inc_out",
+      "require": {"path": "data/data.csv", "fields": ["date", "all_CDC_inc_out"]}
+    },
+    {
+      "name": "all_google_inc_out",
+      "require": {"path": "data/data.csv", "fields": ["date", "all_google_inc_out"]}
+    },
+    {
+      "name": "paris_CDC_prev",
+      "require": {"path": "data/data.csv", "fields": ["date",  "paris_CDC_prev"]}
+    },
+    {
+      "name": "nyc_CDC_inc",
+      "require": {"path": "data/data.csv", "fields": ["date", "nyc_CDC_inc"]}
+    }
+  ],
+
+  "inputs": [
+    {
+      "name": "N_nyc",
+      "require": {"path": "data/N.csv", "fields": ["date", "nyc"]}
+    },
+    {
+      "name": "N_paris",
+      "require": {"path": "data/N.csv", "fields": ["date", "paris"]}
+    },
+    {
+      "name": "mu_b_paris",
+      "require": {"path": "data/mu_b.csv", "fields": ["date", "paris"]}
+    },
+    {
+      "name": "mu_b_nyc",
+      "require": {"path": "data/mu_b.csv", "fields": ["date", "nyc"]}
+    },
+    {
+      "name": "mu_d_paris",
+      "require": {"path": "data/mu_d.csv", "fields": ["date", "paris"]}
+    },
+    {
+      "name": "mu_d_nyc",
+      "require": {"path": "data/mu_d.csv", "fields": ["date", "nyc"]}
+    },
+    {
+      "name": "prop_all_CDC_inc",
+      "require": {"path": "data/prop.csv", "fields": ["date", "all_CDC_inc"]}
+    },
+    {
+      "name": "prop_paris_CDC_prev",
+      "require": {"path": "data/prop.csv", "fields": ["date", "paris_CDC_prev"]}
+    },
+    {
+      "name": "prop_all_google_inc",
+      "require": {"path": "data/prop.csv", "fields": ["date", "all_google_inc"]}
+    },
+    {
+      "name": "prop_nyc_CDC_inc",
+      "require": {"path": "data/prop.csv", "fields": ["date", "nyc_CDC_inc"]}
+    },
+
+    {
+      "name": "S_paris",
+      "description": "Number of susceptible",
+      "require": {"path": "data/pr_S_paris.json", "name": "pr_S_paris"},
+      "transformation": "pr_S_paris*N_paris",
+      "to_resource": "S_paris/N_paris"
+    },
+    {
+      "name": "S_nyc",
+      "description": "Number of susceptible",
+      "transformation": "pr_S_paris*N_nyc"
+    },
+    {
+      "name": "I_paris",
+      "description": "Number of infectious",
+      "require": {"path": "data/pr_I_paris.json", "name": "pr_I_paris"},
+      "transformation": "pr_I_paris*N_paris",
+      "to_resource": "I_paris/N_paris"
+    },
+    {
+      "name": "I_nyc",
+      "description": "Number of susceptible",
+      "transformation": "pr_I_paris*N_nyc"
+    },
+    {
+      "name": "r0_paris",
+      "description": "basic reproduction number",
+      "require": {"path": "data/r0_paris.json"}
+    },
+    {
+      "name": "r0_nyc",
+      "description": "basic reproduction number",
+      "require": {"path": "data/r0_nyc.json"}
+    },
+    {
+      "name": "v",
+      "description": "recovery rate",
+      "require": {"path": "data/pr_v.json", "name": "pr_v"},
+      "transformation": "1/pr_v",
+      "to_resource": "1/v"
+    },
+    {
+      "name": "sto",
+      "description": "noise intensity",
+      "require": {"path": "data/sto.json"}
+    },
+    {
+      "name": "rep_all_CDC_inc",
+      "description": "reporting rate",
+      "require": {"path": "data/rep_all_CDC_inc.json"}
+    },
+    {
+      "name": "rep_all_google_inc",
+      "description": "reporting rate",
+      "transformation": "rep_all_CDC_inc"       
+    },
+    {
+      "name": "rep_nyc_CDC_inc",
+      "description": "reporting rate",
+      "transformation": "rep_all_CDC_inc"
+    },
+    {
+      "name": "rep_paris_CDC_prev",
+      "description": "reporting rate",
+      "transformation": "rep_all_CDC_inc"
+    },
+    {
+      "name": "phi",
+      "description": "over-dispertion",
+      "require": {"path": "data/phi.json"}
+    }
+  ],
+
+  "populations": [
+    {"name": "paris", "composition": ["S_paris", "I_paris", "R_paris"], "remainder": {"name": "R_paris", "pop_size": "N_paris"}},
+    {"name": "nyc",   "composition": ["S_nyc", "I_nyc", "R_nyc"],       "remainder": {"name": "R_nyc",   "pop_size": "N_nyc"}}
+  ],
+  
+  "reactions": [
+    {"from": "U",       "to": "S_paris", "rate": "mu_b_paris*N_paris",         "description":"birth"},
+    {"from": "U",       "to": "S_nyc",   "rate": "mu_b_nyc*N_nyc",             "description":"birth"},
+
+    {"from": "S_paris", "to": "I_paris", "rate": "r0_paris/N_paris*v*I_paris", "description":"infection", "white_noise": {"name":"noise_SI", "sd": "sto"}},
+    {"from": "S_nyc",   "to": "I_nyc",   "rate": "r0_nyc/N_nyc*v*I_nyc",       "description":"infection", "accumulators": ["nyc_inc"], "white_noise": {"name":"noise_SI2", "sd": "sto"}},
+
+    {"from": "I_paris", "to": "R_paris", "rate": "correct_rate(v)",            "description":"recovery", "accumulators": ["all_inc_out"]},
+    {"from": "I_nyc",   "to": "R_nyc",   "rate": "correct_rate(v)",            "description":"recovery", "accumulators": ["all_inc_out"]},
+
+    {"from": "S_paris", "to": "U",       "rate": "mu_d_paris",                 "description":"death"},
+    {"from": "S_nyc",   "to": "U",       "rate": "mu_d_nyc",                   "description":"death"},
+
+    {"from": "I_paris", "to": "U",       "rate": "mu_d_paris",                 "description":"death", "accumulators": ["all_inc_out"]},
+    {"from": "I_nyc",   "to": "U",       "rate": "mu_d_nyc",                   "description":"death", "accumulators": ["all_inc_out"]},
+    {"from": "R_paris", "to": "U",       "rate": "mu_d_paris",                 "description":"death"},
+    {"from": "R_nyc",   "to": "U",       "rate": "mu_d_nyc",                   "description":"death"}
+  ],
+
+  "observations": [
+    {
+      "name": "all_CDC_inc_out",
+      "start": "2012-07-26",
+      "distribution": "discretized_normal",
+      "mean": "rep_all_CDC_inc * prop_all_CDC_inc * all_inc_out",
+      "sd": "sqrt(rep_all_CDC_inc * ( 1.0 - rep_all_CDC_inc ) * prop_all_CDC_inc * all_inc_out + pow(rep_all_CDC_inc * phi * prop_all_CDC_inc * all_inc_out, 2) )"
+    },
+    {
+      "name": "all_google_inc_out",
+      "start": "2012-07-26",
+      "distribution": "discretized_normal",
+      "mean": "rep_all_google_inc * prop_all_google_inc * all_inc_out",
+      "sd": "sqrt(rep_all_google_inc * ( 1.0 - rep_all_google_inc ) * prop_all_google_inc * all_inc_out + pow(rep_all_google_inc * phi * prop_all_google_inc * all_inc_out, 2) )"
+    },
+    {
+      "name": "paris_CDC_prev",
+      "start": "2012-07-26",
+      "distribution": "discretized_normal",
+      "mean": "rep_paris_CDC_prev * prop_paris_CDC_prev * I_paris",
+      "sd": "sqrt(rep_paris_CDC_prev * ( 1.0 - rep_paris_CDC_prev ) * prop_paris_CDC_prev * I_paris + pow(rep_paris_CDC_prev * phi * prop_paris_CDC_prev * I_paris, 2) )"
+    },
+
+    {
+      "name": "nyc_CDC_inc",
+      "start": "2012-07-26",
+      "distribution": "discretized_normal",
+      "mean": "rep_nyc_CDC_inc * prop_nyc_CDC_inc * nyc_inc",
+      "sd": "sqrt(rep_nyc_CDC_inc * ( 1.0 - rep_nyc_CDC_inc ) * prop_nyc_CDC_inc * nyc_inc + pow(rep_nyc_CDC_inc * phi * prop_nyc_CDC_inc * nyc_inc, 2) )"
+    }
+  ],
+
+  "resources": [
+    {
+      "name": "values",
+      "data": {
+        "pr_I_paris": 1e-05,
+        "r0_nyc": 20.0,
+        "r0_paris": 20.0,
+        "pr_v": 11.0,
+        "rep_all_CDC_inc":0.6
+      }
+    },
+
+    {
+      "name": "covariance",
+      "data": {
+        "pr_I_paris": {"pr_I_paris": 0.03},
+        "r0_nyc": {"r0_nyc": 0.04, "pr_v": 0.01},
+        "r0_paris": {"r0_paris": 0.02},
+        "pr_v": {"pr_v": 0.02, "r0_nyc": 0.01},
+        "rep_all_CDC_inc": {"rep_all_CDC_inc": 0.02}
+      }
+    }
+  ]
+}
