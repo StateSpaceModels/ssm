@@ -1058,6 +1058,6 @@ if __name__=="__main__":
     import json
     import os
 
-    dpkgRoot = os.path.join('..' ,'examples', 'foo')
-    dpkg = json.load(open(os.path.join(dpkgRoot, 'package.json')))
+    dpkgRoot = os.path.join('..' ,'examples', 'noise')
+    dpkg = json.load(open(os.path.join(dpkgRoot, 'ssm.json')))
     m = Ccoder(dpkgRoot, dpkg)

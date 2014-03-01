@@ -53,7 +53,7 @@ class Data(Ccoder):
 
         try:        
             #the .data.json contains all the data and metadata comming from the data package and it's dependencies'
-            self._data = json.load(open(os.path.join(path_rendered,'.data.json')))
+            self._data = json.load(open(os.path.join(path_rendered, '.data.json')))
         except ValueError, IOError:
             raise DataError('could not process .data.json')
         

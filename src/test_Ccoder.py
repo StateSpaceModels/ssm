@@ -8,17 +8,15 @@ import shutil
 class TestCcoder(unittest.TestCase):
 
     def setUp(self):
-        shutil.copytree(os.path.join('..' ,'examples', 'noise'), os.path.join('..' ,'examples', '__tmp_noise'))
-
         dpkgRoot = os.path.join('..' ,'examples', 'noise')
-        dpkg = json.load(open(os.path.join(dpkgRoot, 'package.json')))
+        dpkg = json.load(open(os.path.join(dpkgRoot, 'ssm.json')))
         
         self.m_noise = Ccoder(dpkgRoot, copy.deepcopy(dpkg))
         
         m_diff = copy.deepcopy(dpkg)    
-        del m_diff['model']['reactions'][2]['white_noise']
-        del m_diff['model']['reactions'][3]['white_noise']
-        m_diff['model']['sde'] = {
+        del m_diff['reactions'][2]['white_noise']
+        del m_diff['reactions'][3]['white_noise']
+        m_diff['sde'] = {
             'drift': [
                 {'name': 'r0_paris', 'f': 0.0, 'transformation': 'log(r0_paris)'},
                 {'name': 'r0_nyc', 'f': 0.0, 'transformation': 'log(r0_nyc)'}
@@ -28,54 +26,50 @@ class TestCcoder(unittest.TestCase):
         self.m_diff = Ccoder(dpkgRoot, m_diff)
 
         m_noise2 = copy.deepcopy(dpkg)    
-        del m_noise2['model']['reactions'][2]['white_noise']
-        del m_noise2['model']['reactions'][3]['white_noise']
-        m_noise2['model']['reactions'][0]['white_noise'] = {'name':'noise_SI', 'sd': 'sto'}
-        m_noise2['model']['reactions'][1]['white_noise'] = {'name':'noise_SI2', 'sd': 'sto'}
+        del m_noise2['reactions'][2]['white_noise']
+        del m_noise2['reactions'][3]['white_noise']
+        m_noise2['reactions'][0]['white_noise'] = {'name':'noise_SI', 'sd': 'sto'}
+        m_noise2['reactions'][1]['white_noise'] = {'name':'noise_SI2', 'sd': 'sto'}
         self.m_noise2 = Ccoder(dpkgRoot, m_noise2)
 
         m_noise3 = copy.deepcopy(dpkg)    
-        del m_noise3['model']['reactions'][2]['white_noise']
-        del m_noise3['model']['reactions'][3]['white_noise']
-        m_noise3['model']['reactions'][4]['white_noise'] = {'name':'noise_SI', 'sd': 'sto'}
-        m_noise3['model']['reactions'][5]['white_noise'] = {'name':'noise_SI2', 'sd': 'sto'}
+        del m_noise3['reactions'][2]['white_noise']
+        del m_noise3['reactions'][3]['white_noise']
+        m_noise3['reactions'][4]['white_noise'] = {'name':'noise_SI', 'sd': 'sto'}
+        m_noise3['reactions'][5]['white_noise'] = {'name':'noise_SI2', 'sd': 'sto'}
         self.m_noise3 = Ccoder(dpkgRoot, m_noise3)
 
         m_noise4 = copy.deepcopy(dpkg)    
-        del m_noise4['model']['reactions'][2]['white_noise']
-        del m_noise4['model']['reactions'][3]['white_noise']
-        m_noise4['model']['reactions'][8]['white_noise'] = {'name':'noise_SI', 'sd': 'sto'}
-        m_noise4['model']['reactions'][9]['white_noise'] = {'name':'noise_SI2', 'sd': 'sto'}
+        del m_noise4['reactions'][2]['white_noise']
+        del m_noise4['reactions'][3]['white_noise']
+        m_noise4['reactions'][8]['white_noise'] = {'name':'noise_SI', 'sd': 'sto'}
+        m_noise4['reactions'][9]['white_noise'] = {'name':'noise_SI2', 'sd': 'sto'}
         self.m_noise4 = Ccoder(dpkgRoot, m_noise4)
 
         m_noise5 = copy.deepcopy(dpkg)    
-        del m_noise5['model']['reactions'][2]['white_noise']
-        del m_noise5['model']['reactions'][3]['white_noise']
-        m_noise5['model']['reactions'][10]['white_noise'] = {'name':'noise_SI', 'sd': 'sto'}
-        m_noise5['model']['reactions'][11]['white_noise'] = {'name':'noise_SI2', 'sd': 'sto'}
+        del m_noise5['reactions'][2]['white_noise']
+        del m_noise5['reactions'][3]['white_noise']
+        m_noise5['reactions'][10]['white_noise'] = {'name':'noise_SI', 'sd': 'sto'}
+        m_noise5['reactions'][11]['white_noise'] = {'name':'noise_SI2', 'sd': 'sto'}
         self.m_noise5 = Ccoder(dpkgRoot, m_noise5)
 
         m_noise6 = copy.deepcopy(dpkg)    
-        m_noise6['model']['reactions'][4]['white_noise'] = {'name':'noise_SI', 'sd': 'sto'}
-        m_noise6['model']['reactions'][5]['white_noise'] = {'name':'noise_SI2', 'sd': 'sto'}
+        m_noise6['reactions'][4]['white_noise'] = {'name':'noise_SI', 'sd': 'sto'}
+        m_noise6['reactions'][5]['white_noise'] = {'name':'noise_SI2', 'sd': 'sto'}
         self.m_noise6 = Ccoder(dpkgRoot, m_noise6)
 
         m_noise7 = copy.deepcopy(dpkg)    
-        m_noise7['model']['reactions'][4]['white_noise'] = {'name':'noise_SI23', 'sd': 'sto'}
-        m_noise7['model']['reactions'][5]['white_noise'] = {'name':'noise_SI24', 'sd': 'sto'}
+        m_noise7['reactions'][4]['white_noise'] = {'name':'noise_SI23', 'sd': 'sto'}
+        m_noise7['reactions'][5]['white_noise'] = {'name':'noise_SI24', 'sd': 'sto'}
         self.m_noise7 = Ccoder(dpkgRoot, m_noise7)
 
         m_diff2 = copy.deepcopy(dpkg)    
-        del m_diff2['model']['reactions'][2]['white_noise']
-        del m_diff2['model']['reactions'][3]['white_noise']
-        m_diff2['model']['sde'] = copy.deepcopy(m_diff['model']['sde'])
-        m_diff2['model']['reactions'].append({'from': 'R_paris',   'to': 'I_paris',   'rate': 'correct_rate(v)',            'description':'testing'})
-        m_diff2['model']['reactions'].append({'from': 'R_nyc',   'to': 'I_nyc',   'rate': 'correct_rate(v)',                'description':'testing'})
+        del m_diff2['reactions'][2]['white_noise']
+        del m_diff2['reactions'][3]['white_noise']
+        m_diff2['sde'] = copy.deepcopy(m_diff['sde'])
+        m_diff2['reactions'].append({'from': 'R_paris', 'to': 'I_paris', 'rate': 'correct_rate(v)', 'description':'testing'})
+        m_diff2['reactions'].append({'from': 'R_nyc', 'to': 'I_nyc', 'rate': 'correct_rate(v)', 'description':'testing'})
         self.m_diff2 = Ccoder(dpkgRoot, m_diff2)
-
-
-    def tearDown(self):
-        shutil.rmtree(os.path.join('..' ,'examples', '__tmp_noise'))
     
 
     def test_eval_Q(self):
@@ -388,4 +382,3 @@ class TestCcoder(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

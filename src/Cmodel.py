@@ -60,7 +60,7 @@ class Cmodel:
                         rpath = os.path.join(self.dpkgRoot, p['require']['path'])
                         resource = json.load(open(rpath))
                     except:
-                        raise ModelError('invalid data for ' + p['name'])
+                        raise ModelError('invalid data for ' + p['name'] + ' could not load ' + p['require']['path'])
 
                     if 'name' not in p['require']:
                         p['require']['name'] = p['name']
@@ -420,6 +420,6 @@ class Cmodel:
 
 if __name__=="__main__":
 
-    dpkgRoot = os.path.join('..' ,'examples', 'noise')
+    dpkgRoot = os.path.join('..' ,'examples', 'foo')
     dpkg = json.load(open(os.path.join(dpkgRoot, 'ssm.json')))
     m = Cmodel(dpkgRoot, dpkg)

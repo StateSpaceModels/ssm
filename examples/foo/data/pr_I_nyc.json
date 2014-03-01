@@ -1,0 +1,7 @@
+{
+  "name": "uniform",
+  "distributionParameter" : [
+    { "name" : "lower", "value" : 4, "unitCode": "10^-x"},
+    { "name" : "upper", "value" : 6, "unitCode": "10^-x"}
+  ]
+}

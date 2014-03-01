@@ -1,0 +1,8 @@
+{
+  "name": "normal",
+  "distributionParameter" : [
+    { "name" : "mean", "value" : 7, "unitCode": "DAY" },
+    { "name" : "sd", "value" : 2, "unitCode": "DAY" },
+    { "name" : "lower", "value" : 0, "unitCode": "DAY" }
+  ]
+}
