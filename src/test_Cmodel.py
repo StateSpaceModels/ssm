@@ -8,7 +8,7 @@ class TestCmodel(unittest.TestCase):
 
     def setUp(self):
         dpkgRoot = os.path.join('..' ,'examples', 'foo')
-        dpkg = json.load(open(os.path.join(dpkgRoot, 'package.json')))
+        dpkg = json.load(open(os.path.join(dpkgRoot, 'ssm.json')))
         self.m = Cmodel(dpkgRoot, dpkg)
 
     def test_change_user_input(self):

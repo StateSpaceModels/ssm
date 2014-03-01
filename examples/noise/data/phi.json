@@ -1,5 +1,5 @@
 {
-  "distributionType" : "dirac",
+  "name" : "dirac",
   "distributionParameter" : [
     { "value" : 0.1 }
   ]

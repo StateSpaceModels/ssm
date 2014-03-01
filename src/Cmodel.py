@@ -39,8 +39,7 @@ class Cmodel:
 
     def __init__(self, dpkgRoot, dpkg, **kwargs):
         self.dpkgRoot = os.path.abspath(unicode(dpkgRoot, 'utf8'))
-        self.dpkg = copy.deepcopy(dpkg)
-        self.model = self.dpkg['model']
+        self.model = copy.deepcopy(dpkg)
 
         self.op = set(['+', '-', '*', '/', ',', '(', ')']) ##!!!CAN'T contain square bracket '[' ']'
         self.reserved = set(['U', 'x', 't', 'E', 'LN2', 'LN10','LOG2E', 'LOG10E', 'PI', 'SQRT1_2', 'SQRT2']) #JS Math Global Object
@@ -50,31 +49,28 @@ class Cmodel:
         self.ur = ['U'] + self.remainder
 
         #resolve links for priors (named parameters here) for every
-        #inputs, replace the require hash ({datapackage: resource:
-        #}) by it's corresponding resource. Note that if (and only if)
-        #the require hash has a name property, the name of the
-        #imported resource is changed to that. In case this
-        #alternative name is present, transformations have to be done
-        #in terms of this name.'
+        #inputs, replace the require hash ({path: name: }) by it's
+        #corresponding resource. Note that if (and only if) the
+        #require hash has a name property, transformations have to be
+        #done in terms of this name.
         for i, p in enumerate(self.model['inputs']):
             if 'require' in p:
-                if 'fields' not in p['require']: ##only for priors (in S|S|M priors HAVE TO BE in JSON) and covariates in SDF
-                    if 'datapackage' in p['require']:        
-                        rpath = os.path.join(self.dpkgRoot, 'data_modules', p['require']['datapackage'] ,'data', p['require']['resource'] + '.json')
-                        try:
-                            resource = json.load(open(rpath))
-                        except:
-                            raise ModelError('invalid data for ' + p['name'])
-
-                    else:
-                        try:                
-                            resource = [x for x in self.dpkg['resources'] if x['name'] == p['require']['resource']][0]['data']
-                        except IndexError:
-                            raise ModelError('resource ' + p['require']['resource'] + ' of ' + p['name'] + ' is missing.')
+                if 'fields' not in p['require']: ##only for priors (in S|S|M priors HAVE TO BE in JSON/JSON-LD) and covariates in csv
+                    try:
+                        rpath = os.path.join(self.dpkgRoot, p['require']['path'])
+                        resource = json.load(open(rpath))
+                    except:
+                        raise ModelError('invalid data for ' + p['name'])
 
                     if 'name' not in p['require']:
-                        p['require']['name'] = p['require']['resource']
-                    self.model['inputs'][i]['data'] = copy.deepcopy(resource)
+                        p['require']['name'] = p['name']
+
+                    #semantic to SSM transfo
+                    prior = { 'distribution': resource['name'] if resource['name'] != 'dirac' else 'fixed' }                    
+                    for x in resource['distributionParameter']:
+                        prior[x['name'] if 'name' in x else 'value'] = x['value']
+
+                    self.model['inputs'][i]['data'] = prior
 
 
         parameters = self.model['inputs']
@@ -424,6 +420,6 @@ class Cmodel:
 
 if __name__=="__main__":
 
-    dpkgRoot = os.path.join('..' ,'examples', 'foo')
-    dpkg = json.load(open(os.path.join(dpkgRoot, 'package.json')))
+    dpkgRoot = os.path.join('..' ,'examples', 'noise')
+    dpkg = json.load(open(os.path.join(dpkgRoot, 'ssm.json')))
     m = Cmodel(dpkgRoot, dpkg)

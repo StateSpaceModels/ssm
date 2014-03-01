@@ -1,7 +1,7 @@
 {
-  "distributionType" : "uniform",
+  "name" : "uniform",
   "distributionParameter" : [
     { "name" : "lower", "value" : 1e-6 },
-    { "name" : "upper", "value" : 1e-4}
+    { "name" : "upper", "value" : 1e-4 }
   ]
 }
