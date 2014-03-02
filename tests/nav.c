@@ -7,7 +7,7 @@ static ssm_options_t *opts;
 
 void test_nav__initialize(void)
 {
-    jparameters = ssm_load_json_file(cl_fixture("package.json"));    
+    jparameters = ssm_load_json_file(cl_fixture("theta.json"));    
     opts = ssm_options_new();
     nav = ssm_nav_new(jparameters, opts);
 }

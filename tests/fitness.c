@@ -10,7 +10,7 @@ static ssm_fitness_t *fitness;
 
 void test_fitness__initialize(void)
 {
-    jparameters = ssm_load_json_file(cl_fixture("package.json"));
+    jparameters = ssm_load_json_file(cl_fixture("theta.json"));
     jdata = ssm_load_json_file(cl_fixture(".data.json"));
     opts = ssm_options_new();
     nav = ssm_nav_new(jparameters, opts);
