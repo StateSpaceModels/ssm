@@ -105,7 +105,7 @@ void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_v
     json_object_set_new(jsummarydata, "n_data", json_integer(fitness->n));
 
     if(!jsummary){
-	json_array_append_new(jresources, json_pack("{s,s,s,s,s,o}", "name", "summary", "format", "json", "data", jsummarydata));
+	json_array_append_new(jresources, json_pack("{s,s,s,o}", "name", "summary", "data", jsummarydata));
     } else{
 	json_object_set_new(jsummary, "data", jsummarydata);
     }
@@ -130,7 +130,7 @@ void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_v
 
         if(json_object_size(jdata)){
             if(!jcovariance){
-                json_array_append_new(jresources, json_pack("{s,s,s,s,s,o}", "name", "covariance", "format", "json", "data", jdata));
+                json_array_append_new(jresources, json_pack("{s,s,s,o}", "name", "covariance", "data", jdata));
             } else{
                 json_object_set_new(jcovariance, "data", jdata);
             }

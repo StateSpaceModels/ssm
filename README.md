@@ -4,8 +4,8 @@ S|S|M
 Inference for time series analysis with *S*tate *S*pace *M*odels, like
 playing with duplo blocks.
 
-    cat guess.json | ./simplex -M 10000 | ./ksimplex -M 10000 > best_fit.json
-    cat best_fit.json | ./kmcmc -M 100000 | ./pmcmc -J 1000 -M 500000 --trace > yeah_i_am_done.json
+    cat theta.json | ./simplex -M 10000 | ./ksimplex -M 10000 > mle.json
+    cat mle.json | ./kmcmc -M 100000 | ./pmcmc -J 1000 -M 500000 --trace > yeaaah.json
 
 [![NPM](https://nodei.co/npm/ssm.png)](https://nodei.co/npm/ssm/)
 
@@ -86,19 +86,24 @@ Tests
     npm test
 
 Notes:
-The C code is tested with [clar](https://github.com/vmg/clar)
+The C code is tested with [clar](https://github.com/vmg/clar) (shipped with this package)
 
 
 Usage
 =====
 
-## Data and parameters
+What follows use [this example](https://github.com/standard-analytics/ssm/tree/master/examples/tutorial).
+All the paths will be relative to this directory.
 
-Data have to be in [SDF](http://dataprotocols.org/simple-data-format/)
-format, and wrapped in a
-[datapackage](http://dataprotocols.org/data-packages/).
+## Data and parameters (priors)
 
-For instance a [CSV](http://tools.ietf.org/html/rfc4180) file
+Data have to be in [CSV](http://tools.ietf.org/html/rfc4180) format
+(following [RFC 4180](http://tools.ietf.org/html/rfc4180) ). Data MUST
+contain unique headers AND a minimum of 2 columns, with one being
+dates following the [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601)
+date definition (YYYY-MM-DD).
+
+For instance:
 
     $ head data/data.csv
     
@@ -109,137 +114,100 @@ For instance a [CSV](http://tools.ietf.org/html/rfc4180) file
     "2012-08-23",12
     "2012-08-30",null
 
-will be wrapped as follows:
+Parameters (priors) have to be specified in [JSON](http://json.org/) or [JSON-LD](http://json-ld.org/) following:
 
-    $ cat package.json | json resources
-    
-    "resources": [
-      {
-        "name": "data",
-        "path": "data/data.csv",
-        "format": "csv",
-        "schema": {
-          "fields": [
-            {"name": "date", "type": "date"},
-            {"name": "cases", "type": "number"}
-          ]
-        }
-      },
-      ...
-    ]
+    $ cat data/pr_v.json
 
-Parameters also have to be specified as resources of a datapackage
-(the same or another one).  For instance the following resource
-defines a prior.
-
-    $ cat package.json | json resources
-
-    "resources": [
-      {
-        "name": "pr_v",
-        "description": "duration of infection",
-        "format": "json",
-        "data": { 
-          "distribution": "normal", 
-          "mean": 12.5,
-          "sd": 3.8265, 
-          "lower": 0.0, 
-          "unit": "days"
-        }
-      },
-      ...
-    ]
-
-The full [schema](http://json-schema.org/) for a prior is described
-[here](https://raw.github.com/standard-analytics/ssm/master/json-schema/prior-schema.json).
+    {
+      "name": "normal",
+      "distributionParameter" : [
+        { "name" : "mean",  "value" : 12.5,   "unitCode": "DAY" },
+        { "name" : "sd",    "value" : 3.8265, "unitCode": "DAY" },
+        { "name" : "lower", "value" : 0,      "unitCode": "DAY" }
+      ]
+    }
 
 
 ## Model
 
-A model is described in [JSON](http://www.json.org/) and typically
-lives as a metadata of a datapackage.
-
-The model datapackage needs to list as ```dataDependencies``` all the
-data dependencies it depends on (for data, priors, covariates).
-
-    $ cat package.json | json dataDependencies
-
-    {
-      "ssm-tutorial-data": "0.0.0"
-    }
-
+A model is described in [JSON](http://www.json.org/), typically in a
+```ssm.json``` file.
 
 S|S|M support any State Space Model built as system of ordinary or 
 stochastic differential equations, a compartmental model, or a 
-combination thereof.  A model is defined by adding to a datapacakge
-a model property (```"model": {}```) whose [schema](http://json-schema.org/)
-is fully described [here](https://raw.github.com/standard-analytics/ssm/master/json-schema/model-schema.json).
+combination thereof.
+
+The syntax to define a model is fully described as JSON
+[schema](http://json-schema.org/)
+[here](https://raw.github.com/standard-analytics/ssm/master/json-schema/model-schema.json).
 
 ### Link to the data
 
 The first thing to do when writting a model is to _link_ it to the
 data it explains.
 
-    $ cat package.json | json model.data
+    $ cat ssm.json | json data
     
     "data": [
       { 
         "name": "cases", 
-        "require": {"datapackage": "ssm-tutorial-data", "resource": "data", "fields": ["date", "cases"]},
+        "require": { "path": "data/data.csv", "fields": ["date", "cases"] },
       }
     ]
 
-The ```model.data.require``` property is a link pointing to a
-time-series.  A link is an object with 3 properties:
-- ```datapackage``` (optional) specifying the name of the datapackage where the 
-resource can be found. It must be omitted if the the resource is in the same datapackage.
-- ```resource``` (mandatory)
-- ```fields``` necessary only in case of resources containing data in [SDF](http://dataprotocols.org/simple-data-format/). In this later case, the first field must be the time of the time series.
+The ```data.require``` property is a link pointing to a time-series.
+A link is an object with 3 properties:
+- ```path``` (mandatory), the path to the linked resource (in CSV or JSON)
+- ```fields``` necessary only in case of resources containing data in
+  CSV. In this later case, the first field must be the name of the
+  column containing the dates of the time series and the second one
+  the name of the column containing the actual values.
+- ```name``` the name under which the resource should be imported.
 
-Note that ```model.data``` itself can be a list so that multiple
-time-series can be handled.
+Note that ```data``` itself can be a list so that multiple time-series
+can be handled.
 
 ### Link to the priors and covariates
 
 The same link objects are used to point to the resources that will be
 used as priors or covariate of the model.
 
-    $ cat package.json | json model.inputs
+    $ cat ssm.json | json inputs
             
     "inputs": [
-      {
-        "name": "r0", 
-        "description": "Basic reproduction number", 
-        "require": { "datapackage": "ssm-tutorial-data", "resource": "r0" } 
-      },
-      { 
-        "name": "v",
-        "description": "Recovery rate",
-        "require": { "datapackage": "ssm-tutorial-data", "resource":  "pr_v" },
-        "transformation": "1/pr_v",
-        "to_resource": "1/v" 
-      },
-      {
-        "name": "S", 
-        "description": "Number of susceptible",
-        "require": { "datapackage": "ssm-tutorial-data", "resource": "S" } 
-      },
-      { 
-        "name": "I",
-        "description": "Number of infectious", 
-        "require": { "datapackage": "ssm-tutorial-data", "resource": "I" } 
-      },
-      { 
-        "name": "R", 
-        "description": "Number of recovered",
-        "require": { "datapackage": "ssm-tutorial-data", "resource": "R" } 
-      },
-      { 
-        "name": "rep",
-        "description": "Reporting rate",
-        "require": { "datapackage": "ssm-tutorial-data", "resource": "rep" } 
-      }
-    ]
+        {
+          "name": "r0", 
+          "description": "Basic reproduction number", 
+          "require": { "name": "r0", "path": "data/r0.json" } 
+        },
+        { 
+          "name": "v",
+          "description": "Recovery rate",
+          "require": { "name":  "pr_v", "path": "data/pr_v.json" },
+          "transformation": "1/pr_v",
+          "to_resource": "1/v" 
+        },
+        {
+          "name": "S", 
+          "description": "Number of susceptible",
+          "require": { "name": "S", "path": "data/S.json" } 
+        },
+        { 
+          "name": "I",
+          "description": "Number of infectious", 
+          "require": { "name": "I", "path": "data/I.json" } 
+        },
+        { 
+          "name": "R", 
+          "description": "Number of recovered",
+          "require": { "name": "R", "path": "data/R.json" } 
+        },
+        { 
+          "name": "rep",
+          "description": "Reporting rate",
+          "require": { "name": "rep", "path": "data/rep.json" } 
+        }
+      ],
 
 Note that this linking stage also allows to include some
 _transformations_ so that a relation can be established between your
@@ -252,13 +220,13 @@ expressed in duration: ```pr_v``` through an inverse transformation.
 
 The process model can be expressed as an ODE, an SDE or a compartmental
 model defining a Poisson process (potentialy with stochastic rates).  
-Let's take the example of a simple Susceptible-Infected-Recovered 
-compartmental model for population dynamics. The ```model``` object 
+Let's take the example of a simple Susceptible-Infected-Recovered
+compartmental model for population dynamics. The process model
 contains the following properties:
 
 the populations 
 
-    $ cat package.json | json model.populations
+    $ cat ssm.json | json populations
 
     "populations": [
       {"name": "NYC", "composition": ["S", "I", "R"]}
@@ -266,7 +234,7 @@ the populations
 
 and the reactions, defining the process model
 
-    $ cat package.json | json model.reactions
+    $ cat ssm.json | json reactions
 
     "reactions": [
       {"from": "S", "to": "I", "rate": "r0/(S+I+R)*v*I", "description": "infection", "accumulators": ["Inc"]},
@@ -294,7 +262,7 @@ point related to the accumulator state.
 
 One observation model has to be defined per observed time-series.
 
-    $ cat package.json | json model.observations
+    $ cat ssm.json | json observations
 
     "observations": [
       {
@@ -309,18 +277,17 @@ One observation model has to be defined per observed time-series.
 
 ### Initial conditions
 
-Finally, values of the parameters and the covariance matrix
-between them need need to be defined as resources of the datapackage
-containing the model. They willl be used as initial values for 
+Finally, values of the parameters and the covariance matrix between
+them need need to be defined in a separate JSON file typicaly named
+```theta.json```. ```theta.json``` will be used as initial values for
 inference algorithms:
 
-    $ cat package.json | json resources
+    $ cat theta.json
 
     "resources": [
       {
         "name": "values",
         "description": "initial values for the parameters",
-        "format": "json",
         "data": {
           "r0": 25.0,
           "pr_v": 11.0
@@ -329,29 +296,23 @@ inference algorithms:
       {
         "name": "covariance",
         "description": "covariance matrix",
-        "format": "json",
         "data": {
           "r0": {"r0": 0.04, "pr_v": 0.01},
           "pr_v": {"pr_v": 0.02, "r0": 0.01}
         }
-      },
-      ...
-      ]
-
+      }
+    ]
 
 Only the diagonal terms are mandatory for the covariance matrix.
 
 
-## Installing a model from a data package
+## Installing a model from a configuration file
 
-At the root of a directory with a datapackage (package.json), run
+At the root of a directory with a configuration file (```ssm.json```), run
 
-    $ ssm install [options]
+    $ ssm [options]
 
-This will:
-
-- install all the data dependencies
-- build executables (in
+This will build executables (in
 ```bin/```) for several inference and simulation methods
 ([MIF](http://www.pnas.org/content/103/49/18438),
 [pMCMC](http://onlinelibrary.wiley.com/doi/10.1111/j.1467-9868.2009.00736.x/abstract),
@@ -370,26 +331,23 @@ multiple cores of a machine _and_ leveraging a cluster of machines).
 
 Run ```./method --help``` in ```bin/``` to get help and see the different
 implementations and options supported by the method.
-In the same way, help for every ```ssm``` command can be obtained with
-```ssm <command> --help```
+In the same way, help for the ```ssm``` command can be obtained with
+```ssm --help```
 
 ## Inference like playing with duplo blocks
 
-Everything that follows supposes that we are in ```bin/```.
-
-The datapackage used is available to download <a href="https://raw.github.com/standard-analytics/ssm/master/examples/tutorial/package.json" download="package.json">here</a>. 
-Put it in a directory of your choice and run ```ssm install``` to install it
+Everything that follows supposes that we are in ```bin/``` and that ```theta.json``` has been moved into ```bin/```.
 
 Let's start by plotting the data
 
 with [R](http://www.r-project.org/):
 
-     data <- read.csv('../data_modules/ssm-tutorial-data/data/data.csv', na.strings='null')
+     data <- read.csv('../data/data.csv', na.strings='null')
      plot(as.Date(data$date), data$cases, type='s')
 
 Let's run a first simulation:
 
-     $ cat ../package.json | ./simul --traj
+     $ cat theta.json | ./simul --traj
 
 And add the simulated trajectory to our first plot
 
@@ -398,14 +356,13 @@ And add the simulated trajectory to our first plot
 
 Let's infer the parameters to get a better fit
 
-     $ cat ../package.json | ./simplex -M 10000 --trace > mle.json
+     $ cat theta.json | ./simplex -M 10000 --trace > mle.json
 
 let's read the values found:
 
      $ cat mle.json | json resources | json -c "this.name=='values'"
      [
        {
-         "format": "json",
          "name": "values",
          "data": {
            "pr_v": 19.379285906561037,
@@ -422,7 +379,6 @@ Let's plot the evolution of the parameters:
      plot(trace$index, trace$pr_v, type='l')
      plot(trace$index, trace$fitness, type='l')
 
-
 Now let's redo a simulation with these values (```mle.json```):
 
      $ cat mle.json | ./simul --traj -v
@@ -437,11 +393,10 @@ to realize that the fit is now much better.
 
 And now in one line:
 
-    $ cat ../package.json | ./simplex -M 10000 --trace | ./simul --traj | json resources | json -c "this.name=='values'"
+    $ cat theta.json | ./simplex -M 10000 --trace | ./simul --traj | json resources | json -c "this.name=='values'"
     [
       {
         "name": "values",
-        "format": "json",
         "data": {
           "r0": 29.528755614881494,
           "pr_v": 19.379285906561037
@@ -449,16 +404,14 @@ And now in one line:
       }
     ]
     
-
 Let's get some posteriors and sample some trajectories by adding a
 pmcmc at the end of our pipeline (we actualy add 2 of them to skip
 the convergence of the mcmc algorithm).
 
-     $ cat ../package.json | ./simplex -M 10000 | ./pmcmc -M 10000 | ./pmcmc -M 100000 --trace --traj  | json resources | json -c 'this.name=="summary"'
+     $ cat theta.json | ./simplex -M 10000 | ./pmcmc -M 10000 | ./pmcmc -M 100000 --trace --traj  | json resources | json -c 'this.name=="summary"'
      
      [
        {
-         "format": "json",
          "name": "summary",
          "data": {
            "id": 0,
@@ -502,7 +455,7 @@ diagnostic outputs.  For instance let's run a particle filter with
 1000 particles (```--J```) with a stochastic version of our model
 (```psr```) after a simplex:
 
-    $ cat ../package.json | ./simplex -M 10000 | ./smc psr -J 1000 --diag  --verbose
+    $ cat theta.json | ./simplex -M 10000 | ./smc psr -J 1000 --diag  --verbose
 
 the ```--diag``` option give us access to the prediction residuals and
 the effective sample size. Let's plot these quantities
@@ -521,7 +474,6 @@ the effective sample size. Let's plot these quantities
     #effective sample size
     plot(as.Date(diag$date), diag$ess, type='s')
 
-
 ## Parallel computing
 
 Let's say that you want to run a particle filter of a stochastic
@@ -530,7 +482,7 @@ machines (```--n_thread```). Also instead of plotting 1000
 trajectories you just want a summary of the empirical confindence
 envelopes (```--hat```).
 
-    $ cat ../package.json | ./smc psr -J 1000 --n_thread 4 --hat
+    $ cat theta.json | ./smc psr -J 1000 --n_thread 4 --hat
 
 Let's plot the trajectories
 
@@ -539,23 +491,21 @@ Let's plot the trajectories
     lines(as.Date(hat$date), hat$lower_cases, type='s', lty=2)
     lines(as.Date(hat$date), hat$upper_cases, type='s', lty=2)
 
-
 Your machine is not enough ? You can use several.  First let's
 transform our ```smc``` into a _server_ that will dispatch some work to
 several _workers_ (living on different machines).
 
-    $ cat ../package.json | ./smc psr -J 1000 --tcp
+    $ cat theta.json | ./smc psr -J 1000 --tcp
 
 All the algorithm shipped with S|S|M can be transformed into servers
 with the ```--tcp``` option.
 
 Now let's start some workers giving them the address of the server.
 
-    $ cat ../package.json | ./worker psr smc --server 127.0.0.1 &
-    $ cat ../package.json | ./worker psr smc --server 127.0.0.1 &
+    $ cat theta.json | ./worker psr smc --server 127.0.0.1 &
+    $ cat theta.json | ./worker psr smc --server 127.0.0.1 &
 
 Note that you can add workers at any time during a run.
-
 
 # Plugins
 
@@ -564,14 +514,18 @@ Note that you can add workers at any time during a run.
 
 S|S|M can also be used to perform predictions.
 
-```ssm predict``` allows to re-create initial conditions adapted to
+```ssm-predict``` allows to re-create initial conditions adapted to
 the ```simul``` program from the trace and trajectories sampled from
 the posterior distributions obtained after Bayesian methods
 (```pmcmc```, ```kmcmc```).
 
+You can install this plugin with
 
-    $ ssm predict ../package.json X_0.csv trace_0.csv 2012-11-22 | ./simul --start 2012-11-22 --end 2013-12-25 --verbose --hat
+    npm install -g ssm-predict
 
+And use it with
+
+    $ ssm-predict theta.json X_0.csv trace_0.csv 2012-11-22 | ./simul --start 2012-11-22 --end 2013-12-25 --verbose --hat
 
 We can plot the results of this prediction taking care to extend the
 xlim on our first plot. For the prediction we ran ```simul``` with the
@@ -579,7 +533,7 @@ xlim on our first plot. For the prediction we ran ```simul``` with the
 instead of all the projected trajectories (as does ```--traj```).
 
 
-    data <- read.csv('../data_modules/ssm-tutorial-data/data/data.csv', na.strings='null')
+    data <- read.csv('../data/data.csv', na.strings='null')
     plot(as.Date(data$date), data$cases, type='s', xlim=c(min(as.Date(data$date)), as.Date('2013-12-25')))
     
     traj <- read.csv('X_0.csv') #from the previous run
