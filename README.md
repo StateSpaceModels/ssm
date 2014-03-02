@@ -522,60 +522,6 @@ the effective sample size. Let's plot these quantities
     plot(as.Date(diag$date), diag$ess, type='s')
 
 
-
-## Piping to the future
-
-S|S|M can also be used to perform predictions.
-
-```ssm predict``` allows to re-create initial conditions adapted to
-the ```simul``` program from the trace and trajectories sampled from
-the posterior distributions obtained after Bayesian methods
-(```pmcmc```, ```kmcmc```).
-
-
-    $ ssm predict ../package.json X_0.csv trace_0.csv 2012-11-22 | ./simul --start 2012-11-22 --end 2013-12-25 --verbose --hat
-
-
-We can plot the results of this prediction taking care to extend the
-xlim on our first plot. For the prediction we ran ```simul``` with the
-```--hat``` option that will output empirical credible envelop
-instead of all the projected trajectories (as does ```--traj```).
-
-
-    data <- read.csv('../data_modules/ssm-tutorial-data/data/data.csv', na.strings='null')
-    plot(as.Date(data$date), data$cases, type='s', xlim=c(min(as.Date(data$date)), as.Date('2013-12-25')))
-    
-    traj <- read.csv('X_0.csv') #from the previous run
-    samples <- unique(traj$index)
-    for(i in samples){
-        lines(as.Date(traj$date[traj$index == i]), traj$cases[traj$index == i], type='s', col='red')
-    }
-        
-    hat <- read.csv('hat_0.csv') #from the current run
-    lines(as.Date(hat$date), hat$mean_cases, type='s' , col='blue')
-    lines(as.Date(hat$date), hat$lower_cases, type='s', lty=2, col='blue')
-    lines(as.Date(hat$date), hat$upper_cases, type='s', lty=2, col='blue')
-
-
-## Inference pipelines
-
-For more advanced cases like running in parallel a series of runs each
-starting from different initial conditions, selecting the best of these
-runs and restarting from that with another algorithm, *analytics*
-pipelines are here to help. Running
-
-    $ ssm bootstrap [options]
-
-Will add an ```analytics``` property to the model datapackage
-containing a powerful pipeline. Open it and customize it for your
-analysis. When ready just fire:
-
-    $ ssm run [options]
-
-to run the analytics pipeline in parallel and adding the results to
-your model datapackage ```resources```.
-
-
 ## Parallel computing
 
 Let's say that you want to run a particle filter of a stochastic
@@ -609,6 +555,43 @@ Now let's start some workers giving them the address of the server.
     $ cat ../package.json | ./worker psr smc --server 127.0.0.1 &
 
 Note that you can add workers at any time during a run.
+
+
+# Plugins
+
+
+## Piping to the future
+
+S|S|M can also be used to perform predictions.
+
+```ssm predict``` allows to re-create initial conditions adapted to
+the ```simul``` program from the trace and trajectories sampled from
+the posterior distributions obtained after Bayesian methods
+(```pmcmc```, ```kmcmc```).
+
+
+    $ ssm predict ../package.json X_0.csv trace_0.csv 2012-11-22 | ./simul --start 2012-11-22 --end 2013-12-25 --verbose --hat
+
+
+We can plot the results of this prediction taking care to extend the
+xlim on our first plot. For the prediction we ran ```simul``` with the
+```--hat``` option that will output empirical credible envelop
+instead of all the projected trajectories (as does ```--traj```).
+
+
+    data <- read.csv('../data_modules/ssm-tutorial-data/data/data.csv', na.strings='null')
+    plot(as.Date(data$date), data$cases, type='s', xlim=c(min(as.Date(data$date)), as.Date('2013-12-25')))
+    
+    traj <- read.csv('X_0.csv') #from the previous run
+    samples <- unique(traj$index)
+    for(i in samples){
+        lines(as.Date(traj$date[traj$index == i]), traj$cases[traj$index == i], type='s', col='red')
+    }
+        
+    hat <- read.csv('hat_0.csv') #from the current run
+    lines(as.Date(hat$date), hat$mean_cases, type='s' , col='blue')
+    lines(as.Date(hat$date), hat$lower_cases, type='s', lty=2, col='blue')
+    lines(as.Date(hat$date), hat$upper_cases, type='s', lty=2, col='blue')
 
 
 License

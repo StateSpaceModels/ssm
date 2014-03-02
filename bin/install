@@ -2,42 +2,25 @@
 
 var program = require('commander')
   , fs = require('fs')
-  , tv4 = require("tv4")
   , path = require('path')
-  , spawn = require('child_process').spawn
   , resolvePath = require('../lib/util').resolvePath
   , installModel = require('../lib/install')
-  , validate = require('../lib/validate')
-  , colors = require('colors')
-  , request = require('request')
-  , Dpm = require('dpm2')
-  , mime = require('mime')
-  , async = require('async')
-  , links = require('../lib/links')
   , EventEmitter = require('events').EventEmitter;
 
-var pkgSchema = require('../json-schema/package-schema.json');
-
 program
-  .usage('[package.json] [options]')
+  .usage('[ssm.json] [options]')
   .option('-q, --quiet', 'silence')
   .option('-s, --src', 'keep the source of the templated code')
-  .option('-n, --nodeps', 'do not install the dataDependencies')
   .parse(process.argv);
 
-var pathDpkg = (program.args[0]) ? resolvePath(program.args[0]): path.resolve('package.json')
+var pathDpkg = (program.args[0]) ? resolvePath(program.args[0]): path.resolve('ssm.json')
   , dpkgRoot = path.dirname(pathDpkg);
+
 
 try {
   var dpkg = JSON.parse(fs.readFileSync(pathDpkg));
 } catch (e) {
   console.error('\033[91mFAIL\033[0m: ' + e.message);
-  process.exit(1);
-}
-
-// check that package.json complies with standard package.json requirements
-if( !tv4.validate(dpkg, pkgSchema) ){
-  console.error('\033[91mFAIL\033[0m: ' + tv4.error.message);
   process.exit(1);
 }
 
@@ -61,50 +44,8 @@ emitter.on('errorEol', function(msg){
   process.stderr.write('\033[91mFAIL\033[0m: ' + msg);
 });
 
-
-//install dataDependencies
-
-logHttp = function(methodCode, reqUrl){
-  emitter.emit('log', 'ssm'.grey + ' http '.green + methodCode.toString().magenta + ' ' + reqUrl.replace(':80/', '/'));
-};
-
-
-//cache all the dataDependencies
-async.series([
-  function(cb){
-    if(('dataDependencies' in dpkg) && !program.nodeps){
-      emitter.emit('log', 'INFO:'.blue + ' Installing data dependencies...');
-
-      var dpm = new Dpm({protocol: 'http', port: 80, hostname: 'registry.standardanalytics.io', strictSSL: false, sha:true}, dpkgRoot);
-      dpm.on('log', console.log);
-      dpm.resolveDeps(dpkg.dataDependencies, function(err, dpkgIds){
-        if(err) return cb(err);
-        dpm.install(dpkgIds, {cache: true, force: true}, cb);
-      });
-
-    } else {
-      cb(null);
-    }
-  },
-
-  function(cb){
-
-    var priorsToFetch = dpkg.model.inputs.filter(function(x) {return ('require' in x) && !('fields' in x.require);});
-    links.resolve(dpkgRoot, dpkg, priorsToFetch, function(err, rlinks){
-      if(err) return cb(err);
-
-      try {
-        validate(dpkg, rlinks, emitter);
-      } catch(e){
-        return cb(e);
-      }
-
-      emitter.emit('log', 'Building the model...');
-      installModel(dpkgRoot, dpkg, path.join(dpkgRoot, 'bin'), program.src, emitter, cb);
-    });
-  }
-
-], function(err){
+emitter.emit('log', 'Building the model...');
+installModel(dpkgRoot, dpkg, path.join(dpkgRoot, 'bin'), program.src, emitter, function(err){
   if(err){
     console.error('\033[91mFAIL\033[0m: ' + err.message);
     process.exit(1);
