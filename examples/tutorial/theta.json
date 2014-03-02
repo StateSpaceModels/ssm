@@ -1,0 +1,20 @@
+{
+  "resources": [
+    {
+      "name": "values",
+      "format": "json",
+      "data": {
+        "r0": 25.0,
+        "pr_v": 11.0
+      }
+    },
+    {
+      "name": "covariance",
+      "format": "json",
+      "data": {
+        "r0": {"r0": 0.04, "pr_v": 0.01},
+        "pr_v": {"pr_v": 0.02, "r0": 0.01}
+      }
+    }
+  ]
+}

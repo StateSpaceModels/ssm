@@ -1,0 +1,62 @@
+{
+  "data": [
+    { 
+      "name": "cases", 
+      "require": { "path": "data/data.csv", "fields": ["date", "cases"] }
+    }
+  ],
+  
+  "inputs": [
+    {
+      "name": "r0", 
+      "description": "Basic reproduction number", 
+      "require": { "name": "r0", "path": "data/r0.json" } 
+    },
+    { 
+      "name": "v",
+      "description": "Recovery rate",
+      "require": { "name":  "pr_v", "path": "data/pr_v.json" },
+      "transformation": "1/pr_v",
+      "to_resource": "1/v" 
+    },
+    {
+      "name": "S", 
+      "description": "Number of susceptible",
+      "require": { "name": "S", "path": "data/S.json" } 
+    },
+    { 
+      "name": "I",
+      "description": "Number of infectious", 
+      "require": { "name": "I", "path": "data/I.json" } 
+    },
+    { 
+      "name": "R", 
+      "description": "Number of recovered",
+      "require": { "name": "R", "path": "data/R.json" } 
+    },
+    { 
+      "name": "rep",
+      "description": "Reporting rate",
+      "require": { "name": "rep", "path": "data/rep.json" } 
+    }
+  ],
+
+  "populations": [
+    {"name": "NYC", "composition": ["S", "I", "R"]}
+  ],
+
+  "reactions": [
+    {"from": "S", "to": "I", "rate": "r0/(S+I+R)*v*I", "description": "infection", "accumulators": ["Inc"]},
+    {"from": "I", "to": "R", "rate": "v", "description":"recovery"}
+  ],
+
+  "observations": [
+    {
+      "name": "cases",
+      "start": "2012-07-26",
+      "distribution": "discretized_normal",
+      "mean": "rep * Inc",
+      "sd": "sqrt(rep * ( 1.0 - rep ) * Inc )"
+    }
+  ]
+}

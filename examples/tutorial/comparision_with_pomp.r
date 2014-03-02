@@ -31,7 +31,7 @@ rv <- system2(
 dyn.load(solib) ## load the shared-object library
 
 
-data <- read.csv('node_modules/ssm-tutorial-data/data/data.csv', header=TRUE, na.strings='null')[,2]
+data <- read.csv('data/data.csv', header=TRUE, na.strings='null')[,2]
 #remove NA
 times <- (1:length(data))[!is.na(data)]
 data <- data[!is.na(data)]

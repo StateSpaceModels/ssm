@@ -1,0 +1,6 @@
+{
+  "name": "dirac",
+  "distributionParameter" : [
+    { "value" : 70000 }
+  ]
+}
