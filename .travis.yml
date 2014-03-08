@@ -1,3 +1,4 @@
 language: node_js
 before_install:
-   - sudo libzmq3-dev libjansson-dev python-sympy python-jinja2 python-dateutil libgsl0-dev
+   - sudo apt-get install python-software-properties python g++ make build-essential
+   - sudo apt-get install libzmq3-dev libjansson-dev python-sympy python-jinja2 python-dateutil libgsl0-dev
