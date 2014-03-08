@@ -1,6 +1,8 @@
 S|S|M
 =====
 
+[![Build Status](https://travis-ci.org/SergeStinckwich/ssm.png?branch=master)](https://travis-ci.org/SergeStinckwich/ssm)
+
 Inference for time series analysis with *S*tate *S*pace *M*odels, like
 playing with duplo blocks.
 
