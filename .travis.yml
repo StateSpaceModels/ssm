@@ -1,3 +1,3 @@
 language: node_js
 before_install:
-   - sudo apt-get install libgsl0-dev
+   - sudo libzmq3-dev libjansson-dev python-sympy python-jinja2 python-dateutil libgsl0-dev
