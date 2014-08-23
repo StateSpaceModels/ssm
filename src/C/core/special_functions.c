@@ -46,3 +46,11 @@ double slowstep(double x, double d)
 {
     return ( x >= 0.0 ? ( x >= d ? d : x ) : 0.0 );
 }
+
+/**
+* Sigmoid function
+*/
+double sigmoid(double x, double shape, double shift) 
+{
+	return ( 1 / ( 1 + exp( - shape * ( x - shift ) ) ) );
+}

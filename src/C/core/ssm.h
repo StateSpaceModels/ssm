@@ -764,7 +764,8 @@ void ssm_workers_stop(ssm_workers_t *workers);
 double heaviside(double x);
 double ramp(double x);
 double slowstep(double x, double d);
-
+double sigmoid(double x, double shape, double shift);
+ 
 /******************************/
 /* kalman function signatures */
 /******************************/
