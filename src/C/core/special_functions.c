@@ -48,7 +48,10 @@ double slowstep(double x, double d)
 }
 
 /**
-* Sigmoid function
+ * Sigmoid function: decreases from 1 to 0.
+ * x is typically t
+ * shape controls the steep of the sigmoid (the greater the steeper)
+ * shift controls how far from 0 the midpoint is shifted
 */
 double sigmoid(double x, double shape, double shift) 
 {
