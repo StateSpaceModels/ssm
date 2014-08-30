@@ -26,3 +26,8 @@ npm-debug.log
 clar.suite
 clar.cache
 ssmtest
+
+# Sublime text 2 files
+
+*.sublime-project
+*.sublime-workspace
