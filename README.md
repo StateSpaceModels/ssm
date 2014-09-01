@@ -118,15 +118,16 @@ Parameters (priors) have to be specified in [JSON](http://json.org/) or [JSON-LD
 
     $ cat data/pr_v.json
 
-    {
-      "name": "normal",
-      "distributionParameter" : [
-        { "name" : "mean",  "value" : 12.5,   "unitCode": "DAY" },
-        { "name" : "sd",    "value" : 3.8265, "unitCode": "DAY" },
-        { "name" : "lower", "value" : 0,      "unitCode": "DAY" }
-      ]
-    }
-
+```json
+{
+  "name": "normal",
+  "distributionParameter" : [
+    { "name" : "mean",  "value" : 12.5,   "unitCode": "DAY" },
+    { "name" : "sd",    "value" : 3.8265, "unitCode": "DAY" },
+    { "name" : "lower", "value" : 0,      "unitCode": "DAY" }
+  ]
+}
+```
 
 ## Model
 
@@ -147,13 +148,14 @@ The first thing to do when writting a model is to _link_ it to the
 data it explains.
 
     $ cat ssm.json | json data
-    
-    "data": [
-      { 
-        "name": "cases", 
-        "require": { "path": "data/data.csv", "fields": ["date", "cases"] },
-      }
-    ]
+```json
+"data": [
+  { 
+    "name": "cases", 
+    "require": { "path": "data/data.csv", "fields": ["date", "cases"] },
+  }
+]
+```
 
 The ```data.require``` property is a link pointing to a time-series.
 A link is an object with 3 properties:
@@ -173,41 +175,42 @@ The same link objects are used to point to the resources that will be
 used as priors or covariate of the model.
 
     $ cat ssm.json | json inputs
-            
-    "inputs": [
-        {
-          "name": "r0", 
-          "description": "Basic reproduction number", 
-          "require": { "name": "r0", "path": "data/r0.json" } 
-        },
-        { 
-          "name": "v",
-          "description": "Recovery rate",
-          "require": { "name":  "pr_v", "path": "data/pr_v.json" },
-          "transformation": "1/pr_v",
-          "to_resource": "1/v" 
-        },
-        {
-          "name": "S", 
-          "description": "Number of susceptible",
-          "require": { "name": "S", "path": "data/S.json" } 
-        },
-        { 
-          "name": "I",
-          "description": "Number of infectious", 
-          "require": { "name": "I", "path": "data/I.json" } 
-        },
-        { 
-          "name": "R", 
-          "description": "Number of recovered",
-          "require": { "name": "R", "path": "data/R.json" } 
-        },
-        { 
-          "name": "rep",
-          "description": "Reporting rate",
-          "require": { "name": "rep", "path": "data/rep.json" } 
-        }
-      ],
+```json
+"inputs": [
+  {
+    "name": "r0", 
+    "description": "Basic reproduction number", 
+    "require": { "name": "r0", "path": "data/r0.json" } 
+  },
+  { 
+    "name": "v",
+    "description": "Recovery rate",
+    "require": { "name":  "pr_v", "path": "data/pr_v.json" },
+    "transformation": "1/pr_v",
+    "to_resource": "1/v" 
+  },
+  {
+    "name": "S", 
+    "description": "Number of susceptible",
+    "require": { "name": "S", "path": "data/S.json" } 
+  },
+  { 
+    "name": "I",
+    "description": "Number of infectious", 
+    "require": { "name": "I", "path": "data/I.json" } 
+  },
+  { 
+    "name": "R", 
+    "description": "Number of recovered",
+    "require": { "name": "R", "path": "data/R.json" } 
+  },
+  { 
+    "name": "rep",
+    "description": "Reporting rate",
+    "require": { "name": "rep", "path": "data/rep.json" } 
+  }
+],
+```
 
 Note that this linking stage also allows to include some
 _transformations_ so that a relation can be established between your
@@ -227,20 +230,20 @@ contains the following properties:
 the populations 
 
     $ cat ssm.json | json populations
-
-    "populations": [
-      {"name": "NYC", "composition": ["S", "I", "R"]}
-    ]
-
+```json
+"populations": [
+  {"name": "NYC", "composition": ["S", "I", "R"]}
+]
+```
 and the reactions, defining the process model
 
     $ cat ssm.json | json reactions
-
-    "reactions": [
-      {"from": "S", "to": "I", "rate": "r0/(S+I+R)*v*I", "description": "infection", "accumulators": ["Inc"]},
-      {"from": "I", "to": "R", "rate": "v", "description":"recovery"}
-    ]
-
+```json
+"reactions": [
+  {"from": "S", "to": "I", "rate": "r0/(S+I+R)*v*I", "description": "infection", "accumulators": ["Inc"]},
+  {"from": "I", "to": "R", "rate": "v", "description":"recovery"}
+]
+```
 Note that the populations object is a list. Structured populatiols can be
 defined by appending terms to the list.
 
@@ -263,17 +266,17 @@ point related to the accumulator state.
 One observation model has to be defined per observed time-series.
 
     $ cat ssm.json | json observations
-
-    "observations": [
-      {
-        "name": "cases",
-        "start": "2012-07-26",
-        "distribution": "discretized_normal",
-        "mean": "rep * Inc",
-        "sd": "sqrt(rep * ( 1.0 - rep ) * Inc )"
-      }
-    ]
-
+```json
+"observations": [
+  {
+    "name": "cases",
+    "start": "2012-07-26",
+    "distribution": "discretized_normal",
+    "mean": "rep * Inc",
+    "sd": "sqrt(rep * ( 1.0 - rep ) * Inc )"
+  }
+]
+```
 SSM currently implements the `discretized_normal` and `poisson` observation processes. See the developer [documentation](doc/developers/dev_help.md) to contribute and add your favourite distribution. 
 
 ### Initial conditions
@@ -284,26 +287,26 @@ them need need to be defined in a separate JSON file typicaly named
 inference algorithms:
 
     $ cat theta.json
-
-    "resources": [
-      {
-        "name": "values",
-        "description": "initial values for the parameters",
-        "data": {
-          "r0": 25.0,
-          "pr_v": 11.0
-        }
-      },
-      {
-        "name": "covariance",
-        "description": "covariance matrix",
-        "data": {
-          "r0": {"r0": 0.04, "pr_v": 0.01},
-          "pr_v": {"pr_v": 0.02, "r0": 0.01}
-        }
-      }
-    ]
-
+```json
+"resources": [
+  {
+    "name": "values",
+    "description": "initial values for the parameters",
+    "data": {
+      "r0": 25.0,
+      "pr_v": 11.0
+    }
+  },
+  {
+    "name": "covariance",
+    "description": "covariance matrix",
+    "data": {
+      "r0": {"r0": 0.04, "pr_v": 0.01},
+      "pr_v": {"pr_v": 0.02, "r0": 0.01}
+    }
+  }
+]
+```  
 Only the diagonal terms are mandatory for the covariance matrix.
 
 
@@ -362,15 +365,17 @@ Let's infer the parameters to get a better fit
 let's read the values found:
 
      $ cat mle.json | json resources | json -c "this.name=='values'"
-     [
-       {
-         "name": "values",
-         "data": {
-           "pr_v": 19.379285906561037,
-           "r0": 29.528755614881494
-         }
-       }
-     ]
+```json
+[
+ {
+   "name": "values",
+   "data": {
+     "pr_v": 19.379285906561037,
+     "r0": 29.528755614881494
+   }
+ }
+]
+```
 
 Let's plot the evolution of the parameters:
 
@@ -395,39 +400,41 @@ to realize that the fit is now much better.
 And now in one line:
 
     $ cat theta.json | ./simplex -M 10000 --trace | ./simul --traj | json resources | json -c "this.name=='values'"
-    [
-      {
-        "name": "values",
-        "data": {
-          "r0": 29.528755614881494,
-          "pr_v": 19.379285906561037
-        }
-      }
-    ]
-    
+```json 
+[
+  {
+    "name": "values",
+    "data": {
+      "r0": 29.528755614881494,
+      "pr_v": 19.379285906561037
+    }
+  }
+]
+```
+
 Let's get some posteriors and sample some trajectories by adding a
 pmcmc at the end of our pipeline (we actualy add 2 of them to skip
 the convergence of the mcmc algorithm).
 
      $ cat theta.json | ./simplex -M 10000 | ./pmcmc -M 10000 | ./pmcmc -M 100000 --trace --traj  | json resources | json -c 'this.name=="summary"'
-     
-     [
-       {
-         "name": "summary",
-         "data": {
-           "id": 0,
-           "log_ltp": -186.70579009197556,
-           "AICc": 363.94320971360844,
-           "n_parameters": 2,
-           "AIC": 363.6765430469418,
-           "DIC": 363.6802334782078,
-           "log_likelihood": -179.8382715234709,
-           "sum_squares": null,
-           "n_data": 48
-         }
-       }
-     ]
-
+```json
+[
+ {
+   "name": "summary",
+   "data": {
+     "id": 0,
+     "log_ltp": -186.70579009197556,
+     "AICc": 363.94320971360844,
+     "n_parameters": 2,
+     "AIC": 363.6765430469418,
+     "DIC": 363.6802334782078,
+     "log_likelihood": -179.8382715234709,
+     "sum_squares": null,
+     "n_data": 48
+   }
+ }
+]
+```    
 Some posteriors plots (still with R)
 
      trace <- read.csv('trace_0.csv')
