@@ -8,10 +8,12 @@ static double f_likelihood_tpl_{{ x.name }}(double y, ssm_X_t *p_X, ssm_par_t *p
 {
     double like;
     double *X = p_X->proj;
+
+    {% if x.distribution == 'discretized_normal' %}
+    
     double gsl_mu = {{ x.mean }};
     double gsl_sd = {{ x.sd }};
 
-    // printf("mu %f sd %f y %f\n",gsl_mu, gsl_sd,y);
 
     if (y > 0.0) {
         like = gsl_cdf_gaussian_P(y + 0.5 - gsl_mu, gsl_sd) - gsl_cdf_gaussian_P(y - 0.5 - gsl_mu, gsl_sd);
@@ -19,8 +21,17 @@ static double f_likelihood_tpl_{{ x.name }}(double y, ssm_X_t *p_X, ssm_par_t *p
         like = gsl_cdf_gaussian_P(y + 0.5 - gsl_mu, gsl_sd);
     }
 
+    {% elif x.distribution == 'poisson' %}
+
+    double gsl_mu = {{ x.mean }};
+
+    like = gsl_ran_poisson_pdf(rint(y), gsl_mu);
+
+    {% endif %}
+
     return like;
 }
+
 
 static double f_obs_mean_tpl_{{ x.name }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
 {
@@ -34,15 +45,29 @@ static double f_obs_var_tpl_{{ x.name }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_
     return pow({{ x.sd }}, 2);
 }
 
+
 static double f_obs_ran_tpl_{{ x.name }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, double t)
 {
     double *X = p_X->proj;
+
+    {% if x.distribution == 'discretized_normal' %}
+    
     double gsl_mu = {{ x.mean }};
     double gsl_sd = {{ x.sd }};
 
-    double yobs= gsl_mu+gsl_ran_gaussian(calc->randgsl, gsl_sd);
+    double yobs = gsl_mu + gsl_ran_gaussian(calc->randgsl, gsl_sd);
 
-    return (yobs >0) ? yobs : 0.0;
+    yobs = (yobs >0) ? yobs : 0.0;
+
+    {% elif x.distribution == 'poisson' %}
+
+    double gsl_mu = {{ x.mean }};
+
+    double yobs = gsl_ran_poisson(calc->randgsl, gsl_mu);
+
+    {% endif %}
+
+    return yobs;
 }
 
 {% endfor %}
