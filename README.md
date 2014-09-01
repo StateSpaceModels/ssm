@@ -346,8 +346,10 @@ Let's start by plotting the data
 
 with [R](http://www.r-project.org/):
 
-     data <- read.csv('../data/data.csv', na.strings='null')
-     plot(as.Date(data$date), data$cases, type='s')
+```R
+data <- read.csv('../data/data.csv', na.strings='null')
+plot(as.Date(data$date), data$cases, type='s')
+```
 
 Let's run a first simulation:
 
@@ -355,8 +357,10 @@ Let's run a first simulation:
 
 And add the simulated trajectory to our first plot
 
-     traj <- read.csv('X_0.csv')
-     lines(as.Date(traj$date), traj$cases, type='s', col='red')
+```R
+traj <- read.csv('X_0.csv')
+lines(as.Date(traj$date), traj$cases, type='s', col='red')
+```
 
 Let's infer the parameters to get a better fit
 
@@ -379,11 +383,13 @@ let's read the values found:
 
 Let's plot the evolution of the parameters:
 
-     trace <- read.csv('trace_0.csv')
-     layout(matrix(1:3,1,3))
-     plot(trace$index, trace$r0, type='l')
-     plot(trace$index, trace$pr_v, type='l')
-     plot(trace$index, trace$fitness, type='l')
+```R
+trace <- read.csv('trace_0.csv')
+layout(matrix(1:3,1,3))
+plot(trace$index, trace$r0, type='l')
+plot(trace$index, trace$pr_v, type='l')
+plot(trace$index, trace$fitness, type='l')
+```
 
 Now let's redo a simulation with these values (```mle.json```):
 
@@ -391,9 +397,11 @@ Now let's redo a simulation with these values (```mle.json```):
 
 and replot the results:
 
-     plot(as.Date(data$date), data$cases, type='s')
-     traj <- read.csv('X_0.csv')
-     lines(as.Date(traj$date), traj$cases, type='s', col='red')
+```R
+plot(as.Date(data$date), data$cases, type='s')
+traj <- read.csv('X_0.csv')
+lines(as.Date(traj$date), traj$cases, type='s', col='red')
+```
 
 to realize that the fit is now much better.
 
@@ -434,22 +442,27 @@ the convergence of the mcmc algorithm).
    }
  }
 ]
-```    
+```
+
 Some posteriors plots (still with R)
 
-     trace <- read.csv('trace_0.csv')
-     layout(matrix(1:2,1,2))
-     hist(trace$r0)
-     hist(trace$pr_v)
+```R
+ trace <- read.csv('trace_0.csv')
+ layout(matrix(1:2,1,2))
+ hist(trace$r0)
+ hist(trace$pr_v)
+```
 
 The sampled trajectories
 
-     traj <- read.csv('X_0.csv')
-     plot(as.Date(data$date), data$cases, type='s')
-     samples <- unique(traj$index)
-     for(i in samples){
-       lines(as.Date(traj$date[traj$index == i]), traj$cases[traj$index == i], type='s', col='red')
-     }
+```R
+ traj <- read.csv('X_0.csv')
+ plot(as.Date(data$date), data$cases, type='s')
+ samples <- unique(traj$index)
+ for(i in samples){
+   lines(as.Date(traj$date[traj$index == i]), traj$cases[traj$index == i], type='s', col='red')
+ }
+```
 
 ## Be cautious
 
@@ -468,19 +481,21 @@ diagnostic outputs.  For instance let's run a particle filter with
 the ```--diag``` option give us access to the prediction residuals and
 the effective sample size. Let's plot these quantities
 
-    diag <- read.csv('diag_0.csv')
-    layout(matrix(1:3,3,1))
+```R
+  diag <- read.csv('diag_0.csv')
+  layout(matrix(1:3,3,1))
 
-    #data vs prediction
-    plot(as.Date(data$date), data$cases, type='p')
-    lines(as.Date(diag$date), diag$pred_cases, type='p', col='red')
+  #data vs prediction
+  plot(as.Date(data$date), data$cases, type='p')
+  lines(as.Date(diag$date), diag$pred_cases, type='p', col='red')
 
-    #prediction residuals
-    plot(as.Date(diag$date), diag$res_cases, type='p')
-    abline(h=0, lty=2)
+  #prediction residuals
+  plot(as.Date(diag$date), diag$res_cases, type='p')
+  abline(h=0, lty=2)
 
-    #effective sample size
-    plot(as.Date(diag$date), diag$ess, type='s')
+  #effective sample size
+  plot(as.Date(diag$date), diag$ess, type='s')
+```
 
 ## Parallel computing
 
@@ -494,10 +509,12 @@ envelopes (```--hat```).
 
 Let's plot the trajectories
 
-    hat <- read.csv('hat_0.csv')
-    plot(as.Date(hat$date), hat$mean_cases, type='s')
-    lines(as.Date(hat$date), hat$lower_cases, type='s', lty=2)
-    lines(as.Date(hat$date), hat$upper_cases, type='s', lty=2)
+```R
+  hat <- read.csv('hat_0.csv')
+  plot(as.Date(hat$date), hat$mean_cases, type='s')
+  lines(as.Date(hat$date), hat$lower_cases, type='s', lty=2)
+  lines(as.Date(hat$date), hat$upper_cases, type='s', lty=2)
+```
 
 Your machine is not enough ? You can use several.  First let's
 transform our ```smc``` into a _server_ that will dispatch some work to
@@ -540,20 +557,21 @@ xlim on our first plot. For the prediction we ran ```simul``` with the
 ```--hat``` option that will output empirical credible envelop
 instead of all the projected trajectories (as does ```--traj```).
 
-
-    data <- read.csv('../data/data.csv', na.strings='null')
-    plot(as.Date(data$date), data$cases, type='s', xlim=c(min(as.Date(data$date)), as.Date('2013-12-25')))
-    
-    traj <- read.csv('X_0.csv') #from the previous run
-    samples <- unique(traj$index)
-    for(i in samples){
-        lines(as.Date(traj$date[traj$index == i]), traj$cases[traj$index == i], type='s', col='red')
-    }
-        
-    hat <- read.csv('hat_0.csv') #from the current run
-    lines(as.Date(hat$date), hat$mean_cases, type='s' , col='blue')
-    lines(as.Date(hat$date), hat$lower_cases, type='s', lty=2, col='blue')
-    lines(as.Date(hat$date), hat$upper_cases, type='s', lty=2, col='blue')
+```R
+  data <- read.csv('../data/data.csv', na.strings='null')
+  plot(as.Date(data$date), data$cases, type='s', xlim=c(min(as.Date(data$date)), as.Date('2013-12-25')))
+  
+  traj <- read.csv('X_0.csv') #from the previous run
+  samples <- unique(traj$index)
+  for(i in samples){
+      lines(as.Date(traj$date[traj$index == i]), traj$cases[traj$index == i], type='s', col='red')
+  }
+      
+  hat <- read.csv('hat_0.csv') #from the current run
+  lines(as.Date(hat$date), hat$mean_cases, type='s' , col='blue')
+  lines(as.Date(hat$date), hat$lower_cases, type='s', lty=2, col='blue')
+  lines(as.Date(hat$date), hat$upper_cases, type='s', lty=2, col='blue')
+```
 
 
 License
