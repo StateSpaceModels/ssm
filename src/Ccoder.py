@@ -138,14 +138,16 @@ class Ccoder(Cmodel):
 
 
     def observed(self):
-        ##WARNING right now only the discretized normal is supported.
-        ##TODO: generalization for different distribution
 
         obs = copy.deepcopy(self.obs_model)
-
+        
         for x in obs:
-            x['mean'] = self.make_C_term(x['mean'], True)
-            x['sd'] = self.make_C_term(x['sd'], True)
+            if x['distribution'] == 'discretized_normal':
+                x['mean'] = self.make_C_term(x['mean'], True)
+                x['sd'] = self.make_C_term(x['sd'], True)
+            elif x['distribution'] == 'poisson':
+                x['mean'] = self.make_C_term(x['mean'], True)
+                x['sd'] = self.make_C_term(x['sd'], True)
 
         return {'observed': obs}
 

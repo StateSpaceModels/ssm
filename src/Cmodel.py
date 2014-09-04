@@ -125,6 +125,9 @@ class Cmodel:
         #par_obs
         par_obs = set();
         for o in observations:
+            if o['distribution'] == 'poisson':
+                o['sd'] = 'sqrt('+o['mean']+')'
+
             for p in [o['mean'], o['sd']]:
                 el =  self.change_user_input(p)
                 for e in el:

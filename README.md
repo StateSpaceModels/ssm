@@ -118,15 +118,16 @@ Parameters (priors) have to be specified in [JSON](http://json.org/) or [JSON-LD
 
     $ cat data/pr_v.json
 
-    {
-      "name": "normal",
-      "distributionParameter" : [
-        { "name" : "mean",  "value" : 12.5,   "unitCode": "DAY" },
-        { "name" : "sd",    "value" : 3.8265, "unitCode": "DAY" },
-        { "name" : "lower", "value" : 0,      "unitCode": "DAY" }
-      ]
-    }
-
+```json
+{
+  "name": "normal",
+  "distributionParameter" : [
+    { "name" : "mean",  "value" : 12.5,   "unitCode": "DAY" },
+    { "name" : "sd",    "value" : 3.8265, "unitCode": "DAY" },
+    { "name" : "lower", "value" : 0,      "unitCode": "DAY" }
+  ]
+}
+```
 
 ## Model
 
@@ -147,13 +148,14 @@ The first thing to do when writting a model is to _link_ it to the
 data it explains.
 
     $ cat ssm.json | json data
-    
-    "data": [
-      { 
-        "name": "cases", 
-        "require": { "path": "data/data.csv", "fields": ["date", "cases"] },
-      }
-    ]
+```json
+"data": [
+  { 
+    "name": "cases", 
+    "require": { "path": "data/data.csv", "fields": ["date", "cases"] },
+  }
+]
+```
 
 The ```data.require``` property is a link pointing to a time-series.
 A link is an object with 3 properties:
@@ -173,41 +175,42 @@ The same link objects are used to point to the resources that will be
 used as priors or covariate of the model.
 
     $ cat ssm.json | json inputs
-            
-    "inputs": [
-        {
-          "name": "r0", 
-          "description": "Basic reproduction number", 
-          "require": { "name": "r0", "path": "data/r0.json" } 
-        },
-        { 
-          "name": "v",
-          "description": "Recovery rate",
-          "require": { "name":  "pr_v", "path": "data/pr_v.json" },
-          "transformation": "1/pr_v",
-          "to_resource": "1/v" 
-        },
-        {
-          "name": "S", 
-          "description": "Number of susceptible",
-          "require": { "name": "S", "path": "data/S.json" } 
-        },
-        { 
-          "name": "I",
-          "description": "Number of infectious", 
-          "require": { "name": "I", "path": "data/I.json" } 
-        },
-        { 
-          "name": "R", 
-          "description": "Number of recovered",
-          "require": { "name": "R", "path": "data/R.json" } 
-        },
-        { 
-          "name": "rep",
-          "description": "Reporting rate",
-          "require": { "name": "rep", "path": "data/rep.json" } 
-        }
-      ],
+```json
+"inputs": [
+  {
+    "name": "r0", 
+    "description": "Basic reproduction number", 
+    "require": { "name": "r0", "path": "data/r0.json" } 
+  },
+  { 
+    "name": "v",
+    "description": "Recovery rate",
+    "require": { "name":  "pr_v", "path": "data/pr_v.json" },
+    "transformation": "1/pr_v",
+    "to_resource": "1/v" 
+  },
+  {
+    "name": "S", 
+    "description": "Number of susceptible",
+    "require": { "name": "S", "path": "data/S.json" } 
+  },
+  { 
+    "name": "I",
+    "description": "Number of infectious", 
+    "require": { "name": "I", "path": "data/I.json" } 
+  },
+  { 
+    "name": "R", 
+    "description": "Number of recovered",
+    "require": { "name": "R", "path": "data/R.json" } 
+  },
+  { 
+    "name": "rep",
+    "description": "Reporting rate",
+    "require": { "name": "rep", "path": "data/rep.json" } 
+  }
+],
+```
 
 Note that this linking stage also allows to include some
 _transformations_ so that a relation can be established between your
@@ -227,20 +230,20 @@ contains the following properties:
 the populations 
 
     $ cat ssm.json | json populations
-
-    "populations": [
-      {"name": "NYC", "composition": ["S", "I", "R"]}
-    ]
-
+```json
+"populations": [
+  {"name": "NYC", "composition": ["S", "I", "R"]}
+]
+```
 and the reactions, defining the process model
 
     $ cat ssm.json | json reactions
-
-    "reactions": [
-      {"from": "S", "to": "I", "rate": "r0/(S+I+R)*v*I", "description": "infection", "accumulators": ["Inc"]},
-      {"from": "I", "to": "R", "rate": "v", "description":"recovery"}
-    ]
-
+```json
+"reactions": [
+  {"from": "S", "to": "I", "rate": "r0/(S+I+R)*v*I", "description": "infection", "accumulators": ["Inc"]},
+  {"from": "I", "to": "R", "rate": "v", "description":"recovery"}
+]
+```
 Note that the populations object is a list. Structured populatiols can be
 defined by appending terms to the list.
 
@@ -263,17 +266,18 @@ point related to the accumulator state.
 One observation model has to be defined per observed time-series.
 
     $ cat ssm.json | json observations
-
-    "observations": [
-      {
-        "name": "cases",
-        "start": "2012-07-26",
-        "distribution": "discretized_normal",
-        "mean": "rep * Inc",
-        "sd": "sqrt(rep * ( 1.0 - rep ) * Inc )"
-      }
-    ]
-
+```json
+"observations": [
+  {
+    "name": "cases",
+    "start": "2012-07-26",
+    "distribution": "discretized_normal",
+    "mean": "rep * Inc",
+    "sd": "sqrt(rep * ( 1.0 - rep ) * Inc )"
+  }
+]
+```
+SSM currently implements the `discretized_normal` and `poisson` observation processes. See the developer [documentation](doc/developers/dev_help.md) to contribute and add your favourite distribution. 
 
 ### Initial conditions
 
@@ -283,26 +287,26 @@ them need need to be defined in a separate JSON file typicaly named
 inference algorithms:
 
     $ cat theta.json
-
-    "resources": [
-      {
-        "name": "values",
-        "description": "initial values for the parameters",
-        "data": {
-          "r0": 25.0,
-          "pr_v": 11.0
-        }
-      },
-      {
-        "name": "covariance",
-        "description": "covariance matrix",
-        "data": {
-          "r0": {"r0": 0.04, "pr_v": 0.01},
-          "pr_v": {"pr_v": 0.02, "r0": 0.01}
-        }
-      }
-    ]
-
+```json
+"resources": [
+  {
+    "name": "values",
+    "description": "initial values for the parameters",
+    "data": {
+      "r0": 25.0,
+      "pr_v": 11.0
+    }
+  },
+  {
+    "name": "covariance",
+    "description": "covariance matrix",
+    "data": {
+      "r0": {"r0": 0.04, "pr_v": 0.01},
+      "pr_v": {"pr_v": 0.02, "r0": 0.01}
+    }
+  }
+]
+```  
 Only the diagonal terms are mandatory for the covariance matrix.
 
 
@@ -342,8 +346,10 @@ Let's start by plotting the data
 
 with [R](http://www.r-project.org/):
 
-     data <- read.csv('../data/data.csv', na.strings='null')
-     plot(as.Date(data$date), data$cases, type='s')
+```R
+data <- read.csv('../data/data.csv', na.strings='null')
+plot(as.Date(data$date), data$cases, type='s')
+```
 
 Let's run a first simulation:
 
@@ -351,8 +357,10 @@ Let's run a first simulation:
 
 And add the simulated trajectory to our first plot
 
-     traj <- read.csv('X_0.csv')
-     lines(as.Date(traj$date), traj$cases, type='s', col='red')
+```R
+traj <- read.csv('X_0.csv')
+lines(as.Date(traj$date), traj$cases, type='s', col='red')
+```
 
 Let's infer the parameters to get a better fit
 
@@ -361,23 +369,27 @@ Let's infer the parameters to get a better fit
 let's read the values found:
 
      $ cat mle.json | json resources | json -c "this.name=='values'"
-     [
-       {
-         "name": "values",
-         "data": {
-           "pr_v": 19.379285906561037,
-           "r0": 29.528755614881494
-         }
-       }
-     ]
+```json
+[
+ {
+   "name": "values",
+   "data": {
+     "pr_v": 19.379285906561037,
+     "r0": 29.528755614881494
+   }
+ }
+]
+```
 
 Let's plot the evolution of the parameters:
 
-     trace <- read.csv('trace_0.csv')
-     layout(matrix(1:3,1,3))
-     plot(trace$index, trace$r0, type='l')
-     plot(trace$index, trace$pr_v, type='l')
-     plot(trace$index, trace$fitness, type='l')
+```R
+trace <- read.csv('trace_0.csv')
+layout(matrix(1:3,1,3))
+plot(trace$index, trace$r0, type='l')
+plot(trace$index, trace$pr_v, type='l')
+plot(trace$index, trace$fitness, type='l')
+```
 
 Now let's redo a simulation with these values (```mle.json```):
 
@@ -385,63 +397,72 @@ Now let's redo a simulation with these values (```mle.json```):
 
 and replot the results:
 
-     plot(as.Date(data$date), data$cases, type='s')
-     traj <- read.csv('X_0.csv')
-     lines(as.Date(traj$date), traj$cases, type='s', col='red')
+```R
+plot(as.Date(data$date), data$cases, type='s')
+traj <- read.csv('X_0.csv')
+lines(as.Date(traj$date), traj$cases, type='s', col='red')
+```
 
 to realize that the fit is now much better.
 
 And now in one line:
 
     $ cat theta.json | ./simplex -M 10000 --trace | ./simul --traj | json resources | json -c "this.name=='values'"
-    [
-      {
-        "name": "values",
-        "data": {
-          "r0": 29.528755614881494,
-          "pr_v": 19.379285906561037
-        }
-      }
-    ]
-    
+```json 
+[
+  {
+    "name": "values",
+    "data": {
+      "r0": 29.528755614881494,
+      "pr_v": 19.379285906561037
+    }
+  }
+]
+```
+
 Let's get some posteriors and sample some trajectories by adding a
 pmcmc at the end of our pipeline (we actualy add 2 of them to skip
 the convergence of the mcmc algorithm).
 
      $ cat theta.json | ./simplex -M 10000 | ./pmcmc -M 10000 | ./pmcmc -M 100000 --trace --traj  | json resources | json -c 'this.name=="summary"'
-     
-     [
-       {
-         "name": "summary",
-         "data": {
-           "id": 0,
-           "log_ltp": -186.70579009197556,
-           "AICc": 363.94320971360844,
-           "n_parameters": 2,
-           "AIC": 363.6765430469418,
-           "DIC": 363.6802334782078,
-           "log_likelihood": -179.8382715234709,
-           "sum_squares": null,
-           "n_data": 48
-         }
-       }
-     ]
+```json
+[
+ {
+   "name": "summary",
+   "data": {
+     "id": 0,
+     "log_ltp": -186.70579009197556,
+     "AICc": 363.94320971360844,
+     "n_parameters": 2,
+     "AIC": 363.6765430469418,
+     "DIC": 363.6802334782078,
+     "log_likelihood": -179.8382715234709,
+     "sum_squares": null,
+     "n_data": 48
+   }
+ }
+]
+```
 
 Some posteriors plots (still with R)
 
-     trace <- read.csv('trace_0.csv')
-     layout(matrix(1:2,1,2))
-     hist(trace$r0)
-     hist(trace$pr_v)
+```R
+ trace <- read.csv('trace_0.csv')
+ layout(matrix(1:2,1,2))
+ hist(trace$r0)
+ hist(trace$pr_v)
+```
 
 The sampled trajectories
 
-     traj <- read.csv('X_0.csv')
-     plot(as.Date(data$date), data$cases, type='s')
-     samples <- unique(traj$index)
-     for(i in samples){
-       lines(as.Date(traj$date[traj$index == i]), traj$cases[traj$index == i], type='s', col='red')
-     }
+```R
+ traj <- read.csv('X_0.csv')
+ plot(as.Date(data$date), data$cases, type='s')
+ samples <- unique(traj$index)
+ for(i in samples){
+   lines(as.Date(traj$date[traj$index == i]), traj$cases[traj$index == i], type='s', col='red')
+ }
+```
 
 ## Be cautious
 
@@ -460,19 +481,21 @@ diagnostic outputs.  For instance let's run a particle filter with
 the ```--diag``` option give us access to the prediction residuals and
 the effective sample size. Let's plot these quantities
 
-    diag <- read.csv('diag_0.csv')
-    layout(matrix(1:3,3,1))
+```R
+  diag <- read.csv('diag_0.csv')
+  layout(matrix(1:3,3,1))
 
-    #data vs prediction
-    plot(as.Date(data$date), data$cases, type='p')
-    lines(as.Date(diag$date), diag$pred_cases, type='p', col='red')
+  #data vs prediction
+  plot(as.Date(data$date), data$cases, type='p')
+  lines(as.Date(diag$date), diag$pred_cases, type='p', col='red')
 
-    #prediction residuals
-    plot(as.Date(diag$date), diag$res_cases, type='p')
-    abline(h=0, lty=2)
+  #prediction residuals
+  plot(as.Date(diag$date), diag$res_cases, type='p')
+  abline(h=0, lty=2)
 
-    #effective sample size
-    plot(as.Date(diag$date), diag$ess, type='s')
+  #effective sample size
+  plot(as.Date(diag$date), diag$ess, type='s')
+```
 
 ## Parallel computing
 
@@ -486,10 +509,12 @@ envelopes (```--hat```).
 
 Let's plot the trajectories
 
-    hat <- read.csv('hat_0.csv')
-    plot(as.Date(hat$date), hat$mean_cases, type='s')
-    lines(as.Date(hat$date), hat$lower_cases, type='s', lty=2)
-    lines(as.Date(hat$date), hat$upper_cases, type='s', lty=2)
+```R
+  hat <- read.csv('hat_0.csv')
+  plot(as.Date(hat$date), hat$mean_cases, type='s')
+  lines(as.Date(hat$date), hat$lower_cases, type='s', lty=2)
+  lines(as.Date(hat$date), hat$upper_cases, type='s', lty=2)
+```
 
 Your machine is not enough ? You can use several.  First let's
 transform our ```smc``` into a _server_ that will dispatch some work to
@@ -532,20 +557,21 @@ xlim on our first plot. For the prediction we ran ```simul``` with the
 ```--hat``` option that will output empirical credible envelop
 instead of all the projected trajectories (as does ```--traj```).
 
-
-    data <- read.csv('../data/data.csv', na.strings='null')
-    plot(as.Date(data$date), data$cases, type='s', xlim=c(min(as.Date(data$date)), as.Date('2013-12-25')))
-    
-    traj <- read.csv('X_0.csv') #from the previous run
-    samples <- unique(traj$index)
-    for(i in samples){
-        lines(as.Date(traj$date[traj$index == i]), traj$cases[traj$index == i], type='s', col='red')
-    }
-        
-    hat <- read.csv('hat_0.csv') #from the current run
-    lines(as.Date(hat$date), hat$mean_cases, type='s' , col='blue')
-    lines(as.Date(hat$date), hat$lower_cases, type='s', lty=2, col='blue')
-    lines(as.Date(hat$date), hat$upper_cases, type='s', lty=2, col='blue')
+```R
+  data <- read.csv('../data/data.csv', na.strings='null')
+  plot(as.Date(data$date), data$cases, type='s', xlim=c(min(as.Date(data$date)), as.Date('2013-12-25')))
+  
+  traj <- read.csv('X_0.csv') #from the previous run
+  samples <- unique(traj$index)
+  for(i in samples){
+      lines(as.Date(traj$date[traj$index == i]), traj$cases[traj$index == i], type='s', col='red')
+  }
+      
+  hat <- read.csv('hat_0.csv') #from the current run
+  lines(as.Date(hat$date), hat$mean_cases, type='s' , col='blue')
+  lines(as.Date(hat$date), hat$lower_cases, type='s', lty=2, col='blue')
+  lines(as.Date(hat$date), hat$upper_cases, type='s', lty=2, col='blue')
+```
 
 
 License
