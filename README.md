@@ -1,6 +1,8 @@
 S|S|M
 =====
 
+[![Build Status](https://travis-ci.org/sballesteros/ssm.png?branch=master)](https://travis-ci.org/sballesteros/ssm)
+
 Inference for time series analysis with *S*tate *S*pace *M*odels, like
 playing with duplo blocks.
 
@@ -12,7 +14,7 @@ playing with duplo blocks.
 Maths, methods and algorithms
 =============================
 
-For more details on the modeling framework and on the algorithms 
+For more details on the modeling framework and on the algorithms
 available in SSM, see the [documentation](https://github.com/standard-analytics/ssm/raw/master/doc/doc.pdf).
 
 
@@ -52,7 +54,7 @@ On OSX with [homebrew](http://brew.sh/) and [pip](https://pypi.python.org/pypi/p
 
     brew install jansson zmq gsl node
     sudo pip install jinja2 sympy python-dateutil
-    
+
 
 ## Installing S|S|M itself
 
@@ -106,7 +108,7 @@ date definition (YYYY-MM-DD).
 For instance:
 
     $ head data/data.csv
-    
+
     "date","cases"
     "2012-08-02",5
     "2012-08-09",5
@@ -133,8 +135,8 @@ Parameters (priors) have to be specified in [JSON](http://json.org/) or [JSON-LD
 A model is described in [JSON](http://www.json.org/), typically in a
 ```ssm.json``` file.
 
-S|S|M support any State Space Model built as system of ordinary or 
-stochastic differential equations, a compartmental model, or a 
+S|S|M support any State Space Model built as system of ordinary or
+stochastic differential equations, a compartmental model, or a
 combination thereof.
 
 The syntax to define a model is fully described as JSON
@@ -147,10 +149,10 @@ The first thing to do when writting a model is to _link_ it to the
 data it explains.
 
     $ cat ssm.json | json data
-    
+
     "data": [
-      { 
-        "name": "cases", 
+      {
+        "name": "cases",
         "require": { "path": "data/data.csv", "fields": ["date", "cases"] },
       }
     ]
@@ -173,39 +175,39 @@ The same link objects are used to point to the resources that will be
 used as priors or covariate of the model.
 
     $ cat ssm.json | json inputs
-            
+
     "inputs": [
         {
-          "name": "r0", 
-          "description": "Basic reproduction number", 
-          "require": { "name": "r0", "path": "data/r0.json" } 
+          "name": "r0",
+          "description": "Basic reproduction number",
+          "require": { "name": "r0", "path": "data/r0.json" }
         },
-        { 
+        {
           "name": "v",
           "description": "Recovery rate",
           "require": { "name":  "pr_v", "path": "data/pr_v.json" },
           "transformation": "1/pr_v",
-          "to_resource": "1/v" 
+          "to_resource": "1/v"
         },
         {
-          "name": "S", 
+          "name": "S",
           "description": "Number of susceptible",
-          "require": { "name": "S", "path": "data/S.json" } 
+          "require": { "name": "S", "path": "data/S.json" }
         },
-        { 
+        {
           "name": "I",
-          "description": "Number of infectious", 
-          "require": { "name": "I", "path": "data/I.json" } 
+          "description": "Number of infectious",
+          "require": { "name": "I", "path": "data/I.json" }
         },
-        { 
-          "name": "R", 
+        {
+          "name": "R",
           "description": "Number of recovered",
-          "require": { "name": "R", "path": "data/R.json" } 
+          "require": { "name": "R", "path": "data/R.json" }
         },
-        { 
+        {
           "name": "rep",
           "description": "Reporting rate",
-          "require": { "name": "rep", "path": "data/rep.json" } 
+          "require": { "name": "rep", "path": "data/rep.json" }
         }
       ],
 
@@ -213,18 +215,18 @@ Note that this linking stage also allows to include some
 _transformations_ so that a relation can be established between your
 model requirement and existing priors or covariates living in other
 datapackages. For example ```v``` (a rate) is linked to a prior
-expressed in duration: ```pr_v``` through an inverse transformation. 
+expressed in duration: ```pr_v``` through an inverse transformation.
 
 
 ### Process Model
 
 The process model can be expressed as an ODE, an SDE or a compartmental
-model defining a Poisson process (potentialy with stochastic rates).  
+model defining a Poisson process (potentialy with stochastic rates).
 Let's take the example of a simple Susceptible-Infected-Recovered
 compartmental model for population dynamics. The process model
 contains the following properties:
 
-the populations 
+the populations
 
     $ cat ssm.json | json populations
 
@@ -248,7 +250,7 @@ defined by appending terms to the list.
 An ```sde``` property can be added in case you want that some
 parameters follow diffusions (see
 [here](https://github.com/standard-analytics/ssm/blob/master/examples/foo/package.json)
-for an example, and [here](http://arxiv.org/abs/1203.5950) for 
+for an example, and [here](http://arxiv.org/abs/1203.5950) for
 references). White environmental noise can also be added to the reaction
 as in this [example](https://raw.github.com/standard-analytics/ssm/master/examples/noise/package.json)
 (references [here](http://arxiv.org/abs/0802.0021)).
@@ -403,13 +405,13 @@ And now in one line:
         }
       }
     ]
-    
+
 Let's get some posteriors and sample some trajectories by adding a
 pmcmc at the end of our pipeline (we actualy add 2 of them to skip
 the convergence of the mcmc algorithm).
 
      $ cat theta.json | ./simplex -M 10000 | ./pmcmc -M 10000 | ./pmcmc -M 100000 --trace --traj  | json resources | json -c 'this.name=="summary"'
-     
+
      [
        {
          "name": "summary",
@@ -535,13 +537,13 @@ instead of all the projected trajectories (as does ```--traj```).
 
     data <- read.csv('../data/data.csv', na.strings='null')
     plot(as.Date(data$date), data$cases, type='s', xlim=c(min(as.Date(data$date)), as.Date('2013-12-25')))
-    
+
     traj <- read.csv('X_0.csv') #from the previous run
     samples <- unique(traj$index)
     for(i in samples){
         lines(as.Date(traj$date[traj$index == i]), traj$cases[traj$index == i], type='s', col='red')
     }
-        
+
     hat <- read.csv('hat_0.csv') #from the current run
     lines(as.Date(hat$date), hat$mean_cases, type='s' , col='blue')
     lines(as.Date(hat$date), hat$lower_cases, type='s', lty=2, col='blue')
