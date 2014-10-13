@@ -48,7 +48,7 @@ static ssm_err_code_t run_smc(ssm_err_code_t (*f_pred) (ssm_X_t *, double, doubl
 		zmq_send(workers->sender, &n, sizeof (int), ZMQ_SNDMORE);
 		ssm_zmq_send_par(workers->sender, par, ZMQ_SNDMORE);
 
-		zmq_send(workers->sender, &j, sizeof (int), ZMQ_SNDMORE);                   	       	       
+		zmq_send(workers->sender, &j, sizeof (int), ZMQ_SNDMORE);
 		ssm_zmq_send_X(workers->sender, D_J_X[n][j], ZMQ_SNDMORE);
 		zmq_send(workers->sender, &(fitness->cum_status[j]), sizeof (ssm_err_code_t), 0);
 	    }
@@ -83,7 +83,7 @@ static ssm_err_code_t run_smc(ssm_err_code_t (*f_pred) (ssm_X_t *, double, doubl
 		}
 	    }
 	}
-	
+
         if(data->rows[n]->ts_nonan_length) {
             if(ssm_weight(fitness, data->rows[n], nav, n)) {
                 ssm_systematic_sampling(fitness, calc[0], n);
@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
 
     ssm_f_pred_t f_pred = ssm_get_f_pred(nav);
 
-    ssm_workers_t *workers = ssm_workers_start(D_J_X, &par, data, calc, fitness, f_pred, nav, opts, SSM_WORKER_D_X | SSM_WORKER_FITNESS);
+    ssm_workers_t *workers = ssm_workers_start(D_J_X, &par_proposed, data, calc, fitness, f_pred, nav, opts, SSM_WORKER_D_X | SSM_WORKER_FITNESS);
 
     /////////////////////////
     // initialization step //
