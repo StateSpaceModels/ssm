@@ -139,7 +139,7 @@ class Cmodel:
 
         self.par_obs = sorted(list(par_obs))
 
-        ##par_disp (parameter involve **only** in dispertion (nowhere else)
+        ##par_disp (parameter involve **only** in dispersion (nowhere else))
         disp = [x for subl in sde['dispersion'] for x in subl if x != 0] if 'dispersion' in sde else []
         par_disp = set()
         for x in disp:
@@ -153,13 +153,14 @@ class Cmodel:
 
         self.par_disp = sorted(list(par_disp))
 
-        #par_diff (state variable for diffusions)
+        ##par_diff (state variable for diffusions)
         par_diff = []
         if sde:
             for x in sde.get('drift', []):
                 par_diff.append(x['name'])
 
-        self.par_diff = ['diff__' + x for x in sorted(par_diff)]
+        ##NOTE: do not sort par_diff as the dispersion matrix is readen in the unsorted order
+        self.par_diff = ['diff__' + x for x in par_diff]
 
         ##par_other
         par_ssm = self.par_sv + self.par_inc + self.remainder + self.par_diff + self.par_noise + self.par_proc +  self.par_obs + self.par_forced + self.par_disp
