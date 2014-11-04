@@ -43,7 +43,7 @@ class Cmodel:
 
         self.op = set(['+', '-', '*', '/', ',', '(', ')']) ##!!!CAN'T contain square bracket '[' ']'
         self.reserved = set(['U', 'x', 't', 'E', 'LN2', 'LN10','LOG2E', 'LOG10E', 'PI', 'SQRT1_2', 'SQRT2']) #JS Math Global Object
-        self.special_functions = set(['terms_forcing', 'heaviside', 'ramp', 'slowstep', 'sigmoid', 'sin', 'cos', 'correct_rate', 'ssm_correct_rate', 'sqrt', 'pow'])
+        self.special_functions = set(['terms_forcing', 'heaviside', 'ramp', 'slowstep', 'sigmoid', 'sin', 'cos', 'correct_rate', 'ssm_correct_rate', 'sqrt', 'pow', 'exp', 'log'])
 
         self.remainder = sorted([x['remainder']['name'] for x in self.model['populations'] if 'remainder' in x])
         self.ur = ['U'] + self.remainder
@@ -66,7 +66,7 @@ class Cmodel:
                         p['require']['name'] = p['name']
 
                     #semantic to SSM transfo
-                    prior = { 'distribution': resource['name'] if resource['name'] != 'dirac' else 'fixed' }                    
+                    prior = { 'distribution': resource['name'] if resource['name'] != 'dirac' else 'fixed' }
                     for x in resource['distributionParameter']:
                         prior[x['name'] if 'name' in x else 'value'] = x['value']
 
@@ -183,7 +183,7 @@ class Cmodel:
                 self.map_name2prior_name[p['name']] = p['require']['name']
             else:
                 self.map_name2prior_name[p['name']] = p['name']
-        
+
         # proc_model
         self.proc_model = copy.deepcopy(reactions)
 
@@ -264,12 +264,12 @@ class Cmodel:
         if not start and not terms[0] == 'pow':
             return term
 
-        pos = 1 #counter for open parenthesis        
+        pos = 1 #counter for open parenthesis
         ind = start+2 #skip first parenthesis
         lhs = ''
         rhs = ''
         left = True
-        while (ind < len(terms)):    
+        while (ind < len(terms)):
             if terms[ind] == '(':
                 pos += 1
             if terms[ind] == ')':
@@ -341,7 +341,7 @@ class Cmodel:
                 ind += 2 #skip first parenthesis
                 stack.append({"f": myf, "pos": 1}) #pos: counter for open parenthesis
             else:
-                if stack:                
+                if stack:
                     if terms[ind] == '(':
                         stack[-1]['pos'] += 1
                         Cterm += '('
@@ -357,7 +357,7 @@ class Cmodel:
                                     Cterm += ')'
                             else:
                                 Cterm += ')'
-                            
+
                         else:
                             Cterm += ')'
 
