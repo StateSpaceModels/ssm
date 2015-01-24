@@ -95,6 +95,11 @@ class Ccoder(Cmodel):
         pdict = {x['name']:x for x in parameters}
         sdict = {'diff__' + x['name']: x for x in drifts}
 
+        for x in pars:
+            if x not in pdict:
+                raise SsmError('An input is missing for parameter %s' %x)
+
+
         f_remainders = {}
         f_remainders_par = {}
         f_remainders_var = {}
