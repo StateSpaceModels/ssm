@@ -13,7 +13,7 @@ Maths, methods and algorithms
 =============================
 
 For more details on the modeling framework and on the algorithms 
-available in SSM, see the [documentation](https://github.com/standard-analytics/ssm/raw/master/doc/doc.pdf).
+available in SSM, see the [documentation](https://github.com/JDureau/ssm/raw/master/doc/doc.pdf).
 
 
 Installation
@@ -53,12 +53,14 @@ On OSX with [homebrew](http://brew.sh/) and [pip](https://pypi.python.org/pypi/p
     brew install jansson zmq gsl node
     sudo pip install jinja2 sympy python-dateutil
     
-
 ## Installing S|S|M itself
 
-With [npm](https://npmjs.org/)
+Download the library from [this link](http://5.135.176.187:3000/). 
 
-    npm install -g ssm
+Unzip it, and do the following in the terminal:
+
+    cd ssm
+    npm install -g
 
 Note: requires that all the C and python dependencies have been
 installed _before_ as this will also build the standalone C libraries.
@@ -67,24 +69,31 @@ We recommend _not_ to use ```sudo``` for this command.
 If (and only if) you _have to_ use ```sudo``` to install package
 globaly (```-g```) then proceed differently:
 
-    git clone https://github.com/standard-analytics/ssm.git
+    git clone https://github.com/JDureau/ssm.git
     cd ssm
-    npm install
-    sudo npm link
+    npm install -g
 
 
 Pull requests are welcome for a .gyp file and windows support!
 
-We also recomend that you install [jsontool](http://trentm.com/json/)
+## Last check
 
-    npm install -g jsontool
+To make sure that everything is properly installed and ssm runs properly,
+try the following:
 
+    cd ssm/examples/tutorial
+    ssm
+    
+If the model compiles successfully, you're good to go!
 
+## Any problem with the install?
+
+Check out the _Issues_ section of this repository (top right of this webpage), and if no issue answers your question, post a new one describing your problem.
 
 Usage
 =====
 
-What follows use [this example](https://github.com/standard-analytics/ssm/tree/master/examples/tutorial).
+What follows use [this example](https://github.com/JDureau/ssm/tree/master/examples/tutorial).
 All the paths will be relative to this directory.
 
 ## Data and parameters (priors)
@@ -132,7 +141,7 @@ combination thereof.
 
 The syntax to define a model is fully described as JSON
 [schema](http://json-schema.org/)
-[here](https://raw.github.com/standard-analytics/ssm/master/json-schema/model-schema.json).
+[here](https://raw.github.com/JDureau/ssm/master/json-schema/model-schema.json).
 
 ### Link to the data
 
@@ -242,10 +251,10 @@ defined by appending terms to the list.
 
 An ```sde``` property can be added in case you want that some
 parameters follow diffusions (see
-[here](https://github.com/standard-analytics/ssm/blob/master/examples/foo/package.json)
+[here](https://github.com/JDureau/ssm/blob/master/examples/foo/package.json)
 for an example, and [here](http://arxiv.org/abs/1203.5950) for 
 references). White environmental noise can also be added to the reaction
-as in this [example](https://raw.github.com/standard-analytics/ssm/master/examples/noise/package.json)
+as in this [example](https://raw.github.com/JDureau/ssm/master/examples/noise/package.json)
 (references [here](http://arxiv.org/abs/0802.0021)).
 
 The ```accumulators``` property allows to defined new state variable
