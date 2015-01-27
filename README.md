@@ -80,14 +80,6 @@ We also recomend that you install [jsontool](http://trentm.com/json/)
     npm install -g jsontool
 
 
-Tests
-=====
-
-    npm test
-
-Notes:
-The C code is tested with [clar](https://github.com/vmg/clar) (shipped with this package)
-
 
 Usage
 =====
