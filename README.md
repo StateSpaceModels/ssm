@@ -55,13 +55,13 @@ On OSX with [homebrew](http://brew.sh/) and [pip](https://pypi.python.org/pypi/p
 
 Download the library from [this link](http://5.135.176.187:3000/). 
 
-Unzip it, and do the following in the terminal:
+Unzip it, and run the following in the terminal:
 
     cd ssm
     npm install -g
 
-Note: requires that all the C and python dependencies have been
-installed _before_ as this will also build the standalone C libraries.
+Note: this step requires that all the C and python dependencies have been
+installed _before_ as it also builds the standalone C libraries.
 We recommend _not_ to use ```sudo``` for this command.
 
 If (and only if) you _have to_ use ```sudo``` to install package
@@ -71,12 +71,12 @@ globaly (```-g```) then proceed differently:
     cd ssm
     npm install -g
 
-
 Pull requests are welcome for a .gyp file and windows support!
+
 
 ## Last check
 
-To make sure that everything is properly installed and ssm runs properly,
+To make sure that everything is properly installed and ssm runs smoothly,
 try the following:
 
     cd ssm/examples/tutorial
@@ -84,9 +84,10 @@ try the following:
     
 If the model compiles successfully, you're good to go!
 
+
 ## Any problem with the install?
 
-Check out the _Issues_ section of this repository (top right of this webpage), and if no issue answers your question, post a new one describing your problem.
+Check out the _Issues_ section of this repository (top right of this webpage), and if no issue solves your problem, post a new one describing it.
 
 Usage
 =====
