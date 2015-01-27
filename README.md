@@ -7,8 +7,6 @@ playing with duplo blocks.
     cat theta.json | ./simplex -M 10000 | ./ksimplex -M 10000 > mle.json
     cat mle.json | ./kmcmc -M 100000 | ./pmcmc -J 1000 -M 500000 --trace > yeaaah.json
 
-[![NPM](https://nodei.co/npm/ssm.png)](https://nodei.co/npm/ssm/)
-
 Maths, methods and algorithms
 =============================
 
