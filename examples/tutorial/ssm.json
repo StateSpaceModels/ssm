@@ -1,43 +1,43 @@
 {
   "data": [
-    { 
-      "name": "cases", 
+    {
+      "name": "cases",
       "require": { "path": "data/data.csv", "fields": ["date", "cases"] }
     }
   ],
-  
+
   "inputs": [
     {
-      "name": "r0", 
-      "description": "Basic reproduction number", 
-      "require": { "name": "r0", "path": "data/r0.json" } 
+      "name": "r0",
+      "description": "Basic reproduction number",
+      "require": { "name": "r0", "path": "data/r0.json" }
     },
-    { 
+    {
       "name": "v",
       "description": "Recovery rate",
       "require": { "name":  "pr_v", "path": "data/pr_v.json" },
       "transformation": "1/pr_v",
-      "to_resource": "1/v" 
+      "to_resource": "1/v"
     },
     {
-      "name": "S", 
+      "name": "S",
       "description": "Number of susceptible",
-      "require": { "name": "S", "path": "data/S.json" } 
+      "require": { "name": "S", "path": "data/S.json" }
     },
-    { 
+    {
       "name": "I",
-      "description": "Number of infectious", 
-      "require": { "name": "I", "path": "data/I.json" } 
+      "description": "Number of infectious",
+      "require": { "name": "I", "path": "data/I.json" }
     },
-    { 
-      "name": "R", 
+    {
+      "name": "R",
       "description": "Number of recovered",
-      "require": { "name": "R", "path": "data/R.json" } 
+      "require": { "name": "R", "path": "data/R.json" }
     },
-    { 
+    {
       "name": "rep",
       "description": "Reporting rate",
-      "require": { "name": "rep", "path": "data/rep.json" } 
+      "require": { "name": "rep", "path": "data/rep.json" }
     }
   ],
 
