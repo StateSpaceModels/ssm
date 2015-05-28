@@ -159,7 +159,7 @@ class Cmodel:
             for x in sde.get('drift', []):
                 par_diff.append(x['name'])
 
-        ##NOTE: do not sort par_diff as the dispersion matrix is readen in the unsorted order
+        ##NOTE: do not sort par_diff as the dispersion matrix is read in the unsorted order
         self.par_diff = ['diff__' + x for x in par_diff]
 
         ##par_other
