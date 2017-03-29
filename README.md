@@ -277,7 +277,7 @@ One observation model has to be defined per observed time-series.
   }
 ]
 ```
-SSM currently implements the `discretized_normal` and `poisson` observation processes. See the developer [documentation](doc/developers/dev_help.md) to contribute and add your favourite distribution. 
+SSM currently implements the `discretized_normal`, `poisson` and `binomial`observation processes. See the developer [documentation](doc/developers/dev_help.md) to contribute and add your favourite distribution. 
 
 ### Initial conditions
 

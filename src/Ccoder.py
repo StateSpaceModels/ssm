@@ -153,6 +153,11 @@ class Ccoder(Cmodel):
             elif x['distribution'] == 'poisson':
                 x['mean'] = self.make_C_term(x['mean'], True)
                 x['sd'] = self.make_C_term(x['sd'], True)
+            elif x['distribution'] == 'binomial':
+                x['mean'] = self.make_C_term(x['mean'], True)
+                x['sd'] = self.make_C_term(x['sd'], True)
+                x['p'] = self.make_C_term(x['p'], True)
+                x['n'] = self.make_C_term(x['n'], True)
 
         return {'observed': obs}
 

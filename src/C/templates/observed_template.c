@@ -27,6 +27,13 @@ static double f_likelihood_tpl_{{ x.name }}(double y, ssm_X_t *p_X, ssm_par_t *p
 
     like = gsl_ran_poisson_pdf(rint(y), gsl_mu);
 
+    {% elif x.distribution == 'binomial' %}
+
+    double gsl_p = {{ x.p }};
+    double gsl_n = {{ x.n }};
+
+    like = gsl_ran_binomial_pdf(rint(y), gsl_p, gsl_n);
+
     {% endif %}
 
     return like;
@@ -65,6 +72,13 @@ static double f_obs_ran_tpl_{{ x.name }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_
 
     double yobs = gsl_ran_poisson(calc->randgsl, gsl_mu);
 
+    {% elif x.distribution == 'binomial' %}
+
+    double gsl_p = {{ x.p }};
+    double gsl_n = {{ x.n }};
+
+    like = gsl_ran_binomial(calc->randgsl, gsl_p, gsl_n);
+
     {% endif %}
 
     return yobs;
@@ -78,10 +92,10 @@ static double f_obs_ran_tpl_{{ x.name }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_
  * First order Taylor expansion
  * Var(f(X))= \sum_i \frac{\partial f(E(X_i))}{\partial x_i}Var(X_i)+\sum_{i\neqj}\frac{\partial f(E(X_i))}{\partial x_i}\frac{\partial f(E(X_j))}{\partial x_ij}Cov(X_i,X_j)
  */
-{% for h, x in h_grads.items() %}
-{% for t, y in x.items() %}
-static double f_var_pred_tpl_{{ y.name }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, double t)
-{
+ {% for h, x in h_grads.items() %}
+ {% for t, y in x.items() %}
+ static double f_var_pred_tpl_{{ y.name }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, double t)
+ {
     double res = 0;
     int m = nav->states_sv->length + nav->states_inc->length + nav->states_diff->length;
     gsl_matrix_const_view Ct   = gsl_matrix_const_view_array(&p_X->proj[m], m, m);

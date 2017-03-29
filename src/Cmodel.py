@@ -125,10 +125,17 @@ class Cmodel:
         #par_obs
         par_obs = set();
         for o in observations:
-            if o['distribution'] == 'poisson':
+            if o['distribution'] == 'discretized_normal':
+                pars = [o['mean'], o['sd']]
+            elif o['distribution'] == 'poisson':
                 o['sd'] = 'sqrt('+o['mean']+')'
+                pars = [o['mean'], o['sd']]
+            elif o['distribution'] == 'binomial':
+                o['mean'] = o['p']+'*'+o['n']
+                o['sd'] = 'sqrt('+o['p']+'*(1-'+o['p']+')*'+o['n']+')'
+                pars = [o['n'], o['p'],o['mean'], o['sd']]
 
-            for p in [o['mean'], o['sd']]:
+            for p in pars:
                 el =  self.change_user_input(p)
                 for e in el:
                     if e not in self.op and e not in self.reserved and e not in self.special_functions and e not in self.par_sv and e not in self.par_noise and e not in self.par_proc and e not in self.par_forced and e not in self.par_inc:
