@@ -140,7 +140,7 @@ Note that all the parameters of the distribution need to appear in addition to `
 
 ### Modify `src/Cmodel.py`
 
-Finally, the appropriate `mean` and `sd` of the Gaussian approximation must be defined in this file. We can use the fact that when `mean > 1000`, the Poisson distribution can be approximated by a normal distribution with the same `mean` and `sd = sqrt(mean)`. Thus, we only need to compute the standard deviation:
+The appropriate `mean` and `sd` of the Gaussian approximation must be defined in this file. We can use the fact that when `mean > 1000`, the Poisson distribution can be approximated by a normal distribution with the same `mean` and `sd = sqrt(mean)`. Thus, we only need to compute the standard deviation:
 
 ```python
 for o in observations:
@@ -161,4 +161,48 @@ for o in observations:
 
         self.par_obs = sorted(list(par_obs))
 ```
+
+### Modify `json-schema/model-schema.json`
+
+Finally, if the distribution requires parameters names other than `means` and `sd`, you need to specify these in the `observation` field of the schema file. Since the Poisson distribution is parameterized by the `mean` there is no need to edit the file. However, for a binomial distribution with parameters `p` and `n` this would become:
+
+```json
+ "observations": {
+      "type": "array",
+      "description": "Name each of the observed time series, determine when observations started to be collected and what is the distribution of the observation process.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "start": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "distribution": {
+            "type": "string"
+          },
+          "mean": {
+            "type": "string"
+          },
+          "sd": {
+            "type": "string"
+          },
+          "n": {
+            "type": "string"
+          },
+          "p": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "start",
+          "distribution"
+        ]
+      }
+    }
+```
+
 

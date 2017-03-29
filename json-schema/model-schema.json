@@ -215,14 +215,18 @@
           },
           "sd": {
             "type": "string"
+          },
+          "n": {
+            "type": "string"
+          },
+          "p": {
+            "type": "string"
           }
         },
         "required": [
           "name",
           "start",
-          "distribution",
-          "mean",
-          "sd"
+          "distribution"
         ]
       }
     },
