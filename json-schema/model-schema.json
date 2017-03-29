@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "SSM model",
-  "description": "Description of an state space model following the grammar of the SSM inference package",
+  "description": "Description of a state space model following the grammar of the SSM inference package",
   "definitions": {
     "require": {
       "type": "object",

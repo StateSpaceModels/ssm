@@ -77,7 +77,7 @@ static double f_obs_ran_tpl_{{ x.name }}(ssm_X_t *p_X, ssm_par_t *par, ssm_calc_
     double gsl_p = {{ x.p }};
     double gsl_n = {{ x.n }};
 
-    like = gsl_ran_binomial(calc->randgsl, gsl_p, gsl_n);
+    double yobs = gsl_ran_binomial(calc->randgsl, gsl_p, gsl_n);
 
     {% endif %}
 
