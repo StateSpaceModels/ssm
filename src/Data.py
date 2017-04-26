@@ -107,7 +107,8 @@ class Data(Ccoder):
         dates.sort()
 
         data_C = []
-        for d in dates:
+    
+        for i, d in enumerate(dates):
             pd = parse_date(d)
             row = {
                 'date': pd.isoformat(),
@@ -117,9 +118,13 @@ class Data(Ccoder):
                 'time': (pd-self.t0).days
             }
 
+            if i > 0:
+                for x in obs_id:
+                    if dates[i-1] in data[x]['dict']:
+                        row['reset'].extend(data[x]['ind_inc_reset'])
+            
             for x in obs_id:
-                if d in data[x]['dict']:
-                    row['reset'].extend(data[x]['ind_inc_reset'])
+                if d in data[x]['dict']:        
                     if data[x]['dict'][d] is not None:
                         row['observed'].append(data[x]['order'])
                         row['values'].append(data[x]['f'](data[x]['dict'][d]))
