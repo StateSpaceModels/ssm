@@ -176,7 +176,8 @@ int main(int argc, char *argv[])
     /////////////////////////
     // initialization step //
     /////////////////////////
-    int j, n, j_select;
+    int j, n;
+    // int j_select;
     int m = 0;
 
     ssm_par2X(D_J_X[0][0], par, calc[0], nav);
