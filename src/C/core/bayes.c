@@ -21,8 +21,8 @@
 /**
  * compute the log of the prob of the proposal
  */
-ssm_err_code_t ssm_log_prob_proposal(double *log_proposal, ssm_theta_t *proposed, ssm_theta_t *theta, ssm_var_t *var, double sd_fac, ssm_nav_t *nav, int is_mvn)
-{
+ ssm_err_code_t ssm_log_prob_proposal(double *log_proposal, ssm_theta_t *proposed, ssm_theta_t *theta, ssm_var_t *var, double sd_fac, ssm_nav_t *nav, int is_mvn)
+ {
 
     int i;
     ssm_parameter_t *p;
@@ -59,10 +59,10 @@ ssm_err_code_t ssm_log_prob_proposal(double *log_proposal, ssm_theta_t *proposed
           diagonal terms so everything generalizes nicely
         */
 
-        p_tmp /= p->f_der_inv(gsl_vector_get(proposed, p->offset_theta));
+          p_tmp /= p->f_der_inv(gsl_vector_get(proposed, p->offset_theta));
 
         //check for numerical issues
-        if( (isnan(p_tmp)==1) || (isinf(p_tmp)==1) || (p_tmp<0.0) ) {
+          if( (isnan(p_tmp)==1) || (isinf(p_tmp)==1) || (p_tmp<0.0) ) {
             return SSM_ERR_PROPOSAL;
         }
 
@@ -92,8 +92,8 @@ ssm_err_code_t ssm_log_prob_proposal(double *log_proposal, ssm_theta_t *proposed
  * means it doesn't immediatly return on failure). This is usefull for
  * the --prior option.
  */
-ssm_err_code_t ssm_log_prob_prior(double *log_prior, ssm_theta_t *theta, ssm_nav_t *nav, ssm_fitness_t *fitness)
-{
+ ssm_err_code_t ssm_log_prob_prior(double *log_prior, ssm_theta_t *theta, ssm_nav_t *nav, ssm_fitness_t *fitness)
+ {
     int i;
     ssm_parameter_t *p;
     int is_err = 0;
@@ -129,8 +129,8 @@ ssm_err_code_t ssm_log_prob_prior(double *log_prior, ssm_theta_t *theta, ssm_nav
  * return accepted (SSM_SUCCESS) or rejected (SSM_MH_REJECTED) or
  * combination of prob errors and assign fitness->log_prior
  */
-ssm_err_code_t ssm_metropolis_hastings(ssm_fitness_t *fitness, double *alpha, ssm_theta_t *proposed, ssm_theta_t *theta, gsl_matrix *var, double sd_fac , ssm_nav_t *nav, ssm_calc_t *calc, int is_mvn)
-{
+ ssm_err_code_t ssm_metropolis_hastings(ssm_fitness_t *fitness, double *alpha, ssm_theta_t *proposed, ssm_theta_t *theta, gsl_matrix *var, double sd_fac , ssm_nav_t *nav, ssm_calc_t *calc, int is_mvn)
+ {
     double ran;
     ssm_err_code_t success = SSM_SUCCESS;
     double lproposal, lproposal_prev, lprior_prev;
@@ -162,8 +162,8 @@ ssm_err_code_t ssm_metropolis_hastings(ssm_fitness_t *fitness, double *alpha, ss
  * (depending on the iteration value and options) and the evaluated
  * tuning factor sd_fac
  */
-ssm_var_t *ssm_adapt_eps_var_sd_fac(double *sd_fac, ssm_adapt_t *a, ssm_var_t *var, ssm_nav_t *nav, int m)
-{
+ ssm_var_t *ssm_adapt_eps_var_sd_fac(double *sd_fac, ssm_adapt_t *a, ssm_var_t *var, ssm_nav_t *nav, int m)
+ {
     // evaluate epsilon(m) = epsilon(m-1) * exp(a^(m-1) * (acceptance_rate(m-1) - 0.234))
 
     if ( (m > a->eps_switch) && ( m * a->ar < a->m_switch) ) {
@@ -234,8 +234,8 @@ int ssm_par_copy(ssm_par_t *dest, ssm_par_t *src)
  * Other caveat: D_J_p_X are in [N_DATA+1] ([0] contains the initial conditions)
  * select is in [N_DATA], times is in [N_DATA]
  */
-void ssm_sample_traj(ssm_X_t **D_X, ssm_X_t ***D_J_X, ssm_calc_t *calc, ssm_data_t *data, ssm_fitness_t *fitness)
-{
+ void ssm_sample_traj(ssm_X_t **D_X, ssm_X_t ***D_J_X, ssm_calc_t *calc, ssm_data_t *data, ssm_fitness_t *fitness)
+ {
     int j_sel; //the selected particle
     int n, nn, indn;
 
@@ -252,8 +252,11 @@ void ssm_sample_traj(ssm_X_t **D_X, ssm_X_t ***D_J_X, ssm_calc_t *calc, ssm_data
 
     //print traj of ancestors of particle j_sel;
 
-    //!!! we assume that the last data point contain information'
+    //!!! below we assume that the last data point contain information'
     ssm_X_copy(D_X[data->n_obs], D_J_X[data->n_obs][j_sel]);
+
+    // take ancestor of last data point
+    j_sel = fitness->select[data->n_obs - 1][j_sel];
 
     //printing all ancesters up to previous observation time
     for(nn = (data->ind_nonan[data->n_obs_nonan-1]-1); nn > data->ind_nonan[data->n_obs_nonan-2]; nn--) {
@@ -263,8 +266,91 @@ void ssm_sample_traj(ssm_X_t **D_X, ssm_X_t ***D_J_X, ssm_calc_t *calc, ssm_data
     for(n = (data->n_obs_nonan-2); n >= 1; n--) {
         //indentifying index of the path that led to sampled particule
         indn = data->ind_nonan[n];
-        j_sel = fitness->select[indn][j_sel];
         ssm_X_copy(D_X[indn + 1], D_J_X[indn + 1][j_sel]);
+
+        j_sel = fitness->select[indn][j_sel];
+
+        //printing all ancesters up to previous observation time
+        for(nn= (indn-1); nn > data->ind_nonan[n-1]; nn--) {
+            ssm_X_copy(D_X[nn + 1], D_J_X[nn + 1][j_sel]);
+        }
+    }
+
+
+    indn = data->ind_nonan[0];
+    ssm_X_copy(D_X[nn + 1], D_J_X[ nn + 1 ][j_sel]);
+    
+    j_sel = fitness->select[indn][j_sel];
+
+    for(nn=indn; nn>=-1; nn--) {
+        ssm_X_copy(D_X[nn + 1], D_J_X[ nn + 1 ][j_sel]);
+    }
+
+}
+
+
+// this is a function used for debugging a bug in retrieving particle genealogy
+// it's similar to ssm_sample_traj but take the j_select as input
+// j_select is returned by ssm_sample_traj_print2 and allow to compare the print and non-print version of this function
+// we keep it in case we need to debugg it in the future
+void ssm_sample_traj2(ssm_X_t **D_X, ssm_X_t ***D_J_X, ssm_calc_t *calc, ssm_data_t *data, ssm_fitness_t *fitness,const int j_select)
+{
+    int j_sel; //the selected particle
+    int n, nn, indn;
+
+    double ran, cum_weights;
+
+    ran=gsl_ran_flat(calc->randgsl, 0.0, 1.0);
+
+    j_sel=0;
+    cum_weights=fitness->weights[0];
+
+    while (cum_weights < ran) {
+        cum_weights += fitness->weights[++j_sel];
+    }
+
+    j_sel = j_select;
+
+    // /*test*/
+    // FILE *test_file = fopen("/Users/Tonton/work/projects/hev-modelling/ssm/SIR_ssm/pmcmc/X_sampled_0.csv", "a");
+    // if (test_file == NULL)
+    // {
+    //     printf("Error opening file!\n");
+    //     exit(1);
+    // }
+
+    // fprintf(test_file, "%i\n", j_sel);
+    // fclose(test_file);
+    // /*test*/
+
+    //print traj of ancestors of particle j_sel;
+
+    //!!! we assume that the last data point contain information'
+    fprintf(stderr, "data->n_obs = %i\n", data->n_obs);
+    ssm_X_copy(D_X[data->n_obs], D_J_X[data->n_obs][j_sel]);
+
+    //printing all ancesters up to previous observation time
+    fprintf(stderr, "data->n_obs_nonan = %i\n", data->n_obs_nonan);
+    fprintf(stderr, "(data->ind_nonan[data->n_obs_nonan - 1] - 1) = %i\n", (data->ind_nonan[data->n_obs_nonan - 1] - 1));
+    fprintf(stderr, "data->ind_nonan[data->n_obs_nonan-2] = %i\n", data->ind_nonan[data->n_obs_nonan-2]);
+
+    // for(nn = 0; nn < data->n_obs_nonan; nn++){
+    //     fprintf(stderr, "data->ind_nonan[%i] = %i\n", nn, data->ind_nonan[nn]); 
+    // }
+
+    j_sel = fitness->select[data->n_obs - 1][j_sel];
+
+    for(nn = (data->ind_nonan[data->n_obs_nonan - 1] - 1); nn > data->ind_nonan[data->n_obs_nonan-2]; nn--) {
+        fprintf(stderr, "nn = %i\n", nn);
+        ssm_X_copy(D_X[nn+1], D_J_X[nn+1][j_sel]);
+    }
+
+    for(n = (data->n_obs_nonan-2); n >= 1; n--) {
+        //indentifying index of the path that led to sampled particule
+        indn = data->ind_nonan[n];
+        ssm_X_copy(D_X[indn + 1], D_J_X[indn + 1][j_sel]);
+
+        j_sel = fitness->select[indn][j_sel];
 
         //printing all ancesters up to previous observation time
         for(nn= (indn-1); nn > data->ind_nonan[n-1]; nn--) {
@@ -273,12 +359,18 @@ void ssm_sample_traj(ssm_X_t **D_X, ssm_X_t ***D_J_X, ssm_calc_t *calc, ssm_data
     }
 
     indn = data->ind_nonan[0];
+    ssm_X_copy(D_X[nn + 1], D_J_X[ nn + 1 ][j_sel]);
+    
     j_sel = fitness->select[indn][j_sel];
 
-    for(nn=indn; nn>=0; nn--) {
+    for(nn=indn; nn>=-1; nn--) {
         ssm_X_copy(D_X[nn + 1], D_J_X[ nn + 1 ][j_sel]);
     }
+
+    // j_sel = fitness->select[indn][j_sel];
+
 
     //TODO nn=-1 (for initial conditions)
 
 }
+

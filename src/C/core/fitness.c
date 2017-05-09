@@ -24,11 +24,12 @@
  *  scale by making sure that everything below fitness->log_like_min
  *  is fitness->log_like_min*row->ts_nonan_length.
  */
-double ssm_sanitize_log_likelihood(double log_like, ssm_row_t *row, ssm_fitness_t *fitness, ssm_nav_t *nav)
-{
+ double ssm_sanitize_log_likelihood(double log_like, ssm_row_t *row, ssm_fitness_t *fitness, ssm_nav_t *nav)
+ {
     if ((isinf(log_like)==1) || (isnan(log_like)==1) ) { //error
         if (nav->print & SSM_PRINT_WARNING) {
             ssm_print_warning("error likelihood computation");
+            // fprintf(stderr, "at time %u\n", row->time);
         }
         return fitness->log_like_min * row->ts_nonan_length;
     } else {
@@ -88,17 +89,17 @@ void ssm_dic_init(ssm_fitness_t *fitness, double log_like, double log_prior)
 void ssm_dic_update(ssm_fitness_t *fitness, double log_like, double log_prior)
 {
     if( log_like > fitness->summary_log_likelihood){
-	fitness->summary_log_likelihood = log_like;
-    }
-    if( (log_like+log_prior) > fitness->summary_log_ltp){
-	fitness->summary_log_ltp = (log_like+log_prior);
-    }
+       fitness->summary_log_likelihood = log_like;
+   }
+   if( (log_like+log_prior) > fitness->summary_log_ltp){
+       fitness->summary_log_ltp = (log_like+log_prior);
+   }
 
-    double deviance = -2*log_like;
-    fitness->_deviance_cum += deviance;
-    if( deviance < fitness->_min_deviance){
-	fitness->_min_deviance = deviance;
-    }
+   double deviance = -2*log_like;
+   fitness->_deviance_cum += deviance;
+   if( deviance < fitness->_min_deviance){
+       fitness->_min_deviance = deviance;
+   }
 }
 
 void ssm_dic_end(ssm_fitness_t *fitness, ssm_nav_t *nav, int m)
