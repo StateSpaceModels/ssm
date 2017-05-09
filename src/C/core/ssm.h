@@ -733,6 +733,7 @@ void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *
 void ssm_print_header_hat(FILE *stream, ssm_nav_t *nav);
 void ssm_print_hat(FILE *stream, ssm_hat_t *hat, ssm_nav_t *nav, ssm_row_t *row);
 void ssm_sample_traj_print(FILE *stream, ssm_X_t ***D_J_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_data_t *data, ssm_fitness_t *fitness, const int index);
+int ssm_sample_traj_print2(FILE *stream, ssm_X_t ***D_J_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_data_t *data, ssm_fitness_t *fitness, const int index);
 void ssm_print_header_ar(FILE *stream);
 void ssm_print_ar(FILE *stream, ssm_adapt_t *adapt, const int index);
 
@@ -751,6 +752,7 @@ void ssm_theta_ran(ssm_theta_t *proposed, ssm_theta_t *theta, ssm_var_t *var, do
 int ssm_theta_copy(ssm_theta_t *dest, ssm_theta_t *src);
 int ssm_par_copy(ssm_par_t *dest, ssm_par_t *src);
 void ssm_sample_traj(ssm_X_t **D_X, ssm_X_t ***D_J_X, ssm_calc_t *calc, ssm_data_t *data, ssm_fitness_t *fitness);
+void ssm_sample_traj2(ssm_X_t **D_X, ssm_X_t ***D_J_X, ssm_calc_t *calc, ssm_data_t *data, ssm_fitness_t *fitness, const int j_select);
 
 /* simplex.c */
 double ssm_simplex(ssm_theta_t *theta, ssm_var_t *var, void *params, double (*f_simplex)(const gsl_vector *x, void *params), ssm_nav_t *nav, ssm_options_t *opts);

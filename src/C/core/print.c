@@ -18,8 +18,8 @@
 
 #include "ssm.h"
 
-void ssm_print_log(char *data)
-{
+ void ssm_print_log(char *data)
+ {
 #if SSM_JSON
     json_t *root;
     root = json_pack("{s,s,s,s}", "id", "log", "data", data);
@@ -88,79 +88,79 @@ void ssm_pipe_theta(FILE *stream, json_t *jparameters, ssm_theta_t *theta, ssm_v
 
         } else if ((strcmp(name, "covariance") == 0)) {
             jcovariance = el;
-	} else if ((strcmp(name, "summary") == 0)) {
-	    jsummary = el;
-	}
-    }
+        } else if ((strcmp(name, "summary") == 0)) {
+         jsummary = el;
+     }
+ }
 
-    json_t *jsummarydata = json_object();
-    json_object_set_new(jsummarydata, "id", json_integer(opts->id));
-    json_object_set_new(jsummarydata, "AIC", isnan(fitness->AIC) ? json_null(): json_real(fitness->AIC));
-    json_object_set_new(jsummarydata, "AICc", isnan(fitness->AICc) ? json_null(): json_real(fitness->AICc));
-    json_object_set_new(jsummarydata, "DIC", isnan(fitness->DIC) ? json_null(): json_real(fitness->DIC));
-    json_object_set_new(jsummarydata, "log_likelihood", isnan(fitness->summary_log_likelihood) ? json_null(): json_real(fitness->summary_log_likelihood));
-    json_object_set_new(jsummarydata, "log_ltp", isnan(fitness->summary_log_ltp) ? json_null(): json_real(fitness->summary_log_ltp));
-    json_object_set_new(jsummarydata, "sum_squares", isnan(fitness->summary_sum_squares) ? json_null(): json_real(fitness->summary_sum_squares));
-    json_object_set_new(jsummarydata, "n_parameters", json_integer(nav->theta_all->length));
-    json_object_set_new(jsummarydata, "n_data", json_integer(fitness->n));
+ json_t *jsummarydata = json_object();
+ json_object_set_new(jsummarydata, "id", json_integer(opts->id));
+ json_object_set_new(jsummarydata, "AIC", isnan(fitness->AIC) ? json_null(): json_real(fitness->AIC));
+ json_object_set_new(jsummarydata, "AICc", isnan(fitness->AICc) ? json_null(): json_real(fitness->AICc));
+ json_object_set_new(jsummarydata, "DIC", isnan(fitness->DIC) ? json_null(): json_real(fitness->DIC));
+ json_object_set_new(jsummarydata, "log_likelihood", isnan(fitness->summary_log_likelihood) ? json_null(): json_real(fitness->summary_log_likelihood));
+ json_object_set_new(jsummarydata, "log_ltp", isnan(fitness->summary_log_ltp) ? json_null(): json_real(fitness->summary_log_ltp));
+ json_object_set_new(jsummarydata, "sum_squares", isnan(fitness->summary_sum_squares) ? json_null(): json_real(fitness->summary_sum_squares));
+ json_object_set_new(jsummarydata, "n_parameters", json_integer(nav->theta_all->length));
+ json_object_set_new(jsummarydata, "n_data", json_integer(fitness->n));
 
-    if(!jsummary){
-	json_array_append_new(jresources, json_pack("{s,s,s,o}", "name", "summary", "data", jsummarydata));
-    } else{
-	json_object_set_new(jsummary, "data", jsummarydata);
-    }
+ if(!jsummary){
+     json_array_append_new(jresources, json_pack("{s,s,s,o}", "name", "summary", "data", jsummarydata));
+ } else{
+     json_object_set_new(jsummary, "data", jsummarydata);
+ }
 
-    if(var){
-        json_t *jdata = json_object();
+ if(var){
+    json_t *jdata = json_object();
 
-        for(i=0; i<nav->theta_all->length; i++){
-            json_t *jrow = json_object();
-            for(j=0; j<nav->theta_all->length; j++){
-                x = gsl_matrix_get(var, nav->theta_all->p[i]->offset_theta, nav->theta_all->p[j]->offset_theta);
-                if(x){
-                    json_object_set_new(jrow, nav->theta_all->p[j]->name, json_real(x));
-                }
-            }
-            if(json_object_size(jrow)){
-                json_object_set_new(jdata, nav->theta_all->p[i]->name, jrow);
-            } else {
-                json_decref(jrow);
+    for(i=0; i<nav->theta_all->length; i++){
+        json_t *jrow = json_object();
+        for(j=0; j<nav->theta_all->length; j++){
+            x = gsl_matrix_get(var, nav->theta_all->p[i]->offset_theta, nav->theta_all->p[j]->offset_theta);
+            if(x){
+                json_object_set_new(jrow, nav->theta_all->p[j]->name, json_real(x));
             }
         }
-
-        if(json_object_size(jdata)){
-            if(!jcovariance){
-                json_array_append_new(jresources, json_pack("{s,s,s,o}", "name", "covariance", "data", jdata));
-            } else{
-                json_object_set_new(jcovariance, "data", jdata);
-            }
+        if(json_object_size(jrow)){
+            json_object_set_new(jdata, nav->theta_all->p[i]->name, jrow);
         } else {
-            json_decref(jdata);
+            json_decref(jrow);
         }
-    }    
-    
-    if(strcmp(opts->next, "") != 0){
+    }
+
+    if(json_object_size(jdata)){
+        if(!jcovariance){
+            json_array_append_new(jresources, json_pack("{s,s,s,o}", "name", "covariance", "data", jdata));
+        } else{
+            json_object_set_new(jcovariance, "data", jdata);
+        }
+    } else {
+        json_decref(jdata);
+    }
+}    
+
+if(strcmp(opts->next, "") != 0){
 	char path[SSM_STR_BUFFSIZE];
 	snprintf(path, SSM_STR_BUFFSIZE, "%s/%s%d.json", opts->root, opts->next, opts->id);
 	json_dump_file(jparameters, path, JSON_INDENT(2));
-    } else {
+} else {
 	json_dumpf(jparameters, stdout, JSON_COMPACT); printf("\n");
 	fflush(stdout);	
-    }
+}
 }
 
 /**
  * remove summary (if any) and pipe hat. This is typicaly used for simulations
  */
-void ssm_pipe_hat(FILE *stream, json_t *jparameters, ssm_input_t *input, ssm_hat_t *hat, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_options_t *opts, double t)
-{
+ void ssm_pipe_hat(FILE *stream, json_t *jparameters, ssm_input_t *input, ssm_hat_t *hat, ssm_par_t *par, ssm_calc_t *calc, ssm_nav_t *nav, ssm_options_t *opts, double t)
+ {
     int i, index;
     double x;
 
     json_t *jresources = json_object_get(jparameters, "resources");
     json_t *jsummary = NULL;
     int index_summary;
-	
+    
     for(index=0; index< json_array_size(jresources); index++){
         json_t *el = json_array_get(jresources, index);
 
@@ -173,23 +173,23 @@ void ssm_pipe_hat(FILE *stream, json_t *jparameters, ssm_input_t *input, ssm_hat
                 json_object_set_new(values, nav->theta_all->p[i]->name, json_real(x));
             }
         } else if (strcmp(name, "summary") == 0){
-	    jsummary = el;
-	    index_summary = index;
-	}
-    }
+         jsummary = el;
+         index_summary = index;
+     }
+ }
 
-    if(jsummary){
-	json_array_remove(jresources, index_summary);       
-    }
+ if(jsummary){
+     json_array_remove(jresources, index_summary);       
+ }
 
-    if(strcmp(opts->next, "") != 0){
-	char path[SSM_STR_BUFFSIZE];
-	snprintf(path, SSM_STR_BUFFSIZE, "%s/%s%d.json", opts->root, opts->next, opts->id);
-	json_dump_file(jparameters, path, JSON_INDENT(2));
-    } else {
-	json_dumpf(jparameters, stdout, JSON_COMPACT); printf("\n");
-	fflush(stdout);	
-    }
+ if(strcmp(opts->next, "") != 0){
+     char path[SSM_STR_BUFFSIZE];
+     snprintf(path, SSM_STR_BUFFSIZE, "%s/%s%d.json", opts->root, opts->next, opts->id);
+     json_dump_file(jparameters, path, JSON_INDENT(2));
+ } else {
+     json_dumpf(jparameters, stdout, JSON_COMPACT); printf("\n");
+     fflush(stdout);	
+ }
 }
 
 
@@ -264,7 +264,7 @@ void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm
 #endif
     }
 
-        for(i=0; i<nav->observed_length; i++){
+    for(i=0; i<nav->observed_length; i++){
         observed = nav->observed[i];
 #if SSM_JSON
         json_object_set_new(jout, observed->name, json_real(observed->f_obs_mean(p_X, par, calc, t)));
@@ -273,8 +273,8 @@ void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm
 #endif
     }
 
-        char key[SSM_STR_BUFFSIZE];
-        for(i=0; i<nav->observed_length; i++){
+    char key[SSM_STR_BUFFSIZE];
+    for(i=0; i<nav->observed_length; i++){
         observed = nav->observed[i];
         snprintf(key, SSM_STR_BUFFSIZE, "ran_%s", observed->name);
 #if SSM_JSON
@@ -295,20 +295,20 @@ void ssm_print_X(FILE *stream, ssm_X_t *p_X, ssm_par_t *par, ssm_nav_t *nav, ssm
 
 
 
-void ssm_print_header_trace(FILE *stream, ssm_nav_t *nav)
-{
-    int i;
-    for(i=0; i < nav->theta_all->length; i++) {
-        fprintf(stream, "%s,", nav->theta_all->p[i]->name);
+    void ssm_print_header_trace(FILE *stream, ssm_nav_t *nav)
+    {
+        int i;
+        for(i=0; i < nav->theta_all->length; i++) {
+            fprintf(stream, "%s,", nav->theta_all->p[i]->name);
+        }
+        fprintf(stream, "fitness,index\n");
     }
-    fprintf(stream, "fitness,index\n");
-}
 
 /**
  * fitness is either log likelihood or sum of square
  */
-void ssm_print_trace(FILE *stream, ssm_theta_t *theta, ssm_nav_t *nav, const double fitness, const int index)
-{
+ void ssm_print_trace(FILE *stream, ssm_theta_t *theta, ssm_nav_t *nav, const double fitness, const int index)
+ {
     int i;
     ssm_parameter_t *parameter;
 
@@ -409,37 +409,37 @@ void ssm_print_pred_res(FILE *stream, ssm_X_t **J_X, ssm_par_t *par, ssm_nav_t *
                 var_obs += observed->f_obs_var(J_X[j], par, calc, t);
             }
 
-	    if(fitness->J > 1){
-		var_state = M2/(kn - 1.0);
-	    } else {
-		var_state = 0;
-	    }
+            if(fitness->J > 1){
+              var_state = M2/(kn - 1.0);
+          } else {
+              var_state = 0;
+          }
 
-            var_obs /= ((double) fitness->J);
+          var_obs /= ((double) fitness->J);
 
-            res = (y - pred)/sqrt(var_state + var_obs);
-        }
+          res = (y - pred)/sqrt(var_state + var_obs);
+      }
 
 #if SSM_JSON
-        snprintf(key, SSM_STR_BUFFSIZE, "pred_%s", observed->name);
-        json_object_set_new(jout, key, json_real(pred));
+      snprintf(key, SSM_STR_BUFFSIZE, "pred_%s", observed->name);
+      json_object_set_new(jout, key, json_real(pred));
 
-        snprintf(key, SSM_STR_BUFFSIZE, "res_%s", observed->name);
-        json_object_set_new(jout, key, (isnan(res)==1)? json_null(): json_real(res));
+      snprintf(key, SSM_STR_BUFFSIZE, "res_%s", observed->name);
+      json_object_set_new(jout, key, (isnan(res)==1)? json_null(): json_real(res));
 #else
-        tmp_pred[observed->offset] = pred;
-        tmp_res[observed->offset] = res;
+      tmp_pred[observed->offset] = pred;
+      tmp_res[observed->offset] = res;
 #endif
-    }
+  }
 
 #if SSM_JSON
-    json_object_set_new(jout, "ess", (isnan(fitness->ess_n)==1)? json_null(): json_real(fitness->ess_n));
-    ssm_json_dumpf(stream, "predres", jout);
+  json_object_set_new(jout, "ess", (isnan(fitness->ess_n)==1)? json_null(): json_real(fitness->ess_n));
+  ssm_json_dumpf(stream, "predres", jout);
 #else
-    for(ts=0; ts<data->ts_length; ts++){
-        fprintf(stream, "%g,%g,", tmp_pred[ts], tmp_res[ts]);
-    }
-    fprintf(stream, "%g\n", fitness->ess_n);
+  for(ts=0; ts<data->ts_length; ts++){
+    fprintf(stream, "%g,%g,", tmp_pred[ts], tmp_res[ts]);
+}
+fprintf(stream, "%g\n", fitness->ess_n);
 #endif
 }
 
@@ -463,10 +463,10 @@ void ssm_print_header_hat(FILE *stream, ssm_nav_t *nav)
     }
 
     for(i=0; i<nav->observed_length; i++){
-	fprintf(stream, ",mean_%s,lower_%s,upper_%s", nav->observed[i]->name, nav->observed[i]->name, nav->observed[i]->name);
-    }
+     fprintf(stream, ",mean_%s,lower_%s,upper_%s", nav->observed[i]->name, nav->observed[i]->name, nav->observed[i]->name);
+ }
 
-    fprintf(stream, "\n");
+ fprintf(stream, "\n");
 }
 
 
@@ -563,8 +563,8 @@ void ssm_print_hat(FILE *stream, ssm_hat_t *hat, ssm_nav_t *nav, ssm_row_t *row)
  * Other caveat: D_J_p_X are in [N_DATA+1] ([0] contains the initial conditions)
  * select is in [N_DATA], times is in [N_DATA]
  */
-void ssm_sample_traj_print(FILE *stream, ssm_X_t ***D_J_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_data_t *data, ssm_fitness_t *fitness, const int index)
-{
+ void ssm_sample_traj_print(FILE *stream, ssm_X_t ***D_J_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_data_t *data, ssm_fitness_t *fitness, const int index)
+ {
     int j_sel;
     int n, nn, indn;
 
@@ -621,6 +621,73 @@ void ssm_sample_traj_print(FILE *stream, ssm_X_t ***D_J_X, ssm_par_t *par, ssm_n
 
 }
 
+
+// this is a function used for debugging a bug in retrieving particle genealogy
+// it's similar to ssm_sample_traj but print the sampled particle
+// it's similar to ssm_sample_traj_print but return j_sel_start
+// j_sel_start is then used by by ssm_sample_traj2 and allow to compare the print and non-print version of this function
+// we keep it in case we need to debugg it in the future
+int ssm_sample_traj_print2(FILE *stream, ssm_X_t ***D_J_X, ssm_par_t *par, ssm_nav_t *nav, ssm_calc_t *calc, ssm_data_t *data, ssm_fitness_t *fitness, const int index)
+ {
+    int j_sel, j_sel_start;
+    int n, nn, indn;
+
+    double ran, cum_weights;
+
+    ssm_X_t *X_sel;
+
+    ran=gsl_ran_flat(calc->randgsl, 0.0, 1.0);
+
+    j_sel=0;
+    cum_weights=fitness->weights[0];
+
+    while (cum_weights < ran) {
+        cum_weights += fitness->weights[++j_sel];
+    }
+
+    j_sel_start = j_sel;
+
+    //print traj of ancestors of particle j_sel;
+
+    //!!! we assume that the last data point contain information'
+    X_sel = D_J_X[data->n_obs][j_sel]; // N_DATA-1 <=> data->indn_data_nonan[N_DATA_NONAN-1]
+    ssm_print_X(stream, X_sel, par, nav, calc, data->rows[data->n_obs-1], index);
+
+    //printing all ancesters up to previous observation time
+    for(nn = (data->ind_nonan[data->n_obs_nonan-1]-1); nn > data->ind_nonan[data->n_obs_nonan-2]; nn--) {
+        X_sel = D_J_X[ nn + 1 ][j_sel];
+        ssm_print_X(stream, X_sel, par, nav, calc, data->rows[nn], index);
+    }
+
+    for(n = (data->n_obs_nonan-2); n >= 1; n--) {
+        //indentifying index of the path that led to sampled particule
+        indn = data->ind_nonan[n];
+        j_sel = fitness->select[indn][j_sel];
+        X_sel = D_J_X[ indn + 1 ][j_sel];
+
+        ssm_print_X(stream, X_sel, par, nav, calc, data->rows[indn], index);
+
+        //printing all ancesters up to previous observation time
+        for(nn= (indn-1); nn > data->ind_nonan[n-1]; nn--) {
+            X_sel = D_J_X[ nn + 1 ][j_sel];
+            ssm_print_X(stream, X_sel, par, nav, calc, data->rows[nn], index);
+        }
+    }
+
+    indn = data->ind_nonan[0];
+    j_sel = fitness->select[indn][j_sel];
+    X_sel = D_J_X[indn+1][j_sel];
+
+    for(nn=indn; nn>=0; nn--) {
+        X_sel = D_J_X[ nn + 1 ][j_sel];
+        ssm_print_X(stream, X_sel, par, nav, calc, data->rows[nn], index);
+    }
+
+    //TODO nn=-1 (for initial conditions)
+
+    return(j_sel_start);
+
+}
 
 void ssm_print_header_ar(FILE *stream)
 {
